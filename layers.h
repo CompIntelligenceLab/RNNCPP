@@ -30,7 +30,7 @@ public:
    virtual VI3& getInputDim() { return input_dim; }
 
    /** get layer weights */
-   WEIGHTS getWeights();  // not sure of data structure
+   WeightList getWeights();  // not sure of data structure
 
    // gradient of loss function with respect to weights
    void computeGradient();

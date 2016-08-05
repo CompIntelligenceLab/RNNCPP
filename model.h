@@ -39,7 +39,7 @@ public:
    GRADIENTS getGradient();
 
    /** return vector of weights for each layer */
-   WEIGHTS getWeights();
+   WeightList getWeights();
 };
 
 #endif

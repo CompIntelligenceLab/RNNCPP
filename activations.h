@@ -11,6 +11,10 @@ class Activation
 public:
 	Activation();
 	~Activation();
+	/** Gradient f'(x) of activation function f(x) */
+	/** x has dimensionality equal to the previous layer size */
+	/** the return value has the dimensionality of the new layer size */
+	float gradient(); // FIX
 	virtual VF operator()(VF x) = 0;
 };
 //----------------------------------------------------------------------
