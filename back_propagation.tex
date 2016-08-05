@@ -1,0 +1,95 @@
+\documentclass{article}
+\usepackage{amsmath}
+\begin{document}
+\section{Derivation of back propagation}
+Let us first consider a feed-forward network with a single layer. The output takes the following form: 
+$$
+y^k_i = \sum_{j}  f^k_i(w^{k,l}_{i,j} y^l_{j} + b^k_i)
+$$
+summed over the nodes of layer $l$. 
+Information propagates from layer $l$ to layer $k$. The output to layer $l$, evaluated at node $j$ is $y^l_j$. 
+Calculate the derivative of $y^k_i$ with respect to $w^{k,l}(p,q)$: 
+\begin{align}
+\frac{dy^k_i}{dw^{k,l}_{p,q}}
+   &= \sum_{j} {f^k}' \delta_{i,p}\delta{j,q} y^l_j \\
+   &= {f^k}' \delta_{i,p} y^l_q
+\end{align}
+where $f'(x)$ is evaluated at $x=w^{k,l}_{i,j} y^l_{j} + b^k_i$. 
+%\end{document}
+
+Similarly, taking the derivative with respect to $b^k_j$,the result is: 
+\begin{align}
+\frac{dy^k_i}{db^{k}_{p}}
+   &= \sum_{j} {f^k}' \delta_{i,p} \\
+\end{align}
+
+It is best to include the biases inside the weight matrix, by adding one row to the weight matrix.
+The biases will be the first row. Thus, only the formula 
+$$
+\frac{dy^k_i}{dw^{k,l}_{p,q}} = {f^k}' \delta_{i,p} y^l_q
+$$
+is relevant. in vector form, this relation becomes
+$$
+\frac{dy^k}{dw^{k,l}} = {f^k}' \delta_{i,p} y^l_q
+$$
+
+Let us call $z$ the argument of the activation function. In later $k$, $z$ has $n_k$ elements. 
+Layer 0 is the input layer. 
+Thus: 
+\begin{align}
+z^k_i &= \sum_j w^{k,l}_{i,j} y^l_{j} \\
+z^k   &=  W^{k,l} Y^l
+\end{align}
+where the 2nd equation is written in vector form. The matrix $W^{k,l}$, connecting layers $l$ and $k$ contains the biases
+of layer $k$ in the first row. The output of layer $k$ is thus:
+\begin{align}
+y^k_i &= f^k(z^k_i)
+y^k = f^k(z^k)
+\end{align}
+By composite differentiation, one has
+$$
+\frac{dy^k}{dW} = \frac{dy^k}{dz^k} \frac{dz^k}{dW^{k,l}}
+$$
+We now consider two layers: 
+In the first layer: 
+\begin{align}
+Z^1 &=  W^{1,0} Y^0 \\
+Y^1 &= f^1(Z^1)
+\end{align}
+where $Y^0=X$, the input to the network. 
+In the second layer, 
+\begin{align}
+Z^2 &=  W^{2,1} Y^1 \\
+Y^2 &= f^2(Z^2)
+\end{align}
+and $Y^2=Y$ is the output of the network. 
+
+Compute the derivative of $Y^2$ with respect to $W^{2,1}$ and with respect to $W^{1,0}$: 
+\begin{align}
+\frac{dY^2}{dW^{2,1}} &= {f^2}'(Z^2) \frac{dZ^2}{dW^{2,1}} \\
+\frac{dY^2}{dW^{1,0}} &= {f^2}'(Z^2) \frac{dZ^2}{dW^{1,0}} \\
+                      &= {f^2}'(Z^2) \frac{dZ^2}{dY^{1}} \frac{dY^{1}}{dW^{1,0}} \\
+                      &= {f^2}'(Z^2) W^{2,1} {f^1}'(Z_1)\frac{dZ^1}{dW^{1,0}} \\     % not sure about row 0
+                      &= {f^2}'(Z^2) W^{2,1} {f^1}'(Z_1) Y_0     
+\end{align}
+
+Derivative of $Y=A*X$ with respect to $A$. Let $Y$ be a vector with $n$ rows, $X$ a vector with $m$ rows, and $A$ a $n\times m$ matrix. 
+We have the matrix-vector product, 
+\begin{align}
+Y_i = \sum_j A_{ij} X_j
+\end{align}
+Taking the derivative of $Y_i$ with respect to $A_{kl}$, one gets: 
+\begin{align}
+\frac{dY_i}{dA_{kl}} &= \sum_j \delta_{i,k}\delta{j,l} X_j \\
+                     &=   \delta_{i,k} X_l \\
+                     &=   I \otimes X 
+\end{align}
+where $I$ is the identity matrix of dimension $n\times n$. $I\otimes X$ is a tensor product. 
+
+In general, the following relationship holds between two vectors $a$, $b$, and a matrix $W$: 
+$$
+\frac{da^TWb}{dW} = a b^T
+$$
+
+
+\end{document}

@@ -4,7 +4,7 @@
 #include <vector>
 #include <eigen/Eigen>
 
-typedef std::vector<float>  VF;
+typedef Eigen::VectorXf VF;
 typedef Eigen::Vector3i  VI3;
 typedef Eigen::MatrixXf WEIGHTS;
 

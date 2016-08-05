@@ -13,11 +13,15 @@ class Layer
 private:
 	int seq_len;
 	int batch_size;
+	int dim;  // dimension of data (scalar, ...)
+	int layer_size; // number of nodes in layer
 	VI3 input_dim;
 	Weights* weights;
+	VF inputs;  // inputs to activation function
+	VF outputs; // outputs to activation function
 
 public:
-   Layer();
+   Layer(int layer_size=1); // allows for default constructor
    ~Layer();
    Layer(Layer&);
    virtual void print() {;}
