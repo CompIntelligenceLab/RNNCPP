@@ -4,6 +4,7 @@
 #include <vector>
 #include <eigen/Eigen>
 
+typedef Eigen::ArrayXf AF;
 typedef Eigen::VectorXf VF;
 typedef Eigen::Vector3i  VI3;
 typedef Eigen::MatrixXf WEIGHTS;
