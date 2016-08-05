@@ -1,0 +1,11 @@
+Authors: 
+
+Create a directory "build"
+
+Execute cmake: 
+  cmake ../
+
+Execute make: 
+> make
+
+
