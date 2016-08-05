@@ -1,5 +1,12 @@
 Authors: 
 
+-----------------
+Required libraries: 
+ - eigen (version number?)
+
+-----------------
+Installation
+
 Create a directory "build"
 
 Execute cmake: 
@@ -8,4 +15,4 @@ Execute cmake:
 Execute make: 
 > make
 
-
+-----------------
