@@ -1,0 +1,107 @@
+# template for our Neural net for mixed gaussian modeling. 
+
+Classes: 
+
+-----------------
+class Gaussian
+-----------------
+
+Layers: 
+- Dense
+    set_activation('tanh') ...
+- LSTM
+----
+
+----------------------------------------------------------------------
+Classes
+- Abstract class for Activation
+
+abstract class Activation() {
+	float operator() = 0;
+};
+
+class Tanh : public class Activation {
+};
+class Sigmoid : public class Activation {
+};
+----------------------------------------------------------------------
+- Abstract class for model
+- Abstract class for layer
+
+class Layer {
+private:
+	int batch_size;
+public:
+   Layer()...
+   ~Layer()...
+   Layer(Layer&)...
+   void setBatchSize(int batch_size);
+   int  getBatchSize();
+   void setSeqLen(int seq_len);
+   int getSeqLen();
+   // for experimentation: different learning rates per layer
+   // if not set, use LR for model
+   void setLearningRate(float lr);
+   void getLearningRate();
+   # gradient of loss function with respect to weights
+   void computeGradient();
+
+   # no shared weights except across time
+};
+
+class Dense : public class Layer {
+}
+
+class LSTM : public class Layer {
+};
+
+class TimeDistributed : public class Layer {
+};
+
+class GMM : public class Layer {
+};
+
+class Model():
+public:
+   Model();
+   ~Model();
+   setOptimizer(Optimizer* opt);
+   getOptimizer();
+   setReturnState(bool state);
+   getReturnState();
+   setLearningRate(float lr); // no required
+   float getLearningRate();
+
+class Loss() {
+public:
+};
+----------------------------------------------------------------------
+
+Model* m = new Model();
+Layer* l1 = new LSTM();
+Layer* l2 = new LSTM();
+Layer*  gmm = new GMM();
+l1->setActivation('Tanh');
+l2->setActivation('Sigmoid');
+m->add(l1);
+m->add(l2);
+m->add(gmm);
+Optimizer* rmsprop = new OptRMSProp();
+rmsprop->setLearningRate(1.e-5);
+m->setOptimizer(rmsprop);   // do not use strings for models. That way, use polymorphism
+m->setReturnState(true);
+
+m->compile()
+
+m->train()
+m->predict()
+m->test()
+
+
+----------------------------------------------------------------------
+
+
+
+
+
+

@@ -23,3 +23,5 @@ a.out
 *.pch
 *.lib
 *.obj
+
+build
