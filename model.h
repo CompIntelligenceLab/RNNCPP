@@ -3,6 +3,7 @@
 
 class Optimizer;
 class Objective;
+class Layer;
 
 class Model
 {
@@ -16,6 +17,10 @@ private:
 public: 
    Model();
    ~Model();
+
+   // Use pointer instead of reference to avoid including layers.h
+   void add(Layer* layer);
+
    void setOptimizer(Optimizer* opt);
    Optimizer* getOptimizer();
    void setStateful(bool stateful);
