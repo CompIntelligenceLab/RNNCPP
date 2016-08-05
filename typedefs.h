@@ -7,4 +7,6 @@
 typedef std::vector<float>  VF;
 typedef Eigen::Vector3i  VI3;
 
+// assumes sequential model (for now)
+
 #endif
