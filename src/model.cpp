@@ -1,4 +1,6 @@
 #include "model.h"
+#include <stdio.h>
+#include <armadillo>
 
 Model::Model(std::string name)
 {

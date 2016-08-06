@@ -1,4 +1,5 @@
 #include "optimizer.h"
+#include <stdio.h>
 
 Optimizer::Optimizer(std::string name)
 {
