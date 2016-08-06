@@ -6,10 +6,14 @@ Model::Model()
 //----------------------------------------------------------------------
 Model::~Model()
 {
+	for (int i=0; i < layers.size(); i++) {
+		delete layers[i];
+	}
 }
 //----------------------------------------------------------------------
-void Model::add(Layer* opt)
+void Model::add(Layer* layer)
 {
+	layers.push_back(layer);
 }
 //----------------------------------------------------------------------
 void Model::setOptimizer(Optimizer* opt)

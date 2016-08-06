@@ -7,6 +7,7 @@
 #include "typedefs.h"
 #include "weights.h"
 #include "gradient.h"
+#include "activations.h"
 
 class Activation;
 
@@ -18,9 +19,9 @@ private:
 	int dim;  // dimension of data (scalar, ...)
 	int layer_size; // number of nodes in layer
 	VI3 input_dim;
-	Weights* weights;
 	VF inputs;  // inputs to activation function
 	VF outputs; // outputs to activation function
+	Weights* weights;
 	Activation* activation;
 
 public:
@@ -47,7 +48,7 @@ public:
 };
 //----------------------------------------------------------------------
 /* use of this typedef requires inclusion of this file */
-typedef std::vector<Layer> LAYERS;
+typedef std::vector<Layer*> LAYERS;
 //----------------------------------------------------------------------
 
 #endif

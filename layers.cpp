@@ -8,6 +8,8 @@ Layer::Layer(int layer_size) {
 }
 
 Layer::~Layer() {
+	delete weights;
+	delete activation;
 }
 
 Layer::Layer(Layer&) {
