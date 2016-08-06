@@ -20,3 +20,8 @@ Variable names are all lower-case, with words separated by underscore.
 Try to document as you go. 
 -----------------------------------------------
 
+Work in your own branch. Do NOT work in the development branch. 
+Only update running code to the development branch. 
+Create test cases  as you see fit, or update existing test cases by adding to the source code.
+
+------------------------------------------
