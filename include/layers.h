@@ -7,24 +7,29 @@
 #include "typedefs.h"
 #include "weights.h"
 #include "gradient.h"
+#include "activations.h"
+
+class Activation;
 
 class Layer
 {
-private:
+protected:
+	std::string name;
 	int seq_len;
 	int batch_size;
 	int dim;  // dimension of data (scalar, ...)
 	int layer_size; // number of nodes in layer
 	VI3 input_dim;
-	Weights* weights;
 	VF inputs;  // inputs to activation function
 	VF outputs; // outputs to activation function
+	Weights* weights;
+	Activation* activation;
 
 public:
-   Layer(int layer_size=1); // allows for default constructor
+   Layer(int layer_size=1, std::string name="layer"); // allows for default constructor
    ~Layer();
    Layer(Layer&);
-   virtual void print() {;}
+   virtual void print();
 
    virtual void setBatchSize(int batch_size) { this->batch_size = batch_size; }
    virtual int  getBatchSize() { return batch_size; }
@@ -32,6 +37,8 @@ public:
    virtual int getSeqLen() { return seq_len; }
    virtual void setInputDim(VI3& input_dim) { this->input_dim = input_dim; }
    virtual VI3& getInputDim() { return input_dim; }
+   virtual void setActivation(Activation* activation) { this->activation = activation; }
+   virtual Activation* getActivation() { return activation; }
 
    /** get layer weights */
    WeightList getWeights();  // not sure of data structure
@@ -42,7 +49,7 @@ public:
 };
 //----------------------------------------------------------------------
 /* use of this typedef requires inclusion of this file */
-typedef std::vector<Layer> LAYERS;
+typedef std::vector<Layer*> LAYERS;
 //----------------------------------------------------------------------
 
 #endif

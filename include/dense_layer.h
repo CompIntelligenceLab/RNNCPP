@@ -1,13 +1,16 @@
 #ifndef __DENSELAYER_H__
 #define __DENSELAYER_H__
 
+#include <string>
 #include "layers.h"
 
 class DenseLayer : public Layer
 {
-private:
+protected:
+	std::string name;
+
 public:
-	DenseLayer();
+	DenseLayer(std::string name="dense");
 	~DenseLayer();
 	DenseLayer(DenseLayer&);
 };

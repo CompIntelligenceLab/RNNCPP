@@ -5,9 +5,11 @@
 
 class LSTMLayer : public Layer
 {
-private:
+protected:
+	std::string name;
+
 public:
-	LSTMLayer();
+	LSTMLayer(std::string name="lstm");
 	~LSTMLayer();
 	LSTMLayer(LSTMLayer&);
 };

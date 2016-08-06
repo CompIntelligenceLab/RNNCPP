@@ -1,12 +1,17 @@
 #include "activations.h"
 
-Activation::Activation() 
+Activation::Activation(std::string name) 
 {
+	this->name = name;
 }
 //----------------------------------------------------------------------
 Activation::~Activation() 
 {
 }
 //----------------------------------------------------------------------
+void Activation::print()
+{
+	printf("activation: name= %s\n", this->name.c_str());
+}
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

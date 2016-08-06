@@ -25,3 +25,5 @@ a.out
 *.obj
 
 build
+
+*.aux

@@ -2,29 +2,36 @@
 #define __ACTIVATIONS_H__
 
 #include <vector>
-#include <math.h>
+//#include <math.h>
 #include <Eigen/Core>
 #include "typedefs.h"
 
 
 class Activation
 {
+protected:
+	std::string name;
+
 public:
-	Activation();
-	~Activation();
+	Activation(std::string name="");
+	virtual ~Activation();
 	/** Gradient f'(x) of activation function f(x) */
 	/** x has dimensionality equal to the previous layer size */
 	/** the return value has the dimensionality of the new layer size */
 	virtual VF gradient(VF x) = 0; // gradients of activation function evaluated at x
 	virtual VF operator()(VF x) = 0;
+	virtual void print();
 };
 //----------------------------------------------------------------------
 class Tanh : public Activation
 {
 public:
+	std::string name;
+	Tanh(std::string name="tanh") : Activation(name) {;}
+
 	VF operator()(VF x) {
 		AF ex = x;
-		ex = 2.*ex.exp(); //exp(x);
+		ex = (2.*ex).exp(); //exp(x);
 		return (ex-1.) / (ex + 1.);
 	}
 
@@ -38,12 +45,19 @@ public:
 class Sigmoid : public Activation
 {
 public:
+	Sigmoid(std::string name="sigmoid") : Activation(name) {;}
+
 	VF operator()(VF x) {
-		VF y; //x.size);
-		for (int i=0; i < x.size(); i++) {
-			y[i] = 1. / (1.+exp(-x[i]));
-		}
-		return y;
+		AF ex = x;
+		return 1. / (1. + (-ex).exp());
+	}
+
+	//f = 1 / (1 + exp(-x)) = 1/D
+	//f' = -1/D^2 * (-exp(-x)-1 + 1) = -1/D^2 * (-D + 1) = 1/D - 1/D^2 = f (1-f)
+	VF gradient(VF x) 
+	{
+		AF s = this->operator()(x);
+		return s*(1-s);
 	}
 };
 //----------------------------------------------------------------------

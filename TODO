@@ -1,1 +1,2 @@
-How to incorporate frozen weights? 
+- How to incorporate frozen weights? 
+- Create a library to link against (Cmakefile): Nathan
