@@ -1,2 +1,4 @@
 - How to incorporate frozen weights? 
 - Create a library to link against (Cmakefile): Nathan
+- Weight initialization
+- Create single layer feedforward and print out the outputs

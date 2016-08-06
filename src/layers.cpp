@@ -15,10 +15,10 @@ Layer::Layer(int layer_size, std::string name)
 	counter++;
 
 	this->layer_size = layer_size;
-	int batch_size = 1;  // default value
-	int seq_len   = 1; // default value
-	int dim   = 1; // default: scalar
-	weights = 0;
+	int batch_size  = 1;  // default value
+	int seq_len     = 1; // default value
+	int dim         = 1; // default: scalar
+	weights         = 0;
 
 	// Default activation: tanh
 	activation = new Tanh("tanh");
@@ -55,4 +55,7 @@ void Layer::print(std::string msg)
 	}
 }
 
-void Layer::execute() {;}
+// Take the inputs (dimensionality based on previous layer), and generate the outputs
+void Layer::execute() {
+	outputs = (*activation)(inputs);
+}

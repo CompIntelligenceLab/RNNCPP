@@ -15,6 +15,7 @@ include_directories(
 
 # Call the CMakeLists.txt file in the src directory
 add_subdirectory(src)
+add_subdirectory(tests)
 
 add_executable(rnn main.cpp) #${SOURCE})
 
