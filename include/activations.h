@@ -11,6 +11,7 @@ class Activation
 {
 protected:
 	std::string name;
+	static int counter;
 
 public:
 	Activation(std::string name="");

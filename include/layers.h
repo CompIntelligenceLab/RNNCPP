@@ -14,6 +14,7 @@ class Activation;
 class Layer
 {
 protected:
+	static int counter;
 	std::string name;
 	int seq_len;
 	int batch_size;
@@ -34,11 +35,14 @@ public:
    virtual void setBatchSize(int batch_size) { this->batch_size = batch_size; }
    virtual int  getBatchSize() { return batch_size; }
    virtual void setSeqLen(int seq_len) { this->seq_len = seq_len; }
-   virtual int getSeqLen() { return seq_len; }
+   virtual int  getSeqLen() { return seq_len; }
    virtual void setInputDim(VI3& input_dim) { this->input_dim = input_dim; }
    virtual VI3& getInputDim() { return input_dim; }
    virtual void setActivation(Activation* activation) { this->activation = activation; }
    virtual Activation* getActivation() { return activation; }
+
+   /** Compute the outputs given the inputs */
+   virtual void execute();
 
    /** get layer weights */
    WeightList getWeights();  // not sure of data structure

@@ -1,14 +1,27 @@
 #include "layers.h"
 
+int Layer::counter = 0;
+
 Layer::Layer(int layer_size, std::string name)
 {
-	this->name = name;
+	char cname[80];
+
+	if (strlen(cname) > 80) {
+		printf("Activation::Activation : cname array too small\n");
+		exit(1);
+	}
+	sprintf(cname, "%s%d", name.c_str(), counter);
+	this->name = cname;
+	counter++;
+
 	this->layer_size = layer_size;
 	int batch_size = 1;  // default value
 	int seq_len   = 1; // default value
 	int dim   = 1; // default: scalar
 	weights = 0;
-	activation = 0;
+
+	// Default activation: tanh
+	activation = new Tanh("tanh");
 }
 
 Layer::~Layer()
@@ -41,3 +54,5 @@ void Layer::print(std::string msg)
 		activation->print();
 	}
 }
+
+void Layer::execute() {;}

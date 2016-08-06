@@ -20,6 +20,7 @@ int main() {
 
 	Activation* ttanh = new Tanh("tanh");
 	Sigmoid* ssigmoid = new Sigmoid("sigmoid");
+	l2->setActivation(ssigmoid);
 
 	Optimizer* opt = new RMSProp("myrmsprop");
 	opt->print();
