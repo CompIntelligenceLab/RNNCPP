@@ -6,8 +6,10 @@
 class LSTMLayer : public Layer
 {
 private:
+	str::string name;
+
 public:
-	LSTMLayer();
+	LSTMLayer(std::string name="lstm");
 	~LSTMLayer();
 	LSTMLayer(LSTMLayer&);
 };

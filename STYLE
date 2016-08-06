@@ -1,0 +1,22 @@
+Style adoped in these programs. 
+
+-----------------------------------------------
+Include files: 
+Add #ifndef statements at the top of all include files. Stick with name convention. 
+If the include file is named abc.h, you should add: 
+#ifndef __ABC_H__
+#define ___ABC_H__
+...
+...
+#endif
+-----------------------------------------------
+Classes should be capitalized. 
+Multi-syllable words should have capitals on each syllable. (there are exceptions)
+All non-standard types should be defined in typedefs.h via typedefs
+---------------------------------------------
+Method names in classes start with a non-capital letter; following syllables are capitalized
+Variable names are all lower-case, with words separated by underscore. 
+
+Try to document as you go. 
+-----------------------------------------------
+

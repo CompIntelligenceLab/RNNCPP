@@ -1,7 +1,8 @@
 #include "lstm_layer.h"
 
-LSTMLayer::LSTMLayer()
+LSTMLayer::LSTMLayer(std::string name)
 {
+	this->name = name
 }
 //----------------------------------------------------------------------
 LSTMLayer::~LSTMLayer()

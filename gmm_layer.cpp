@@ -1,7 +1,8 @@
 #include "gmm_layer.h"
 
-GMMLayer::GMMLayer()
+GMMLayer::GMMLayer(std::string name)
 {
+	this->name = name
 }
 //----------------------------------------------------------------------
 GMMLayer::~GMMLayer()

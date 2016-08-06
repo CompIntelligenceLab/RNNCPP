@@ -9,6 +9,9 @@
 
 class Activation
 {
+private:
+	std::string name;
+
 public:
 	Activation();
 	virtual ~Activation();
@@ -17,11 +20,13 @@ public:
 	/** the return value has the dimensionality of the new layer size */
 	virtual VF gradient(VF x) = 0; // gradients of activation function evaluated at x
 	virtual VF operator()(VF x) = 0;
+	virtual void print();
 };
 //----------------------------------------------------------------------
 class Tanh : public Activation
 {
 public:
+	Tanh(std::string name="tanh");
 	VF operator()(VF x) {
 		AF ex = x;
 		ex = (2.*ex).exp(); //exp(x);
@@ -38,6 +43,7 @@ public:
 class Sigmoid : public Activation
 {
 public:
+	Sigmoid(std::string name="sigmoid");
 	VF operator()(VF x) {
 		AF ex = x;
 		return 1. / (1. + (-ex).exp());

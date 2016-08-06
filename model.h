@@ -2,18 +2,23 @@
 #define __Model_H__
 
 #include <vector>
+#include <string>
 #include "typedefs.h"
 #include "gradient.h"
 #include "weights.h"
 #include "layers.h"
+#include "optimizer.h"
+#include "objective.h"
+#include "layers.h"
 
-class Optimizer;
-class Objective;
-class Layer;
+//class Optimizer;
+//class Objective;
+//class Layer;
 
 class Model
 {
 private:
+	std::string name;
 	bool   stateful;
 	float learning_rate;
 	bool return_sequences;
@@ -22,8 +27,9 @@ private:
 	LAYERS layers; // operate by value for safety) 
 
 public: 
-   Model();
+   Model(std::string name="model");
    ~Model();
+   void print();
 
    // Use pointer instead of reference to avoid including layers.h
    void add(Layer* layer);

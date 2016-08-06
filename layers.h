@@ -14,6 +14,7 @@ class Activation;
 class Layer
 {
 private:
+	std::string name;
 	int seq_len;
 	int batch_size;
 	int dim;  // dimension of data (scalar, ...)
@@ -25,10 +26,10 @@ private:
 	Activation* activation;
 
 public:
-   Layer(int layer_size=1); // allows for default constructor
+   Layer(int layer_size=1, std::string name="layer"); // allows for default constructor
    ~Layer();
    Layer(Layer&);
-   virtual void print() {;}
+   virtual void print();
 
    virtual void setBatchSize(int batch_size) { this->batch_size = batch_size; }
    virtual int  getBatchSize() { return batch_size; }

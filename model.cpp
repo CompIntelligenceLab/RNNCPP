@@ -1,7 +1,10 @@
 #include "model.h"
 
-Model::Model()
+Model::Model(std::string name)
 {
+	this->name = name;
+	learning_rate = 1.e-5; 
+	return_sequences = false;
 }
 //----------------------------------------------------------------------
 Model::~Model()
@@ -56,6 +59,19 @@ float Model::getLearningRate()
 	return learning_rate;
 }
 //----------------------------------------------------------------------
+void Model::print()
+{
+	printf("*** Model printout: ***\n");
+	printf("name: %s\n", name.c_str());
+	printf("stateful: %d\n", stateful);
+	printf("learning_rate: %f\n", learning_rate);
+	printf("return_sequences: %d\n", return_sequences);
+	//optimizer->print();
+	//loss->print();
+	for (int i=0; i < layers.size(); i++) {
+		layers[i]->print();
+	}
+}
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
