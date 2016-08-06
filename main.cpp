@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 #include "model.h"
 #include "activations.h"
 #include "layers.h"
@@ -15,5 +16,6 @@ int main() {
 	m->add(l2);
 	m->add(l3);
 
-	Tanh* a = new Tanh();
+	Tanh* ttanh = new Tanh();
+	Sigmoid* ssigmoid = new Sigmoid();
 }

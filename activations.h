@@ -2,7 +2,7 @@
 #define __ACTIVATIONS_H__
 
 #include <vector>
-#include <math.h>
+//#include <math.h>
 #include <Eigen/Core>
 #include "typedefs.h"
 
@@ -24,7 +24,7 @@ class Tanh : public Activation
 public:
 	VF operator()(VF x) {
 		AF ex = x;
-		ex = 2.*ex.exp(); //exp(x);
+		ex = (2.*ex).exp(); //exp(x);
 		return (ex-1.) / (ex + 1.);
 	}
 
@@ -39,11 +39,16 @@ class Sigmoid : public Activation
 {
 public:
 	VF operator()(VF x) {
-		VF y; //x.size);
-		for (int i=0; i < x.size(); i++) {
-			y[i] = 1. / (1.+exp(-x[i]));
-		}
-		return y;
+		AF ex = x;
+		return 1. / (1. + (-ex).exp());
+	}
+
+	//f = 1 / (1 + exp(-x)) = 1/D
+	//f' = -1/D^2 * (-exp(-x)-1 + 1) = -1/D^2 * (-D + 1) = 1/D - 1/D^2 = f (1-f)
+	VF gradient(VF x) 
+	{
+		AF s = this->operator()(x);
+		return s*(1-s);
 	}
 };
 //----------------------------------------------------------------------

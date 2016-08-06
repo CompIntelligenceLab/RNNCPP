@@ -8,6 +8,8 @@
 #include "weights.h"
 #include "gradient.h"
 
+class Activation;
+
 class Layer
 {
 private:
@@ -19,6 +21,7 @@ private:
 	Weights* weights;
 	VF inputs;  // inputs to activation function
 	VF outputs; // outputs to activation function
+	Activation* activation;
 
 public:
    Layer(int layer_size=1); // allows for default constructor
@@ -32,6 +35,8 @@ public:
    virtual int getSeqLen() { return seq_len; }
    virtual void setInputDim(VI3& input_dim) { this->input_dim = input_dim; }
    virtual VI3& getInputDim() { return input_dim; }
+   virtual void setActivation(Activation* activation) { this->activation = activation; }
+   virtual Activation* getActivation() { return activation; }
 
    /** get layer weights */
    WeightList getWeights();  // not sure of data structure
