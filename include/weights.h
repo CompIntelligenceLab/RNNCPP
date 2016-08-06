@@ -1,11 +1,11 @@
 #ifndef __WEIGHTS_H__
 #define __WEIGHTS_H__
 
-#ifdef __APPLE__
-  #include <eigen3/Eigen>
-#elif __linux__
-  #include <eigen3/Eigen/Eigen>
-#endif
+//#ifdef __APPLE__
+  //#include <eigen3/Eigen>
+//#elif __linux__
+  //#include <eigen3/Eigen/Eigen>
+//#endif
 
 #include <vector>
 #include "typedefs.h"

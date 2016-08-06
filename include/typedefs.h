@@ -3,7 +3,7 @@
 
 #include <vector>
 #ifdef __APPLE__
-  #include <eigen3/Eigen>
+  #include <eigen/Eigen>
 #elif __linux__
   #include <eigen3/Eigen/Eigen>
 #endif
