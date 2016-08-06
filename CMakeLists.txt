@@ -1,6 +1,14 @@
+project(RNNCPP)
 cmake_minimum_required(VERSION 2.8)
-Project(rnn)
 
-include_directories(Eigen)
+# Tells CMake to look for the Find<Package>.cmake files in the cmake folder
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-add_executable(rnn model.cpp weights.cpp activations.cpp main.cpp layers.cpp gmm_layer.cpp lstm_layer.cpp dense_layer.cpp)
+# Require Eigen3. This defines all our variables for includes/libs etc
+find_package(Eigen3 REQUIRED)
+
+# This is defined in previous line
+include_directories(${EIGEN3_INCLUDE_DIR}) 
+
+# Call the CMakeLists.txt file in the src directory
+add_subdirectory(src)

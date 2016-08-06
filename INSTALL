@@ -1,18 +1,15 @@
-Authors: 
-
+Requirements: 
 -----------------
-Required libraries: 
- - eigen (version number?)
+ - eigen 3
+ - cmake 2.8
 
------------------
 Installation
+-----------------
 
 Create a directory "build"
 
 Execute cmake: 
-  cmake ../
+> cmake -D CMAKE_CXX_COMPILER=<path_to_clang++> ..
 
 Execute make: 
 > make
-
------------------
