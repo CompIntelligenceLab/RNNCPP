@@ -9,9 +9,10 @@ Activation::~Activation()
 {
 }
 //----------------------------------------------------------------------
-void Activation::print()
+void Activation::print(std::string msg)
 {
 	printf("activation: name= %s\n", this->name.c_str());
+	if (msg != "") printf("%s\n", msg.c_str());
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

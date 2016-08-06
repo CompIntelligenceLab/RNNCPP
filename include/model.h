@@ -29,7 +29,7 @@ private:
 public: 
    Model(std::string name="model");
    ~Model();
-   void print();
+   void print(std::string msg="");
 
    // Use pointer instead of reference to avoid including layers.h
    void add(Layer* layer);

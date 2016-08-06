@@ -3,7 +3,7 @@
 Optimizer::Optimizer(std::string name)
 {
 	this->name = name;
-	this->learning_rate = learning_rate;
+	this->learning_rate = 1.e-5;
 }
 
 Optimizer::~Optimizer()
@@ -14,8 +14,15 @@ Optimizer::Optimizer(Optimizer&)
 {
 }
 
-void Optimizer::print()
+void Optimizer::print(std::string msg)
 {
-	print("Optimizer: %s\n", name->c_str());
-	print("learning_rate: %f\n", learning_rate);
+	printf("Optimizer: %s\n", name.c_str());
+	if (msg != "") printf("%s\n", msg.c_str());
+	printf("learning_rate: %f\n", learning_rate);
 }
+
+//----------------------------------------------------------------------
+
+RMSProp::RMSProp(std::string name) : Optimizer(name) {;}
+//----------------------------------------------------------------------
+

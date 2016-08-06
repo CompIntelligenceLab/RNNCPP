@@ -13,7 +13,7 @@ public:
 	Objective(std::string name);
 	~Objective();
 	Objective(Objective&);
-	virtual void print();
+	virtual void print(std::string name= "");
 };
 
 #endif

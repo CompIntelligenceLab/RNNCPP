@@ -26,7 +26,7 @@ public:
 	~Weights();
 	Weights(Weights&);
 	void initialize();
-	void print();
+	void print(std::string name= "");
 };
 
 //----------------------------------------------------------------------

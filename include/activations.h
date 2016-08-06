@@ -20,7 +20,7 @@ public:
 	/** the return value has the dimensionality of the new layer size */
 	virtual VF gradient(VF x) = 0; // gradients of activation function evaluated at x
 	virtual VF operator()(VF x) = 0;
-	virtual void print();
+	virtual void print(std::string name= "");
 };
 //----------------------------------------------------------------------
 class Tanh : public Activation

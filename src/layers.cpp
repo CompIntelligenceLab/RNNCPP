@@ -21,8 +21,10 @@ Layer::Layer(Layer&)
 {
 }
 
-void Layer::print() {
+void Layer::print(std::string msg) 
+{
 	printf("  -- layer: %s ---\n", name.c_str());
+    if (msg != "") printf("%s\n", msg.c_str());
 	printf("seq len: %d\n", seq_len);
 	printf("batch_size: %d\n", batch_size);
 	printf("dim: %d\n", dim);
@@ -30,9 +32,11 @@ void Layer::print() {
 	printf("input_dim: ???\n");
 	printf("inputs size: %ld\n", inputs.size());
 	printf("outputs size: %ld\n", outputs.size());
+
 	if (weights) {
 		weights->print();
 	}
+
 	if (activation) {
 		activation->print();
 	}

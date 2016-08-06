@@ -13,7 +13,20 @@ public:
 	Optimizer(std::string name="optimizer");
 	~Optimizer();
 	Optimizer(Optimizer&);
-	virtual void print();
+
+	virtual void print(std::string msg="");
+	virtual void setLearningRate(float lr) {learning_rate = lr; }
+	virtual float getLearningRate(float lr) {return learning_rate; };
+};
+
+//-------------------------------------------
+
+class RMSProp : public Optimizer
+{
+public:
+	RMSProp(std::string name="RMSProp");
+	~RMSProp();
+	RMSProp(RMSProp&);
 };
 
 #endif

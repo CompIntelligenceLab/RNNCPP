@@ -21,7 +21,8 @@ void Weights::initialize()
 {
 }
 
-void Weights::print()
+void Weights::print(std::string msg)
 {
 	printf("weights: %s\n", name.c_str());
+	if (msg != "") printf("%s\n", msg.c_str());
 }

@@ -12,7 +12,7 @@ public:
 	Gradients();
 	~Gradients();
 	Gradients(Gradients&);
-	void print();
+	virtual void print(std::string name= "");
 };
 //----------------------------------------------------------------------
 typedef std::vector<Gradients> GRADIENTS;

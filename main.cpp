@@ -3,6 +3,7 @@
 #include <string>
 #include "model.h"
 #include "activations.h"
+#include "optimizer.h"
 #include "layers.h"
 #include "dense_layer.h"
 #include "lstm_layer.h"
@@ -19,6 +20,9 @@ int main() {
 
 	Activation* ttanh = new Tanh("tanh");
 	Sigmoid* ssigmoid = new Sigmoid("sigmoid");
+
+	Optimizer* opt = new RMSProp("myrmsprop");
+	opt->print();
 
 	m->print();
 }

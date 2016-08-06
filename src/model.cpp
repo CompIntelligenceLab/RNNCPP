@@ -59,9 +59,10 @@ float Model::getLearningRate()
 	return learning_rate;
 }
 //----------------------------------------------------------------------
-void Model::print()
+void Model::print(std::string msg)
 {
 	printf("*** Model printout: ***\n");
+    if (msg != "") printf("%s\n", msg.c_str());
 	printf("name: %s\n", name.c_str());
 	printf("stateful: %d\n", stateful);
 	printf("learning_rate: %f\n", learning_rate);
