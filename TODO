@@ -2,3 +2,6 @@
 - Create a library to link against (Cmakefile): Nathan
 - Weight initialization
 - Create single layer feedforward and print out the outputs
+- create a code to run all the tests at once and provide a method
+to determine success or failure. 
+
