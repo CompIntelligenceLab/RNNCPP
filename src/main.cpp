@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <math.h>
+#include <string>
 #include "model.h"
 #include "activations.h"
 #include "layers.h"
@@ -8,12 +10,15 @@
 
 int main() {
 	Model* m  = new Model();
-	Layer* l1 = new DenseLayer();
-	Layer* l2 = new LSTMLayer();
-	Layer* l3 = new GMMLayer();
+	Layer* l1 = new DenseLayer("dense");
+	Layer* l2 = new LSTMLayer("lstm");
+	Layer* l3 = new GMMLayer("gmm");
 	m->add(l1);
 	m->add(l2);
 	m->add(l3);
 
-	Tanh* a = new Tanh();
+	Activation* ttanh = new Tanh("tanh");
+	Sigmoid* ssigmoid = new Sigmoid("sigmoid");
+
+	m->print();
 }
