@@ -20,7 +20,7 @@ protected:
 	int batch_size;
 	int dim;  // dimension of data (scalar, ...)
 	int layer_size; // number of nodes in layer
-	VI3 input_dim;
+	VI input_dim;
 	VF inputs;  // inputs to activation function
 	VF outputs; // outputs to activation function
 	Weights* weights;
@@ -36,8 +36,8 @@ public:
    virtual int  getBatchSize() { return batch_size; }
    virtual void setSeqLen(int seq_len) { this->seq_len = seq_len; }
    virtual int  getSeqLen() { return seq_len; }
-   virtual void setInputDim(VI3& input_dim) { this->input_dim = input_dim; }
-   virtual VI3& getInputDim() { return input_dim; }
+   virtual void setInputDim(VI input_dim) { this->input_dim = input_dim; }
+   virtual VI& getInputDim() { return input_dim; }
    virtual void setActivation(Activation* activation) { this->activation = activation; }
    virtual Activation* getActivation() { return activation; }
 

@@ -7,6 +7,8 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 # Require Eigen3. This defines all our variables for includes/libs etc
 find_package(Eigen3 REQUIRED)
 find_package(Armadillo REQUIRED)
+message(${ARMADILLO_LIBRARIES})
+message("=====================")
 
 # This is defined in previous line
 include_directories(
@@ -21,4 +23,4 @@ add_subdirectory(tests)
 
 add_executable(rnn main.cpp)
 
-target_link_libraries(rnn core)
+target_link_libraries(rnn core ${ARMADILLO_LIBRARIES})

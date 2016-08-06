@@ -17,6 +17,7 @@ int main() {
 	m->add(dense);
 	//m->add(l2);
 	//m->add(l3);
+	Sigmoid* sig = new Sigmoid();
 
 	Optimizer* opt = new RMSProp("myrmsprop");
 	opt->print();

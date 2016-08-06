@@ -31,14 +31,22 @@ public:
 	Tanh(std::string name="tanh") : Activation(name) {;}
 
 	VF operator()(VF x) {
+#ifdef ARMADILLO
+		return tanh(x);
+#else
 		AF ex = x;
 		ex = (2.*ex).exp(); //exp(x);
 		return (ex-1.) / (ex + 1.);
+#endif
 	}
 
 	VF gradient(VF x)
 	{
+#ifdef ARMADILLO
 		AF s = this->operator()(x);
+#else
+		VF s = this->operator()(x);
+#endif
 		return (1.-s*s);
 	}
 };
@@ -49,8 +57,12 @@ public:
 	Sigmoid(std::string name="sigmoid") : Activation(name) {;}
 
 	VF operator()(VF x) {
+#ifdef ARMADILLO
+		return 1. / (1. + exp(-x));
+#else
 		AF ex = x;
 		return 1. / (1. + (-ex).exp());
+#endif
 	}
 
 	//f = 1 / (1 + exp(-x)) = 1/D

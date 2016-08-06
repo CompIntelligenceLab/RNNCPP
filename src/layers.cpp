@@ -3,7 +3,7 @@
 
 int Layer::counter = 0;
 
-Layer::Layer(int layer_size, std::string name)
+Layer::Layer(int layer_size, std::string name) : input_dim(3)
 {
 	char cname[80];
 
