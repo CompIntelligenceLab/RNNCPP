@@ -17,8 +17,8 @@ int main() {
 	m->add(l2);
 	m->add(l3);
 
-	//Tanh* ttanh = new Tanh();
-	//Sigmoid* ssigmoid = new Sigmoid();
+	Activation* ttanh = new Tanh("tanh");
+	Sigmoid* ssigmoid = new Sigmoid("sigmoid");
 
 	m->print();
 }

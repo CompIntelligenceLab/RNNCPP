@@ -2,7 +2,7 @@
 
 DenseLayer::DenseLayer(std::string name)
 {
-	this->name = "dense"
+	this->name = "dense";
 }
 //----------------------------------------------------------------------
 DenseLayer::~DenseLayer()

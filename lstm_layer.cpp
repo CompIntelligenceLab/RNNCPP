@@ -2,7 +2,7 @@
 
 LSTMLayer::LSTMLayer(std::string name)
 {
-	this->name = name
+	this->name = name;
 }
 //----------------------------------------------------------------------
 LSTMLayer::~LSTMLayer()

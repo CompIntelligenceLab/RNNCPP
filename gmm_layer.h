@@ -6,8 +6,9 @@
 
 class GMMLayer : public Layer
 {
-private:
-	str::string name;
+protected:
+	std::string name;
+
 public:
 	GMMLayer(std::string name="gmm");
 	~GMMLayer();

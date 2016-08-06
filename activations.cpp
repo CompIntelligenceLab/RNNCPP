@@ -1,7 +1,8 @@
 #include "activations.h"
 
-Activation::Activation() 
+Activation::Activation(std::string name) 
 {
+	this->name = name;
 }
 //----------------------------------------------------------------------
 Activation::~Activation() 

@@ -13,7 +13,7 @@ class Activation;
 
 class Layer
 {
-private:
+protected:
 	std::string name;
 	int seq_len;
 	int batch_size;

@@ -9,11 +9,11 @@
 
 class Activation
 {
-private:
+protected:
 	std::string name;
 
 public:
-	Activation();
+	Activation(std::string name="");
 	virtual ~Activation();
 	/** Gradient f'(x) of activation function f(x) */
 	/** x has dimensionality equal to the previous layer size */
@@ -26,7 +26,9 @@ public:
 class Tanh : public Activation
 {
 public:
-	Tanh(std::string name="tanh");
+	std::string name;
+	Tanh(std::string name="tanh") : Activation(name) {;}
+
 	VF operator()(VF x) {
 		AF ex = x;
 		ex = (2.*ex).exp(); //exp(x);
@@ -43,7 +45,8 @@ public:
 class Sigmoid : public Activation
 {
 public:
-	Sigmoid(std::string name="sigmoid");
+	Sigmoid(std::string name="sigmoid") : Activation(name) {;}
+
 	VF operator()(VF x) {
 		AF ex = x;
 		return 1. / (1. + (-ex).exp());

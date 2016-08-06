@@ -6,8 +6,9 @@
 
 class DenseLayer : public Layer
 {
-private:
-	str::string name;
+protected:
+	std::string name;
+
 public:
 	DenseLayer(std::string name="dense");
 	~DenseLayer();

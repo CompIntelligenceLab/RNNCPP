@@ -10,10 +10,10 @@
 /** Possibly overload this class polymorphically */
 class Weights
 {
-private:
-std::string name;
-WEIGHTS* weights;
-int in_dim, out_dim;
+protected:
+	std::string name;
+	WEIGHTS* weights;
+	int in_dim, out_dim;
 
 public:
 	// input and output dimensions 

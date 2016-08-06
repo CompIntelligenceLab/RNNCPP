@@ -2,7 +2,7 @@
 
 GMMLayer::GMMLayer(std::string name)
 {
-	this->name = name
+	this->name = name;
 }
 //----------------------------------------------------------------------
 GMMLayer::~GMMLayer()
