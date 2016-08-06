@@ -1,4 +1,5 @@
 #include "weights.h"
+#include <stdio.h>
 
 Weights::Weights(int in, int out, std::string name)
 {

@@ -1,4 +1,5 @@
 #include "layers.h"
+#include <stdio.h>
 
 int Layer::counter = 0;
 
