@@ -8,7 +8,14 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Eigen3 REQUIRED)
 
 # This is defined in previous line
-include_directories(${EIGEN3_INCLUDE_DIR}) 
+include_directories(
+   ${EIGEN3_INCLUDE_DIR}
+   ${RNNCPP_SOURCE_DIR}/include
+)
 
 # Call the CMakeLists.txt file in the src directory
 add_subdirectory(src)
+
+add_executable(rnn main.cpp) #${SOURCE})
+
+target_link_libraries(rnn core)
