@@ -19,6 +19,8 @@ int main() {
 	//m->add(l3);
 	Sigmoid* sig = new Sigmoid();
 
+	m->initializeWeights();
+
 	Optimizer* opt = new RMSProp("myrmsprop");
 	opt->print();
 

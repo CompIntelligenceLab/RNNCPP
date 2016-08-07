@@ -62,12 +62,13 @@ public:
    //  x: signal input: (batch_size, seq_length, dimension)
    //  For non-recursive networks, x has size (batch_size, 1, dimension)
    void predict(VF3D x);
+   void compile();
 
-private:
+public:
 	/** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */
 	// Also allow fixed initialization in [-.8, .8] from a uniform distribution */
-	// 'gaussian', 'uniform', 'orthogonal'
-	void initialize_weights(std::string initialization_type);
+	// "gaussian", "uniform", "orthogonal"
+	void initializeWeights(std::string initialization_type="uniform");
 };
 
 #endif

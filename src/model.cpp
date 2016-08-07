@@ -91,7 +91,7 @@ void Model::predict(VF3D x)
 	*/
 }
 //----------------------------------------------------------------------
-void Model::initialize_weights(std::string initialization_type)
+void Model::initializeWeights(std::string initialization_type)
 {
 	int in_dim, out_dim;
 
