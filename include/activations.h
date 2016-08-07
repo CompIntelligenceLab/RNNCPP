@@ -16,6 +16,7 @@ protected:
 public:
 	Activation(std::string name="");
 	virtual ~Activation();
+	Activation(const Activation&); 
 	/** Gradient f'(x) of activation function f(x) */
 	/** x has dimensionality equal to the previous layer size */
 	/** the return value has the dimensionality of the new layer size */

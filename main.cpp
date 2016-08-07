@@ -18,10 +18,16 @@ int main() {
 	printf("before init\n");
 	m->initializeWeights();
 	printf("after init\n");
-	exit(0);
 
 	Optimizer* opt = new RMSProp("myrmsprop");
 	opt->print();
+	exit(1);
 
 	m->print();
+	printf("-----------------\n");
+
+	Model n = *m;
+	n.setName("model n");
+	n.print();
+	exit(0);
 }

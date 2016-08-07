@@ -1,4 +1,5 @@
 #include "model.h"
+#include "objective.h"
 #include <stdio.h>
 #include <armadillo>
 
@@ -16,6 +17,56 @@ Model::~Model()
 	for (int i=0; i < layers.size(); i++) {
 		delete layers[i];
 	}
+}
+//----------------------------------------------------------------------
+Model::Model(const Model& m) : name(m.name), stateful(m.stateful), learning_rate(m.learning_rate), 
+    return_sequences(m.return_sequences), input_dim(m.input_dim), batch_size(m.batch_size),
+	seq_len(m.seq_len), print_verbose(m.print_verbose), initialization_type(m.initialization_type)
+
+	// What to do with name (perhaps add a "c" at the end for copy-construcor?)
+{
+	optimizer = new Optimizer();
+	*optimizer = *m.optimizer;
+	Objective* loss = new Objective(); // ERROR
+	//loss->setName(m.loss->getName() + "c");
+	layers = m.layers;
+	LAYERS layers; // operate by value for safety)
+}
+//----------------------------------------------------------------------
+Model& Model::operator=(const Model& m) 
+{
+	printf("Model::operator= %s\n", name.c_str());
+
+	if (this != &m) {
+		name = m.name;
+		stateful = m.stateful;
+		learning_rate = m.learning_rate;
+		return_sequences = m.return_sequences;
+		input_dim = m.input_dim;
+		batch_size = m.batch_size;
+		seq_len = m.seq_len;
+		print_verbose= m.print_verbose;
+		initialization_type = m.initialization_type;
+
+		Optimizer* opt1 = 0;
+		Objective* loss1 = 0;
+
+		try {
+			opt1 = new Optimizer(*m.optimizer);
+			loss1 = new Objective(*m.loss);
+		} catch (...) {
+			delete opt1;
+			delete loss1;
+			throw;
+		}
+
+		// Superclass::operator=(that)
+		delete optimizer;
+		optimizer = opt1;
+		delete loss;;
+		loss = loss1;
+	}
+	return *this;
 }
 //----------------------------------------------------------------------
 void Model::add(Layer* layer)
@@ -72,8 +123,8 @@ void Model::print(std::string msg)
 	printf("learning_rate: %f\n", learning_rate);
 	printf("return_sequences: %d\n", return_sequences);
 	printf("print_verbose: %d\n", print_verbose);
-	//optimizer->print();
-	//loss->print();
+	optimizer->print();
+	loss->print();
 
 	if (print_verbose == false) return;
 

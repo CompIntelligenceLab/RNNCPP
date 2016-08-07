@@ -8,6 +8,7 @@ set(SOURCE
 	weights.cpp
 	gmm_layer.cpp
 	lstm_layer.cpp
+	objective.cpp
 	model.cpp)
 
 add_library(core ${SOURCE})
