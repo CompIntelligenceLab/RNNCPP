@@ -93,9 +93,15 @@ void Model::predict(VF3D x)
 //----------------------------------------------------------------------
 void Model::initialize_weights(std::string initialization_type)
 {
-	//in_dim = 
+	int in_dim, out_dim;
+
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i];
+		in_dim = (i == 0) ? input_dim : layers[i-1]->getInputDim();
+		out_dim = layer->getInputDim();
+		printf("layer %d, in_dim, out_dim= %d, %d\n", i, in_dim, out_dim);
+		layer->createWeights(in_dim, out_dim);
+		layer->initializeWeights(initialization_type);
 	}
 }
 //----------------------------------------------------------------------

@@ -57,6 +57,23 @@ void Layer::print(std::string msg)
 }
 
 // Take the inputs (dimensionality based on previous layer), and generate the outputs
-void Layer::execute() {
+void Layer::execute()
+{
 	outputs = (*activation)(inputs);
+}
+
+void Layer::createWeights(int in, int out)
+{
+	weights = new Weights(in, out, this->name+"_"+"weight");
+}
+
+void Layer::initializeWeights(std::string initialize_type)
+{
+		if (initialize_type == "gaussian") {
+		} else if (initialize_type == "uniform") {
+		} else if (initialize_type == "orthogonal") {
+		} else {
+			printf("initialize_type: %s not implemented\n", initialize_type.c_str());
+			exit(1);
+		}
 }

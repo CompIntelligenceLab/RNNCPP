@@ -16,6 +16,7 @@
 class Weights
 {
 protected:
+	static int counter;
 	std::string name;
 	WEIGHTS* weights;
 	int in_dim, out_dim;

@@ -20,7 +20,7 @@ protected:
 	int batch_size;
 	int dim;  // dimension of data (scalar, ...)
 	int layer_size; // number of nodes in layer
-	VI input_dim;
+	int input_dim; // dimensinality of data
 	VF inputs;  // inputs to activation function
 	VF outputs; // outputs to activation function
 	Weights* weights;
@@ -36,8 +36,8 @@ public:
    virtual int  getBatchSize() { return batch_size; }
    virtual void setSeqLen(int seq_len) { this->seq_len = seq_len; }
    virtual int  getSeqLen() { return seq_len; }
-   virtual void setInputDim(VI input_dim) { this->input_dim = input_dim; }
-   virtual VI& getInputDim() { return input_dim; }
+   virtual void setInputDim(int input_dim) { this->input_dim = input_dim; }
+   virtual int  getInputDim() { return input_dim; }
    virtual void setActivation(Activation* activation) { this->activation = activation; }
    virtual Activation* getActivation() { return activation; }
 
@@ -46,6 +46,8 @@ public:
 
    /** get layer weights */
    WeightList getWeights();  // not sure of data structure
+   virtual void createWeights(int in, int out);  // not sure of data structure
+   virtual void initializeWeights(std::string initialization_type="uniform");  // not sure of data structure
 
    // gradient of loss function with respect to weights
    void computeGradient();
