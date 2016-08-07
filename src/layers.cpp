@@ -30,8 +30,24 @@ Layer::~Layer()
 	delete activation;
 }
 
-Layer::Layer(Layer&)
+Layer::Layer(const Layer& l) : name(l.name), seq_len(l.seq_len), 
+   batch_size(l.batch_size), layer_size(l.layer_size), input_dim(l.input_dim), 
+   print_verbose(l.print_verbose)
 {
+	printf("Layer copy constructor (%s)\n", l.name.c_str());
+	//VF inputs(size(l.inputs));
+	inputs = l.inputs;
+	//VF outputs(size(l.outputs));
+	outputs = l.outputs;
+	int in_dim  = weights->getWeights()->n_rows;
+	int out_dim = weights->getWeights()->n_cols;
+	weights = new Weights(in_dim, out_dim);
+	*weights = *l.weights; // what to do with name? Replace number at end, and increment? 
+
+	// How does activation work with polymorphism ?
+	//activation = new Activation(); // HOW TO DO?   (does not work)
+	//*activation = *l.activation; // check name
+	//print("Layer copy constructor, activation->name= ", activation->name);
 }
 
 void Layer::print(std::string msg)

@@ -29,7 +29,7 @@ protected:
 public:
    Layer(int layer_size=1, std::string name="layer"); // allows for default constructor
    ~Layer();
-   Layer(Layer&);
+   Layer(const Layer&);
    virtual void print(std::string msg="");
 
    virtual void setBatchSize(int batch_size) { this->batch_size = batch_size; }

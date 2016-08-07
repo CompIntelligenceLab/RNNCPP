@@ -23,6 +23,7 @@ private:
 	float learning_rate;
 	bool return_sequences;
 	Optimizer* optimizer;
+	// More general models would have several loss functions running concurrently
 	Objective* loss;
 	LAYERS layers; // operate by value for safety)
 	std::string initialization_type;
@@ -35,6 +36,8 @@ private:
 public:
    Model(int input_dim, std::string name="model");
    ~Model();
+   Model(const Model&); // probably do not need it, but it is a good exercise. 
+   Model& operator=(const Model&); 
    void print(std::string msg="");
 
    // Use pointer instead of reference to avoid including layers.h
@@ -54,7 +57,9 @@ public:
    int getSeqLen() {return seq_len;}
    void setInputDim(int input_dim) {this->input_dim = input_dim;}
    void setBatchSize(int batch_size) {this->batch_size = batch_size;}
-	 void setSeqLen(int seq_len) { this->seq_len = seq_len;}
+   void setSeqLen(int seq_len) { this->seq_len = seq_len;}
+   void setName(std::string name) { this->name = name; }
+   std::string getName() { return name; }
 
    /** return vector of weights for each layer */
    WeightList getWeights();

@@ -28,8 +28,9 @@ public:
 	// input and output dimensions 
 	Weights(int in, int out, std::string name="weights");
 	~Weights();
-	Weights(const Weights&);
-	WEIGHTS* getWeights() { return weights; } 
+	Weights(Weights&);
+	Weights& operator=(const Weights& w);
+	WEIGHTS* getWeights() { return weights; }
 	void initializeWeights(std::string initialize_type="uniform");
 	void print(std::string name= "");
 };

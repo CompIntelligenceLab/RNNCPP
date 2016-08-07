@@ -35,6 +35,38 @@ Weights::Weights(const Weights& w) : name(w.name), in_dim(w.in_dim), out_dim(w.o
 	printf("Weights: inside copy constructor\n");
 }
 
+Weights& Weights::operator=(const Weights& w)
+{
+    static int counter;
+    std::string name;
+    WEIGHTS* weights;
+    int in_dim, out_dim;
+    bool print_verbose;
+
+
+	if (this != &w) {
+		name = w.name + "c";
+		in_dim = w.in_dim;
+		out_dim = w.out_dim;
+		print_verbose = w.print_verbose;
+
+		WEIGHTS* w1 = 0;
+
+		try {
+			//w1 = new WEIGHTS(w.weights->n_rows, w.weights->n_cols);
+			w1 = new WEIGHTS(*w.weights); // copy constructor
+		} catch (...) {
+			delete w1;
+			throw;
+		}
+
+		delete weights; // what if weights is 0? 
+		*weights = *w1;
+	}
+
+	return *this;
+}
+
 void Weights::initializeWeights(std::string initialize_type)
 {
 	if (initialize_type == "gaussian") {
