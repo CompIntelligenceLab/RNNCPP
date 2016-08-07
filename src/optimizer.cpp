@@ -9,6 +9,7 @@ Optimizer::Optimizer(std::string name)
 
 Optimizer::~Optimizer()
 {
+	printf("Optimization destructor (%s)\n", name.c_str());
 }
 
 Optimizer::Optimizer(const Optimizer& o) : learning_rate(o.learning_rate)

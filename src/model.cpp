@@ -14,6 +14,7 @@ Model::Model(int input_dim, std::string name)
 //----------------------------------------------------------------------
 Model::~Model()
 {
+	printf("Model destructor (%s)\n", name.c_str());
 	for (int i=0; i < layers.size(); i++) {
 		delete layers[i];
 	}
