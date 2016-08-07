@@ -13,6 +13,8 @@
 
 /** General structure to store weights. How to organize the data remains to be seen */
 /** Possibly overload this class polymorphically */
+/** This class will slow the program down: yet another level of indirection */
+
 class Weights
 {
 protected:
@@ -26,8 +28,8 @@ public:
 	// input and output dimensions 
 	Weights(int in, int out, std::string name="weights");
 	~Weights();
-	Weights(Weights&);
-	WEIGHTS* getWeights(); // not yet
+	Weights(const Weights&);
+	WEIGHTS* getWeights() { return weights; } 
 	void initializeWeights(std::string initialize_type="uniform");
 	void print(std::string name= "");
 };

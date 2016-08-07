@@ -18,10 +18,14 @@ int main() {
 	printf("before init\n");
 	m->initializeWeights();
 	printf("after init\n");
-	exit(0);
 
 	Optimizer* opt = new RMSProp("myrmsprop");
 	opt->print();
 
-	m->print();
+	//m->print();
+
+	VF3D x(1,1,1);
+	x(0,0,0) = .5;
+	m->predict(x);
+	printf("gordon exit\n"); exit(1);
 }

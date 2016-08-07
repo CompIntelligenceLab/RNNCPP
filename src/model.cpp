@@ -1,6 +1,6 @@
-#include "model.h"
 #include <stdio.h>
 #include <armadillo>
+#include "model.h"
 
 Model::Model(int input_dim, std::string name)
 {
@@ -87,6 +87,29 @@ void Model::predict(VF3D x)
 	/* x is input to the network */
 	/* Must first initialize the weights  for the layers */
 
+	// input to layer 0
+	WeightList& wl = layers[0]->getWeights();
+	printf("predict\n");
+	WEIGHTS& wght = *(wl[0].getWeights()); // for now, only a single weight
+/* */
+	//VF3D y = x * wght;   // Mat<float> * cube<float>  (in,out) * (batch,seq,dim)
+	                     //   sum(over in): (i,o) * (b,s,i)
+	                     // = sum(over in): (b,s,i) * (i,o) = x * W = f(b,s,o)
+						 // Armadillo does not allow multiplication of a cube*matrix on the inner index.
+						 // For now, use a loop. for didactic purposes. 
+	VF3D prod(5,6,7);
+	for (int b=0; b < x.n_rows; b++) {
+		for (int s=0; s < x.n_cols; s++) {
+			for (int o=0; o < x.n_slices; o++) {
+				for (int i=0; i < wght.n_rows; i++) {
+					prod(b,s,o) += x(b,s,i) * wght(i,o);
+				}
+				printf("prod(%d,%d,%d)= %f\n", b,s,o, prod(b,s,o));
+			}
+		}
+	}
+/* */
+
 	/*
 	VF3D& xx = x;
 	for (int i=0; i < layers.size(); i++) {
@@ -100,13 +123,12 @@ void Model::predict(VF3D x)
 void Model::initializeWeights(std::string initialization_type)
 {
 	int in_dim, out_dim;
-	printf("inside initialize\n");
 
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i];
 		in_dim = (i == 0) ? input_dim : layers[i-1]->getInputDim();
 		out_dim = layer->getInputDim();
-		printf("layer %d, in_dim, out_dim= %d, %d\n", i, in_dim, out_dim);
+		printf("Model::init weights: layer %d, in_dim, out_dim= %d, %d\n", i, in_dim, out_dim);
 		layer->createWeights(in_dim, out_dim);
 		layer->initializeWeights(initialization_type);
 	}

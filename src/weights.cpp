@@ -25,10 +25,14 @@ Weights::Weights(int in, int out, std::string name)
 
 Weights::~Weights()
 {
+	delete weights;
 }
 
-Weights::Weights(Weights& w) 
+Weights::Weights(const Weights& w) : name(w.name), in_dim(w.in_dim), out_dim(w.out_dim), 
+   print_verbose(w.print_verbose)
 {
+	weights = new WEIGHTS(in_dim, out_dim);
+	printf("Weights: inside copy constructor\n");
 }
 
 void Weights::initializeWeights(std::string initialize_type)

@@ -19,7 +19,6 @@ Layer::Layer(int layer_size, std::string name) : input_dim(3)
 	int batch_size  = 1;  // default value
 	int seq_len     = 1; // default value
 	int input_dim   = 1; // default: scalar
-	weights         = 0;
 	print_verbose   = true;
 
 	// Default activation: tanh
@@ -28,7 +27,6 @@ Layer::Layer(int layer_size, std::string name) : input_dim(3)
 
 Layer::~Layer()
 {
-	delete weights;
 	delete activation;
 }
 
@@ -50,8 +48,8 @@ void Layer::print(std::string msg)
 
 	if (print_verbose == false) return;
 
-	if (weights) {
-		weights->print();
+	for (int i=0; i < weights.size(); i++) {
+		weights[i].print();
 	}
 
 	if (activation) {
@@ -67,10 +65,16 @@ void Layer::execute()
 
 void Layer::createWeights(int in, int out)
 {
-	weights = new Weights(in, out, this->name+"_"+"weights");
+	Weights* weight = new Weights(in, out, this->name+"_"+"weights");
+	weights.push_back(*weight);
 }
 
 void Layer::initializeWeights(std::string initialize_type)
 {
-		weights->initializeWeights(initialize_type);
+		// There is at least one weight matrix. For LSTM, there are more. 
+		if (weights.size() < 0) {
+			printf("Layer::initializeWeights: no weight array\n");
+			exit(1);
+		}
+		weights[0].initializeWeights(initialize_type);
 }
