@@ -18,8 +18,9 @@ Layer::Layer(int layer_size, std::string name) : input_dim(3)
 	this->layer_size = layer_size;
 	int batch_size  = 1;  // default value
 	int seq_len     = 1; // default value
-	int dim         = 1; // default: scalar
+	int input_dim   = 1; // default: scalar
 	weights         = 0;
+	print_verbose   = true;
 
 	// Default activation: tanh
 	activation = new Tanh("tanh");
@@ -41,11 +42,13 @@ void Layer::print(std::string msg)
     if (msg != "") printf("%s\n", msg.c_str());
 	printf("seq len: %d\n", seq_len);
 	printf("batch_size: %d\n", batch_size);
-	printf("dim: %d\n", dim);
 	printf("layer size: %d\n", layer_size);
-	printf("input_dim: ???\n");
+	printf("input_dim: %d\n", input_dim);
 	printf("inputs size: %d\n", inputs.size());
 	printf("outputs size: %d\n", outputs.size());
+	printf("print_verbose: %d\n", print_verbose);
+
+	if (print_verbose == false) return;
 
 	if (weights) {
 		weights->print();
@@ -64,7 +67,7 @@ void Layer::execute()
 
 void Layer::createWeights(int in, int out)
 {
-	weights = new Weights(in, out, this->name+"_"+"weight");
+	weights = new Weights(in, out, this->name+"_"+"weights");
 }
 
 void Layer::initializeWeights(std::string initialize_type)

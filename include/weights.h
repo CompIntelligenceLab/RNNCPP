@@ -20,6 +20,7 @@ protected:
 	std::string name;
 	WEIGHTS* weights;
 	int in_dim, out_dim;
+	bool print_verbose;
 
 public:
 	// input and output dimensions 

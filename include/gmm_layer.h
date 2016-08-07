@@ -10,7 +10,7 @@ protected:
 	std::string name;
 
 public:
-	GMMLayer(std::string name="gmm");
+	GMMLayer(int layer_size, std::string name="gmm");
 	~GMMLayer();
 	GMMLayer(GMMLayer&);
 };

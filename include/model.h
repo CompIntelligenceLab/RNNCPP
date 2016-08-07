@@ -30,9 +30,10 @@ private:
 	int batch_size;  // batch_size used for training, etc.
 	int seq_len;     // sequence length (should not be a layer property)
 	                // represents the number of times to unroll
+	bool print_verbose;
 
 public:
-   Model(std::string name="model");
+   Model(int input_dim, std::string name="model");
    ~Model();
    void print(std::string msg="");
 

@@ -9,8 +9,8 @@
 
 int main()
 {
-	Model* m  = new Model("feedforward");
-	Layer* l1 = new DenseLayer("dense");
+	Model* m  = new Model(1, "feedforward");
+	Layer* l1 = new DenseLayer(5, "dense");
 	m->add(l1);
 	m->print("data on model");
 

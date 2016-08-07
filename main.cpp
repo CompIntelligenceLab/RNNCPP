@@ -10,13 +10,9 @@
 #include "gmm_layer.h"
 
 int main() {
-	Model* m  = new Model();
-	Layer* dense = new DenseLayer("dense");
-	//Layer* l2 = new LSTMLayer("lstm");
-	//Layer* l3 = new GMMLayer("gmm");
+	Model* m  = new Model(1);
+	Layer* dense = new DenseLayer(1, "dense");
 	m->add(dense);
-	//m->add(l2);
-	//m->add(l3);
 	Sigmoid* sig = new Sigmoid();
 
 	m->initializeWeights();

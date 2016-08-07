@@ -2,11 +2,13 @@
 #include <stdio.h>
 #include <armadillo>
 
-Model::Model(std::string name)
+Model::Model(int input_dim, std::string name)
 {
 	this->name = name;
 	learning_rate = 1.e-5;
 	return_sequences = false;
+	print_verbose = true;
+	this->input_dim = input_dim;
 }
 //----------------------------------------------------------------------
 Model::~Model()
@@ -69,8 +71,12 @@ void Model::print(std::string msg)
 	printf("stateful: %d\n", stateful);
 	printf("learning_rate: %f\n", learning_rate);
 	printf("return_sequences: %d\n", return_sequences);
+	printf("print_verbose: %d\n", print_verbose);
 	//optimizer->print();
 	//loss->print();
+
+	if (print_verbose == false) return;
+
 	for (int i=0; i < layers.size(); i++) {
 		layers[i]->print();
 	}

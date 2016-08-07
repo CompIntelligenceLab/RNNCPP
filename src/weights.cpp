@@ -9,6 +9,7 @@ Weights::Weights(int in, int out, std::string name)
 	in_dim = in;
 	out_dim = out;
 	weights = new WEIGHTS(in_dim, out_dim);
+	print_verbose = true;
 
 	char cname[80];
 
@@ -36,5 +37,9 @@ void Weights::initialize()
 void Weights::print(std::string msg)
 {
 	printf("weights: %s\n", name.c_str());
+	printf("in: %d, out: %d\n", in_dim, out_dim);
+	printf("print_verbose= %d", print_verbose);
 	if (msg != "") printf("%s\n", msg.c_str());
+
+	if (print_verbose == false) return;
 }

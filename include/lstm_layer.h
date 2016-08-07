@@ -9,7 +9,7 @@ protected:
 	std::string name;
 
 public:
-	LSTMLayer(std::string name="lstm");
+	LSTMLayer(int layer_size, std::string name="lstm");
 	~LSTMLayer();
 	LSTMLayer(LSTMLayer&);
 };

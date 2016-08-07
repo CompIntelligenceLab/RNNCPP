@@ -18,13 +18,13 @@ protected:
 	std::string name;
 	int seq_len;
 	int batch_size;
-	int dim;  // dimension of data (scalar, ...)
 	int layer_size; // number of nodes in layer
-	int input_dim; // dimensinality of data
+	int input_dim; // size of previous layer
 	VF inputs;  // inputs to activation function
 	VF outputs; // outputs to activation function
 	Weights* weights;
 	Activation* activation;
+	bool print_verbose;
 
 public:
    Layer(int layer_size=1, std::string name="layer"); // allows for default constructor
