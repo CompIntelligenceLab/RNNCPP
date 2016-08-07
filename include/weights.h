@@ -27,7 +27,8 @@ public:
 	Weights(int in, int out, std::string name="weights");
 	~Weights();
 	Weights(Weights&);
-	void initialize();
+	WEIGHTS* getWeights(); // not yet
+	void initializeWeights(std::string initialize_type="uniform");
 	void print(std::string name= "");
 };
 

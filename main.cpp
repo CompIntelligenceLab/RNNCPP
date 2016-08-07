@@ -15,7 +15,10 @@ int main() {
 	m->add(dense);
 	Sigmoid* sig = new Sigmoid();
 
+	printf("before init\n");
 	m->initializeWeights();
+	printf("after init\n");
+	exit(0);
 
 	Optimizer* opt = new RMSProp("myrmsprop");
 	opt->print();

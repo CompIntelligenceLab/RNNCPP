@@ -100,6 +100,7 @@ void Model::predict(VF3D x)
 void Model::initializeWeights(std::string initialization_type)
 {
 	int in_dim, out_dim;
+	printf("inside initialize\n");
 
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i];

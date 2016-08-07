@@ -72,11 +72,5 @@ void Layer::createWeights(int in, int out)
 
 void Layer::initializeWeights(std::string initialize_type)
 {
-		if (initialize_type == "gaussian") {
-		} else if (initialize_type == "uniform") {
-		} else if (initialize_type == "orthogonal") {
-		} else {
-			printf("initialize_type: %s not implemented\n", initialize_type.c_str());
-			exit(1);
-		}
+		weights->initializeWeights(initialize_type);
 }
