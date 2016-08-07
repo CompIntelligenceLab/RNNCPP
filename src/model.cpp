@@ -5,7 +5,7 @@
 Model::Model(std::string name)
 {
 	this->name = name;
-	learning_rate = 1.e-5; 
+	learning_rate = 1.e-5;
 	return_sequences = false;
 }
 //----------------------------------------------------------------------
@@ -76,7 +76,28 @@ void Model::print(std::string msg)
 	}
 }
 //----------------------------------------------------------------------
+void Model::predict(VF3D x)
+{
+	/* x is input to the network */
+	/* Must first initialize the weights  for the layers */
+
+	/*
+	VF3D& xx = x;
+	for (int i=0; i < layers.size(); i++) {
+		Layer* layer = layers[i];
+		VF3D& y = layer->execute(xx);
+		VF3D& xx = y;
+	}
+	*/
+}
 //----------------------------------------------------------------------
+void Model::initialize_weights(std::string initialization_type)
+{
+	//in_dim = 
+	for (int i=0; i < layers.size(); i++) {
+		Layer* layer = layers[i];
+	}
+}
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

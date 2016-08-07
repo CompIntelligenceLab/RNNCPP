@@ -18,6 +18,9 @@
 #ifdef ARMADILLO
 	typedef arma::Col<float> AF;
 	typedef arma::Col<float> VF;
+	typedef arma::Col<float> VF1D;
+	typedef arma::Mat<float> VF2D;
+	typedef arma::Cube<float> VF3D;
 	typedef arma::Row<int> VI; // not possible to allocate a row of size 3;
 	//typedef arma::Mat<int> VI;
 	typedef arma::Mat<float> WEIGHTS;

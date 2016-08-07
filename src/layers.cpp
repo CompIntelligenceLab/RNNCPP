@@ -35,7 +35,7 @@ Layer::Layer(Layer&)
 {
 }
 
-void Layer::print(std::string msg) 
+void Layer::print(std::string msg)
 {
 	printf("  -- layer: %s ---\n", name.c_str());
     if (msg != "") printf("%s\n", msg.c_str());
@@ -44,8 +44,8 @@ void Layer::print(std::string msg)
 	printf("dim: %d\n", dim);
 	printf("layer size: %d\n", layer_size);
 	printf("input_dim: ???\n");
-	printf("inputs size: %ld\n", inputs.size());
-	printf("outputs size: %ld\n", outputs.size());
+	printf("inputs size: %d\n", inputs.size());
+	printf("outputs size: %d\n", outputs.size());
 
 	if (weights) {
 		weights->print();
