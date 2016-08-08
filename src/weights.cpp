@@ -6,10 +6,12 @@ int Weights::counter = 0;
 
 Weights::Weights(int in, int out, std::string name)
 {
-	printf("weights constructor\n");
+	printf("weights constructor, in= %d, out=%d\n", in, out);
+
 	in_dim = in;
 	out_dim = out;
-	weights = new WEIGHTS(in_dim, out_dim);
+	weights = WEIGHTS(in_dim, out_dim);
+	//printf("weights= %ld\n", weights);
 	print_verbose = true;
 
 	char cname[80];
@@ -25,32 +27,30 @@ Weights::Weights(int in, int out, std::string name)
 
 Weights::~Weights()
 {
-	delete weights;
+	printf("Weights destructor (%s)\n", name.c_str());
 }
 
-Weights::Weights(const Weights& w) : name(w.name), in_dim(w.in_dim), out_dim(w.out_dim), 
-   print_verbose(w.print_verbose)
+Weights::Weights(Weights& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbose(w.print_verbose)
 {
-	weights = new WEIGHTS(in_dim, out_dim);
-	printf("Weights: inside copy constructor\n");
+	printf("Weights::copy_constructor (%s)\n", name.c_str());
+	name = w.name + "c";
+	weights = WEIGHTS(in_dim, out_dim);
+	//*weights = *w.weights;
 }
 
 Weights& Weights::operator=(const Weights& w)
 {
-    static int counter;
-    std::string name;
-    WEIGHTS* weights;
-    int in_dim, out_dim;
-    bool print_verbose;
-
+	printf("Weights::operator= (%s)\n", name.c_str());
 
 	if (this != &w) {
 		name = w.name + "c";
 		in_dim = w.in_dim;
 		out_dim = w.out_dim;
 		print_verbose = w.print_verbose;
+		weights = w.weights;
 
-		WEIGHTS* w1 = 0;
+		/**
+		WEIGHTS w1;
 
 		try {
 			//w1 = new WEIGHTS(w.weights->n_rows, w.weights->n_cols);
@@ -62,6 +62,7 @@ Weights& Weights::operator=(const Weights& w)
 
 		delete weights; // what if weights is 0? 
 		*weights = *w1;
+		*/
 	}
 
 	return *this;
@@ -74,16 +75,12 @@ void Weights::initializeWeights(std::string initialize_type)
 		printf("in_dim, out_dim= %d, %d\n", in_dim, out_dim);
 		//arma_rng::set_seed_random(); // put at beginning of code // DOES NOT WORK
 		//arma::Mat<float> ww = arma::randu<arma::Mat<float> >(3, 4); //arma::size(*weights));
-		*weights = arma::randu<WEIGHTS>(arma::size(*weights)); //arma::size(*weights));
-		printf("weights: %f\n", (*weights)[0,0]);
-		*weights = arma::randu<WEIGHTS>(arma::size(*weights)); //arma::size(*weights));
-		printf("weights: %f\n", (*weights)[0,0]);
-		*weights = arma::randu<WEIGHTS>(arma::size(*weights)); //arma::size(*weights));
-		printf("weights: %f\n", (*weights)[0,0]);
-		*weights = arma::randu<WEIGHTS>(arma::size(*weights)); //arma::size(*weights));
-		printf("weights: %f\n", (*weights)[0,0]);
-		printf("weights size: %d\n", weights->size());
-		printf("rows, col= %d, %d\n", weights->n_rows, weights->n_cols);
+		weights = arma::randu<WEIGHTS>(arma::size(weights)); //arma::size(*weights));
+		printf("weights: %f\n", weights[0,0]);
+		weights = arma::randu<WEIGHTS>(arma::size(weights)); //arma::size(*weights));
+		printf("weights: %f\n", weights[0,0]);
+		printf("weights size: %d\n", weights.size());
+		printf("rows, col= %d, %d\n", weights.n_rows, weights.n_cols);
 	} else if (initialize_type == "orthogonal") {
 	} else {
 		printf("initialize_type: %s not implemented\n", initialize_type.c_str());

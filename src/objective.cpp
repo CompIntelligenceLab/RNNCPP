@@ -7,6 +7,7 @@ Objective::Objective(std::string name)
 
 Objective::~Objective()
 {
+	printf("Objective destructor (%s)\n", name.c_str());
 }
 
 Objective::Objective(const Objective& o) : learning_rate(o.learning_rate)

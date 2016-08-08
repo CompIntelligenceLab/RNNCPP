@@ -13,14 +13,14 @@
 
 /** General structure to store weights. How to organize the data remains to be seen */
 /** Possibly overload this class polymorphically */
-/** This class will slow the program down: yet another level of indirection */
+/* It is possible that this class is not necessary. Not sure yet */
 
 class Weights
 {
 protected:
 	static int counter;
 	std::string name;
-	WEIGHTS* weights;
+	WEIGHTS weights;
 	int in_dim, out_dim;
 	bool print_verbose;
 
@@ -30,7 +30,7 @@ public:
 	~Weights();
 	Weights(Weights&);
 	Weights& operator=(const Weights& w);
-	WEIGHTS* getWeights() { return weights; }
+	WEIGHTS& getWeights() { return weights; }
 	void initializeWeights(std::string initialize_type="uniform");
 	void print(std::string name= "");
 };
