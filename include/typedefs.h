@@ -16,6 +16,13 @@
 #include <eigen3/Eigen/Eigen>
 #endif
 
+  // The user is not suppose to use eigen or armadillo. Therefore to input data
+  // they will need some other mechanism. Eventually we should write functions
+  // to parse data files so the user need only specify a file. For testting
+  // purposes, now I will specify a simply matrix like structure for the
+  // training data
+  typedef std::vector< std::vector<float> > MATRIX;
+
 #ifdef ARMADILLO
 	typedef arma::Col<float> AF;
 	typedef arma::Col<float> VF;

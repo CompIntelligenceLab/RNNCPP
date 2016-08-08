@@ -14,8 +14,9 @@ int main()
 	m->add(l1);
 	m->print("data on model");
 
-	//Optimizer* opt = new RMSProp("myrmsprop");
-	//opt->print();
+	Optimizer* opt = new RMSProp("myrmsprop");
+	opt->print();
+  //m->predict(1.0); // Uncommenting this will break things!
 
 	exit(0);
 }

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <armadillo>
 
-Model::Model(int input_dim, std::string name)
+Model::Model(int input_dim, std::string name /*="model"*/)
 {
 	this->name = name;
 	learning_rate = 1.e-5;
@@ -12,7 +12,11 @@ Model::Model(int input_dim, std::string name)
 	this->input_dim = input_dim;
 	printf("Model constructor (%s)\n", this->name.c_str());
   optimizer = NULL;
-  loss = NULL;
+  loss = NULL; // I believe this should just be a string or something specifying
+               // the name of the objective function we would like to use
+  batch_size = 1; // batch size of 1 is equivalent to online learning
+  nb_epoch = 10; // Just using the value that Keras uses for now
+
 }
 //----------------------------------------------------------------------
 Model::~Model()
@@ -32,11 +36,16 @@ Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_ra
 {
 	name = m.name + "c";
 	optimizer = new Optimizer();
-	*optimizer = *m.optimizer;
-	Objective* loss = new Objective(); // ERROR
+  *optimizer = *m.optimizer;// Careful here, we need to implement a copy
+                            // assignment operator for the Optimizer class
+	loss = new Objective(); // ERROR
+  *loss = *m.loss;// Careful here, we need to implement a copy
+                            // assignment operator for the Optimizer class
 	layers = m.layers;
 	LAYERS layers; // operate by value for safety)
 	printf("Model copy constructor (%s)\n", name.c_str());
+  batch_size = m.batch_size;
+  nb_epoch = m.nb_epoch;
 }
 //----------------------------------------------------------------------
 Model& Model::operator=(const Model& m) 
@@ -118,7 +127,7 @@ float Model::getLearningRate()
 	return learning_rate;
 }
 //----------------------------------------------------------------------
-void Model::print(std::string msg)
+void Model::print(const std::string msg /*=std:string()*/)
 {
 	printf("*** Model printout: ***\n");
     if (msg != "") printf("%s\n", msg.c_str());
@@ -153,6 +162,17 @@ void Model::predict(VF3D x)
 		VF3D& xx = y;
 	}
 	*/
+}
+//----------------------------------------------------------------------
+// This was hastily decided on primarily as a means to construct feed forward
+// results to begin implementing the backprop. Should be reevaluated
+void Model::train(MATRIX x, MATRIX y, int batch_size /*=0*/, int nb_epoch /*=0*/) 
+{
+  if (batch_size == 0) // Means no value for batch_size was passed into this function
+    batch_size = this->batch_size; // Use the current value stored in model
+
+  // First we should construct the input for the predict routine 
+  VF3D input;
 }
 //----------------------------------------------------------------------
 void Model::initializeWeights(std::string initialization_type)

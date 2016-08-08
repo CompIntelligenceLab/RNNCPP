@@ -29,6 +29,7 @@ private:
 	std::string initialization_type;
 	int input_dim;   // dimensional input into the model
 	int batch_size;  // batch_size used for training, etc.
+  int nb_epoch;
 	int seq_len;     // sequence length (should not be a layer property)
 	                // represents the number of times to unroll
 	bool print_verbose;
@@ -38,7 +39,7 @@ public:
   ~Model();
   Model(const Model&); // probably do not need it, but it is a good exercise. 
   Model& operator=(const Model&); 
-  void print(std::string msg="");
+  void print(std::string msg=std::string());
 
   // Use pointer instead of reference to avoid including layers.h
   void add(Layer* layer);
@@ -68,7 +69,8 @@ public:
   /** predict: run through the model  */
   //  x: signal input: (batch_size, seq_length, dimension)
   //  For non-recursive networks, x has size (batch_size, 1, dimension)
-  void predict(VF3D x);
+  void predict(VF3D x); // If this is to be accessed by the user, they must have armadillo. Not good
+  void train(MATRIX x, MATRIX y, int batch_size=0, int nb_epoch=0); // 0 defaults are flags not actual values. See model.cpp
   void compile();
 
   /** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */
