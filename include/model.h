@@ -59,6 +59,7 @@ public:
    void setBatchSize(int batch_size) {this->batch_size = batch_size;}
    void setSeqLen(int seq_len) { this->seq_len = seq_len;}
    void setName(std::string name) { this->name = name; }
+   LAYERS getLayers() { return layers; };
    std::string getName() { return name; }
 
    /** return vector of weights for each layer */

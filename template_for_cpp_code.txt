@@ -100,8 +100,92 @@ m->test()
 
 ----------------------------------------------------------------------
 
+Aug. 8, 2016
 
+The data input into the network is of type VF3D (batch, seq_len, dimensionality). 
+See typedefs.h for definitions. As much as possible the armadillo network is hidden. 
+Use loops for matrix multiplication if higher level operators are not available. Consider creating your own operator calculus (that is what I would do) using Armadillo matrices. Something like: 
 
+operator*(VF3D x, VF y, axis)
 
+similar to python. Very feasible. 
+=======================
+First create the layers, then the layer properties, then the model, then add the layers to the model. 
 
+Layer* d1 = new Dense(layer_size);
+Model *m = new Model(...)
+d1->setProperty(...);
+m->add(d1);
+========================
 
+// list of layers
+LAYERS layers = m->getLayers(); 
+
+I am not currently checking for dimension compatibility between layers. I suggest you do (unless I do it first). 
+
+You must currently call 
+
+m->initializeWeights(string initialization_type)  // read the include file
+===================
+
+The execute method will execute a layer, or a model (not implemented)
+
+m->predict(VF3D x); // generate output to the network. 
+========================
+Keep all arrays 3D except weights that are 2D. 
+
+==================
+I had created the output to layer 1 given the input, but I must have deleted it.
+==================
+
+I very strongly suggest creating specialized operators to avoid writing complex loops. 
+
+Since we are using libraries that work with containers, pass everything by value (for now). Return by value as much as possible. We will profile the code at a later time. 
+
+WEIGHTS w;
+VF3D x;
+VF3D y;
+Activation f;
+
+y = f(w*x)
+
+should work. You can derive the operators to make this so. 
+
+You can find Armadillo documentation at http://arma.sourceforge.net/ .
+==============================
+
+If you have used Keras, you should understand all of this. 
+
+========================
+DO NOT WORRY ABOUT CODE EFFICIENCY at this stage.
+=====================
+
+What have I done: 
+
+- created the infrastructure for this code (the templates you wanted). 
+- decided (with Nathan) on Armadillo as our matrix library. We may change in the future. So avoid references to Armadillo in the main code. I am violating this principle already when accessing elements such as: 
+        printf("rows, col= %d, %d\n", weights.n_rows, weights.n_cols);
+
+and
+
+        weights = arma::randu<WEIGHTS>(arma::size(weights)); 
+
+So in this case, it is best to create Utility class and put functions such as: 
+
+      getDims(WEIGHTS& w);  // or getDims(WEIGHT w);
+
+and 
+
+      getRandomUniform(WEIGHTS& w);
+
+which will hide Armadillo from the main program classes.
+
+If using a different library, the definition of WEIGHTS would change in typedefs.h . 
+
+Alternatively, one could create: 
+
+  getRandomUniform(Weights& w)
+
+which is a class wrapper around the weights (which will likely not change much from here on out. In the future, we can create an intermediate weight class responsible for aggregating weights for more efficient execution on a GPU. 
+
+=============================================================
