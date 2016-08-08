@@ -43,7 +43,9 @@ Weights& Weights::operator=(const Weights& w)
 		in_dim = w.in_dim;
 		out_dim = w.out_dim;
 		print_verbose = w.print_verbose;
-		weights = w.weights;
+		printf("size w.weights: %d\n", w.weights.size());
+		printf("weights: %d\n", weights.size());
+		weights = w.weights; // ERROR
 		printf("Weights::operator= (%s)\n", name.c_str());
 	}
 

@@ -16,8 +16,9 @@ Model::Model(int input_dim, std::string name)
 Model::~Model()
 {
 	printf("Model destructor (%s)\n", name.c_str());
+
 	for (int i=0; i < layers.size(); i++) {
-		delete layers[i];
+		if (layers[i]) {delete layers[i]; layers[i] = 0;}
 	}
 }
 //----------------------------------------------------------------------
@@ -59,13 +60,14 @@ Model& Model::operator=(const Model& m)
 		} catch (...) {
 			delete opt1;
 			delete loss1;
+			printf("Model throw\n");
 			throw;
 		}
 
 		// Superclass::operator=(that)
-		delete optimizer;
+		//delete optimizer;
 		optimizer = opt1;
-		delete loss;;
+		//delete loss;;
 		loss = loss1;
 		printf("Model::operator= %s\n", name.c_str());
 	}

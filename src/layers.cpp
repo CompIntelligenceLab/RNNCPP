@@ -32,8 +32,10 @@ Layer::Layer(int layer_size, std::string name) : input_dim(3)
 Layer::~Layer()
 {
 	printf("Layer destructor (%s)\n", name.c_str());
-	delete weights;
-	delete activation;
+	if (weights)    delete weights;
+	if (activation) delete activation;
+	weights = 0; 
+	activation = 0;
 }
 
 Layer::Layer(const Layer& l) : seq_len(l.seq_len), 
@@ -42,7 +44,8 @@ Layer::Layer(const Layer& l) : seq_len(l.seq_len),
 {
 	inputs = l.inputs;
 	outputs = l.outputs;
-	weights = new Weights(1,1, "weights=");
+	printf("layer cons");
+	weights = new Weights(1,1, "weights_c");
 	*weights = *l.weights; 
 	name    = l.name + 'c';
 	printf("Layer copy constructor (%s)\n", name.c_str());
@@ -75,11 +78,12 @@ Layer& Layer::operator=(const Layer& l)
 			w1 = new Weights(*l.weights); // copy constructor
 		} catch (...) {
 			delete w1;
+			printf("throw\n");
 			throw;
 		}
 
-		delete weights; // what if weights is 0? 
-		*weights = *w1;
+		//delete weights; // what if weights is 0? 
+		*weights = *w1; // ERROR
 		// if no copying done, name does not change
 		printf("Layer::operator= (%s)\n", name.c_str());
 	}
