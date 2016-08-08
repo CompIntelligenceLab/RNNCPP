@@ -6,7 +6,8 @@
 #include "weights.h"
 #include "layers.h"
 
-int main() {
+int main() 
+{
 	printf("=================================\n");
 	Optimizer* opt = new Optimizer("optGE");
 	Optimizer opt1(*opt);
@@ -28,9 +29,15 @@ int main() {
 	printf("=================================\n");
 	int layer_size = 5;
 	Layer* layer = new Layer(layer_size, "layerGE");
-	Layer layer2 = *layer;
+
+	// Both these statements lead to to identical objects being deleted. Only one of these
+	// statements leads to correct code. 
+	Layer layer3(layer_size, "layer3GE");
+	Layer layer2;
+	layer2 = layer3;
+
+	//Layer layer1(*layer);
 	#if 0
-	Layer layer1(*layer);
 
 	//layer->print("\n--> print layer\n");
 	layer1.print("\n--> print layer1\n");

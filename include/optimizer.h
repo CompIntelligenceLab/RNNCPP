@@ -10,6 +10,7 @@ protected:
 	float learning_rate;
 	std::string name;
 	VF loss;  // allows for batches, with dimensionality of 1.  
+	static int counter;
 
 public:
 	Optimizer(std::string name="optimizer");

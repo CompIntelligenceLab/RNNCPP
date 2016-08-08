@@ -10,6 +10,7 @@ Model::Model(int input_dim, std::string name)
 	return_sequences = false;
 	print_verbose = true;
 	this->input_dim = input_dim;
+	printf("Model constructor (%s)\n", this->name.c_str());
 }
 //----------------------------------------------------------------------
 Model::~Model()
@@ -26,7 +27,6 @@ Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_ra
 
 	// What to do with name (perhaps add a "c" at the end for copy-construcor?)
 {
-	printf("Model copy constructor (%s)\n", m.name.c_str());
 	name = m.name + "c";
 	optimizer = new Optimizer();
 	*optimizer = *m.optimizer;
@@ -34,12 +34,11 @@ Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_ra
 	//loss->setName(m.loss->getName() + "c");
 	layers = m.layers;
 	LAYERS layers; // operate by value for safety)
+	printf("Model copy constructor (%s)\n", name.c_str());
 }
 //----------------------------------------------------------------------
 Model& Model::operator=(const Model& m) 
 {
-	printf("Model::operator= %s\n", name.c_str());
-
 	if (this != &m) {
 		name = m.name + "=";
 		stateful = m.stateful;
@@ -68,6 +67,7 @@ Model& Model::operator=(const Model& m)
 		optimizer = opt1;
 		delete loss;;
 		loss = loss1;
+		printf("Model::operator= %s\n", name.c_str());
 	}
 	return *this;
 }

@@ -1,9 +1,19 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "objective.h"
+
+int Objective::counter = 0;
 
 Objective::Objective(std::string name)
 {
-	this->name = name;
+	char cname[80];
+	if (strlen(cname) > 80) {
+		printf("Activation::Activation : cname array too small\n");
+		exit(1);
+	}
+	sprintf(cname, "%s%d", name.c_str(), counter);
+	this->name = cname;
+	printf("Objective constructor (%s)\n", this->name.c_str());
 }
 
 Objective::~Objective()
@@ -13,8 +23,8 @@ Objective::~Objective()
 
 Objective::Objective(const Objective& o) : learning_rate(o.learning_rate)
 {
-	printf("Objective copy constructor (%s)\n", o.name.c_str());
 	name = o.name + "c";
+	printf("Objective copy constructor (%s)\n", name.c_str());
 }
 
 Objective& Objective::operator=(const Objective& o)

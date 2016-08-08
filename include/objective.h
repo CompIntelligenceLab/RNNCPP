@@ -8,6 +8,7 @@ class Objective
 protected:
 	float learning_rate;
 	std::string name;
+	static int counter;
 
 public:
 	Objective(std::string name="objective");

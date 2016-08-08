@@ -31,21 +31,20 @@ Weights::~Weights()
 
 Weights::Weights(Weights& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbose(w.print_verbose)
 {
-	printf("Weights::copy_constructor (%s)\n", w.name.c_str());
 	name = w.name + "c";
 	weights = WEIGHTS(in_dim, out_dim);
+	printf("Weights::copy_constructor (%s)\n", name.c_str());
 }
 
 Weights& Weights::operator=(const Weights& w)
 {
-	printf("Weights::operator= (%s)\n", name.c_str());
-
 	if (this != &w) {
 		name = w.name + "=";
 		in_dim = w.in_dim;
 		out_dim = w.out_dim;
 		print_verbose = w.print_verbose;
 		weights = w.weights;
+		printf("Weights::operator= (%s)\n", name.c_str());
 	}
 
 	return *this;

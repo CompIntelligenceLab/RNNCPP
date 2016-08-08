@@ -6,13 +6,14 @@ int Layer::counter = 0;
 Layer::Layer(int layer_size, std::string name) : input_dim(3)
 {
 	char cname[80];
-
 	if (strlen(cname) > 80) {
 		printf("Activation::Activation : cname array too small\n");
 		exit(1);
 	}
 	sprintf(cname, "%s%d", name.c_str(), counter);
 	this->name = cname;
+	printf("Layer constructor (%s)\n", this->name.c_str());
+
 	counter++;
 
 	this->layer_size = layer_size;
@@ -39,11 +40,11 @@ Layer::Layer(const Layer& l) : seq_len(l.seq_len),
    batch_size(l.batch_size), layer_size(l.layer_size), input_dim(l.input_dim), 
    print_verbose(l.print_verbose)
 {
-	printf("Layer copy constructor (%s)\n", l.name.c_str());
 	inputs = l.inputs;
 	outputs = l.outputs;
 	weights = l.weights; 
 	name    = l.name + 'c';
+	printf("Layer copy constructor (%s)\n", name.c_str());
 
 	//TODO
 	// How does activation work with polymorphism ?
@@ -54,7 +55,6 @@ Layer::Layer(const Layer& l) : seq_len(l.seq_len),
 
 Layer& Layer::operator=(const Layer& l)
 {
-	printf("Layer::operator= (%s)\n", name.c_str());
 
 	if (this != &l) {
 		name = l.name + "=";
@@ -79,6 +79,8 @@ Layer& Layer::operator=(const Layer& l)
 
 		delete weights; // what if weights is 0? 
 		*weights = *w1;
+		// if no copying done, name does not change
+		printf("Layer::operator= (%s)\n", name.c_str());
 	}
 
 	return *this;
