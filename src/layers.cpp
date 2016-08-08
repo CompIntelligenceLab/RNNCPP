@@ -30,11 +30,6 @@ Layer::Layer(int layer_size, std::string name) : input_dim(3)
 
 Layer::~Layer()
 {
-<<<<<<< HEAD
-=======
-	printf("Layer destructor (%s)\n", name.c_str());
-	delete weights;
->>>>>>> ge_dev
 	delete activation;
 }
 
