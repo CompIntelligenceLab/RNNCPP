@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <armadillo>
+#include <stdio.h>
 
 #define ARMADILLO
 //#define EIGEN

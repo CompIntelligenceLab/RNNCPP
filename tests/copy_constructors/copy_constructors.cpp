@@ -29,8 +29,8 @@ int main() {
 	int layer_size = 5;
 	Layer* layer = new Layer(layer_size, "layerGE");
 	Layer layer2 = *layer;
-	Layer layer1(*layer);
 	#if 0
+	Layer layer1(*layer);
 
 	//layer->print("\n--> print layer\n");
 	layer1.print("\n--> print layer1\n");

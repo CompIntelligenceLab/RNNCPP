@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "objective.h"
 
 Objective::Objective(std::string name)
