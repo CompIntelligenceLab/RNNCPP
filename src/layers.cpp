@@ -3,7 +3,7 @@
 
 int Layer::counter = 0;
 
-Layer::Layer(int layer_size, std::string name) : input_dim(3)
+Layer::Layer(int layer_size, std::string name /* "layer" */) : input_dim(3)
 {
 	char cname[80];
 	if (strlen(cname) > 80) {
@@ -88,7 +88,7 @@ Layer& Layer::operator=(const Layer& l)
 	return *this;
 }
 
-void Layer::print(std::string msg)
+void Layer::print(std::string msg /* "" */)
 {
 	printf("  -- layer: %s ---\n", name.c_str());
     if (msg != "") printf("%s\n", msg.c_str());
@@ -122,7 +122,7 @@ void Layer::createWeights(int in, int out)
 	weights = new Weights(in, out, this->name+"_"+"weights");
 }
 
-void Layer::initializeWeights(std::string initialize_type)
+void Layer::initializeWeights(std::string initialize_type /* "uniform" */)
 {
 		weights->initializeWeights(initialize_type);
 }

@@ -5,7 +5,7 @@
 
 int Objective::counter = 0;
 
-Objective::Objective(std::string name)
+Objective::Objective(std::string name /* "objective" */)
 {
 	char cname[80];
 	if (strlen(cname) > 80) {
@@ -39,7 +39,7 @@ Objective& Objective::operator=(const Objective& o)
 	return *this;
 }
 
-void Objective::print(std::string msg)
+void Objective::print(std::string msg /* "" */)
 {
 	printf("*** Objective printout (%s): ***\n", name.c_str());
     if (msg != "") printf("%s\n", msg.c_str());

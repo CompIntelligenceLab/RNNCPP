@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <armadillo>
 
-Model::Model(int input_dim, std::string name)
+Model::Model(int input_dim, std::string name /* "model" */) 
 {
 	this->name = name;
 	learning_rate = 1.e-5;
@@ -118,7 +118,7 @@ float Model::getLearningRate()
 	return learning_rate;
 }
 //----------------------------------------------------------------------
-void Model::print(std::string msg)
+void Model::print(std::string msg /* "" */)
 {
 	printf("*** Model printout: ***\n");
     if (msg != "") printf("%s\n", msg.c_str());
@@ -155,7 +155,7 @@ void Model::predict(VF3D x)
 	*/
 }
 //----------------------------------------------------------------------
-void Model::initializeWeights(std::string initialization_type)
+void Model::initializeWeights(std::string initialization_type /* "uniform" */)
 {
 	int in_dim, out_dim;
 	printf("inside initialize\n");
