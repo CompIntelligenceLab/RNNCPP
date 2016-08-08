@@ -1,6 +1,6 @@
 #include "gmm_layer.h"
 
-GMMLayer::GMMLayer(int layer_size, std::string name /* gmm */) 
+GMMLayer::GMMLayer(int layer_size, std::string name /* "ea"gmm */) 
    : Layer(layer_size, name)
 {
 	//this->name = name;

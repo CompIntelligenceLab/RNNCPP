@@ -14,7 +14,7 @@ protected:
 	static int counter;
 
 public:
-	Activation(std::string name="");
+	Activation(std::string name="activation");
 	virtual ~Activation();
 	Activation(const Activation&); 
 	/** Derivative f'(x) of activation function f(x) */
