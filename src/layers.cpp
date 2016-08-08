@@ -42,7 +42,8 @@ Layer::Layer(const Layer& l) : seq_len(l.seq_len),
 {
 	inputs = l.inputs;
 	outputs = l.outputs;
-	weights = l.weights; 
+	weights = new Weights(1,1, "weights=");
+	*weights = *l.weights; 
 	name    = l.name + 'c';
 	printf("Layer copy constructor (%s)\n", name.c_str());
 

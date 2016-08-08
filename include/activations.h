@@ -76,10 +76,4 @@ public:
 };
 //----------------------------------------------------------------------
 
-/*
-class Sigmoid : public class Activation {
-	float operator()(VF x);
-};
-*/
-
 #endif
