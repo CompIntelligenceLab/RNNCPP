@@ -20,12 +20,14 @@ Model::~Model()
 	}
 }
 //----------------------------------------------------------------------
-Model::Model(const Model& m) : name(m.name), stateful(m.stateful), learning_rate(m.learning_rate), 
+Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_rate), 
     return_sequences(m.return_sequences), input_dim(m.input_dim), batch_size(m.batch_size),
 	seq_len(m.seq_len), print_verbose(m.print_verbose), initialization_type(m.initialization_type)
 
 	// What to do with name (perhaps add a "c" at the end for copy-construcor?)
 {
+	printf("Model copy constructor (%s)\n", m.name.c_str());
+	name = m.name + "c";
 	optimizer = new Optimizer();
 	*optimizer = *m.optimizer;
 	Objective* loss = new Objective(); // ERROR
@@ -39,7 +41,7 @@ Model& Model::operator=(const Model& m)
 	printf("Model::operator= %s\n", name.c_str());
 
 	if (this != &m) {
-		name = m.name;
+		name = m.name + "=";
 		stateful = m.stateful;
 		learning_rate = m.learning_rate;
 		return_sequences = m.return_sequences;

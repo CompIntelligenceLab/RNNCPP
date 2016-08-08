@@ -12,28 +12,20 @@ Objective::~Objective()
 
 Objective::Objective(const Objective& o) : learning_rate(o.learning_rate)
 {
+	printf("Objective copy constructor (%s)\n", o.name.c_str());
 	name = o.name + "c";
 }
 
 Objective& Objective::operator=(const Objective& o)
 {
-	printf("Objective::operator= (%s)\n", name.c_str());
+	printf("Objective::operator= (%s)\n", o.name.c_str());
+
 	if (this != &o) {
 		learning_rate = o.learning_rate;
-		name = o.getName() + "c";
+		name = o.getName() + "=";
 	}
 	return *this;
 }
-
-/*
-const Objective& Objective::operator=(const Objective& o) const
-{
-	printf("obj=\n");
-	learning_rate = o.learning_rate;
-	name = o.getName() + "c";
-	printf("exit obj=\n");
-}
-*/
 
 void Objective::print(std::string msg)
 {

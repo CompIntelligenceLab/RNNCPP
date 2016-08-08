@@ -6,12 +6,11 @@ int Weights::counter = 0;
 
 Weights::Weights(int in, int out, std::string name)
 {
-	printf("weights constructor, in= %d, out=%d\n", in, out);
+	printf("Weights constructor, in= %d, out=%d (%s)\n", in, out, name.c_str());
 
 	in_dim = in;
 	out_dim = out;
 	weights = WEIGHTS(in_dim, out_dim);
-	//printf("weights= %ld\n", weights);
 	print_verbose = true;
 
 	char cname[80];
@@ -32,10 +31,9 @@ Weights::~Weights()
 
 Weights::Weights(Weights& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbose(w.print_verbose)
 {
-	printf("Weights::copy_constructor (%s)\n", name.c_str());
+	printf("Weights::copy_constructor (%s)\n", w.name.c_str());
 	name = w.name + "c";
 	weights = WEIGHTS(in_dim, out_dim);
-	//*weights = *w.weights;
 }
 
 Weights& Weights::operator=(const Weights& w)
@@ -43,26 +41,11 @@ Weights& Weights::operator=(const Weights& w)
 	printf("Weights::operator= (%s)\n", name.c_str());
 
 	if (this != &w) {
-		name = w.name + "c";
+		name = w.name + "=";
 		in_dim = w.in_dim;
 		out_dim = w.out_dim;
 		print_verbose = w.print_verbose;
 		weights = w.weights;
-
-		/**
-		WEIGHTS w1;
-
-		try {
-			//w1 = new WEIGHTS(w.weights->n_rows, w.weights->n_cols);
-			w1 = new WEIGHTS(*w.weights); // copy constructor
-		} catch (...) {
-			delete w1;
-			throw;
-		}
-
-		delete weights; // what if weights is 0? 
-		*weights = *w1;
-		*/
 	}
 
 	return *this;
@@ -92,7 +75,7 @@ void Weights::print(std::string msg)
 {
 	printf("weights: %s\n", name.c_str());
 	printf("in: %d, out: %d\n", in_dim, out_dim);
-	printf("print_verbose= %d", print_verbose);
+	printf("print_verbose= %d\n", print_verbose);
 	if (msg != "") printf("%s\n", msg.c_str());
 
 	if (print_verbose == false) return;

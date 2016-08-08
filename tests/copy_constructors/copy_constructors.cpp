@@ -28,12 +28,15 @@ int main() {
 	printf("=================================\n");
 	int layer_size = 5;
 	Layer* layer = new Layer(layer_size, "layerGE");
-	Layer layer1(*layer);
 	Layer layer2 = *layer;
+	Layer layer1(*layer);
+	#if 0
 
-	layer->print("\n--> print layer\n");
+	//layer->print("\n--> print layer\n");
 	layer1.print("\n--> print layer1\n");
+	exit(0);
 	layer2.print("\n--> print layer2\n");
 	//exit(0);
+	#endif
 }
 
