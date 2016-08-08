@@ -91,5 +91,24 @@ $$
 \frac{da^TWb}{dW} = a b^T
 $$
 
+\section{Nathan's Notes}
+
+\subsection{Cost}
+For now I am just quickly putting the formulas in here. I will explain and document more in the future once these things are implemented and working.
+
+More thought needs to be put into this, but for getting things implemented quickly I will use the RMS cost function.
+
+Cost Function
+\begin{align}
+J(W) = \frac{1}{2m} \bigg [\sum_{i=1}^m \sum_{k=1}^K (h_W(x_k^{(i)}) -y_k^{(i)})^2 \bigg ]
+\end{align}
+
+Where $m$ is the batch size, $K$ is the number of elements in each sample, $W$ is the matrix of weights, and $h_W$ is the hypothesis or output of the network. The input is denoted by $x$, and the its corresponding label is $y$. \\
+
+For different cost functions, here is a list I found online - http://stats.stackexchange.com/questions/154879/a-list-of-cost-functions-used-in-neural-networks-alongside-applications
+
+\subsection{Back Propagation}
+
 
 \end{document}
+

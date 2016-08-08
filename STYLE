@@ -25,3 +25,18 @@ Only update running code to the development branch.
 Create test cases  as you see fit, or update existing test cases by adding to the source code.
 
 ------------------------------------------
+When using default parameter values for member functions of classes, put an
+inline comment in the function definition specifying what the default parameter
+is. For example.
+
+HEADER FILE: A.h
+class A {
+  public:
+    stuff(int x = 5);
+}
+
+SOURCE FILE: A.cpp
+
+A::stuff(int x /*= 5*/); 
+
+------------------------------------------
