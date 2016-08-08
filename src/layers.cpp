@@ -21,8 +21,6 @@ Layer::Layer(int layer_size, std::string name) : input_dim(3)
 	int seq_len     = 1; // default value
 	int input_dim   = 1; // default: scalar
 	weights         = new Weights(1,1, "weights"); // default size
-	//printf("weights= %ld\n", weights); 
-	//printf("weights: %d, %d\n", weights->getWeights().n_rows, weights->getWeights().n_cols); exit(0);
 	print_verbose   = true;
 
 	// Default activation: tanh
@@ -44,7 +42,6 @@ Layer::Layer(const Layer& l) : seq_len(l.seq_len),
 {
 	inputs = l.inputs;
 	outputs = l.outputs;
-	printf("layer cons");
 	weights = new Weights(1,1, "weights_c");
 	*weights = *l.weights; 
 	name    = l.name + 'c';

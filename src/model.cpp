@@ -32,7 +32,6 @@ Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_ra
 	optimizer = new Optimizer();
 	*optimizer = *m.optimizer;
 	Objective* loss = new Objective(); // ERROR
-	//loss->setName(m.loss->getName() + "c");
 	layers = m.layers;
 	LAYERS layers; // operate by value for safety)
 	printf("Model copy constructor (%s)\n", name.c_str());
@@ -65,9 +64,7 @@ Model& Model::operator=(const Model& m)
 		}
 
 		// Superclass::operator=(that)
-		//delete optimizer;
 		optimizer = opt1;
-		//delete loss;;
 		loss = loss1;
 		printf("Model::operator= %s\n", name.c_str());
 	}
