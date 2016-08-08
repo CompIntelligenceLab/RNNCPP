@@ -6,6 +6,7 @@ a.out
 *.so
 *.zip
 *.tar
+*.gz
 .DS_Store
 .DS_Store?
 *.db
@@ -17,6 +18,8 @@ a.out
 *.tiff
 *.pyc
 *.bak
+*.log
+*.sh
 
 *.dylib
 *.a
