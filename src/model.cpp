@@ -11,6 +11,8 @@ Model::Model(int input_dim, std::string name)
 	print_verbose = true;
 	this->input_dim = input_dim;
 	printf("Model constructor (%s)\n", this->name.c_str());
+  optimizer = NULL;
+  loss = NULL;
 }
 //----------------------------------------------------------------------
 Model::~Model()
@@ -125,8 +127,11 @@ void Model::print(std::string msg)
 	printf("learning_rate: %f\n", learning_rate);
 	printf("return_sequences: %d\n", return_sequences);
 	printf("print_verbose: %d\n", print_verbose);
-	optimizer->print();
-	loss->print();
+
+  if (optimizer != NULL) 
+	  optimizer->print();
+  if (loss != NULL)
+	  loss->print();
 
 	if (print_verbose == false) return;
 

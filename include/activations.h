@@ -17,13 +17,15 @@ public:
 	Activation(std::string name="");
 	virtual ~Activation();
 	Activation(const Activation&); 
-	/** Gradient f'(x) of activation function f(x) */
+	/** Derivative f'(x) of activation function f(x) */
 	/** x has dimensionality equal to the previous layer size */
 	/** the return value has the dimensionality of the new layer size */
-	virtual VF gradient(VF x) = 0; // gradients of activation function evaluated at x
+	virtual VF derivative(VF x) = 0; // derivative of activation function evaluated at x
 	virtual VF operator()(VF x) = 0;
 	virtual void print(std::string name= "");
 };
+
+
 //----------------------------------------------------------------------
 class Tanh : public Activation
 {
@@ -41,7 +43,7 @@ public:
 #endif
 	}
 
-	VF gradient(VF x)
+	VF derivative(VF x)
 	{
 #ifdef ARMADILLO
 		AF s = this->operator()(x);
@@ -51,6 +53,8 @@ public:
 		return (1.-s*s);
 	}
 };
+
+
 //----------------------------------------------------------------------
 class Sigmoid : public Activation
 {
@@ -68,7 +72,7 @@ public:
 
 	//f = 1 / (1 + exp(-x)) = 1/D
 	//f' = -1/D^2 * (-exp(-x)-1 + 1) = -1/D^2 * (-D + 1) = 1/D - 1/D^2 = f (1-f)
-	VF gradient(VF x) 
+	VF derivative(VF x) 
 	{
 		AF s = this->operator()(x);
 		return s*(1-s);

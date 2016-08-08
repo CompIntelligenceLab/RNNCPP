@@ -19,7 +19,7 @@ public:
 	Optimizer& operator=(const Optimizer&);
 	//Optimizer& operator=(const Optimizer&);
 
-	virtual void print(std::string msg="");
+	virtual void print(const std::string msg=std::string());
 	virtual void setName(std::string name="optimizer") { this->name = name; }
 	virtual const std::string getName() const { return name; }
 	virtual void setLearningRate(float lr) {learning_rate = lr; }

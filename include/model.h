@@ -34,48 +34,47 @@ private:
 	bool print_verbose;
 
 public:
-   Model(int input_dim, std::string name="model");
-   ~Model();
-   Model(const Model&); // probably do not need it, but it is a good exercise. 
-   Model& operator=(const Model&); 
-   void print(std::string msg="");
+  Model(int input_dim, std::string name="model");
+  ~Model();
+  Model(const Model&); // probably do not need it, but it is a good exercise. 
+  Model& operator=(const Model&); 
+  void print(std::string msg="");
 
-   // Use pointer instead of reference to avoid including layers.h
-   void add(Layer* layer);
+  // Use pointer instead of reference to avoid including layers.h
+  void add(Layer* layer);
 
-   void setOptimizer(Optimizer* opt);
-   Optimizer* getOptimizer();
-   void setStateful(bool stateful);
-   bool getStateful();
-   void setReturnSequences(bool state);
-   bool getReturnSequences();
-   void setLearningRate(float lr);
-   float getLearningRate();
-   GRADIENTS getGradient();
-   int getInputDim() {return input_dim;}
-   int getBatchSize() {return batch_size;}
-   int getSeqLen() {return seq_len;}
-   void setInputDim(int input_dim) {this->input_dim = input_dim;}
-   void setBatchSize(int batch_size) {this->batch_size = batch_size;}
-   void setSeqLen(int seq_len) { this->seq_len = seq_len;}
-   void setName(std::string name) { this->name = name; }
-   LAYERS getLayers() { return layers; };
-   std::string getName() { return name; }
+  void setOptimizer(Optimizer* opt);
+  Optimizer* getOptimizer();
+  void setStateful(bool stateful);
+  bool getStateful();
+  void setReturnSequences(bool state);
+  bool getReturnSequences();
+  void setLearningRate(float lr);
+  float getLearningRate();
+  GRADIENTS getGradient();
+  int getInputDim() {return input_dim;}
+  int getBatchSize() {return batch_size;}
+  int getSeqLen() {return seq_len;}
+  void setInputDim(int input_dim) {this->input_dim = input_dim;}
+  void setBatchSize(int batch_size) {this->batch_size = batch_size;}
+  void setSeqLen(int seq_len) { this->seq_len = seq_len;}
+  void setName(std::string name) { this->name = name; }
+  LAYERS getLayers() { return layers; };
+  std::string getName() { return name; }
 
-   /** return vector of weights for each layer */
-   WeightList getWeights();
+  /** return vector of weights for each layer */
+  WeightList getWeights();
 
-   /** predict: run through the model  */
-   //  x: signal input: (batch_size, seq_length, dimension)
-   //  For non-recursive networks, x has size (batch_size, 1, dimension)
-   void predict(VF3D x);
-   void compile();
+  /** predict: run through the model  */
+  //  x: signal input: (batch_size, seq_length, dimension)
+  //  For non-recursive networks, x has size (batch_size, 1, dimension)
+  void predict(VF3D x);
+  void compile();
 
-public:
-	/** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */
-	// Also allow fixed initialization in [-.8, .8] from a uniform distribution */
-	// "gaussian", "uniform", "orthogonal"
-	void initializeWeights(std::string initialization_type="uniform");
+  /** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */
+  // Also allow fixed initialization in [-.8, .8] from a uniform distribution */
+  // "gaussian", "uniform", "orthogonal"
+  void initializeWeights(std::string initialization_type="uniform");
 };
 
 #endif

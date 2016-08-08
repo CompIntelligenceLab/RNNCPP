@@ -43,12 +43,13 @@ Optimizer& Optimizer::operator=(const Optimizer& o)
 	return *this;
 }
 
-void Optimizer::print(std::string msg)
+void Optimizer::print(const std::string msg /*=std::string()*/)
 {
 	//printf("enter optimizer print\n"); // How can this print more than once? 
+  //printf("msg = %s\n", msg.c_str());
 	//printf("xxx\n");
 	//printf("Optimizer: %s\n", name.c_str());
-	if (msg != "") printf("%s\n", msg.c_str());
+	//if (msg != "") printf("%s\n", msg.c_str());
 	printf("learning_rate: %f\n", learning_rate);
 	printf("exit optimizer print\n");
 	//exit(0);
