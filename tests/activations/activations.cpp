@@ -25,4 +25,7 @@ int main() {
 	for (int i=0; i < tt.size(); i++) {
 		printf("%f, %f\n", tt[i], c[i]);
 	}
+
+  printf("\n\n---Activations Test Successful---\n\n");
+  return 0;
 }

@@ -16,12 +16,10 @@ class Layer
 protected:
 	static int counter;
 	std::string name;
-	int seq_len;
-	int batch_size;
 	int layer_size; // number of nodes in layer
 	int input_dim; // size of previous layer
 	VF inputs;  // inputs to activation function
-	VF outputs; // outputs to activation function
+	VF outputs; // outputs from activation function
 	Weights* weights;
 	Activation* activation;
 	bool print_verbose;
@@ -33,14 +31,10 @@ public:
    Layer& operator=(const Layer&);
    virtual void print(std::string msg="");
 
-   virtual void setBatchSize(int batch_size) { this->batch_size = batch_size; }
-   virtual int  getBatchSize() { return batch_size; }
-   virtual void setSeqLen(int seq_len) { this->seq_len = seq_len; }
-   virtual int  getSeqLen() { return seq_len; }
+   virtual int  getInputDim() const { return input_dim; }
    virtual void setInputDim(int input_dim) { this->input_dim = input_dim; }
-   virtual int  getInputDim() { return input_dim; }
+   virtual Activation* getActivation() const { return activation; }
    virtual void setActivation(Activation* activation) { this->activation = activation; }
-   virtual Activation* getActivation() { return activation; }
 
    /** Compute the outputs given the inputs */
    virtual void execute();
@@ -52,7 +46,7 @@ public:
 
    // gradient of loss function with respect to weights
    void computeGradient();
-   GRADIENTS getGradient();
+   GRADIENTS getGradient() const;
 };
 //----------------------------------------------------------------------
 /* use of this typedef requires inclusion of this file */

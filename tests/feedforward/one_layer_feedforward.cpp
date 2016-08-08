@@ -18,5 +18,6 @@ int main()
 	opt->print();
   //m->predict(1.0); // Uncommenting this will break things!
 
+  printf("\n\n--- Feed Forward Test Successful ---\n\n");
 	exit(0);
 }

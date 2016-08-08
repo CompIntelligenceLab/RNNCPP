@@ -42,26 +42,28 @@ public:
   void print(std::string msg=std::string());
 
   // Use pointer instead of reference to avoid including layers.h
-  void add(Layer* layer);
+  void add(Layer* layer) {layers.push_back(layer);}
 
-  void setOptimizer(Optimizer* opt);
-  Optimizer* getOptimizer();
-  void setStateful(bool stateful);
-  bool getStateful();
-  void setReturnSequences(bool state);
-  bool getReturnSequences();
-  void setLearningRate(float lr);
-  float getLearningRate();
-  GRADIENTS getGradient();
-  int getInputDim() {return input_dim;}
-  int getBatchSize() {return batch_size;}
-  int getSeqLen() {return seq_len;}
+  void setOptimizer(Optimizer* opt) {optimizer = opt;}
+  Optimizer* getOptimizer() const {return optimizer;}
+  void setStateful(bool stateful) {this->stateful = stateful;}
+  bool getStateful() const {return stateful;}
+  void setReturnSequences(bool ret_seq) {return_sequences = ret_seq;}
+  bool getReturnSequences() const {return return_sequences;}
+  void setLearningRate(float lr) {learning_rate = lr;}
+  float getLearningRate() const {return learning_rate;}
+  int getInputDim() const {return input_dim;}
+  int getBatchSize() const {return batch_size;}
+  int getSeqLen() const {return seq_len;}
   void setInputDim(int input_dim) {this->input_dim = input_dim;}
   void setBatchSize(int batch_size) {this->batch_size = batch_size;}
   void setSeqLen(int seq_len) { this->seq_len = seq_len;}
   void setName(std::string name) { this->name = name; }
-  LAYERS getLayers() { return layers; };
-  std::string getName() { return name; }
+  LAYERS getLayers() const { return layers; };
+  std::string getName() const { return name; }
+
+  // Still need to decided the data structures and use of this
+  GRADIENTS getGradient() const;
 
   /** return vector of weights for each layer */
   WeightList getWeights();
@@ -70,7 +72,7 @@ public:
   //  x: signal input: (batch_size, seq_length, dimension)
   //  For non-recursive networks, x has size (batch_size, 1, dimension)
   void predict(VF3D x); // If this is to be accessed by the user, they must have armadillo. Not good
-  void train(MATRIX x, MATRIX y, int batch_size=0, int nb_epoch=0); // 0 defaults are flags not actual values. See model.cpp
+  void train(MATRIX x, MATRIX y, int batch_size=0, int nb_epoch=0); // 0 defaults are flags not values. See model.cpp
   void compile();
 
   /** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */

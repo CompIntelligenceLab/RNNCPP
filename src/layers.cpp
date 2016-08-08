@@ -17,8 +17,6 @@ Layer::Layer(int layer_size, std::string name) : input_dim(3)
 	counter++;
 
 	this->layer_size = layer_size;
-	int batch_size  = 1;  // default value
-	int seq_len     = 1; // default value
 	int input_dim   = 1; // default: scalar
 	weights         = new Weights(1,1, "weights"); // default size
 	print_verbose   = true;
@@ -36,8 +34,7 @@ Layer::~Layer()
 	activation = 0;
 }
 
-Layer::Layer(const Layer& l) : seq_len(l.seq_len), 
-   batch_size(l.batch_size), layer_size(l.layer_size), input_dim(l.input_dim), 
+Layer::Layer(const Layer& l) : layer_size(l.layer_size), input_dim(l.input_dim),
    print_verbose(l.print_verbose)
 {
 	inputs = l.inputs;
@@ -59,8 +56,6 @@ Layer& Layer::operator=(const Layer& l)
 
 	if (this != &l) {
 		name = l.name + "=";
-		seq_len = l.seq_len;
-		batch_size = l.batch_size;
 		layer_size = l.layer_size;
 		input_dim = l.input_dim;
 		print_verbose = l.print_verbose;
@@ -92,8 +87,6 @@ void Layer::print(std::string msg)
 {
 	printf("  -- layer: %s ---\n", name.c_str());
     if (msg != "") printf("%s\n", msg.c_str());
-	printf("seq len: %d\n", seq_len);
-	printf("batch_size: %d\n", batch_size);
 	printf("layer size: %d\n", layer_size);
 	printf("input_dim: %d\n", input_dim);
 	printf("inputs size: %d\n", inputs.size());

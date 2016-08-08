@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <armadillo>
 
+
 Model::Model(int input_dim, std::string name /*="model"*/)
 {
 	this->name = name;
@@ -16,6 +17,10 @@ Model::Model(int input_dim, std::string name /*="model"*/)
                // the name of the objective function we would like to use
   batch_size = 1; // batch size of 1 is equivalent to online learning
   nb_epoch = 10; // Just using the value that Keras uses for now
+  //stateful = false;
+	//int seq_len;
+	//initialization_type;
+	//LAYERS layers; // operate by value for safety)
 
 }
 //----------------------------------------------------------------------
@@ -30,7 +35,8 @@ Model::~Model()
 //----------------------------------------------------------------------
 Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_rate), 
     return_sequences(m.return_sequences), input_dim(m.input_dim), batch_size(m.batch_size),
-	seq_len(m.seq_len), print_verbose(m.print_verbose), initialization_type(m.initialization_type)
+	seq_len(m.seq_len), print_verbose(m.print_verbose), initialization_type(m.initialization_type),
+  nb_epoch(m.nb_epoch)
 
 	// What to do with name (perhaps add a "c" at the end for copy-construcor?)
 {
@@ -40,12 +46,10 @@ Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_ra
                             // assignment operator for the Optimizer class
 	loss = new Objective(); // ERROR
   *loss = *m.loss;// Careful here, we need to implement a copy
-                            // assignment operator for the Optimizer class
-	layers = m.layers;
-	LAYERS layers; // operate by value for safety)
+                  // assignment operator for the Optimizer class
+	layers = m.layers; // Careful here, we need to implement a copy
+                     // assignment operator for the Optimizer class
 	printf("Model copy constructor (%s)\n", name.c_str());
-  batch_size = m.batch_size;
-  nb_epoch = m.nb_epoch;
 }
 //----------------------------------------------------------------------
 Model& Model::operator=(const Model& m) 
@@ -57,12 +61,13 @@ Model& Model::operator=(const Model& m)
 		return_sequences = m.return_sequences;
 		input_dim = m.input_dim;
 		batch_size = m.batch_size;
+    nb_epoch = m.nb_epoch;
 		seq_len = m.seq_len;
 		print_verbose= m.print_verbose;
 		initialization_type = m.initialization_type;
 
-		Optimizer* opt1 = 0;
-		Objective* loss1 = 0;
+		Optimizer* opt1 = NULL;
+		Objective* loss1 = NULL;
 
 		try {
 			opt1 = new Optimizer(*m.optimizer);
@@ -81,52 +86,6 @@ Model& Model::operator=(const Model& m)
 	}
 	return *this;
 }
-//----------------------------------------------------------------------
-void Model::add(Layer* layer)
-{
-	layers.push_back(layer);
-}
-//----------------------------------------------------------------------
-void Model::setOptimizer(Optimizer* opt)
-{
-	optimizer = opt;
-}
-//----------------------------------------------------------------------
-Optimizer* Model::getOptimizer()
-{
-	return optimizer;
-}
-//----------------------------------------------------------------------
-void Model::setStateful(bool stateful)
-{
-	this->stateful = stateful;
-}
-//----------------------------------------------------------------------
-bool Model::getStateful()
-{
-	return stateful;
-}
-//----------------------------------------------------------------------
-void Model::setReturnSequences(bool ret_seq)
-{
-	return_sequences = ret_seq;
-}
-//----------------------------------------------------------------------
-bool Model::getReturnSequences()
-{
-	return return_sequences;
-}
-//----------------------------------------------------------------------
-void Model::setLearningRate(float lr)
-{
-	learning_rate = lr;
-}
-//----------------------------------------------------------------------
-float Model::getLearningRate()
-{
-	return learning_rate;
-}
-//----------------------------------------------------------------------
 void Model::print(const std::string msg /*=std:string()*/)
 {
 	printf("*** Model printout: ***\n");

@@ -45,5 +45,6 @@ int main()
 	layer2.print("\n--> print layer2\n");
 	//exit(0);
 	#endif
+  printf("\n\n---Copy Constructor Test Successful---\n\n");
 }
 
