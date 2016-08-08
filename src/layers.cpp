@@ -20,7 +20,7 @@ Layer::Layer(int layer_size, std::string name) : input_dim(3)
 	int seq_len     = 1; // default value
 	int input_dim   = 1; // default: scalar
 	weights         = new Weights(1,1, "weights"); // default size
-	printf("weights= %ld\n", weights); 
+	//printf("weights= %ld\n", weights); 
 	//printf("weights: %d, %d\n", weights->getWeights().n_rows, weights->getWeights().n_cols); exit(0);
 	print_verbose   = true;
 
@@ -30,10 +30,12 @@ Layer::Layer(int layer_size, std::string name) : input_dim(3)
 
 Layer::~Layer()
 {
+	printf("Layer destructor (%s)\n", name.c_str());
+	delete weights;
 	delete activation;
 }
 
-Layer::Layer(const Layer& l) : name(l.name), seq_len(l.seq_len), 
+Layer::Layer(const Layer& l) : seq_len(l.seq_len), 
    batch_size(l.batch_size), layer_size(l.layer_size), input_dim(l.input_dim), 
    print_verbose(l.print_verbose)
 {
@@ -41,6 +43,7 @@ Layer::Layer(const Layer& l) : name(l.name), seq_len(l.seq_len),
 	inputs = l.inputs;
 	outputs = l.outputs;
 	weights = l.weights; 
+	name    = l.name + 'c';
 
 	//TODO
 	// How does activation work with polymorphism ?
@@ -54,7 +57,7 @@ Layer& Layer::operator=(const Layer& l)
 	printf("Layer::operator= (%s)\n", name.c_str());
 
 	if (this != &l) {
-		name = l.name;
+		name = l.name + "=";
 		seq_len = l.seq_len;
 		batch_size = l.batch_size;
 		layer_size = l.layer_size;
@@ -95,8 +98,8 @@ void Layer::print(std::string msg)
 
 	if (print_verbose == false) return;
 
-	for (int i=0; i < weights.size(); i++) {
-		weights[i].print();
+	if (weights) {
+		weights->print();
 	}
 
 	//if (activation) {
@@ -112,16 +115,10 @@ void Layer::execute()
 
 void Layer::createWeights(int in, int out)
 {
-	Weights* weight = new Weights(in, out, this->name+"_"+"weights");
-	weights.push_back(*weight);
+	weights = new Weights(in, out, this->name+"_"+"weights");
 }
 
 void Layer::initializeWeights(std::string initialize_type)
 {
-		// There is at least one weight matrix. For LSTM, there are more. 
-		if (weights.size() < 0) {
-			printf("Layer::initializeWeights: no weight array\n");
-			exit(1);
-		}
-		weights[0].initializeWeights(initialize_type);
+		weights->initializeWeights(initialize_type);
 }

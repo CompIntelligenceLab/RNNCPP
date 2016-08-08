@@ -14,17 +14,18 @@ Optimizer::~Optimizer()
 
 Optimizer::Optimizer(const Optimizer& o) : learning_rate(o.learning_rate)
 {
+	printf("Optimizer copy constructor (%s)\n", o.name.c_str());
 	loss = o.loss;
-	this->name = name;
+	this->name = name + "c";
 }
 
 Optimizer& Optimizer::operator=(const Optimizer& o) 
 {
-	printf("Optimizer::operator= (%s)", this->name.c_str());
+	printf("Optimizer::operator= (%s)\n", o.name.c_str());
 
 	if (this != &o) {
 		learning_rate = o.learning_rate;
-		name = o.name + "c";
+		name = o.name + "=";
 		loss = o.loss;
 	}
 	//printf("exit optimizer=\n");

@@ -22,7 +22,7 @@ protected:
 	int input_dim; // size of previous layer
 	VF inputs;  // inputs to activation function
 	VF outputs; // outputs to activation function
-	WeightList weights; // class Weights:
+	Weights* weights;
 	Activation* activation;
 	bool print_verbose;
 
@@ -46,8 +46,7 @@ public:
    virtual void execute();
 
    /** get layer weights */
-   WeightList& getWeights() { return weights; }
-   ;  // not sure of data structure
+   WeightList getWeights();  // not sure of data structure
    virtual void createWeights(int in, int out);  // not sure of data structure
    virtual void initializeWeights(std::string initialization_type="uniform");  // not sure of data structure
 
