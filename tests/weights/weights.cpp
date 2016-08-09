@@ -33,11 +33,21 @@ int main()
 		printf("w1,w2= %f, %f, w3=w1+w2= %f\n", w1(i,j), w2(i,j), w3(i,j));
 	}}
 
-	Weights w4 = w1 + w2;
+	Weights w10(6,5);
+	for (int j=0; j < 5; j++) {
+	for (int i=0; i < 6; i++) {
+		w10(i,j) = i+j;
+	}}
+
+
+	// ===============================
+	//Test multiplication
+
+	w3 = w1 * w10;
 
 	for (int i=0; i < 2; i++) {
 	for (int j=0; j < 3; j++) {
-		printf("w1,w2= %f, %f, w3=w1+w2= %f\n", w1(i,j), w2(i,j), w3(i,j));
+		printf("w3=w1*w10= %f\n", w3(i,j));
 	}}
 
 }

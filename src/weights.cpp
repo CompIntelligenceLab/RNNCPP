@@ -91,15 +91,23 @@ void Weights::print(std::string msg /* "" */)
 
 Weights Weights::operator+(const Weights& w) 
 {
-	//printf("WEIGHTS_F size= %d, operator+  *******\n", w.size); 
 	Weights tmp(*this);  // Ideally, this should initialize all components, including weights_f
 	printf("after tmp declaration and definition\n");
 
-	//if (this->weights_f.size == w.weights_f.size) {
-	//}
-
 	for (int i=0; i < w.weights_f.size(); i++) {
 		tmp.weights_f[i] += w.weights_f[i];
+	}
+		
+	return tmp;
+};
+
+Weights Weights::operator*(const Weights& w) 
+{
+	Weights tmp(*this);  // Ideally, this should initialize all components, including weights_f
+	printf("after tmp declaration and definition\n");
+
+	for (int i=0; i < w.weights_f.size(); i++) {
+		tmp.weights_f[i] = this->weights_f[i] * w.weights_f[i];
 	}
 		
 	return tmp;

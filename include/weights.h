@@ -39,6 +39,7 @@ public:
 	// If I use operator+(const Weights&) const, I get the error: 
 	// Error: no matching constructor for initialization of 'Weights'
 	Weights operator+(const Weights&);
+	Weights operator*(const Weights&);
 	float& operator()(const int i, const int j) { return weights_f[0](i,j); }
 };
 
