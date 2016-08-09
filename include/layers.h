@@ -21,7 +21,8 @@ protected:
 	VF inputs;  // inputs to activation function
 	VF outputs; // outputs from activation function
 	WEIGHTS weights;
-  GRADIENTS gradients;
+	//Weights* weights;  // original code. Nathan wants to simplify
+    GRADIENTS gradients;
 	Activation* activation;
 	bool print_verbose;
 

@@ -18,7 +18,8 @@ Layer::Layer(int layer_size, std::string name /* "layer" */) : input_dim(3)
 
 	this->layer_size = layer_size;
 	int input_dim   = 1; // default: scalar
-	weights         = new Weights(1,1, "weights"); // default size
+	//weights         = new Weights(1,1, "weights"); // default size
+	weights    = WEIGHTS(1,1);
 	print_verbose   = true;
 
 	// Default activation: tanh
@@ -28,9 +29,9 @@ Layer::Layer(int layer_size, std::string name /* "layer" */) : input_dim(3)
 Layer::~Layer()
 {
 	printf("Layer destructor (%s)\n", name.c_str());
-	if (weights)    delete weights;
+	//if (weights)    delete weights; // no longer required
 	if (activation) delete activation;
-	weights = 0; 
+	//weights = 0; 
 	activation = 0;
 }
 
@@ -39,8 +40,10 @@ Layer::Layer(const Layer& l) : layer_size(l.layer_size), input_dim(l.input_dim),
 {
 	inputs = l.inputs;
 	outputs = l.outputs;
-	weights = new Weights(1,1, "weights_c");
-	*weights = *l.weights; 
+	//weights = new Weights(1,1, "weights_c"); // remove class Weights (for now)
+	//*weights = *l.weights;  // removed because of Nathan simplification (remove class Weights)
+	weights = WEIGHTS(l.weights); // for Nathan's changes
+	weights = l.weights;
 	name    = l.name + 'c';
 	printf("Layer copy constructor (%s)\n", name.c_str());
 
@@ -63,9 +66,12 @@ Layer& Layer::operator=(const Layer& l)
 		//Weights* weights;
 		//Activation* activation;
 
-		Weights* w1;
+		weights = l.weights;
+
+		//Weights* w1; // remove class Weights
 		Activation *a1;
 
+		/*  // remove class Weights (Nathan)
 		try {
 			w1 = new Weights(*l.weights); // copy constructor
 		} catch (...) {
@@ -76,6 +82,8 @@ Layer& Layer::operator=(const Layer& l)
 
 		//delete weights; // what if weights is 0? 
 		*weights = *w1; // ERROR
+		*/  // remove class weights 
+
 		// if no copying done, name does not change
 		printf("Layer::operator= (%s)\n", name.c_str());
 	}
@@ -95,9 +103,14 @@ void Layer::print(std::string msg /* "" */)
 
 	if (print_verbose == false) return;
 
+	#if 0
+	// Weight class removed
 	if (weights) {
 		weights->print();
 	}
+	#endif
+
+	weights.print();
 
 	//if (activation) {
 		//activation->print();
@@ -112,10 +125,29 @@ void Layer::execute()
 
 void Layer::createWeights(int in, int out)
 {
-	weights = new Weights(in, out, this->name+"_"+"weights");
+	// weights = new Weights(in, out, this->name+"_"+"weights"); // Nathan
+	weights = WEIGHTS(in, out);
 }
 
 void Layer::initializeWeights(std::string initialize_type /* "uniform" */)
 {
-		weights->initializeWeights(initialize_type);
+		//weights->initializeWeights(initialize_type); // Nathan
+
+	if (initialize_type == "gaussian") {
+	} else if (initialize_type == "uniform") {
+		//printf("in_dim, out_dim= %d, %d\n", in_dim, out_dim);
+		printf("in_dim, out_dim= %d, %d\n", weights.n_rows, weights.n_cols); 
+		//arma_rng::set_seed_random(); // put at beginning of code // DOES NOT WORK
+		//arma::Mat<float> ww = arma::randu<arma::Mat<float> >(3, 4); //arma::size(*weights));
+		weights = arma::randu<WEIGHTS>(arma::size(weights)); //arma::size(*weights));
+		printf("weights: %f\n", weights[0,0]);
+		weights = arma::randu<WEIGHTS>(arma::size(weights)); //arma::size(*weights));
+		printf("weights: %f\n", weights[0,0]);
+		printf("weights size: %d\n", weights.size());
+		printf("rows, col= %d, %d\n", weights.n_rows, weights.n_cols);
+	} else if (initialize_type == "orthogonal") {
+	} else {
+		printf("initialize_type: %s not implemented\n", initialize_type.c_str());
+		exit(1);
+	}
 }

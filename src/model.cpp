@@ -86,11 +86,12 @@ Model& Model::operator=(const Model& m)
 	return *this;
 }
 //----------------------------------------------------------------------
-void Model::add(Layer* layer)
-{
-	layers.push_back(layer);
-}
+//void Model::add(Layer* layer)
+//{
+	//layers.push_back(layer);
+//}
 //----------------------------------------------------------------------
+#if 0
 void Model::setOptimizer(Optimizer* opt)
 {
 	optimizer = opt;
@@ -130,6 +131,7 @@ float Model::getLearningRate()
 {
 	return learning_rate;
 }
+#endif
 //----------------------------------------------------------------------
 void Model::print(std::string msg /* "" */)
 {
