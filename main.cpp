@@ -20,8 +20,11 @@ int main() {
 	printf("after init\n");
 
 	Optimizer* opt = new RMSProp("myrmsprop");
+	m->setOptimizer(opt);
+	Objective* obj = new Objective();
+	m->setLoss(obj);
+
 	opt->print();
-	exit(1);
 
 	m->print();
 	printf("-----------------\n");
@@ -29,5 +32,11 @@ int main() {
 	Model n = *m;
 	n.setName("model n");
 	n.print();
+
+	// prediction
+	VF3D x(1,1,1);
+	x[0,0,0] = 0.5;
+	m->predict(x);
+
 	exit(0);
 }

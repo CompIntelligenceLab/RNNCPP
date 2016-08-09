@@ -46,6 +46,8 @@ public:
 
   void setOptimizer(Optimizer* opt) {optimizer = opt;}
   Optimizer* getOptimizer() const {return optimizer;}
+  void setLoss(Objective* obj) {loss = obj;}
+  Objective* getObjective() const {return loss;}
   void setStateful(bool stateful) {this->stateful = stateful;}
   bool getStateful() const {return stateful;}
   void setReturnSequences(bool ret_seq) {return_sequences = ret_seq;}
