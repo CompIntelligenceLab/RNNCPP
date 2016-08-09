@@ -51,7 +51,7 @@ Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_ra
 	printf("Model copy constructor (%s)\n", name.c_str());
 }
 //----------------------------------------------------------------------
-Model& Model::operator=(const Model& m) 
+const Model& Model::operator=(const Model& m) 
 {
 	if (this != &m) {
 		name = m.name + "=";

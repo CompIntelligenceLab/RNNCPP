@@ -36,7 +36,7 @@ Weights::Weights(Weights& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbo
 	printf("Weights::copy_constructor (%s)\n", name.c_str());
 }
 
-Weights& Weights::operator=(const Weights& w)
+const Weights& Weights::operator=(const Weights& w)
 {
 	if (this != &w) {
 		name = w.name + "=";

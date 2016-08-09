@@ -54,7 +54,7 @@ Layer::Layer(const Layer& l) : layer_size(l.layer_size), input_dim(l.input_dim),
 	//print("Layer copy constructor, activation->name= ", activation->name);
 }
 
-Layer& Layer::operator=(const Layer& l)
+const Layer& Layer::operator=(const Layer& l)
 {
 
 	if (this != &l) {

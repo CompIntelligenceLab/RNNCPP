@@ -38,7 +38,7 @@ public:
   Model(int input_dim, std::string name="model");
   ~Model();
   Model(const Model&); // probably do not need it, but it is a good exercise. 
-  Model& operator=(const Model&); 
+  const Model& operator=(const Model&); 
   void print(std::string msg=std::string());
 
   // Use pointer instead of reference to avoid including layers.h

@@ -16,7 +16,7 @@ public:
 	Optimizer(std::string name="optimizer");
 	~Optimizer();
 	Optimizer(const Optimizer&);
-	Optimizer& operator=(const Optimizer&);
+	const Optimizer& operator=(const Optimizer&);
 	//Optimizer& operator=(const Optimizer&);
 
 	virtual void print(const std::string msg=std::string());

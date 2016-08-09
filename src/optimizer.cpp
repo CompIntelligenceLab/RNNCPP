@@ -30,7 +30,7 @@ Optimizer::Optimizer(const Optimizer& o) : learning_rate(o.learning_rate)
 	printf("Optimizer copy constructor (%s)\n", name.c_str());
 }
 
-Optimizer& Optimizer::operator=(const Optimizer& o) 
+const Optimizer& Optimizer::operator=(const Optimizer& o) 
 {
 	if (this != &o) {
 		learning_rate = o.learning_rate;

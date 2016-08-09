@@ -28,7 +28,7 @@ Objective::Objective(const Objective& o) : learning_rate(o.learning_rate)
 	printf("Objective copy constructor (%s)\n", name.c_str());
 }
 
-Objective& Objective::operator=(const Objective& o)
+const Objective& Objective::operator=(const Objective& o)
 {
 	printf("Objective::operator= (%s)\n", o.name.c_str());
 
