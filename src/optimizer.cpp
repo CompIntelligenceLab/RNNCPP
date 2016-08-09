@@ -3,7 +3,7 @@
 
 int Optimizer::counter = 0;
 
-Optimizer::Optimizer(std::string name)
+Optimizer::Optimizer(std::string name /* "optimizer" */)
 {
 	char cname[80];
 
@@ -57,6 +57,6 @@ void Optimizer::print(const std::string msg /*=std::string()*/)
 
 //----------------------------------------------------------------------
 
-RMSProp::RMSProp(std::string name) : Optimizer(name) {;}
+RMSProp::RMSProp(std::string name /* "RMSProp" */) : Optimizer(name) {;}
 //----------------------------------------------------------------------
 

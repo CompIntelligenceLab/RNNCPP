@@ -3,8 +3,7 @@
 #include <stdio.h>
 #include <armadillo>
 
-
-Model::Model(int input_dim, std::string name /*="model"*/)
+Model::Model(int input_dim, std::string name /* "model" */) 
 {
 	this->name = name;
 	learning_rate = 1.e-5;
@@ -86,7 +85,53 @@ Model& Model::operator=(const Model& m)
 	}
 	return *this;
 }
-void Model::print(const std::string msg /*=std:string()*/)
+//----------------------------------------------------------------------
+void Model::add(Layer* layer)
+{
+	layers.push_back(layer);
+}
+//----------------------------------------------------------------------
+void Model::setOptimizer(Optimizer* opt)
+{
+	optimizer = opt;
+}
+//----------------------------------------------------------------------
+Optimizer* Model::getOptimizer()
+{
+	return optimizer;
+}
+//----------------------------------------------------------------------
+void Model::setStateful(bool stateful)
+{
+	this->stateful = stateful;
+}
+//----------------------------------------------------------------------
+bool Model::getStateful()
+{
+	return stateful;
+}
+//----------------------------------------------------------------------
+void Model::setReturnSequences(bool ret_seq)
+{
+	return_sequences = ret_seq;
+}
+//----------------------------------------------------------------------
+bool Model::getReturnSequences()
+{
+	return return_sequences;
+}
+//----------------------------------------------------------------------
+void Model::setLearningRate(float lr)
+{
+	learning_rate = lr;
+}
+//----------------------------------------------------------------------
+float Model::getLearningRate()
+{
+	return learning_rate;
+}
+//----------------------------------------------------------------------
+void Model::print(std::string msg /* "" */)
 {
 	printf("*** Model printout: ***\n");
     if (msg != "") printf("%s\n", msg.c_str());
@@ -134,7 +179,7 @@ void Model::train(MATRIX x, MATRIX y, int batch_size /*=0*/, int nb_epoch /*=0*/
   VF3D input;
 }
 //----------------------------------------------------------------------
-void Model::initializeWeights(std::string initialization_type)
+void Model::initializeWeights(std::string initialization_type /* "uniform" */)
 {
 	int in_dim, out_dim;
 	printf("inside initialize\n");

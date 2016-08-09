@@ -4,7 +4,7 @@
 
 int Weights::counter = 0;
 
-Weights::Weights(int in, int out, std::string name)
+Weights::Weights(int in, int out, std::string name /* "weights" */)
 {
 	printf("Weights constructor, in= %d, out=%d (%s)\n", in, out, name.c_str());
 
@@ -52,7 +52,7 @@ Weights& Weights::operator=(const Weights& w)
 	return *this;
 }
 
-void Weights::initializeWeights(std::string initialize_type)
+void Weights::initializeWeights(std::string initialize_type /* "uniform" */)
 {
 	if (initialize_type == "gaussian") {
 	} else if (initialize_type == "uniform") {
@@ -72,7 +72,7 @@ void Weights::initializeWeights(std::string initialize_type)
 	}
 }
 
-void Weights::print(std::string msg)
+void Weights::print(std::string msg /* "" */)
 {
 	printf("weights: %s\n", name.c_str());
 	printf("in: %d, out: %d\n", in_dim, out_dim);

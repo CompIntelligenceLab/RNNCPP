@@ -1,6 +1,7 @@
 #include "dense_layer.h"
 
-DenseLayer::DenseLayer(int layer_size, std::string name) : Layer(layer_size, name)
+DenseLayer::DenseLayer(int layer_size, std::string name /* "dense" */) 
+    : Layer(layer_size, name)
 {
 	//this->name = "dense";
 }
