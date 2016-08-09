@@ -20,7 +20,8 @@ protected:
 	int input_dim; // size of previous layer
 	VF inputs;  // inputs to activation function
 	VF outputs; // outputs from activation function
-	Weights* weights;
+	WEIGHTS weights;
+  GRADIENTS gradients;
 	Activation* activation;
 	bool print_verbose;
 
@@ -40,14 +41,15 @@ public:
    virtual void execute();
 
    /** get layer weights */
-   WeightList getWeights();  // not sure of data structure
-   virtual void createWeights(int in, int out);  // not sure of data structure
+   virtual void createWeights(int in, int out);  // not sure of data structure (Just simple matrix for now)
    virtual void initializeWeights(std::string initialization_type="uniform");  // not sure of data structure
+   WEIGHTS getWeights() const {return weights;}  // not sure of data structure (Just simple matrix for now)
 
    // gradient of loss function with respect to weights
    void computeGradient();
-   GRADIENTS getGradient() const;
+   GRADIENTS getGradient() const {return gradients;}
 };
+
 //----------------------------------------------------------------------
 /* use of this typedef requires inclusion of this file */
 typedef std::vector<Layer*> LAYERS;
