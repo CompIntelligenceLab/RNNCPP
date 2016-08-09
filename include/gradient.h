@@ -15,6 +15,6 @@ public:
 	virtual void print(std::string name= "");
 };
 //----------------------------------------------------------------------
-typedef std::vector<Gradients> GRADIENTS;
+//typedef std::vector<Gradients> GRADIENTS;
 
 #endif
