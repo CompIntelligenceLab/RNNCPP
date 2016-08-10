@@ -8,7 +8,7 @@ Weights::Weights(int in, int out, std::string name /* "weights" */)
 {
 	in_dim = in;
 	out_dim = out;
-	//weights = WEIGHTS(in_dim, out_dim);
+	weights = WEIGHTS(in_dim, out_dim);
 	weights_f = WEIGHTS_F(1);
 	weights_f[0] = WEIGHTS(in_dim, out_dim);   // 1 refers to batch_size
 	print_verbose = true;
@@ -33,9 +33,8 @@ Weights::~Weights()
 Weights::Weights(const Weights& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbose(w.print_verbose)
 {
 	name = w.name + "c";
-	//weights = WEIGHTS(in_dim, out_dim);
+	weights = WEIGHTS(in_dim, out_dim);
 	weights_f = w.weights_f; 
-	//weights_f[0] = WEIGHTS(in_dim, out_dim); // 1 is batch_size
 	printf("Weights::copy_constructor (%s)\n", name.c_str());
 }
 
@@ -48,6 +47,7 @@ const Weights& Weights::operator=(const Weights& w)
 		print_verbose = w.print_verbose;
 		//printf("size w.weights: %d\n", w.weights.size());
 		//printf("weights: %d\n", weights.size());
+		weights   = w.weights; 
 		weights_f = w.weights_f; 
 		printf("Weights::operator= (%s)\n", name.c_str());
 	}
@@ -63,6 +63,7 @@ void Weights::initializeWeights(std::string initialize_type /* "uniform" */)
 		//arma_rng::set_seed_random(); // put at beginning of code // DOES NOT WORK
 		//arma::Mat<float> ww = arma::randu<arma::Mat<float> >(3, 4); //arma::size(*weights));
 
+		// Make sure this works with weights Matrix; 
 		for (int i=0; i < weights_f.size(); i++) {
 			WEIGHTS& w = weights_f[0];
 			w = arma::randu<WEIGHTS>(arma::size(w)); //arma::size(*weights));
@@ -94,6 +95,11 @@ Weights Weights::operator+(const Weights& w)
 	Weights tmp(*this);  // Ideally, this should initialize all components, including weights_f
 	printf("after tmp declaration and definition\n");
 
+	printf("weights.size= %d, %d", weights.n_rows, weights.n_cols);
+	printf("weights.size= %d", weights.size()); // n_rows * n_cols
+
+	tmp.weights += w.weights;
+
 	for (int i=0; i < w.weights_f.size(); i++) {
 		tmp.weights_f[i] += w.weights_f[i];
 	}
@@ -106,9 +112,27 @@ Weights Weights::operator*(const Weights& w)
 	Weights tmp(*this);  // Ideally, this should initialize all components, including weights_f
 	printf("after tmp declaration and definition\n");
 
+	tmp.weights = tmp.weights * w.weights;
+
 	for (int i=0; i < w.weights_f.size(); i++) {
 		tmp.weights_f[i] = this->weights_f[i] * w.weights_f[i];
 	}
 		
 	return tmp;
 };
+
+VF2D_F Weights::operator*(const VF2D_F& x)
+{
+    // w * x  ==> w(layer[k], layer[k-1]) * x[batch](dim, seq)
+	int nb_batch = x.n_rows;
+	int dim      = x[0].n_rows;   // if x[0] exists
+	int nb_seq   = x[0].n_cols;   // if x[0] exists
+
+	VF2D_F tmp(nb_batch);  // Ideally, this should initialize all components, including weights_f
+
+	for (int i=0; i < nb_batch; i++) {
+		tmp[i] = this->weights * x[i]; // benchmark for large arrays
+	}
+
+	return tmp;
+}

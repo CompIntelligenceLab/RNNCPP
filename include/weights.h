@@ -20,7 +20,7 @@ class Weights
 protected:
 	static int counter;
 	std::string name;
-	//WEIGHTS weights;
+	WEIGHTS weights;
 	WEIGHTS_F weights_f; // using fields
 	int in_dim, out_dim;
 	bool print_verbose;
@@ -31,17 +31,20 @@ public:
 	~Weights();
 	Weights(const Weights&);
 	const Weights& operator=(const Weights& w);
-	//WEIGHTS& getWeights() { return weights; }
+	WEIGHTS& getWeights() { return weights; }
 	void initializeWeights(std::string initialize_type="uniform");
 	void print(std::string name= "");
 	WEIGHTS_F& getWeightsF() { return  weights_f; }
+	int getNRows() { return weights.n_rows; }
+	int getNCols() { return weights.n_cols; }
 
 	// If I use operator+(const Weights&) const, I get the error: 
 	// Error: no matching constructor for initialization of 'Weights'
-	Weights operator+(const Weights&);
-	Weights operator*(const Weights&);
-	float& operator()(const int i, const int j) { return weights_f[0](i,j); }
-	float& operator()(const int b, const int i, const int j) { return weights_f[b](i,j); }
+	Weights operator+(const Weights&); // not needed, check dimensionality
+	Weights operator*(const Weights&); // not needed, check dimensionality
+	VF2D_F operator*(const VF2D_F&);
+	float& operator()(const int i, const int j) { return weights(i,j); }
+	//float& operator()(const int b, const int i, const int j) { return weights[b](i,j); }
 };
 
 //----------------------------------------------------------------------

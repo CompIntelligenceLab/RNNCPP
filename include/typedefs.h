@@ -28,10 +28,11 @@
 	typedef arma::Col<float> VF;
 	typedef arma::Col<float> VF1D;
 	typedef arma::Mat<float> VF2D;
+	typedef arma::field<arma::Mat<float> > VF2D_F;  // (dimension, seq_len) 
 	typedef arma::Cube<float> VF3D;
 	typedef arma::Row<int> VI; // not possible to allocate a row of size 3;
 	//typedef arma::Mat<int> VI;
-	typedef arma::Mat<float> WEIGHTS;
+	typedef arma::Mat<float> WEIGHTS;  // (layer(j-1), layer(j))
 	typedef arma::field<arma::Mat<float> > WEIGHTS_F;  // weight field
     typedef arma::Mat<float> GRADIENTS; // Remove this if we use the Gradients class
 #else
