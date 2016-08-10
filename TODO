@@ -8,3 +8,10 @@ to determine success or failure.
 - Need to implement a deep copy assignment operator for the Optimzer class. The
   Model class' copy constructor uses the following line...
     *optimizer = *m.optimizer;
+- add to layer: pre-activation values. So postactivation is simply the application of one function
+  This is the "inputs" member variable. 
+- Create 
+----------------------------------------------------------------------
+Features: 
+VF1D_F loss;  // different batches stored at different locations
+

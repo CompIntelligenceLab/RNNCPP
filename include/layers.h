@@ -18,8 +18,8 @@ protected:
 	std::string name;
 	int layer_size; // number of nodes in layer
 	int input_dim; // size of previous layer
-	VF inputs;  // inputs to activation function
-	VF outputs; // outputs from activation function
+	VF2D_F inputs;  // inputs to activation function
+	VF2D_F outputs; // outputs from activation function
 	WEIGHTS weights;
 	//Weights* weights;  // original code. Nathan wants to simplify
     GRADIENTS gradients;
