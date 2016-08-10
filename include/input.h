@@ -19,11 +19,14 @@ private:
 	bool print_verbose;
 
 public:
-  Input();
-  ~Input();
-  Input(const Input&); 
-  const Input& operator=(const Input&); 
-  void print(std::string msg=std::string());
+  	Input();
+  	~Input();
+  	Input(const Input&); 
+  	const Input& operator=(const Input&); 
+  	void print(std::string msg=std::string());
+
+  	VF1D read1D(std::string filename);
+	VF2D loadFromCSV(const std::string& filename);
 };
 
 #endif
