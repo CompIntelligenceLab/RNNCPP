@@ -20,6 +20,8 @@ public:
 		printf("constructor\n");
 	}
 
+	Array(Array&&) = default; // requires -std=c++11 (but does not compile)
+
 	~Array() {
 		printf("destructor\n");
 		delete [] f;
@@ -42,8 +44,8 @@ int main()
 	
 	for (int i=0; i < 100; i++) {
 		printf("i= %d\n", i);
-		Array a6 = *a1 + *a2 + *a1 + *a2;  // 3 constructors + 1 destructor
-		//Array& a6 = *a1 + *a2 + *a1 + *a2; // 3 consturctors, NO destructors
+		//Array a6 = *a1 + *a2 + *a1 + *a2;  // 3 constructors + 1 destructor
+		Array& a6 = *a1 + *a2 + *a1 + *a2; // 3 constructors, NO destructors
 
 		// defining Array operator+(...) 
 		//Array a6 = *a1 + *a2 + *a1 + *a2;  // 3 constructors + 3 destructor

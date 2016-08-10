@@ -28,7 +28,8 @@
 	typedef arma::Col<float> VF;
 	typedef arma::Col<float> VF1D;
 	typedef arma::Mat<float> VF2D;
-	typedef arma::field<arma::Mat<float> > VF2D_F;  // (dimension, seq_len) 
+	typedef arma::field<arma::Col<float> > VF1D_F;  // [batch](seq_len) 
+	typedef arma::field<arma::Mat<float> > VF2D_F;  // [batch](dimension, seq_len) 
 	typedef arma::Cube<float> VF3D;
 	typedef arma::Row<int> VI; // not possible to allocate a row of size 3;
 	//typedef arma::Mat<int> VI;

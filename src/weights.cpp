@@ -38,6 +38,8 @@ Weights::Weights(const Weights& w) : in_dim(w.in_dim), out_dim(w.out_dim), print
 	printf("Weights::copy_constructor (%s)\n", name.c_str());
 }
 
+Weights::Weights(Weights&& w) = default;
+
 const Weights& Weights::operator=(const Weights& w)
 {
 	if (this != &w) {

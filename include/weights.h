@@ -38,6 +38,8 @@ public:
 	int getNRows() { return weights.n_rows; }
 	int getNCols() { return weights.n_cols; }
 
+	Weights(Weights&& w); // C++11
+
 	// If I use operator+(const Weights&) const, I get the error: 
 	// Error: no matching constructor for initialization of 'Weights'
 	Weights operator+(const Weights&); // not needed, check dimensionality

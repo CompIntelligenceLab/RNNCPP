@@ -1,4 +1,7 @@
-./activations/activations 
-./copy_constructors/copy_constructors 
-./weights/weights 
-./feedforward/feed_forward
+#!/bin/bash
+
+export H=../build/tests
+${H}/activations/activations 
+$H/copy_constructors/copy_constructors 
+$H/weights/weights 
+$H/feedforward/feed_forward

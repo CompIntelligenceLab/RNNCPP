@@ -11,8 +11,10 @@ Model::Model(int input_dim, std::string name /* "model" */)
 	print_verbose = true;
 	this->input_dim = input_dim;
 	printf("Model constructor (%s)\n", this->name.c_str());
-	optimizer = NULL;
-	loss = NULL; // I believe this should just be a string or something specifying
+	optimizer = new RMSProp();
+	//optimizer = NULL;
+	loss = new MeanSquareError();
+	//loss = NULL; // I believe this should just be a string or something specifying
                // the name of the objective function we would like to use
 	batch_size = 1; // batch size of 1 is equivalent to online learning
 	nb_epoch = 10; // Just using the value that Keras uses for now
@@ -53,7 +55,7 @@ Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_ra
 	optimizer = new Optimizer();
     *optimizer = *m.optimizer;  // Careful here, we need to implement a copy
                                 // assignment operator for the Optimizer class
-	loss = new Objective(); // ERROR
+	loss = new MeanSquareError(); 
     *loss = *m.loss;// Careful here, we need to implement a copy
                   // assignment operator for the Optimizer class
 	layers = m.layers; // Careful here, we need to implement a copy
@@ -79,8 +81,8 @@ const Model& Model::operator=(const Model& m)
 		Objective* loss1 = NULL;
 
 		try {
-			opt1 = new Optimizer(*m.optimizer);
-			loss1 = new Objective(*m.loss);
+			opt1 = new Optimizer(); //*m.optimizer);
+			loss1 = new MeanSquareError(); //*m.loss);
 		} catch (...) {
 			delete opt1;
 			delete loss1;
@@ -89,8 +91,8 @@ const Model& Model::operator=(const Model& m)
 		}
 
 		// Superclass::operator=(that)
-		optimizer = opt1;
-		loss = loss1;
+		*optimizer = *opt1;
+		*loss = *loss1;
 		printf("Model::operator= %s\n", name.c_str());
 	}
 	return *this;
