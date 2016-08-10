@@ -82,6 +82,20 @@ int main()
 
 
 	VF2D_F y = w11 * x;  // w11(3,2) * x(3)(2,4) ==> x(3)(3,4) // w11[layer(l), layer(l-1))
+	VF2D_F tst(y); tst[0].zeros(); tst[1].zeros(); tst[2].zeros();
+
+	// Multiply by hand for testing
+	for (int b=0; b < x.n_rows; b++) {
+		for (int s=0; s < x[0].n_cols; s++) {
+			for (int l=0; l < w11.getNRows(); l++) {
+				float m = 0.;
+				for (int i=0; i < x[0].n_rows; i++) {
+					m += w11(l, i) * x[b](i, s);
+				}
+				y[b](l,s) = m;
+			}
+		}
+	}
 
 	printf("y batch: %d,  dims: %d, %d\n", y.n_rows, y[0].n_rows, y[0].n_cols);
 
@@ -92,7 +106,7 @@ int main()
 	for (int i=0; i < 3; i++) {
 		for (int p=0; p < 3; p++) {
 		for (int q=0; q < 4; q++) {
-			printf("y[%d](%d,%d)= %f\n", i, p, q, y[i](p,q));  // ==> Index out of bounds
+			printf("y[%d](%d,%d)= %f, exact: %f\n", i, p, q, y[i](p,q), y[i](p,q));  // ==> Index out of bounds
 		}}
 	}
 }
