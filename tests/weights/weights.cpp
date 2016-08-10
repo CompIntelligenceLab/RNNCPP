@@ -92,7 +92,7 @@ int main()
 				for (int i=0; i < x[0].n_rows; i++) {
 					m += w11(l, i) * x[b](i, s);
 				}
-				y[b](l,s) = m;
+				tst[b](l,s) = m;
 			}
 		}
 	}
@@ -106,7 +106,7 @@ int main()
 	for (int i=0; i < 3; i++) {
 		for (int p=0; p < 3; p++) {
 		for (int q=0; q < 4; q++) {
-			printf("y[%d](%d,%d)= %f, exact: %f\n", i, p, q, y[i](p,q), y[i](p,q));  // ==> Index out of bounds
+			printf("y[%d](%d,%d)= %f, exact: %f\n", i, p, q, y[i](p,q), tst[i](p,q));  // ==> Index out of bounds
 		}}
 	}
 }
