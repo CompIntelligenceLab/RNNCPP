@@ -12,8 +12,18 @@
 
 int main() {
 	Model* m  = new Model(1);
-	Layer* dense = new DenseLayer(1, "dense");
+
+	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
+	Layer* dense = new DenseLayer(5, "dense");
 	m->add(dense);
+	Layer* dense1 = new DenseLayer(3, "dense");
+	m->add(dense1);
+
+	printf("layer 0: input dim: %d\n", dense->getInputDim());
+	printf("layer 0: output dim: %d\n", dense->getLayerSize());
+	printf("layer 1: input dim: %d\n", dense1->getInputDim());
+	printf("layer 1: output dim: %d\n", dense1->getLayerSize());
+
 	Sigmoid* sig = new Sigmoid();
 
 	printf("before init\n");

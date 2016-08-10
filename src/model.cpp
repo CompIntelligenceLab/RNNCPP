@@ -101,14 +101,18 @@ const Model& Model::operator=(const Model& m)
 void Model::add(Layer* layer)
 {
 	// check for layer size compatibility
+	printf("add layer ***** layers size: %d\n", layers.size());
+
 	if (layers.size() == 0) {
 		// dimension should equal input dimension
 		;
 	} else {
 		int nb_layers = layers.size();
-		if (layers[nb_layers-1]->getLayerSize() != layers[nb_layers]->getInputDim()) {
-			printf("Incompatible layer_size between layers %d and %d\n", nb_layers-1, nb_layers);
-			exit(0);
+		//printf("nb_layers= %d\n", nb_layers);
+		if (layers[nb_layers-1]->getLayerSize() != layer->getInputDim()) {
+			layer->setInputDim(layers[nb_layers-1]->getLayerSize());
+			//printf("Incompatible layer_size between layers %d and %d\n", nb_layers-1, nb_layers);
+			//exit(0);
 		}
 	}
 
