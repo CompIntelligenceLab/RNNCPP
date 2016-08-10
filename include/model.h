@@ -42,8 +42,9 @@ public:
   void print(std::string msg=std::string());
 
   // Use pointer instead of reference to avoid including layers.h
-  void add(Layer* layer) {layers.push_back(layer);}
+  /** update layer list. check for layer compatibility with previous layer */
 
+  void add(Layer* layer);
   void setOptimizer(Optimizer* opt) {optimizer = opt;}
   Optimizer* getOptimizer() const {return optimizer;}
   void setLoss(Objective* obj) {loss = obj;}

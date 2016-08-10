@@ -25,6 +25,8 @@ protected:
     GRADIENTS gradients;
 	Activation* activation;
 	bool print_verbose;
+	int nb_batch; // number of batches (batch_size = nb_batch)
+	int seq_len; // sequence length for recurrent networks. Otherwise equal to 1. 
 
 public:
    Layer(int layer_size=1, std::string name="layer"); // allows for default constructor
@@ -49,6 +51,16 @@ public:
    // gradient of loss function with respect to weights
    void computeGradient();
    GRADIENTS getGradient() const {return gradients;}
+
+	int getNbBatch() { return nb_batch; }
+   	void setNbBatch(int nb_batch) { this->nb_batch = nb_batch; }
+	//int getInputDim() const {return input_dim;}  // in reality, the layer size
+  	//void setInputDim(int input_dim) {this->input_dim = input_dim;}
+  	void setSeqLen(int seq_len) { this->seq_len = seq_len;}
+  	int getSeqLen() const {return seq_len;}
+
+	int getLayerSize() { return layer_size; }
+	void setLayerSize(int layer_size) { this->layer_size = layer_size; }
 };
 
 //----------------------------------------------------------------------

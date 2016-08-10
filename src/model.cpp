@@ -11,11 +11,11 @@ Model::Model(int input_dim, std::string name /* "model" */)
 	print_verbose = true;
 	this->input_dim = input_dim;
 	printf("Model constructor (%s)\n", this->name.c_str());
-  optimizer = NULL;
-  loss = NULL; // I believe this should just be a string or something specifying
+	optimizer = NULL;
+	loss = NULL; // I believe this should just be a string or something specifying
                // the name of the objective function we would like to use
-  batch_size = 1; // batch size of 1 is equivalent to online learning
-  nb_epoch = 10; // Just using the value that Keras uses for now
+	batch_size = 1; // batch size of 1 is equivalent to online learning
+	nb_epoch = 10; // Just using the value that Keras uses for now
   //stateful = false;
 	//int seq_len;
 	//initialization_type;
@@ -30,12 +30,22 @@ Model::~Model()
 	for (int i=0; i < layers.size(); i++) {
 		if (layers[i]) {delete layers[i]; layers[i] = 0;}
 	}
+
+	if (optimizer) {
+		delete optimizer;
+		optimizer = 0;
+	}
+
+	if (loss) {
+		delete loss;
+		loss = 0;
+	}
 }
 //----------------------------------------------------------------------
 Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_rate), 
     return_sequences(m.return_sequences), input_dim(m.input_dim), batch_size(m.batch_size),
 	seq_len(m.seq_len), print_verbose(m.print_verbose), initialization_type(m.initialization_type),
-  nb_epoch(m.nb_epoch)
+	nb_epoch(m.nb_epoch)
 
 	// What to do with name (perhaps add a "c" at the end for copy-construcor?)
 {
@@ -84,6 +94,23 @@ const Model& Model::operator=(const Model& m)
 		printf("Model::operator= %s\n", name.c_str());
 	}
 	return *this;
+}
+//----------------------------------------------------------------------
+void Model::add(Layer* layer)
+{
+	// check for layer size compatibility
+	if (layers.size() == 0) {
+		// dimension should equal input dimension
+		;
+	} else {
+		int nb_layers = layers.size();
+		if (layers[nb_layers-1]->getLayerSize() != layers[nb_layers]->getInputDim()) {
+			printf("Incompatible layer_size between layers %d and %d\n", nb_layers-1, nb_layers);
+			exit(0);
+		}
+	}
+
+  	layers.push_back(layer);
 }
 //----------------------------------------------------------------------
 void Model::print(std::string msg /* "" */)

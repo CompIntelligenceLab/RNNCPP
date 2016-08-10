@@ -3,7 +3,7 @@
 
 int Layer::counter = 0;
 
-Layer::Layer(int layer_size, std::string name /* "layer" */) : input_dim(3)
+Layer::Layer(int layer_size, std::string name /* "layer" */)
 {
 	char cname[80];
 	if (strlen(cname) > 80) {
@@ -17,7 +17,9 @@ Layer::Layer(int layer_size, std::string name /* "layer" */) : input_dim(3)
 	counter++;
 
 	this->layer_size = layer_size;
-	int input_dim   = 1; // default: scalar
+	input_dim   = 1; // default: scalar
+	nb_batch    = 1; 
+	seq_len     = 1; 
 	//weights         = new Weights(1,1, "weights"); // default size
 	weights    = WEIGHTS(1,1);
 	print_verbose   = true;
@@ -36,14 +38,13 @@ Layer::~Layer()
 }
 
 Layer::Layer(const Layer& l) : layer_size(l.layer_size), input_dim(l.input_dim),
-   print_verbose(l.print_verbose)
+   print_verbose(l.print_verbose), seq_len(l.seq_len), nb_batch(l.nb_batch),
+   inputs(l.inputs), outputs(l.outputs), weights(l.weights)
 {
-	inputs = l.inputs;
-	outputs = l.outputs;
 	//weights = new Weights(1,1, "weights_c"); // remove class Weights (for now)
 	//*weights = *l.weights;  // removed because of Nathan simplification (remove class Weights)
-	weights = WEIGHTS(l.weights); // for Nathan's changes
-	weights = l.weights;
+	//weights = WEIGHTS(l.weights); // for Nathan's changes
+	//weights = l.weights;
 	name    = l.name + 'c';
 	printf("Layer copy constructor (%s)\n", name.c_str());
 
@@ -57,34 +58,36 @@ Layer::Layer(const Layer& l) : layer_size(l.layer_size), input_dim(l.input_dim),
 const Layer& Layer::operator=(const Layer& l)
 {
 
+	// if no copying done, name does not change
 	if (this != &l) {
 		name = l.name + "=";
 		layer_size = l.layer_size;
 		input_dim = l.input_dim;
 		print_verbose = l.print_verbose;
-	
-		//Weights* weights;
-		//Activation* activation;
-
+		inputs = l.inputs;
+		outputs = l.outputs;
 		weights = l.weights;
+		inputs = l.inputs;
+		outputs = l.outputs;
+		seq_len = l.seq_len;
+		nb_batch = l.seq_len;
 
 		//Weights* w1; // remove class Weights
 		Activation *a1;
 
-		/*  // remove class Weights (Nathan)
+		// remove class Weights (Nathan)
 		try {
-			w1 = new Weights(*l.weights); // copy constructor
+			a1 = new Tanh();
 		} catch (...) {
-			delete w1;
+			delete a1;
 			printf("throw\n");
 			throw;
 		}
 
 		//delete weights; // what if weights is 0? 
-		*weights = *w1; // ERROR
-		*/  // remove class weights 
+		*activation = *a1; 
+		// remove class weights 
 
-		// if no copying done, name does not change
 		printf("Layer::operator= (%s)\n", name.c_str());
 	}
 
