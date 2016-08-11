@@ -20,7 +20,8 @@ protected:
 	int input_dim; // size of previous layer
 	VF2D_F inputs;  // inputs to activation function
 	VF2D_F outputs; // outputs from activation function
-	WEIGHTS weights;
+	WEIGHTS weights; // between this layer and the previous one. Breaks down 
+	                // if layers form graphs (recurrent or not)
 	//Weights* weights;  // original code. Nathan wants to simplify
     GRADIENTS gradients;
 	Activation* activation;
@@ -37,6 +38,8 @@ public:
 
    virtual int  getInputDim() const { return input_dim; }
    virtual void setInputDim(int input_dim) { this->input_dim = input_dim; }
+   virtual int  getOutputDim() { return this->getLayerSize(); }
+   virtual void setOutputDim(int output_dim) { this->setLayerSize(output_dim); }
    virtual Activation* getActivation() const { return activation; }
    virtual void setActivation(Activation* activation) { this->activation = activation; }
 

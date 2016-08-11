@@ -111,12 +111,19 @@ void Model::add(Layer* layer)
 		//printf("nb_layers= %d\n", nb_layers);
 		if (layers[nb_layers-1]->getLayerSize() != layer->getInputDim()) {
 			layer->setInputDim(layers[nb_layers-1]->getLayerSize());
+			printf("layer[%d], layer_size= %d\n", nb_layers-1, layers[nb_layers-1]->getLayerSize());
+			printf("new layer input size: %d\n", layer->getInputDim());
 			//printf("Incompatible layer_size between layers %d and %d\n", nb_layers-1, nb_layers);
 			//exit(0);
 		}
 	}
 
+	int in_dim  = layer->getInputDim();
+	int out_dim = layer->getOutputDim();
+	printf("Model::add, layer dim: in_dim: %d, out_dim: %d\n", in_dim, out_dim);
+	layer->createWeights(in_dim, out_dim);
   	layers.push_back(layer);
+	printf("last layer in layers input size: %d\n", layers[layers.size()-1]->getInputDim());
 }
 //----------------------------------------------------------------------
 void Model::print(std::string msg /* "" */)
@@ -143,16 +150,28 @@ void Model::print(std::string msg /* "" */)
 //----------------------------------------------------------------------
 void Model::predict(VF2D_F x)
 {
-  	VF2D_F prod(x.n_rows);
+  	VF2D_F prod(x); //copy constructor, .n_rows);
+  	printf("nb x batches: %d\n", x.n_rows);
 	printf("predict VF2D_F\n");
+	printf("x(0) dim: %d, %d\n", x(0).n_rows, x(0).n_cols);
+
+	//VF2D_F prod(size(x)); // no copy made. data is uninitialized). Armadillo. 
 
 	for (int l=0; l < layers.size(); l++) {
 		printf("*** layer %d\n", l);
-		VF2D_F prod(x);
   		const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
+		printf("    prod dim: %d, %d\n", prod[0].n_rows, prod[0].n_cols);
+		printf("    wght dim: %d, %d\n", wght.n_rows, wght.n_cols);
+		printf("    layer=%d, x: nb_batches= %d", l, x.n_rows);
 
   		for (int b=0; b < x.n_rows; b++) { 
-  			prod(b) *= wght * x(b);
+  		    printf("   b= %d\n", b);
+  			//prod(b) = wght * prod(b);
+  			printf("   bef, prod(b): %d, %d\n", prod(b).n_rows, prod(b).n_cols);
+  			prod(b) = wght * prod(b); // prod(b) has different dimensions before and after the multiplication
+  			printf("   aft, prod(b): %d, %d\n", prod(b).n_rows, prod(b).n_cols);
+  			VF2D pp = wght * prod(b);
+			printf("   pp: %d, %d\n", pp.n_rows, pp.n_cols);
 			//prod(b).print("wght * x");
 		}
 	}
@@ -209,7 +228,7 @@ void Model::initializeWeights(std::string initialization_type /* "uniform" */)
 		Layer* layer = layers[i];
 		in_dim = (i == 0) ? input_dim : layers[i-1]->getInputDim();
 		out_dim = layer->getInputDim();
-		printf("layer %d, in_dim, out_dim= %d, %d\n", i, in_dim, out_dim);
+		printf("-- Model::initializeWeights, layer %d, in_dim, out_dim= %d, %d\n", i, in_dim, out_dim);
 		layer->createWeights(in_dim, out_dim);
 		layer->initializeWeights(initialization_type);
 	}

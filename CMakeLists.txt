@@ -7,7 +7,7 @@ ADD_DEFINITIONS(-g -std=c++11)
 #ADD_DEFINITIONS(-g)
 
 # Require Eigen3. This defines all our variables for includes/libs etc
-find_package(Eigen3 REQUIRED)
+#find_package(Eigen3 REQUIRED)
 find_package(Armadillo REQUIRED)
 message(${ARMADILLO_LIBRARIES})
 message("=====================")

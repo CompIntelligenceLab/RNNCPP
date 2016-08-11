@@ -129,17 +129,19 @@ void Layer::execute()
 void Layer::createWeights(int in, int out)
 {
 	// weights = new Weights(in, out, this->name+"_"+"weights"); // Nathan
-	weights = WEIGHTS(in, out);
+	weights = WEIGHTS(out, in);
 }
 
 void Layer::initializeWeights(std::string initialize_type /* "uniform" */)
 {
 		//weights->initializeWeights(initialize_type); // Nathan
+	//printf("-- Layer::initializeWeights, in_dim, out_dim= %d, %d\n", in_dim, out_dim);
+	printf("--  Layer::weights size: %d, %d\n", weights.n_rows, weights.n_cols);
 
 	if (initialize_type == "gaussian") {
 	} else if (initialize_type == "uniform") {
 		//printf("in_dim, out_dim= %d, %d\n", in_dim, out_dim);
-		printf("in_dim, out_dim= %d, %d\n", weights.n_rows, weights.n_cols); 
+		//printf("in_dim, out_dim= %d, %d\n", weights.n_rows, weights.n_cols); 
 		//arma_rng::set_seed_random(); // put at beginning of code // DOES NOT WORK
 		//arma::Mat<float> ww = arma::randu<arma::Mat<float> >(3, 4); //arma::size(*weights));
 		weights = arma::randu<WEIGHTS>(arma::size(weights)); //arma::size(*weights));

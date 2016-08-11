@@ -33,7 +33,7 @@ int main() {
 	printf("cub3: %d\n", cub3.n_rows);
 	printf("cub3: %d\n", cub3.n_cols);
 	printf("cub32 size: %d\n", cub3.size());
-	printf("cub3 size: %d\n", arma::size(cub3));
+	//printf("cub3 size: %d\n", arma::size(cub3)); // only works in C++11
 	//exit(0);
 
 	VF3D cub20(3,4,5);
@@ -43,16 +43,36 @@ int main() {
 
 	printf("cub20(1,1,1)= %f\n", cub20(1,1,1));
 	printf("cub21(1,1,1)= %f\n", cub21(1,1,1));
-	exit(0);
 
-	Model* m  = new Model(1);
+	printf("----------- Model -----------------\n");
+	WEIGHTS w1, w2;
+	int input_dim = 2;
+	Model* m  = new Model(input_dim); // argument is input_dim of model
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	Layer* dense = new DenseLayer(5, "dense");
 	m->add(dense);
 	Layer* dense1 = new DenseLayer(3, "dense");
-	m->add(dense1);
+	m->add(dense1); // weights should be defined when add is done
 
+	printf("...........\n");
+	w1 = dense->getWeights();
+	printf("   layer 0: weights: %d, %d\n", w1.n_rows, w1.n_cols);
+	w2 = dense1->getWeights();
+	printf("   layer 1: weights: %d, %d\n", w2.n_rows, w2.n_cols);
+
+	printf("before init\n");
+	m->initializeWeights();
+	printf("after init\n");
+
+	printf("...........\n");
+	w1 = dense->getWeights();
+	printf("   layer 0: weights: %d, %d\n", w1.n_rows, w1.n_cols);
+	w2 = dense1->getWeights();
+	printf("   layer 1: weights: %d, %d\n", w2.n_rows, w2.n_cols);
+	exit(0);
+
+	printf("check 1 --------------\n");
 	printf("layer 0: input dim: %d\n", dense->getInputDim());
 	printf("layer 0: output dim: %d\n", dense->getLayerSize());
 	printf("layer 1: input dim: %d\n", dense1->getInputDim());
@@ -60,9 +80,7 @@ int main() {
 
 	Sigmoid* sig = new Sigmoid();
 
-	printf("before init\n");
-	m->initializeWeights();
-	printf("after init\n");
+	exit(0);
 
 	Optimizer* opt = new RMSProp("myrmsprop");
 	m->setOptimizer(opt);
@@ -71,14 +89,28 @@ int main() {
 	m->print();
 	printf("-----------------\n");
 
+	#if 0
 	Model n = *m;
 	n.setName("model n");
 	n.print();
+	#endif
+
+	#if 0
+	printf("check 1 --------------\n");
+	printf("layer 0: input dim: %d\n", dense->getInputDim());
+	printf("layer 0: output dim: %d\n", dense->getLayerSize());
+	printf("layer 1: input dim: %d\n", dense1->getInputDim());
+	printf("layer 1: output dim: %d\n", dense1->getLayerSize());
+	dense->print("dense layer");
+	dense1->print("dense1 layer");
+	#endif
 
 	// prediction
+	#if 0
 	VF3D x(1,1,1);
 	x(0,0,0) = 0.5;
 	m->predict(x);
+	#endif
 
 	VF2D_F xf(3);
 	VF2D y; y.randu(1,1);
@@ -87,6 +119,8 @@ int main() {
 		xf[i].randu(1,1);
 	}
 	m->predict(xf);
+
+	exit(0);
 
 	printf("--------------------\n");
 	Objective* obj1 = new MeanSquareError("mse gordon");
