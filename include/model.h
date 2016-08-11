@@ -75,6 +75,7 @@ public:
   //  x: signal input: (batch_size, seq_length, dimension)
   //  For non-recursive networks, x has size (batch_size, 1, dimension)
   void predict(VF3D x); // If this is to be accessed by the user, they must have armadillo. Not good
+  void predict(VF2D_F x); 
   void train(MATRIX x, MATRIX y, int batch_size=0, int nb_epoch=0); // 0 defaults are flags not values. See model.cpp
   void compile();
 

@@ -15,3 +15,8 @@ to determine success or failure.
 Features: 
 VF1D_F loss;  // different batches stored at different locations
 
+Implemented a function to generate a sine wave. Returns VF2D (x,y)
+
+User is currently responsible for shaping the function to use as required
+for a particular application. Specialized routines might  be made available.
+----------------------------------------------------------------------

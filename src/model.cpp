@@ -141,6 +141,18 @@ void Model::print(std::string msg /* "" */)
 	}
 }
 //----------------------------------------------------------------------
+void Model::predict(VF2D_F x)
+{
+  	VF2D_F prod(x.n_rows);
+  	const WEIGHTS& wght= layers[0]->getWeights();
+
+  	for (int b=0; b < x.n_rows; b++) { 
+  		prod(b) = wght * x(b);
+		printf("batch %d\n", b);
+		prod(b).print("wght * x");
+	}
+}
+//----------------------------------------------------------------------
 void Model::predict(VF3D x)
 {
   // input to layer 0 
@@ -157,6 +169,8 @@ void Model::predict(VF3D x)
                        // = sum(over in): (b,s,i) * (i,o) = x * W = f(b,s,o) 
              // Armadillo does not allow multiplication of a cube*matrix on the inner index. 
              // For now, use a loop. for didactic purposes.  
+
+
   VF3D prod(5,6,7); 
   for (int b=0; b < x.n_rows; b++) { 
     for (int s=0; s < x.n_cols; s++) { 

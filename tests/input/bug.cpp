@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string>
 #include <math.h>
-#include "input.h"
-#include "typedefs.h"
+#include <armadillo>
+//#include "typedefs.h"
 
 int main() 
 {
