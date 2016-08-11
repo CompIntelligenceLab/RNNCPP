@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
+#include <math.h>
 #include "input.h"
 
 Input::Input()
@@ -80,7 +81,7 @@ VF2D Input::loadFromCSV(const std::string& filename)
 			float f = strtof(st, 0);
 			//printf("f= %f\n", f);
 			(*table)(i,j) = f; //strtof(st, 0);
-			t(i,j) = f; //strtof(st, 0);
+			//t(i,j) = f; //strtof(st, 0);
 			printf("input::table[%d, %d] = %f\n", i, j, (*table)(i,j));
 		}
 	}
@@ -89,3 +90,22 @@ VF2D Input::loadFromCSV(const std::string& filename)
 
 	return t;
 }
+
+VF2D Input::load1DSine(int nb_pts, int nb_periods, int nb_pts_per_period)
+{
+	float pi2 = 2.*acos(-1.);
+	float dx = 1. / nb_pts_per_period;
+	int dim = 2;
+	VF2D data(nb_pts, dim);  
+
+	for (int i=0; i < nb_pts; i++) {
+		data(i,1) = cos(pi2*i*dx);
+		data(i,0) = i*dx;
+		printf("x, data[%d]= %f, %f\n", i, data(i,0), data(i,1));
+	}
+
+	// Returning by reference will create an error
+	printf("sizeof data= ", sizeof(data));
+	return data;
+}
+

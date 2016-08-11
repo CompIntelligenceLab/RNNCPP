@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 2.8)
 
 # Tells CMake to look for the Find<Package>.cmake files in the cmake folder
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-ADD_DEFINITIONS(-g -std=c++11)
+#ADD_DEFINITIONS(-g -std=c++11)
+ADD_DEFINITIONS(-g)
 
 # Require Eigen3. This defines all our variables for includes/libs etc
 find_package(Eigen3 REQUIRED)

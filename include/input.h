@@ -27,6 +27,7 @@ public:
 
   	VF1D read1D(std::string filename);
 	VF2D loadFromCSV(const std::string& filename);
+	VF2D load1DSine(int nb_pts, int period, int nb_pts_per_period);
 };
 
 #endif
