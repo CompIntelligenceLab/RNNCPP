@@ -24,12 +24,12 @@ private:
 	bool return_sequences;
 	Optimizer* optimizer;
 	// More general models would have several loss functions running concurrently
-	Objective* loss;
+	Objective* objective;
 	LAYERS layers; // operate by value for safety)
 	std::string initialization_type;
 	int input_dim;   // dimensional input into the model
 	int batch_size;  // batch_size used for training, etc.
-  int nb_epoch;
+  	int nb_epochs;
 	int seq_len;     // sequence length (should not be a layer property)
 	                // represents the number of times to unroll
 	bool print_verbose;
@@ -47,8 +47,8 @@ public:
   void add(Layer* layer);
   void setOptimizer(Optimizer* opt) {optimizer = opt;}
   Optimizer* getOptimizer() const {return optimizer;}
-  void setLoss(Objective* obj) {loss = obj;}
-  Objective* getObjective() const {return loss;}
+  void setLoss(Objective* obj) {objective = obj;}
+  Objective* getObjective() const {return objective;}
   void setStateful(bool stateful) {this->stateful = stateful;}
   bool getStateful() const {return stateful;}
   void setReturnSequences(bool ret_seq) {return_sequences = ret_seq;}
@@ -74,8 +74,8 @@ public:
   /** predict: run through the model  */
   //  x: signal input: (batch_size, seq_length, dimension)
   //  For non-recursive networks, x has size (batch_size, 1, dimension)
-  void predict(VF2D_F x); 
-  void train(VF2D_F x, VF2D_F y, int batch_size=0, int nb_epoch=0);
+  VF2D_F predict(VF2D_F x); 
+  void train(VF2D_F x, VF2D_F y, int batch_size=0, int nb_epochs=0);
   void compile();
 
   /** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */

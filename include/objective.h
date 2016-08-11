@@ -23,7 +23,7 @@ public:
 	virtual void setLoss(VF1D_F loss) { this->loss = loss; }
 	virtual VF1D_F getLoss() { return loss; }
 	
-	virtual void computeError(VF2D_F& exact, VF2D_F& predict) = 0;
+	virtual VF1D_F computeError(VF2D_F& exact, VF2D_F& predict) = 0;
 };
 
 class MeanSquareError : public Objective
@@ -38,7 +38,7 @@ public:
 	//const MeanSquareError& MeanSquareError=(const MeanSquareError&);
 
 	/** sum_{batches} (predict - exact)^2 */
-	void computeError(VF2D_F& exact, VF2D_F& predict);
+	VF1D_F computeError(VF2D_F& exact, VF2D_F& predict);
 };
 
 #endif

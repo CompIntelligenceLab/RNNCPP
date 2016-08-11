@@ -1,5 +1,6 @@
 #include "model.h"
 #include "objective.h"
+#include "typedefs.h"
 #include <stdio.h>
 #include <armadillo>
 
@@ -12,16 +13,15 @@ Model::Model(int input_dim, std::string name /* "model" */)
 	this->input_dim = input_dim;
 	printf("Model constructor (%s)\n", this->name.c_str());
 	optimizer = new RMSProp();
-	//optimizer = NULL;
-	loss = new MeanSquareError();
-	//loss = NULL; // I believe this should just be a string or something specifying
+	objective = new MeanSquareError();
+	//objective = NULL; // I believe this should just be a string or something specifying
                // the name of the objective function we would like to use
+			   // WHY a string? (Gordon)
 	batch_size = 1; // batch size of 1 is equivalent to online learning
-	nb_epoch = 10; // Just using the value that Keras uses for now
-  //stateful = false;
-	//int seq_len;
-	//initialization_type;
-	//LAYERS layers; // operate by value for safety)
+	nb_epochs = 10; // Just using the value that Keras uses for now
+    stateful = false; 
+	seq_len = 1; // should be equivalent to feedforward (no time to unroll)
+	initialization_type = "uniform";  // can also choose Gaussian
 
 }
 //----------------------------------------------------------------------
@@ -38,16 +38,16 @@ Model::~Model()
 		optimizer = 0;
 	}
 
-	if (loss) {
-		delete loss;
-		loss = 0;
+	if (objective) {
+		delete objective;
+		objective = 0;
 	}
 }
 //----------------------------------------------------------------------
 Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_rate), 
     return_sequences(m.return_sequences), input_dim(m.input_dim), batch_size(m.batch_size),
 	seq_len(m.seq_len), print_verbose(m.print_verbose), initialization_type(m.initialization_type),
-	nb_epoch(m.nb_epoch)
+	nb_epochs(m.nb_epochs)
 
 	// What to do with name (perhaps add a "c" at the end for copy-construcor?)
 {
@@ -55,8 +55,8 @@ Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_ra
 	optimizer = new Optimizer();
     *optimizer = *m.optimizer;  // Careful here, we need to implement a copy
                                 // assignment operator for the Optimizer class
-	loss = new MeanSquareError(); 
-    *loss = *m.loss;// Careful here, we need to implement a copy
+	objective = new MeanSquareError(); 
+    *objective = *m.objective;// Careful here, we need to implement a copy
                   // assignment operator for the Optimizer class
 	layers = m.layers; // Careful here, we need to implement a copy
                      // assignment operator for the Optimizer class
@@ -72,27 +72,27 @@ const Model& Model::operator=(const Model& m)
 		return_sequences = m.return_sequences;
 		input_dim = m.input_dim;
 		batch_size = m.batch_size;
-        nb_epoch = m.nb_epoch;
+        nb_epochs = m.nb_epochs;
 		seq_len = m.seq_len;
 		print_verbose= m.print_verbose;
 		initialization_type = m.initialization_type;
 
 		Optimizer* opt1 = NULL;
-		Objective* loss1 = NULL;
+		Objective* objective1 = NULL;
 
 		try {
 			opt1 = new Optimizer(); //*m.optimizer);
-			loss1 = new MeanSquareError(); //*m.loss);
+			objective1 = new MeanSquareError(); //*m.objective);
 		} catch (...) {
 			delete opt1;
-			delete loss1;
+			delete objective1;
 			printf("Model throw\n");
 			throw;
 		}
 
 		// Superclass::operator=(that)
 		*optimizer = *opt1;
-		*loss = *loss1;
+		*objective = *objective1;
 		printf("Model::operator= %s\n", name.c_str());
 	}
 	return *this;
@@ -138,8 +138,8 @@ void Model::print(std::string msg /* "" */)
 
   if (optimizer != NULL) 
 	  optimizer->print();
-  if (loss != NULL)
-	  loss->print();
+  if (objective != NULL)
+	  objective->print();
 
 	if (print_verbose == false) return;
 
@@ -148,7 +148,7 @@ void Model::print(std::string msg /* "" */)
 	}
 }
 //----------------------------------------------------------------------
-void Model::predict(VF2D_F x)
+VF2D_F Model::predict(VF2D_F x)
 {
   	VF2D_F prod(x); //copy constructor, .n_rows);
 
@@ -157,22 +157,25 @@ void Model::predict(VF2D_F x)
 
   		for (int b=0; b < x.n_rows; b++) { 
   			prod(b) = wght * prod(b); // prod(b) has different dimensions before and after the multiplication
-  			VF2D pp = wght * prod(b);
+  			//VF2D pp = wght * prod(b);
 		}
 	}
+	return prod;
 }
 //----------------------------------------------------------------------
 // This was hastily decided on primarily as a means to construct feed forward
 // results to begin implementing the backprop. Should be reevaluated
-void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epoch /*=0*/) 
+void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=0*/) 
 {
-  if (batch_size == 0) // Means no value for batch_size was passed into this function
-    batch_size = this->batch_size; // Use the current value stored in model
+	if (batch_size == 0) // Means no value for batch_size was passed into this function
+    	batch_size = this->batch_size; // Use the current value stored in model
 
-  // First we should construct the input for the predict routine 
-  VF2D_F input;
+  	// First we should construct the input for the predict routine 
+  	//VF2D_F input;
+	VF2D_F pred = predict(x);
+	VF1D_F loss = objective->computeError(y, pred);
 
-  VF1D_F loss;
+  	// Pass x through the prediction, and then feed x to the objective function
 }
 //----------------------------------------------------------------------
 void Model::initializeWeights(std::string initialization_type /* "uniform" */)
@@ -190,7 +193,6 @@ void Model::initializeWeights(std::string initialization_type /* "uniform" */)
 		layer->createWeights(in_dim, out_dim);
 		layer->initializeWeights(initialization_type);
 	}
-	exit(0);
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

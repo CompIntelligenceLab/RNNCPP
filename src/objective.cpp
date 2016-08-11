@@ -84,7 +84,7 @@ MeanSquareError::MeanSquareError(const MeanSquareError& mse) : Objective(mse)
 	//return *this;
 //}
 
-void MeanSquareError::computeError(VF2D_F& exact, VF2D_F& predict)
+VF1D_F MeanSquareError::computeError(VF2D_F& exact, VF2D_F& predict)
 {
 	int nb_batch = exact.n_rows;
 	loss.set_size(nb_batch);
