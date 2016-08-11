@@ -22,7 +22,38 @@ protected:
 	VF2D_F outputs; // outputs from activation function
 	WEIGHTS weights; // between this layer and the previous one. Breaks down 
 	                // if layers form graphs (recurrent or not)
+					// in the first layer, weights is not initialized. 
 	//Weights* weights;  // original code. Nathan wants to simplify
+
+	// Eventually, we will have two lists of nodes: 
+	// std::vector<Weight*> w_prev;
+	// std::vector<Layer*> l_prev; 
+	// std::vector<Weight*> w_next;
+	// std::vector<Layer*> l_next; 
+	//
+	// Alternatively
+	// std::vector<std::pair<Layer*, Weight*> > prev;
+	// std::vector<std::pair<Layer*, Weight*> > next;
+	//
+	// Usage:   prev.push_back(std::pair(new Layer()..., new Weight()...))
+	// Be careful with destructors: must delete layers and weights, unless
+	// they all point to a separate list that contains all weights/layers in the system. 
+	// Implementation is not clear. 
+	// 
+	// it might be more efficient to work with objects: 
+	// std::vector<std::pair<Layer, Weight> > prev;
+	// std::vector<std::pair<Layer, Weight> > next;
+
+    //
+	//   Usage:    prev.push_back(Layer(...), Weight(...))
+	//          Destructor of this list, automatically deletes layers and weights 
+	//          it is associated with. I doubt we want that. 
+	// 
+	// Note that in standard linked lists, one would have 
+	//    Object* next;
+	//    Object* prev;
+
+
     GRADIENTS gradients;
 	Activation* activation;
 	bool print_verbose;
@@ -37,6 +68,7 @@ public:
    virtual void print(std::string msg="");
 
    virtual int  getInputDim() const { return input_dim; }
+   // input from previous layer
    virtual void setInputDim(int input_dim) { this->input_dim = input_dim; }
    virtual int  getOutputDim() { return this->getLayerSize(); }
    virtual void setOutputDim(int output_dim) { this->setLayerSize(output_dim); }

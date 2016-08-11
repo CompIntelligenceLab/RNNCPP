@@ -16,12 +16,16 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 
 	counter++;
 
+	// Input dimension has no significance if the layer is connect to several upstream layers
+	// How to access connection to previous layer if this is the first layer? 
+
 	this->layer_size = layer_size;
-	input_dim   = 1; // default: scalar
+	//output_dim   = layer_size;  // no such member
+	input_dim   = -1; // no assignment yet. 
 	nb_batch    = 1; 
 	seq_len     = 1; 
 	//weights         = new Weights(1,1, "weights"); // default size
-	weights    = WEIGHTS(1,1);
+	//weights    = WEIGHTS(layer_size, input_dim); // 2nd dimension is in_dim, first dimension is out_dim
 	print_verbose   = true;
 
 	// Default activation: tanh

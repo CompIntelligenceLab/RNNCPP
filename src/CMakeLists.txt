@@ -10,6 +10,7 @@ set(SOURCE
 	lstm_layer.cpp
 	objective.cpp
 	input.cpp
+	input_layer.cpp
 	model.cpp)
 
 add_library(core ${SOURCE})
