@@ -144,12 +144,17 @@ void Model::print(std::string msg /* "" */)
 void Model::predict(VF2D_F x)
 {
   	VF2D_F prod(x.n_rows);
-  	const WEIGHTS& wght= layers[0]->getWeights();
+	printf("predict VF2D_F\n");
 
-  	for (int b=0; b < x.n_rows; b++) { 
-  		prod(b) = wght * x(b);
-		printf("batch %d\n", b);
-		prod(b).print("wght * x");
+	for (int l=0; l < layers.size(); l++) {
+		printf("*** layer %d\n", l);
+		VF2D_F prod(x);
+  		const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
+
+  		for (int b=0; b < x.n_rows; b++) { 
+  			prod(b) *= wght * x(b);
+			//prod(b).print("wght * x");
+		}
 	}
 }
 //----------------------------------------------------------------------
