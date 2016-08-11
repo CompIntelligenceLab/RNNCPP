@@ -20,6 +20,8 @@ public:
 	virtual void print(std::string name= "");
 	virtual void setName(std::string name) { this->name = name; }
 	virtual const std::string getName() const { return name; }
+	virtual void setLoss(VF1D_F loss) { this->loss = loss; }
+	virtual VF1D_F getLoss() { return loss; }
 	
 	virtual void computeError(VF2D_F& exact, VF2D_F& predict) = 0;
 };
