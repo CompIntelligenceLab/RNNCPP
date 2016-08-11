@@ -10,10 +10,12 @@
 
 
 #include <vector>
+#if 0
 #ifdef __APPLE__
 #include <eigen/Eigen>
 #elif __linux__
 #include <eigen3/Eigen/Eigen>
+#endif
 #endif
 
   // The user is not suppose to use eigen or armadillo. Therefore to input data
