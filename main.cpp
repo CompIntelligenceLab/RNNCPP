@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <string>
+//#include <iostream>
+//#include <fstream>
 #include "model.h"
 #include "activations.h"
 #include "optimizer.h"
@@ -11,6 +13,7 @@
 #include "gmm_layer.h"
 #include "input_layer.h"
 
+//----------------------------------------------------------------------
 void testCube()
 {
 	VF3D cub1(3,4,5);
@@ -47,6 +50,7 @@ void testCube()
 	printf("cub21(1,1,1)= %f\n", cub21(1,1,1));
 }
 
+//----------------------------------------------------------------------
 void testModel()
 {
 	printf("----------- Model -----------------\n");
@@ -87,17 +91,31 @@ void testModel()
 	m->print();
 	printf("-----------------\n");
 
-	VF2D_F xf(3);
-	VF2D y; y.randu(1,1);
+	int batch_size = m->getBatchSize();
+	VF2D_F xf(batch_size);
+	VF2D_F yf(batch_size); 
+
+	input_dim = m->getInputDim();
+	printf("input_dim= %d\n", input_dim);
+	//exit(0);
 
 	for (int i=0; i < xf.size(); i++) {
 		xf[i].randu(1,1);
+		yf[i].randu(1,1);
 	}
-	m->predict(xf);
+	VF2D_F pred = m->predict(xf);
+	printf("sizeof(pred)= %d\n", sizeof(pred));
+	pred.print("prediction: ");
+
+	m->train(xf,yf);
+
+	// Of course, I must check the prediction manually. 
+
 
 	exit(0);
 }
 
+//----------------------------------------------------------------------
 void testObjective()
 {
 	printf("--------------------\n");
@@ -115,6 +133,7 @@ void testObjective()
 	printf("mse4 name: %s\n", mse4.getName().c_str());
 }
 
+//----------------------------------------------------------------------
 int main() 
 {
 	//testCube();

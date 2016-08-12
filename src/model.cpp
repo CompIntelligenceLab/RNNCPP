@@ -1,8 +1,9 @@
+//#include <armadillo>
+#include <assert.h>
 #include "model.h"
 #include "objective.h"
 #include "typedefs.h"
 #include <stdio.h>
-#include <armadillo>
 
 Model::Model(int input_dim, std::string name /* "model" */) 
 {
@@ -165,17 +166,21 @@ VF2D_F Model::predict(VF2D_F x)
 //----------------------------------------------------------------------
 // This was hastily decided on primarily as a means to construct feed forward
 // results to begin implementing the backprop. Should be reevaluated
-void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=0*/) 
+void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*/) 
 {
-	if (batch_size == 0) // Means no value for batch_size was passed into this function
+	if (batch_size == 0) { // Means no value for batch_size was passed into this function
     	batch_size = this->batch_size; // Use the current value stored in model
+    	printf("model batch size: %d\n", batch_size);
+		// resize x and y to handle different batch size
+		assert(x.n_rows == batch_size && y.n_rows == batch_size);
+	}
 
   	// First we should construct the input for the predict routine 
   	//VF2D_F input;
 	VF2D_F pred = predict(x);
 	VF1D_F loss = objective->computeError(y, pred);
-
-  	// Pass x through the prediction, and then feed x to the objective function
+	printf("loss.n_rows= ", loss.n_rows);
+	loss.print("loss");
 }
 //----------------------------------------------------------------------
 void Model::initializeWeights(std::string initialization_type /* "uniform" */)

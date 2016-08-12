@@ -93,4 +93,6 @@ VF1D_F MeanSquareError::computeError(VF2D_F& exact, VF2D_F& predict)
 		loss[i] = exact[i] - predict[i]; // check size compatibility
 		loss[i] = arma::square(loss[i]);
 	}
+
+	return loss;
 }
