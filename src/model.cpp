@@ -185,9 +185,11 @@ VF2D_F Model::predict(VF2D_F x)
   		for (int b=0; b < x.n_rows; b++) { 
   			prod(b) = wght * prod(b); // prod(b) has different dimensions before and after the multiplication
 		}
+		layers[l]->setInputs(prod);
 
 		// apply activation function
 		prod = layers[l]->getActivation()(prod);
+		layers[l]->setOutputs(prod);
 	}
 	return prod;
 }

@@ -109,6 +109,10 @@ public:
 
 	int getLayerSize() { return layer_size; }
 	void setLayerSize(int layer_size) { this->layer_size = layer_size; }
+	void setInputs(VF2D_F& inputs) { this->inputs = inputs; }
+	VF2D_F getInputs() { return inputs; }
+	void setOutputs(VF2D_F& outputs) { this->outputs = outputs; }
+	VF2D_F getOutputs() { return outputs; }
 };
 
 //----------------------------------------------------------------------
