@@ -20,3 +20,8 @@ Implemented a function to generate a sine wave. Returns VF2D (x,y)
 User is currently responsible for shaping the function to use as required
 for a particular application. Specialized routines might  be made available.
 ----------------------------------------------------------------------
+Aug 12, 2016
+- Create a Weight class for increased flexibility. 
+- Can create subclasses for specialized layers. 
+- In the future, layer classes can be templatized by weight type. 
+----------------------------------------------------------------------

@@ -18,6 +18,9 @@
 #endif
 #endif
 
+class Layer;
+class Weights;
+
   // The user is not suppose to use eigen or armadillo. Therefore to input data
   // they will need some other mechanism. Eventually we should write functions
   // to parse data files so the user need only specify a file. For testting
@@ -26,6 +29,7 @@
   typedef std::vector< std::vector<float> > MATRIX;
 
 #ifdef ARMADILLO
+	typedef std::vector<std::pair<Layer*, Weights*> > PAIRS_L; 
 	typedef arma::Col<float> AF;
 	typedef arma::Col<float> VF;
 	typedef arma::Col<float> VF1D;

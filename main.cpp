@@ -205,6 +205,41 @@ void testModel()
 	exit(0);
 }
 
+
+//----------------------------------------------------------------------
+void testFuncModel()
+{
+	WEIGHTS w1, w2;
+	int input_dim = 2;
+	Model* m  = new Model(input_dim); // argument is input_dim of model
+    m->setBatchSize(2);
+	assert(m->getBatchSize() == 2);
+
+	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
+	// 2 is the dimensionality of the data
+	// the names have a counter value attached to it, so there is no duplication. 
+	Layer* input   = new InputLayer(2, "input_layer");
+	Layer* dense   = new DenseLayer(5, "dense");
+	Layer* dense1  = new DenseLayer(3, "dense");
+	Layer* dense1a = new DenseLayer(4, "dense");
+	Layer* dense2  = new DenseLayer(6, "dense");
+
+
+	// Version 1
+	//input->add(dense);
+	//dense->add(dense1);
+	//dense1->add(dense2);
+
+	// Version 2
+	m->add(input, dense);
+	m->add(dense, dense1);
+	m->add(dense1, dense1a);
+	m->add(dense1a, dense2);
+	m->add(dense1, dense2);
+
+	m->initializeWeights();
+	w1 = dense->getWeights();
+}
 //----------------------------------------------------------------------
 void testObjective()
 {

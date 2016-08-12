@@ -2,6 +2,7 @@
 #include <assert.h>
 #include "model.h"
 #include "objective.h"
+#include "weights.h"
 #include "typedefs.h"
 #include <stdio.h>
 
@@ -125,6 +126,29 @@ void Model::add(Layer* layer)
 	layer->createWeights(in_dim, out_dim);
   	layers.push_back(layer);
 	printf("last layer in layers input size: %d\n", layers[layers.size()-1]->getInputDim());
+}
+
+//------------------------------------------------------
+void Model::add(Layer* layer_from, Layer* layer)
+{
+	printf("add(layer_from, layer)\n");
+	// Layers should only require layer_size 
+	layer->setInputDim(layer_from->getLayerSize());
+
+  	layers.push_back(layer);
+
+	int in_dim  = layer->getInputDim();
+	int out_dim = layer->getOutputDim();
+	printf("Model::add, layer dim: in_dim: %d, out_dim: %d\n", in_dim, out_dim);
+
+	// Create weights
+	//weights = WEIGHTS(out, in);
+	Weights* weights = new Weights(out_dim, in_dim);
+	weights_l.push_back(weights);
+
+	// update prev and next lists in Layers class
+	layer->prev.push_back(std::pair<Layer*,Weights*>(layer_from, weights));
+	layer_from->next.push_back(std::pair<Layer*,Weights*>(layer, weights));
 }
 //----------------------------------------------------------------------
 void Model::print(std::string msg /* "" */)

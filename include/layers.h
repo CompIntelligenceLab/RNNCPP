@@ -11,8 +11,14 @@
 
 class Activation;
 
+
 class Layer
 {
+public:
+	// list of layers this layer is sending information to
+	PAIRS_L prev;
+	PAIRS_L next;
+
 protected:
 	static int counter;
 	std::string name;
@@ -24,6 +30,13 @@ protected:
 	                // if layers form graphs (recurrent or not)
 					// in the first layer, weights is not initialized. 
 	//Weights* weights;  // original code. Nathan wants to simplify
+
+	//std::vector<std::pair<Layer*, Weight*> > prev;
+
+	// list of layers this layer is receiving information from
+	//std::vector<std::pair<Layer*, Weights*> > next;
+
+
 
 	// Eventually, we will have two lists of nodes: 
 	// std::vector<Weight*> w_prev;

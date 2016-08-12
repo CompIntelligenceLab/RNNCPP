@@ -25,7 +25,6 @@ private:
 	Optimizer* optimizer;
 	// More general models would have several loss functions running concurrently
 	Objective* objective;
-	LAYERS layers; // operate by value for safety)
 	std::string initialization_type;
 	int input_dim;   // dimensional input into the model
 	int batch_size;  // batch_size used for training, etc.
@@ -33,6 +32,9 @@ private:
 	int seq_len;     // sequence length (should not be a layer property)
 	                // represents the number of times to unroll
 	bool print_verbose;
+	// keep pointers to all weights into a dynamical linked list
+	LAYERS layers;
+	std::vector<Weights*> weights_l; // (l)ist of weights
 
 public:
   Model(int input_dim, std::string name="model");
@@ -45,6 +47,7 @@ public:
   /** update layer list. check for layer compatibility with previous layer */
 
   void add(Layer* layer);
+  void add(Layer* layer_from, Layer* layer);
   void setOptimizer(Optimizer* opt) {optimizer = opt;}
   Optimizer* getOptimizer() const {return optimizer;}
   void setLoss(Objective* obj) {objective = obj;}
