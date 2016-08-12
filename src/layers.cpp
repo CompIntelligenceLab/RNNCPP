@@ -134,6 +134,7 @@ void Layer::createWeights(int in, int out)
 {
 	// weights = new Weights(in, out, this->name+"_"+"weights"); // Nathan
 	weights = WEIGHTS(out, in);
+	printf("******createWeights, weights= %d, %d\n", weights.n_rows, weights.n_cols);
 }
 
 void Layer::initializeWeights(std::string initialize_type /* "uniform" */)
@@ -154,6 +155,7 @@ void Layer::initializeWeights(std::string initialize_type /* "uniform" */)
 		printf("weights: %f\n", weights[0,0]);
 		printf("weights size: %d\n", weights.size());
 		printf("rows, col= %d, %d\n", weights.n_rows, weights.n_cols);
+		//weights.print("initializeWeights");
 	} else if (initialize_type == "orthogonal") {
 	} else {
 		printf("initialize_type: %s not implemented\n", initialize_type.c_str());

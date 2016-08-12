@@ -72,7 +72,7 @@ public:
    virtual void setInputDim(int input_dim) { this->input_dim = input_dim; }
    virtual int  getOutputDim() { return this->getLayerSize(); }
    virtual void setOutputDim(int output_dim) { this->setLayerSize(output_dim); }
-   virtual Activation* getActivation() const { return activation; }
+   virtual Activation& getActivation() const { return *activation; }
    virtual void setActivation(Activation* activation) { this->activation = activation; }
 
    /** Compute the outputs given the inputs */

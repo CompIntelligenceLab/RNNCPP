@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string>
+#include <assert.h>
 //#include <iostream>
 //#include <fstream>
 #include "model.h"
@@ -12,6 +13,8 @@
 #include "lstm_layer.h"
 #include "gmm_layer.h"
 #include "input_layer.h"
+
+using namespace arma;
 
 //----------------------------------------------------------------------
 void testCube()
@@ -50,6 +53,112 @@ void testCube()
 	printf("cub21(1,1,1)= %f\n", cub21(1,1,1));
 }
 
+//----------------------------------------------------------------------
+void testPredict()
+{
+	printf("----------- Test Predict -----------------\n");
+	WEIGHTS w1, w2;
+	int input_dim = 2; 
+	Model* m  = new Model(input_dim); // argument is input_dim of model
+	assert(m->getBatchSize() == 1);
+	m->setBatchSize(2); 
+	assert(m->getBatchSize() == 2);
+
+	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
+	Layer* input = new InputLayer(2, "input_layer");
+	m->add(input);
+	Layer* dense = new DenseLayer(5, "dense");
+	m->add(dense);
+	Layer* dense1 = new DenseLayer(3, "dense");
+	m->add(dense1); // weights should be defined when add is done
+
+	m->initializeWeights();
+	Optimizer* opt = new RMSProp("myrmsprop");
+	m->setOptimizer(opt);
+
+	int batch_size = m->getBatchSize();
+	VF2D_F xf(batch_size);
+	VF2D_F yf(batch_size); 
+
+	input_dim = m->getInputDim();
+
+	for (int i=0; i < xf.size(); i++) {
+		xf[i].randu(input_dim,1);
+		yf[i].randu(input_dim,1);
+	}
+	printf("sizeof(xf)= %d\n", sizeof(xf));
+
+	// Compute prediction through the network
+	m->initializeWeights();
+	printf("after initialize\n");
+	w1 = dense->getWeights();
+	printf("w1= %d, %d\n", w1.n_rows, w1.n_cols);
+	w2 = dense1->getWeights();
+
+	// must initialize weights before predicting anything
+	VF2D_F pred_calc = m->predict(xf);
+	pred_calc.print("predict");
+
+	// computation of x1 = w1*x
+	// computation of x2 = w2*x1 = w2 * w1 * x
+
+	VF2D_F x1(xf.n_rows);
+	VF2D_F x2(xf.n_rows);
+
+	printf("=============================================\n");
+	printf("------ BEGIN CHECK PREDICT --------------\n");
+	w1.print("w1");
+	xf.print("xf");
+	printf("xf= fields: %d, rows: %d, cols: %d, size: %d\n", xf.n_rows, xf[0].n_rows, xf[0].n_cols, xf.size());
+
+	for (int b=0; b < xf.size(); b++) {
+		x1[b] = arma::Mat<float>(w1.n_rows, xf[b].n_cols);
+		for (int i=0; i < xf[b].n_cols; i++) {
+			for (int l=0; l < w1.n_rows; l++) {
+				float xx = 0;
+				for (int j=0; j < xf[b].n_rows; j++) {
+					xx += w1(l,j) * xf[b](j,i);
+				//printf("xx= %f, b,i,l,j= %d, %d, %d, %d\n", xx, b,i,l,j);
+				}
+				x1[b](l,i) = xx;
+			}
+		}
+	}
+
+	x1 = dense->getActivation()(x1);
+
+	w2.print("w2");
+	x1.print("x1 = w1*xf");
+	xf = x1;
+	printf("xf= fields: %d, rows: %d, cols: %d, size: %d\n", xf.n_rows, xf[0].n_rows, xf[0].n_cols, xf.size());
+
+	for (int b=0; b < xf.size(); b++) {
+		x1[b] = arma::Mat<float>(w2.n_rows, xf[b].n_cols);
+		for (int i=0; i < xf[b].n_cols; i++) {
+			for (int l=0; l < w2.n_rows; l++) {
+				float xx = 0;
+				for (int j=0; j < xf[b].n_rows; j++) {
+					xx += w2(l,j) * xf[b](j,i);
+				//printf("xx= %f, b,i,l,j= %d, %d, %d, %d\n", xx, b,i,l,j);
+				}
+				x1[b](l,i) = xx;
+			}
+		}
+	}
+
+	x1 = dense1->getActivation()(x1);
+
+	x1.print("x1 = w2*(w1*xf)");
+	VF2D_F pred_exact = x1;
+
+	for (int b=0; b < pred_calc.n_rows; b++) {
+		bool bb = APPROX_EQUAL(pred_calc(b), pred_exact(b)); assert(bb);
+		// For some reason, I cannot combine both in one line. 
+		//assert(APPROX_EQUAL(pred_calc(b), pred_exact(b)));
+	}
+
+	printf("------ END CHECK PREDICT --------------\n");
+}
 //----------------------------------------------------------------------
 void testModel()
 {
@@ -120,8 +229,6 @@ void testObjective()
 {
 	printf("--------------------\n");
 	Objective* obj1 = new MeanSquareError("mse gordon");
-	//Objective* obj1 = new Objective("mse gordon");
-	//Objective* obj1 = new Objective();
 	MeanSquareError mse1("mse_one");;
 	MeanSquareError mse2("mse_two");;
 	printf("ob1 name: %s\n", obj1->getName().c_str());
@@ -137,6 +244,7 @@ void testObjective()
 int main() 
 {
 	//testCube();
-	testModel();
+	//testModel();
+	testPredict();
 	//testObjective();
 }

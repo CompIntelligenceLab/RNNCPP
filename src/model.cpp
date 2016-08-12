@@ -106,7 +106,7 @@ void Model::add(Layer* layer)
 
 	if (layers.size() == 0) {
 		// 0th layer is an InputLayer
-		return;
+		;
 	} else {
 		int nb_layers = layers.size();
 		//printf("nb_layers= %d\n", nb_layers);
@@ -152,15 +152,27 @@ void Model::print(std::string msg /* "" */)
 VF2D_F Model::predict(VF2D_F x)
 {
   	VF2D_F prod(x); //copy constructor, .n_rows);
+	printf("=================================\n");
+	printf("--- BEGIN predict ---\n");
 
-	for (int l=0; l < layers.size(); l++) {
+	for (int l=1; l < layers.size(); l++) {
   		const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
+		printf("predict layer %d\n", l);
+		wght.print("predict, wght");
+		x.print("predict, x");
 
+		// loop over batches
   		for (int b=0; b < x.n_rows; b++) { 
+  			prod(b).print("prod(b)");
   			prod(b) = wght * prod(b); // prod(b) has different dimensions before and after the multiplication
-  			//VF2D pp = wght * prod(b);
 		}
+		x.print("predict, prod");
+
+		// apply activation function
+		prod = layers[l]->getActivation()(prod);
 	}
+	printf("--- END predict ---\n");
+	printf("=================================\n");
 	return prod;
 }
 //----------------------------------------------------------------------
@@ -187,6 +199,7 @@ void Model::initializeWeights(std::string initialization_type /* "uniform" */)
 {
 	int in_dim, out_dim;
 	printf("inside initialize\n");
+	printf("layers size= %d\n", layers.size());
 
 	// NOTE: the loop starts from 1. Layer 0 (input layer) has no weights. 
 	// This issue will disappear once weights act as connectors between layers. 

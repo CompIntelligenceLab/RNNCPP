@@ -38,6 +38,8 @@
 	typedef arma::Mat<float> WEIGHTS;  // (layer(j-1), layer(j))
 	typedef arma::field<arma::Mat<float> > WEIGHTS_F;  // weight field
     typedef arma::Mat<float> GRADIENTS; // Remove this if we use the Gradients class
+	// Do not forget () around arguments in macro definition
+	#define APPROX_EQUAL(x,y)  arma::approx_equal((x),(y),"absdiff",.001);
 #else
 	typedef Eigen::ArrayXf AF;
 	typedef Eigen::VectorXf VF;
