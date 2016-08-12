@@ -152,27 +152,18 @@ void Model::print(std::string msg /* "" */)
 VF2D_F Model::predict(VF2D_F x)
 {
   	VF2D_F prod(x); //copy constructor, .n_rows);
-	printf("=================================\n");
-	printf("--- BEGIN predict ---\n");
 
 	for (int l=1; l < layers.size(); l++) {
   		const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
-		printf("predict layer %d\n", l);
-		wght.print("predict, wght");
-		x.print("predict, x");
 
 		// loop over batches
   		for (int b=0; b < x.n_rows; b++) { 
-  			prod(b).print("prod(b)");
   			prod(b) = wght * prod(b); // prod(b) has different dimensions before and after the multiplication
 		}
-		x.print("predict, prod");
 
 		// apply activation function
 		prod = layers[l]->getActivation()(prod);
 	}
-	printf("--- END predict ---\n");
-	printf("=================================\n");
 	return prod;
 }
 //----------------------------------------------------------------------
@@ -187,8 +178,6 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 		assert(x.n_rows == batch_size && y.n_rows == batch_size);
 	}
 
-  	// First we should construct the input for the predict routine 
-  	//VF2D_F input;
 	VF2D_F pred = predict(x);
 	VF1D_F loss = objective->computeError(y, pred);
 	printf("loss.n_rows= ", loss.n_rows);

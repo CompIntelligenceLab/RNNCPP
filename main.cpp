@@ -42,7 +42,6 @@ void testCube()
 	printf("cub3: %d\n", cub3.n_cols);
 	printf("cub32 size: %d\n", cub3.size());
 	//printf("cub3 size: %d\n", arma::size(cub3)); // only works in C++11
-	//exit(0);
 
 	VF3D cub20(3,4,5);
 	cub20.randu();
@@ -72,9 +71,13 @@ void testPredict()
 	Layer* dense1 = new DenseLayer(3, "dense");
 	m->add(dense1); // weights should be defined when add is done
 
+	// Compute prediction through the network
 	m->initializeWeights();
-	Optimizer* opt = new RMSProp("myrmsprop");
-	m->setOptimizer(opt);
+	w1 = dense->getWeights();
+	w2 = dense1->getWeights();
+
+	//Optimizer* opt = new RMSProp("myrmsprop");
+	//m->setOptimizer(opt);
 
 	int batch_size = m->getBatchSize();
 	VF2D_F xf(batch_size);
@@ -87,13 +90,6 @@ void testPredict()
 		yf[i].randu(input_dim,1);
 	}
 	printf("sizeof(xf)= %d\n", sizeof(xf));
-
-	// Compute prediction through the network
-	m->initializeWeights();
-	printf("after initialize\n");
-	w1 = dense->getWeights();
-	printf("w1= %d, %d\n", w1.n_rows, w1.n_cols);
-	w2 = dense1->getWeights();
 
 	// must initialize weights before predicting anything
 	VF2D_F pred_calc = m->predict(xf);
@@ -118,7 +114,6 @@ void testPredict()
 				float xx = 0;
 				for (int j=0; j < xf[b].n_rows; j++) {
 					xx += w1(l,j) * xf[b](j,i);
-				//printf("xx= %f, b,i,l,j= %d, %d, %d, %d\n", xx, b,i,l,j);
 				}
 				x1[b](l,i) = xx;
 			}
@@ -139,7 +134,6 @@ void testPredict()
 				float xx = 0;
 				for (int j=0; j < xf[b].n_rows; j++) {
 					xx += w2(l,j) * xf[b](j,i);
-				//printf("xx= %f, b,i,l,j= %d, %d, %d, %d\n", xx, b,i,l,j);
 				}
 				x1[b](l,i) = xx;
 			}
@@ -162,10 +156,11 @@ void testPredict()
 //----------------------------------------------------------------------
 void testModel()
 {
-	printf("----------- Model -----------------\n");
 	WEIGHTS w1, w2;
 	int input_dim = 2;
 	Model* m  = new Model(input_dim); // argument is input_dim of model
+    m->setBatchSize(2);
+	assert(m->getBatchSize() == 2);
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	Layer* input = new InputLayer(2, "input_layer");
@@ -174,51 +169,37 @@ void testModel()
 	m->add(dense);
 	Layer* dense1 = new DenseLayer(3, "dense");
 	m->add(dense1); // weights should be defined when add is done
+	Layer* dense2 = new DenseLayer(input_dim, "dense");
+	m->add(dense2); // weights should be defined when add is done
 
-	printf("...........\n");
-	w1 = dense->getWeights();
-	printf("   layer 0: weights: %d, %d\n", w1.n_rows, w1.n_cols);
-	w2 = dense1->getWeights();
-	printf("   layer 1: weights: %d, %d\n", w2.n_rows, w2.n_cols);
-
-	printf("before init\n");
 	m->initializeWeights();
-	printf("after init\n");
-
-	printf("...........\n");
 	w1 = dense->getWeights();
-	printf("   layer 0: weights: %d, %d\n", w1.n_rows, w1.n_cols);
 	w2 = dense1->getWeights();
-	printf("   layer 1: weights: %d, %d\n", w2.n_rows, w2.n_cols);
-
-	Sigmoid* sig = new Sigmoid();
+	w1.print("w1");
+	w2.print("w2");
 
 	Optimizer* opt = new RMSProp("myrmsprop");
 	m->setOptimizer(opt);
 	opt->print();
 
-	m->print();
-	printf("-----------------\n");
+	//m->print();
 
 	int batch_size = m->getBatchSize();
 	VF2D_F xf(batch_size);
 	VF2D_F yf(batch_size); 
 
 	input_dim = m->getInputDim();
-	printf("input_dim= %d\n", input_dim);
-	//exit(0);
 
 	for (int i=0; i < xf.size(); i++) {
-		xf[i].randu(1,1);
-		yf[i].randu(1,1);
+		xf[i].randu(input_dim, 1);
+		yf[i].randu(input_dim, 1);
 	}
+
+	xf.print("xf");
 	VF2D_F pred = m->predict(xf);
-	printf("sizeof(pred)= %d\n", sizeof(pred));
 	pred.print("prediction: ");
 
 	m->train(xf,yf);
-
-	// Of course, I must check the prediction manually. 
 
 
 	exit(0);
@@ -244,7 +225,7 @@ void testObjective()
 int main() 
 {
 	//testCube();
-	//testModel();
-	testPredict();
+	testModel();
+	//testPredict();
 	//testObjective();
 }
