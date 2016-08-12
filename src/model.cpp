@@ -144,6 +144,7 @@ void Model::add(Layer* layer_from, Layer* layer)
 	// Create weights
 	//weights = WEIGHTS(out, in);
 	Weights* weights = new Weights(out_dim, in_dim);
+	weights->initialize();
 	weights_l.push_back(weights);
 
 	// update prev and next lists in Layers class
@@ -208,6 +209,7 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 	loss.print("loss");
 }
 //----------------------------------------------------------------------
+#if 0
 void Model::initializeWeights(std::string initialization_type /* "uniform" */)
 {
 	int in_dim, out_dim;
@@ -225,6 +227,7 @@ void Model::initializeWeights(std::string initialization_type /* "uniform" */)
 		layer->initializeWeights(initialization_type);
 	}
 }
+#endif
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

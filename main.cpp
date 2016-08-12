@@ -54,7 +54,9 @@ void testCube()
 
 //----------------------------------------------------------------------
 void testPredict()
+// MUST BE RETESTED
 {
+#if 0
 	printf("----------- Test Predict -----------------\n");
 	WEIGHTS w1, w2;
 	int input_dim = 2; 
@@ -72,7 +74,7 @@ void testPredict()
 	m->add(dense1); // weights should be defined when add is done
 
 	// Compute prediction through the network
-	m->initializeWeights();
+	//m->initializeWeights();
 	w1 = dense->getWeights();
 	w2 = dense1->getWeights();
 
@@ -152,6 +154,7 @@ void testPredict()
 	}
 
 	printf("------ END CHECK PREDICT --------------\n");
+#endif
 }
 //----------------------------------------------------------------------
 void testModel()
@@ -172,7 +175,6 @@ void testModel()
 	Layer* dense2 = new DenseLayer(input_dim, "dense");
 	m->add(dense2); // weights should be defined when add is done
 
-	m->initializeWeights();
 	w1 = dense->getWeights();
 	w2 = dense1->getWeights();
 	w1.print("w1");
@@ -237,7 +239,6 @@ void testFuncModel()
 	m->add(dense1a, dense2);
 	m->add(dense1, dense2);
 
-	m->initializeWeights();
 	w1 = dense->getWeights();
 }
 //----------------------------------------------------------------------
@@ -260,7 +261,8 @@ void testObjective()
 int main() 
 {
 	//testCube();
-	testModel();
+	//testModel();
+	testFuncModel();
 	//testPredict();
 	//testObjective();
 }

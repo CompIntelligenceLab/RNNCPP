@@ -24,6 +24,7 @@ protected:
 	WEIGHTS_F weights_f; // using fields
 	int in_dim, out_dim;
 	bool print_verbose;
+	bool temporal; // false: spatial link, true: temporal link
 
 public:
 	// input and output dimensions 
@@ -32,11 +33,13 @@ public:
 	Weights(const Weights&);
 	const Weights& operator=(const Weights& w);
 	WEIGHTS& getWeights() { return weights; }
-	void initializeWeights(std::string initialize_type="uniform");
 	void print(std::string name= "");
 	WEIGHTS_F& getWeightsF() { return  weights_f; }
 	int getNRows() { return weights.n_rows; }
 	int getNCols() { return weights.n_cols; }
+	void setTemporal(bool temporal) { this->temporal = temporal;}
+	bool getTemporal() {return temporal;}
+    virtual void initialize(std::string initialization_type="uniform");  // not sure of data structure
 
 	Weights(Weights&& w); // C++11
 

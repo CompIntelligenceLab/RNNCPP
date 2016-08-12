@@ -29,6 +29,7 @@ class Weights;
   typedef std::vector< std::vector<float> > MATRIX;
 
 #ifdef ARMADILLO
+	typedef std::vector<Weights*> WEIGHT_L;
 	typedef std::vector<std::pair<Layer*, Weights*> > PAIRS_L; 
 	typedef arma::Col<float> AF;
 	typedef arma::Col<float> VF;

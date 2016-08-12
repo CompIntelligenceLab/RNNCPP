@@ -34,7 +34,7 @@ private:
 	bool print_verbose;
 	// keep pointers to all weights into a dynamical linked list
 	LAYERS layers;
-	std::vector<Weights*> weights_l; // (l)ist of weights
+	WEIGHT_L weights_l; // (l)ist of weights
 
 public:
   Model(int input_dim, std::string name="model");
@@ -72,7 +72,8 @@ public:
   GRADIENTS getGradient() const;
 
   /** return vector of weights for each layer */
-  WeightList getWeights();
+  WEIGHT_L& getWeights() { return weights_l; }
+  //WeightList& getWeightsL();
 
   /** predict: run through the model  */
   //  x: signal input: (batch_size, seq_length, dimension)
