@@ -208,8 +208,58 @@ void testModel()
 	exit(0);
 #endif
 }
+//----------------------------------------------------------------------
+// TEST MODELS for structure
+void testModel1()
+{
+	printf("\n --- testModel1 ---\n");
+	int input_dim = 1;
+	Model* m  = new Model(input_dim); // argument is input_dim of model
+	assert(m->getBatchSize() == 1);
 
+	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
+	// 2 is the dimensionality of the data
+	// the names have a counter value attached to it, so there is no duplication. 
+	Layer* input   = new InputLayer(2, "input_layer");
+	Layer* dense   = new DenseLayer(5, "dense");
+	Layer* dense1  = new DenseLayer(3, "dense");
+	Layer* dense1a = new DenseLayer(4, "dense");
+	Layer* dense2  = new DenseLayer(6, "dense");
 
+	m->add(input, dense);
+	m->add(dense, dense1);
+	m->add(dense1, dense1a);
+	m->add(dense1a, dense2);
+	m->add(dense1, dense2);
+
+	m->checkIntegrity();
+}
+//----------------------------------------------------------------------
+// TEST MODELS for structure
+void testModel2()
+{
+	printf("\n --- testModel2 ---\n");
+	int input_dim = 1;
+	Model* m  = new Model(input_dim); // argument is input_dim of model
+	assert(m->getBatchSize() == 1);
+
+	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
+	// 2 is the dimensionality of the data
+	// the names have a counter value attached to it, so there is no duplication. 
+	Layer* input   = new InputLayer(2, "input_layer");
+	Layer* dense1  = new DenseLayer(5, "dense");
+	Layer* dense2  = new DenseLayer(3, "dense");
+	Layer* dense3  = new DenseLayer(4, "dense");
+	Layer* dense4  = new DenseLayer(6, "dense");
+
+	m->add(input, dense1);
+	m->add(input, dense2);
+	m->add(dense2, dense3);
+	m->add(dense1, dense2);
+	m->add(dense3, dense4);
+
+	m->checkIntegrity();
+}
 //----------------------------------------------------------------------
 void testFuncModel()
 {
@@ -279,7 +329,9 @@ int main()
 {
 	//testCube();
 	//testModel();
-	testFuncModel();
+	//testFuncModel();
+	testModel1();
+	testModel2();
 	//testPredict();
 	//testObjective();
 }
