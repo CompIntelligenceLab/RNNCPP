@@ -21,6 +21,8 @@ public:
 
 protected:
 	static int counter;
+	int clock; // initialized to zero. updates by one when signal arrives. If signal arrives when clock != 0,
+	           // change the connection to temporal from spatial. 
 	std::string name;
 	int layer_size; // number of nodes in layer
 	int input_dim; // size of previous layer
@@ -92,8 +94,8 @@ public:
    virtual void execute();
 
    /** get layer weights */
-   virtual void createWeights(int in, int out);  // not sure of data structure (Just simple matrix for now)
-   virtual void initializeWeights(std::string initialization_type="uniform");  // not sure of data structure
+   //virtual void createWeights(int in, int out);  // not sure of data structure (Just simple matrix for now)
+   //virtual void initializeWeights(std::string initialization_type="uniform");  // not sure of data structure
    WEIGHTS getWeights() const {return weights;}  // not sure of data structure (Just simple matrix for now)
 
    // gradient of loss function with respect to weights
@@ -113,6 +115,8 @@ public:
 	VF2D_F getInputs() { return inputs; }
 	void setOutputs(VF2D_F& outputs) { this->outputs = outputs; }
 	VF2D_F getOutputs() { return outputs; }
+	void setName(std::string name) { this->name = name; } // normally not used
+	std::string getName() { return name; }
 };
 
 //----------------------------------------------------------------------

@@ -25,6 +25,9 @@ protected:
 	int in_dim, out_dim;
 	bool print_verbose;
 	bool temporal; // false: spatial link, true: temporal link
+	int clock; // 0: weight has not been used. 1 otherwise. Potential problem if a weight is used twice, 
+	           // which is possible if they are shared. Step 1: change Weights class to Connections class. . 
+			   // step 2: 
 
 public:
 	// input and output dimensions 

@@ -27,6 +27,7 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	//weights         = new Weights(1,1, "weights"); // default size
 	//weights    = WEIGHTS(layer_size, input_dim); // 2nd dimension is in_dim, first dimension is out_dim
 	print_verbose   = true;
+	clock = 0;
 
 	// Default activation: tanh
 	activation = new Tanh("tanh");
@@ -43,7 +44,7 @@ Layer::~Layer()
 
 Layer::Layer(const Layer& l) : layer_size(l.layer_size), input_dim(l.input_dim),
    print_verbose(l.print_verbose), seq_len(l.seq_len), nb_batch(l.nb_batch),
-   inputs(l.inputs), outputs(l.outputs), weights(l.weights)
+   inputs(l.inputs), outputs(l.outputs), weights(l.weights), clock(l.clock)
 {
 	//weights = new Weights(1,1, "weights_c"); // remove class Weights (for now)
 	//*weights = *l.weights;  // removed because of Nathan simplification (remove class Weights)
@@ -70,11 +71,12 @@ const Layer& Layer::operator=(const Layer& l)
 		print_verbose = l.print_verbose;
 		inputs = l.inputs;
 		outputs = l.outputs;
-		weights = l.weights;
+		//weights = l.weights;
 		inputs = l.inputs;
 		outputs = l.outputs;
 		seq_len = l.seq_len;
 		nb_batch = l.seq_len;
+		clock = l.clock;
 
 		//Weights* w1; // remove class Weights
 		Activation *a1;
@@ -130,13 +132,16 @@ void Layer::execute()
 	outputs = (*activation)(inputs);
 }
 
+#if 0
 void Layer::createWeights(int in, int out)
 {
 	// weights = new Weights(in, out, this->name+"_"+"weights"); // Nathan
 	weights = WEIGHTS(out, in);
 	printf("******createWeights, weights= %d, %d\n", weights.n_rows, weights.n_cols);
 }
+#endif
 
+#if 0
 void Layer::initializeWeights(std::string initialize_type /* "uniform" */)
 {
 		//weights->initializeWeights(initialize_type); // Nathan
@@ -162,3 +167,4 @@ void Layer::initializeWeights(std::string initialize_type /* "uniform" */)
 		exit(1);
 	}
 }
+#endif

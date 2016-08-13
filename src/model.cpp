@@ -100,6 +100,7 @@ const Model& Model::operator=(const Model& m)
 	return *this;
 }
 //----------------------------------------------------------------------
+/**
 void Model::add(Layer* layer)
 {
 	// check for layer size compatibility
@@ -127,6 +128,7 @@ void Model::add(Layer* layer)
   	layers.push_back(layer);
 	printf("last layer in layers input size: %d\n", layers[layers.size()-1]->getInputDim());
 }
+**/
 
 //------------------------------------------------------
 void Model::add(Layer* layer_from, Layer* layer)
@@ -178,6 +180,37 @@ VF2D_F Model::predict(VF2D_F x)
 {
   	VF2D_F prod(x); //copy constructor, .n_rows);
 
+	for (int l=1; l < layers.size(); l++) {
+  		const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
+
+		// loop over batches
+  		for (int b=0; b < x.n_rows; b++) { 
+  			prod(b) = wght * prod(b); // prod(b) has different dimensions before and after the multiplication
+		}
+		layers[l]->setInputs(prod);
+
+		// apply activation function
+		prod = layers[l]->getActivation()(prod);
+		layers[l]->setOutputs(prod);
+	}
+	return prod;
+}
+//----------------------------------------------------------------------
+VF2D_F Model::predictNew(VF2D_F x)
+{
+  	VF2D_F prod(x); //copy constructor, .n_rows);
+
+	Layer* cur_layer = layers[0];
+
+	// start from the input. Follow the graph along connections with temporal=false
+	for (int l=0; l < cur_layer->next.size(); l++) {
+		Layer& layer = *cur_layer->next[l].first;
+		//prod = 
+		printf("layer name: %s\n", layer.getName().c_str());
+		Weights* w = layer.next[l].second;
+	}
+	exit(0);
+	
 	for (int l=1; l < layers.size(); l++) {
   		const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
 

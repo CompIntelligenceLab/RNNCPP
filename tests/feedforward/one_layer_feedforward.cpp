@@ -6,9 +6,11 @@
 #include "dense_layer.h"
 #include "activations.h"
 
+// MUST REWRITE
 
 int main()
 {
+#if 0
 	Model* m  = new Model(1, "feedforward");
 	Layer* l1 = new DenseLayer(5, "dense");
 	m->add(l1);
@@ -20,4 +22,5 @@ int main()
 
   printf("\n\n--- Feed Forward Test Successful ---\n\n");
 	exit(0);
+#endif
 }

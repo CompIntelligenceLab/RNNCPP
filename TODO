@@ -21,7 +21,13 @@ User is currently responsible for shaping the function to use as required
 for a particular application. Specialized routines might  be made available.
 ----------------------------------------------------------------------
 Aug 12, 2016
-- Create a Weight class for increased flexibility. 
+- Create a Weight class for increased flexibility.  (done)
 - Can create subclasses for specialized layers. 
 - In the future, layer classes can be templatized by weight type. 
+- is it possible to derive a activation function f(x) such that: 
+     x(t) = f(x(t-tau)) ? if so, we can do delays with back propagation. 
+	 Assume eps=tau << 1
+	 x(t) = f(x(t) - eps xdot(t)) = f(x(t)) - eps dfdx(x(t)) * xdot(t)
+	 x = f - eps f' xdot
 ----------------------------------------------------------------------
+Aug. 12, 2016

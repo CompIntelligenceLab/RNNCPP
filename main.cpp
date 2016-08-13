@@ -159,6 +159,7 @@ void testPredict()
 //----------------------------------------------------------------------
 void testModel()
 {
+#if 0
 	WEIGHTS w1, w2;
 	int input_dim = 2;
 	Model* m  = new Model(input_dim); // argument is input_dim of model
@@ -205,6 +206,7 @@ void testModel()
 
 
 	exit(0);
+#endif
 }
 
 
@@ -239,7 +241,19 @@ void testFuncModel()
 	m->add(dense1a, dense2);
 	m->add(dense1, dense2);
 
-	w1 = dense->getWeights();
+	int batch_size = m->getBatchSize();
+	VF2D_F xf(batch_size);
+	VF2D_F yf(batch_size); 
+
+	input_dim = m->getInputDim();
+
+	for (int i=0; i < xf.size(); i++) {
+		xf[i].randu(input_dim, 1);
+		yf[i].randu(input_dim, 1);
+	}
+	
+	VF2D_F pred = m->predictNew(xf);
+	pred.print("funcModel, predict:");
 }
 //----------------------------------------------------------------------
 void testObjective()
