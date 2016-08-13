@@ -68,6 +68,14 @@ void Connection::print(std::string msg /* "" */)
 	if (print_verbose == false) return;
 }
 
+void Connection::printSummary(std::string msg) 
+{
+	std::string type = (temporal) ? "temporal" : "spatial";
+	printf("%sConnection (%s), weight(%d, %d), %s\n", msg.c_str(), name.c_str(), out_dim, in_dim, type.c_str());
+}
+
+//----------------------------------------------------------------------
+
 Connection Connection::operator+(const Connection& w) 
 {
 	Connection tmp(*this);  // Ideally, this should initialize all components
@@ -125,3 +133,10 @@ void Connection::initialize(std::string initialize_type /*"uniform"*/ )
 		exit(1);
 	}
 }
+
+void Connection::weightUpdate(float learning_rate) {  // simplest algorithm
+	for (int b=0; b < delta.n_rows;  b++) {
+		weight = weight - learning_rate * delta;
+	}
+}
+

@@ -212,29 +212,32 @@ void Model::checkIntegrity(LAYERS& layer_list)
 //----------------------------------------------------------------------
 void Model::printSummary()
 {
-	printf("\n\n ---- MODEL SUMMARY ----\n\n");
+	printf("=============================================================\n");
+	printf("------ MODEL SUMMARY ------\n");
 	std::string conn_type;
 
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i];
-		printf("layer: %s, size: %d\n", layer->getName().c_str(), layer->getLayerSize());
+		layer->printSummary("\n---- ");
 		PAIRS_L prev = layer->prev;
 		PAIRS_L next = layer->next;
-		printf("  prev: \n");
+
 		for (int p=0; p < prev.size(); p++) {
 			Layer* pl = prev[p].first;
 			Connection* pc = prev[p].second;
 			conn_type = (pc->getTemporal()) ? "temporal" : "spatial";
-			printf("    %s, %s\n", pl->getName().c_str(), conn_type.c_str());
+			pl->printSummary("   - prev: ");
+			pc->printSummary("   - prev: ");
 		}
-		printf("  next: \n");
 		for (int n=0; n < next.size(); n++) {
 			Layer* nl = next[n].first;
 			Connection* nc = next[n].second;
 			conn_type = (nc->getTemporal()) ? "temporal" : "spatial";
-			printf("    %s, %s\n", nl->getName().c_str(), conn_type.c_str());
+			nl->printSummary("   - next: ");
+			nc->printSummary("   - next: ");
 		}
 	}
+	printf("=============================================================\n");
 }
 //----------------------------------------------------------------------
 VF2D_F Model::predictNew(VF2D_F x)
@@ -259,12 +262,14 @@ VF2D_F Model::predictNew(VF2D_F x)
 	// is minimal compared to the cost of matrix-vector multiplication. 
 
 	Layer* cur_layer = layers[0];
+	printf("***** predictNew *****\n");
 
 	while (true) {
 		Layer* cur_layer = layer_list[0]; 
+	    cur_layer->printSummary("Input: ");
 		int sz = cur_layer->next.size();
 		for (int l=0; l < sz; l++) {
-			printf("l= %d, sz= %d\n", l, sz);
+			printf("   layer: next %d/%d\n", l, sz);
 			Layer* nlayer = cur_layer->next[l].first;
 			Connection* nconnection = cur_layer->next[l].second;
 			WEIGHT& wght = nconnection->getWeight();
@@ -276,9 +281,8 @@ VF2D_F Model::predictNew(VF2D_F x)
 			}
 
 			printf("-- calculate w*x: \n");
-			printf("   layer: %s\n", nlayer->getName().c_str());
-			printf("   cur_layer layer_size: %d\n", cur_layer->getLayerSize());
-			printf("   nlayer layer_size: %d\n", nlayer->getLayerSize());
+			nconnection->printSummary("   ");
+			nlayer->printSummary("   ");
 			wght.print("    wght");
 			prod[0].print("    prod[0]");
 
@@ -300,8 +304,8 @@ VF2D_F Model::predictNew(VF2D_F x)
 		}
 		printf("erase layer %s\n", layer_list[0]->getName().c_str());
 		layer_list.erase(layer_list.begin());
-		printf("gordon\n");
 	}
+	exit(0);
 	
 	return prod;
 }

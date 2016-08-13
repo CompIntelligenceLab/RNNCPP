@@ -45,6 +45,7 @@ public:
 	std::string getName() { return name; } // more generally, return a vector of weights
 	WEIGHT& getWeight() { return weight; } // more generally, return a vector of weights
 	void print(std::string name= "");
+	void printSummary(std::string name= "");
 	int getNRows() { return weight.n_rows; }
 	int getNCols() { return weight.n_cols; }
 	void setTemporal(bool temporal) { this->temporal = temporal;}
@@ -53,11 +54,7 @@ public:
 	int getClock() { return clock; }
 	void incrClock() { clock += 1; }
 	void backProp() {;} // for future use
-	void weightUpdate(float learning_rate) {  // simplest algorithm
-	     for (int b=0; b < delta.n_rows;  b++) {
-		 	weight = weight - learning_rate * delta;
-		}
-	}
+	void weightUpdate(float learning_rate);
 
 	Connection(Connection&& w); // C++11
 

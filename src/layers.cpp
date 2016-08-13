@@ -102,6 +102,11 @@ void Layer::print(std::string msg /* "" */)
 	if (print_verbose == false) return;
 }
 
+void Layer::printSummary(std::string msg) 
+{
+	printf("%sLayer (%s), layer_size: %d\n", msg.c_str(), name.c_str(), layer_size);
+}
+
 void Layer::printName()
 {
 	printf("--layer (%s) --\n", name.c_str());
