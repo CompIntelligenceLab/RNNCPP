@@ -10,6 +10,7 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 	weight = WEIGHT(in_dim, out_dim);
 	print_verbose = true;
 	temporal = false; // all connections false for feedforward networks
+	clock = 0;
 
 	char cname[80];
 
@@ -29,7 +30,7 @@ Connection::~Connection()
 }
 
 Connection::Connection(const Connection& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbose(w.print_verbose),
-     temporal(w.temporal)
+     temporal(w.temporal), clock(w.clock)
 {
 	name = w.name + "c";
 	weight = WEIGHT(in_dim, out_dim);
@@ -47,6 +48,7 @@ const Connection& Connection::operator=(const Connection& w)
 		print_verbose = w.print_verbose;
 		temporal = w.temporal;
 		weight   = w.weight; 
+		clock = w.clock;
 		printf("Connection::operator= (%s)\n", name.c_str());
 	}
 
@@ -105,6 +107,7 @@ VF2D_F Connection::operator*(const VF2D_F& x)
 void Connection::initialize(std::string initialize_type /*"uniform"*/ )
 {
 	printf("--  Connection::initialize size: %d, %d\n", weight.n_rows, weight.n_cols);
+	clock = 0;
 
 	if (initialize_type == "gaussian") {
 	} else if (initialize_type == "uniform") {

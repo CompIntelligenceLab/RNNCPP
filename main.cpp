@@ -213,7 +213,7 @@ void testModel()
 //----------------------------------------------------------------------
 void testFuncModel()
 {
-	WEIGHTS w1, w2;
+	WEIGHT w1, w2;
 	int input_dim = 2;
 	Model* m  = new Model(input_dim); // argument is input_dim of model
     m->setBatchSize(2);
