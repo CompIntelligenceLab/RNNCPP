@@ -11,6 +11,7 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 	print_verbose = true;
 	temporal = false; // all connections false for feedforward networks
 	clock = 0;
+	from = to = 0;
 
 	char cname[80];
 
@@ -30,7 +31,7 @@ Connection::~Connection()
 }
 
 Connection::Connection(const Connection& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbose(w.print_verbose),
-     temporal(w.temporal), clock(w.clock)
+     temporal(w.temporal), clock(w.clock), to(w.to), from(w.from)
 {
 	name = w.name + "c";
 	weight = WEIGHT(in_dim, out_dim);
@@ -49,6 +50,8 @@ const Connection& Connection::operator=(const Connection& w)
 		temporal = w.temporal;
 		weight   = w.weight; 
 		clock = w.clock;
+		from = w.from; 
+		to = w.to;
 		printf("Connection::operator= (%s)\n", name.c_str());
 	}
 

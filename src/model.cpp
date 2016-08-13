@@ -120,6 +120,8 @@ void Model::add(Layer* layer_from, Layer* layer)
 	Connection* connection = new Connection(out_dim, in_dim);
 	connection->initialize();
 	connections.push_back(connection);
+	connection->from = layer_from;
+	connection->to = layer;
 
 	// update prev and next lists in Layers class
 	if (layer_from) {
@@ -156,12 +158,12 @@ void Model::checkIntegrity()
 	LAYERS layers = getLayers();
 	assert(layers.size() > 1);  // need at least an input layer connected to an output layer
 	printf("layers size: %d\n", layers.size());
-	layer_list.push_back(layers[0]); // input layer
 
 	// input layer. Eventually, we might have multiple layers in the network. How to handle that?
 	// A model can only have a single input layer (at this time). How to generalize? Not clear how to input data then. 
 	// Probably need a list of input layers in a vector. In that case, it is not clear that layers[0] would be the input layer. 
-	Layer* initial_layer = layers[0];
+	Layer* input_layer = layers[0];
+	layer_list.push_back(input_layer); 
 	checkIntegrity(layer_list);
 
 	// A recursive solution would be better. 
@@ -239,35 +241,67 @@ VF2D_F Model::predictNew(VF2D_F x)
 {
 	// The network is assumed to have a single input. 
 	// Only propagate through the spatial networks
+	//printf("   nlayer layer_size: %d\n", getLayers()[0]->getLayerSize());
+	//exit(0);
 
   	VF2D_F prod(x); //copy constructor, .n_rows);
 
+ 	LAYERS layer_list;  
+	LAYERS layers = getLayers();   // zeroth element is the input layer
+    assert(layers.size() > 1);  // need at least an input layer connected to an output layer
+
+    Layer* input_layer = layers[0];
+    layer_list.push_back(input_layer);
+	printf("   input layer_size: %d\n", layer_list[0]->getLayerSize());
+
+	// going throught the above initializatino might not be necessary. However, if the topology or types of connections
+	// change during training, then layer_list might change between training elements. So keep for generality. The cost 
+	// is minimal compared to the cost of matrix-vector multiplication. 
+
 	Layer* cur_layer = layers[0];
 
-	// start from the input. Follow the graph along connections with temporal=false
-	for (int l=0; l < cur_layer->next.size(); l++) {
-		Layer& layer = *cur_layer->next[l].first;
-		//prod = 
-		printf("layer name: %s\n", layer.getName().c_str());
-		Connection* w = layer.next[l].second;
-	}
-	exit(0);
-	
-	for (int l=1; l < layers.size(); l++) {
-  		//const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
-  		Connection* wghtc= layers[l]->prev[0].second; //getWeights(); // between layer (l) and layer (l-1)
-		const WEIGHT& wght = wghtc->getWeight();
+	while (true) {
+		Layer* cur_layer = layer_list[0]; 
+		int sz = cur_layer->next.size();
+		for (int l=0; l < sz; l++) {
+			printf("l= %d, sz= %d\n", l, sz);
+			Layer* nlayer = cur_layer->next[l].first;
+			Connection* nconnection = cur_layer->next[l].second;
+			WEIGHT& wght = nconnection->getWeight();
+			layer_list.push_back(nlayer);
 
-		// loop over batches
-  		for (int b=0; b < x.n_rows; b++) { 
-  			prod(b) = wght * prod(b); // prod(b) has different dimensions before and after the multiplication
+			if (nconnection->getTemporal()) {  // only consider spatial links (for now)
+				printf("skip connection: %s\n", nconnection->getName().c_str());
+				continue; 
+			}
+
+			printf("-- calculate w*x: \n");
+			printf("   layer: %s\n", nlayer->getName().c_str());
+			printf("   cur_layer layer_size: %d\n", cur_layer->getLayerSize());
+			printf("   nlayer layer_size: %d\n", nlayer->getLayerSize());
+			wght.print("    wght");
+			prod[0].print("    prod[0]");
+			for (int b=0; b < x.n_rows; b++) {
+				prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
+				                           //left and right of "=" have different dimensions
+			}
+
+			printf("result of multplication:\n");
+			prod(0).print("prod(result)");
+
+			nlayer->setInputs(prod);
+
+			// apply activation function
+			prod = layers[l]->getActivation()(prod);
+
+			nlayer->setOutputs(prod);
+
 		}
-		layers[l]->setInputs(prod);
-
-		// apply activation function
-		prod = layers[l]->getActivation()(prod);
-		layers[l]->setOutputs(prod);
+		printf("erase layer %s\n", layer_list[0]->getName().c_str());
+		layer_list.erase(layer_list.begin());
+		printf("gordon\n");
 	}
+	
 	return prod;
 }
 //----------------------------------------------------------------------

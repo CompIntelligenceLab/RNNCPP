@@ -102,6 +102,11 @@ void Layer::print(std::string msg /* "" */)
 	if (print_verbose == false) return;
 }
 
+void Layer::printName()
+{
+	printf("--layer (%s) --\n", name.c_str());
+}
+
 // Take the inputs (dimensionality based on previous layer), and generate the outputs
 void Layer::execute()
 {

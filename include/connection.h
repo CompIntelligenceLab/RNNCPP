@@ -11,6 +11,8 @@
 #include <string>
 #include "typedefs.h"
 
+class Layer;
+
 /** General structure to store weights. How to organize the data remains to be seen */
 /** Possibly overload this class polymorphically */
 /* It is possible that this class is not necessary. Not sure yet */
@@ -18,6 +20,10 @@
 //----------------------------------------------------------------------
 class Connection
 {
+public:
+	Layer* from;  // pointers to the two layers that form the connection
+	Layer* to;    // useful for some algorithms
+
 protected:
 	static int counter;
 	std::string name;
@@ -35,7 +41,8 @@ public:
 	~Connection();
 	Connection(const Connection&);
 	const Connection& operator=(const Connection& w);
-	const WEIGHT& getWeight() const { return weight; } // more generally, return a vector of weights
+	std::string getName() { return name; } // more generally, return a vector of weights
+	WEIGHT& getWeight() { return weight; } // more generally, return a vector of weights
 	void print(std::string name= "");
 	int getNRows() { return weight.n_rows; }
 	int getNCols() { return weight.n_cols; }

@@ -297,6 +297,7 @@ void testFuncModel()
 	//dense1->add(dense2);
 
 	// Version 2
+	m->add(0, input); // later, create a function to add the input layer
 	m->add(input, dense);
 	m->add(dense, dense1);
 	m->add(dense1, dense1a);
@@ -304,7 +305,6 @@ void testFuncModel()
 	m->add(dense1, dense2);
 
 	m->checkIntegrity();
-	exit(0);
 
 	int batch_size = m->getBatchSize();
 	VF2D_F xf(batch_size);
@@ -316,6 +316,9 @@ void testFuncModel()
 		xf[i].randu(input_dim, 1);
 		yf[i].randu(input_dim, 1);
 	}
+
+	printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
+	printf("   input layer_size: %d\n", input->getLayerSize());
 	
 	VF2D_F pred = m->predictNew(xf);
 	pred.print("funcModel, predict:");
@@ -341,8 +344,8 @@ int main()
 {
 	//testCube();
 	//testModel();
-	//testFuncModel();
-	testModel1();
+	testFuncModel();
+	//testModel1();
 	//testModel2();
 	//testPredict();
 	//testObjective();

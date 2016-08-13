@@ -81,6 +81,7 @@ public:
    Layer(const Layer&);
    const Layer& operator=(const Layer&);
    virtual void print(std::string msg="");
+   virtual void printName();
 
    virtual int  getInputDim() const { return input_dim; }
    // input from previous layer
