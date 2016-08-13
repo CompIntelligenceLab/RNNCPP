@@ -43,6 +43,9 @@ public:
   const Model& operator=(const Model&); 
   void print(std::string msg=std::string());
 
+  /** print connections, connection type, weight matrix size, layers, layer types */
+  void printSummary();
+
   // Use pointer instead of reference to avoid including layers.h
   /** update layer list. check for layer compatibility with previous layer */
 

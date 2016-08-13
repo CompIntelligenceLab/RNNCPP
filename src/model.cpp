@@ -103,7 +103,12 @@ void Model::add(Layer* layer_from, Layer* layer)
 {
 	printf("add(layer_from, layer)\n");
 	// Layers should only require layer_size 
-	layer->setInputDim(layer_from->getLayerSize());
+
+	if (layer_from) {
+		layer->setInputDim(layer_from->getLayerSize());
+	} else {
+		layer->setInputDim(this->input_dim);
+	}
 
   	layers.push_back(layer);
 
@@ -117,8 +122,10 @@ void Model::add(Layer* layer_from, Layer* layer)
 	connections.push_back(connection);
 
 	// update prev and next lists in Layers class
-	layer->prev.push_back(std::pair<Layer*,Connection*>(layer_from, connection));
-	layer_from->next.push_back(std::pair<Layer*,Connection*>(layer, connection));
+	if (layer_from) {
+		layer_from->next.push_back(std::pair<Layer*, Connection*>(layer, connection));
+		layer->prev.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
+	}
 }
 //----------------------------------------------------------------------
 void Model::print(std::string msg /* "" */)
@@ -156,6 +163,8 @@ void Model::checkIntegrity()
 	// Probably need a list of input layers in a vector. In that case, it is not clear that layers[0] would be the input layer. 
 	Layer* initial_layer = layers[0];
 	checkIntegrity(layer_list);
+
+	// A recursive solution would be better. 
 }
 
 //------------------------------------------------------------
@@ -171,9 +180,9 @@ void Model::checkIntegrity(LAYERS& layer_list)
 */
 	// input layer. Eventually, we might have multiple layers in the network. How to handle that?
 
-	//for (int i=0; i < layer_list.size(); i++) {
 	while (true) {
 		Layer* cur_layer = layer_list[0]; 
+		printf("\nCurrent layer: %s\n", cur_layer->getName().c_str());
 		//cur_layer->incr_Clock(); // Do not increment input layers. 
 	                           	   // This will allow the input layer to also act as an output layer
 
@@ -181,20 +190,54 @@ void Model::checkIntegrity(LAYERS& layer_list)
 		for (int l=0; l < sz; l++) {
 			Layer* nlayer = cur_layer->next[l].first;
 			Connection* nconnection = cur_layer->next[l].second;
+
+			printf("cur_layer: %s, next: %s\n", cur_layer->getName().c_str(), nlayer->getName().c_str());
+
 			if (nlayer->getClock() > 0) {
 				nconnection->setTemporal(true);
+				printf("set temporal on connection %s --> %s\n", cur_layer->getName().c_str(), nlayer->getName().c_str());
 			}
+
+			printf("increment clock of layer %s\n", nlayer->getName().c_str());
 			nlayer->incrClock();
 			nconnection->incrClock();
 
-			// Dangerous: increasing layer size, and yet looping over layer size
-			layer_list.push_back(nlayer);  // layers left to process
+			if (nlayer->getClock() == 1) { // only add a layer once to the list of layers to process
+				layer_list.push_back(nlayer);  // layers left to process
+			}
 		}
-		printf("before erase: size: %d\n", layer_list.size());
+		//printf("before erase: size: %d\n", layer_list.size());
 		layer_list.erase(layer_list.begin());
-		printf("after erase: size: %d\n", layer_list.size());
+		//printf("after erase: size: %d\n", layer_list.size());
 		if (layer_list.size() == 0) {
 			return;
+		}
+	}
+}
+//----------------------------------------------------------------------
+void Model::printSummary()
+{
+	printf("\n\n ---- MODEL SUMMARY ----\n\n");
+	std::string conn_type;
+
+	for (int i=0; i < layers.size(); i++) {
+		Layer* layer = layers[i];
+		printf("layer: %s\n", layer->getName().c_str());
+		PAIRS_L prev = layer->prev;
+		PAIRS_L next = layer->next;
+		printf("  prev: \n");
+		for (int p=0; p < prev.size(); p++) {
+			Layer* pl = prev[p].first;
+			Connection* pc = prev[p].second;
+			conn_type = (pc->getTemporal()) ? "temporal" : "spatial";
+			printf("    %s, %s\n", pl->getName().c_str(), conn_type.c_str());
+		}
+		printf("  next: \n");
+		for (int n=0; n < next.size(); n++) {
+			Layer* nl = next[n].first;
+			Connection* nc = next[n].second;
+			conn_type = (nc->getTemporal()) ? "temporal" : "spatial";
+			printf("    %s, %s\n", nl->getName().c_str(), conn_type.c_str());
 		}
 	}
 }

@@ -221,18 +221,18 @@ void testModel1()
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input   = new InputLayer(2, "input_layer");
-	Layer* dense   = new DenseLayer(5, "dense");
-	Layer* dense1  = new DenseLayer(3, "dense");
-	Layer* dense1a = new DenseLayer(4, "dense");
-	Layer* dense2  = new DenseLayer(6, "dense");
+	Layer* dense0  = new DenseLayer(5, "dense0");
+	Layer* dense1  = new DenseLayer(3, "dense1");
+	Layer* dense2  = new DenseLayer(4, "dense2");
+	Layer* dense3  = new DenseLayer(6, "dense3");
 
-	m->add(input, dense);
-	m->add(dense, dense1);
-	m->add(dense1, dense1a);
-	m->add(dense1a, dense2);
+	m->add(input, dense0);
+	m->add(dense0, dense1);
 	m->add(dense1, dense2);
+	m->add(dense2, dense3);
 
 	m->checkIntegrity();
+	m->printSummary();
 }
 //----------------------------------------------------------------------
 // TEST MODELS for structure
@@ -252,6 +252,17 @@ void testModel2()
 	Layer* dense3  = new DenseLayer(4, "dense");
 	Layer* dense4  = new DenseLayer(6, "dense");
 
+	/*  S: Spatial, T: Temporal
+
+	          S
+	   input ---> dense1
+         \          | T
+          \         | 
+           \        v    S           S
+	        ---> dense2 ---> dense3 ---> dense4
+	*/
+
+	m->add(0, input);
 	m->add(input, dense1);
 	m->add(input, dense2);
 	m->add(dense2, dense3);
@@ -259,6 +270,7 @@ void testModel2()
 	m->add(dense3, dense4);
 
 	m->checkIntegrity();
+	m->printSummary();
 }
 //----------------------------------------------------------------------
 void testFuncModel()
@@ -331,7 +343,7 @@ int main()
 	//testModel();
 	//testFuncModel();
 	testModel1();
-	testModel2();
+	//testModel2();
 	//testPredict();
 	//testObjective();
 }
