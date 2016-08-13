@@ -67,9 +67,10 @@ public:
   void setName(std::string name) { this->name = name; }
   LAYERS getLayers() const { return layers; };
   std::string getName() const { return name; }
-  void Model::checkIntegrity(); // change connections from spatial to temporal if necessary
+  void checkIntegrity(); // change connections from spatial to temporal if necessary
                                 // A signal propagating along spatial connections should never
 								// encounter a node already reached
+  void checkIntegrity(LAYERS& layer_list);
 
   // Still need to decided the data structures and use of this
   GRADIENTS getGradient() const;

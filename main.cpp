@@ -241,6 +241,9 @@ void testFuncModel()
 	m->add(dense1a, dense2);
 	m->add(dense1, dense2);
 
+	m->checkIntegrity();
+	exit(0);
+
 	int batch_size = m->getBatchSize();
 	VF2D_F xf(batch_size);
 	VF2D_F yf(batch_size); 

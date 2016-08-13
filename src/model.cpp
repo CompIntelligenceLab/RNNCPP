@@ -145,14 +145,58 @@ void Model::print(std::string msg /* "" */)
 //----------------------------------------------------------------------
 void Model::checkIntegrity()
 {
+	LAYERS layer_list;  // should be a linked list
+	LAYERS layers = getLayers();
+	assert(layers.size() > 1);  // need at least an input layer connected to an output layer
+	printf("layers size: %d\n", layers.size());
+	layer_list.push_back(layers[0]); // input layer
+
+	// input layer. Eventually, we might have multiple layers in the network. How to handle that?
+	// A model can only have a single input layer (at this time). How to generalize? Not clear how to input data then. 
+	// Probably need a list of input layers in a vector. In that case, it is not clear that layers[0] would be the input layer. 
+	Layer* initial_layer = layers[0];
+	checkIntegrity(layer_list);
+}
+
+//------------------------------------------------------------
+void Model::checkIntegrity(LAYERS& layer_list)
+{
 /*
    starting with first layer, connect to layer->next layers. Set their clocks to 1. 
    For each of these next layers l, connect to l->next layers. Set their clocks to 2. 
    - if the clock of l->next layers is not zero, change connection to temporal. Continue
    until no more connections to process. 
-   - one should also set the connectiion's clock if used. 
+   - one should also set the connection's clock if used. 
    - need routines: model.resetLayers(), model.resetConnections() // set clock=0 for connections and layers
 */
+	// input layer. Eventually, we might have multiple layers in the network. How to handle that?
+
+	//for (int i=0; i < layer_list.size(); i++) {
+	while (true) {
+		Layer* cur_layer = layer_list[0]; 
+		//cur_layer->incr_Clock(); // Do not increment input layers. 
+	                           	   // This will allow the input layer to also act as an output layer
+
+		int sz = cur_layer->next.size();
+		for (int l=0; l < sz; l++) {
+			Layer* nlayer = cur_layer->next[l].first;
+			Connection* nconnection = cur_layer->next[l].second;
+			if (nlayer->getClock() > 0) {
+				nconnection->setTemporal(true);
+			}
+			nlayer->incrClock();
+			nconnection->incrClock();
+
+			// Dangerous: increasing layer size, and yet looping over layer size
+			layer_list.push_back(nlayer);  // layers left to process
+		}
+		printf("before erase: size: %d\n", layer_list.size());
+		layer_list.erase(layer_list.begin());
+		printf("after erase: size: %d\n", layer_list.size());
+		if (layer_list.size() == 0) {
+			return;
+		}
+	}
 }
 //----------------------------------------------------------------------
 VF2D_F Model::predictNew(VF2D_F x)

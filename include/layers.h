@@ -117,6 +117,8 @@ public:
 	VF2D_F getOutputs() { return outputs; }
 	void setName(std::string name) { this->name = name; } // normally not used
 	std::string getName() { return name; }
+	int getClock() { return clock; }
+	void incrClock() { clock += 1; }
 };
 
 //----------------------------------------------------------------------

@@ -42,6 +42,8 @@ public:
 	void setTemporal(bool temporal) { this->temporal = temporal;}
 	bool getTemporal() {return temporal;}
     virtual void initialize(std::string initialization_type="uniform");  // not sure of data structure
+	int getClock() { return clock; }
+	void incrClock() { clock += 1; }
 
 	Connection(Connection&& w); // C++11
 
