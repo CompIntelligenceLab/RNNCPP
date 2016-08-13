@@ -5,7 +5,7 @@
 #include <math.h>
 #include <string>
 #include "typedefs.h"
-#include "weights.h"
+#include "connection.h"
 #include "gradient.h"
 #include "activations.h"
 

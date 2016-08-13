@@ -3,7 +3,7 @@
 #include <math.h>
 #include "activations.h"
 #include "optimizer.h"
-#include "weights.h"
+#include "connection.h"
 #include "layers.h"
 
 int main() 
@@ -18,9 +18,9 @@ int main()
 	opt2.print("\n--> print opt2\n");
 
 	printf("=================================\n");
-	Weights* weight = new Weights(1,1,"wghtGE");
-	Weights w1(*weight);
-	Weights w2 = *weight;
+	Connection* weight = new Connection(1,1,"wghtGE");
+	Connection w1(*weight);
+	Connection w2 = *weight;
 
 	weight->print("\n --> print wght\n");
 	w1.print("\n --> print w1\n");

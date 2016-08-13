@@ -1,10 +1,9 @@
 #include "connection.h"
 #include <stdio.h>
-//#include <armadillo_bits/arma_rng.hpp>
 
-int Weights::counter = 0;
+int Connection::counter = 0;
 
-Weights::Weights(int in, int out, std::string name /* "weights" */)
+Connection::Connection(int in, int out, std::string name /* "weights" */)
 {
 	in_dim = in;
 	out_dim = out;
@@ -22,27 +21,27 @@ Weights::Weights(int in, int out, std::string name /* "weights" */)
 	}
 	sprintf(cname, "%s%d", name.c_str(), counter);
 	this->name = cname;
-	printf("Weights constructor, in= %d, out=%d (%s)\n", in, out, this->name.c_str());
+	printf("Connection constructor, in= %d, out=%d (%s)\n", in, out, this->name.c_str());
 	counter++;
 }
 
-Weights::~Weights()
+Connection::~Connection()
 {
-	printf("Weights destructor (%s)\n", name.c_str());
+	printf("Connection destructor (%s)\n", name.c_str());
 }
 
-Weights::Weights(const Weights& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbose(w.print_verbose),
+Connection::Connection(const Connection& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbose(w.print_verbose),
      temporal(w.temporal)
 {
 	name = w.name + "c";
 	weights = WEIGHTS(in_dim, out_dim);
 	weights_f = w.weights_f; 
-	printf("Weights::copy_constructor (%s)\n", name.c_str());
+	printf("Connection::copy_constructor (%s)\n", name.c_str());
 }
 
-Weights::Weights(Weights&& w) = default;
+Connection::Connection(Connection&& w) = default;
 
-const Weights& Weights::operator=(const Weights& w)
+const Connection& Connection::operator=(const Connection& w)
 {
 	if (this != &w) {
 		name = w.name + "=";
@@ -54,13 +53,13 @@ const Weights& Weights::operator=(const Weights& w)
 		//printf("weights: %d\n", weights.size());
 		weights   = w.weights; 
 		weights_f = w.weights_f; 
-		printf("Weights::operator= (%s)\n", name.c_str());
+		printf("Connection::operator= (%s)\n", name.c_str());
 	}
 
 	return *this;
 }
 
-void Weights::print(std::string msg /* "" */)
+void Connection::print(std::string msg /* "" */)
 {
 	printf("weights: %s\n", name.c_str());
 	printf("in: %d, out: %d\n", in_dim, out_dim);
@@ -70,9 +69,9 @@ void Weights::print(std::string msg /* "" */)
 	if (print_verbose == false) return;
 }
 
-Weights Weights::operator+(const Weights& w) 
+Connection Connection::operator+(const Connection& w) 
 {
-	Weights tmp(*this);  // Ideally, this should initialize all components, including weights_f
+	Connection tmp(*this);  // Ideally, this should initialize all components, including weights_f
 	printf("after tmp declaration and definition\n");
 
 	printf("weights.size= %d, %d", weights.n_rows, weights.n_cols);
@@ -87,9 +86,9 @@ Weights Weights::operator+(const Weights& w)
 	return tmp;
 };
 
-Weights Weights::operator*(const Weights& w) 
+Connection Connection::operator*(const Connection& w) 
 {
-	Weights tmp(*this);  // Ideally, this should initialize all components, including weights_f
+	Connection tmp(*this);  // Ideally, this should initialize all components, including weights_f
 	printf("after tmp declaration and definition\n");
 
 	tmp.weights = tmp.weights * w.weights;
@@ -101,7 +100,7 @@ Weights Weights::operator*(const Weights& w)
 	return tmp;
 };
 
-VF2D_F Weights::operator*(const VF2D_F& x)
+VF2D_F Connection::operator*(const VF2D_F& x)
 {
     // w * x  ==> w(layer[k], layer[k-1]) * x[batch](dim, seq)
 	int nb_batch = x.n_rows;
@@ -117,9 +116,9 @@ VF2D_F Weights::operator*(const VF2D_F& x)
 	return tmp;
 }
 
-void Weights::initialize(std::string initialize_type /*"uniform"*/ )
+void Connection::initialize(std::string initialize_type /*"uniform"*/ )
 {
-	printf("--  Weights::initialize size: %d, %d\n", weights.n_rows, weights.n_cols);
+	printf("--  Connection::initialize size: %d, %d\n", weights.n_rows, weights.n_cols);
 
 	if (initialize_type == "gaussian") {
 	} else if (initialize_type == "uniform") {
@@ -133,7 +132,7 @@ void Weights::initialize(std::string initialize_type /*"uniform"*/ )
 		//printf("weights: %f\n", weights[0,0]);
 		//printf("weights size: %d\n", weights.size());
 		//printf("rows, col= %d, %d\n", weights.n_rows, weights.n_cols);
-		//weights.print("initializeWeights");
+		//weights.print("initializeConnection");
 	} else if (initialize_type == "orthogonal") {
 	} else {
 		printf("initialize_type: %s not implemented\n", initialize_type.c_str());

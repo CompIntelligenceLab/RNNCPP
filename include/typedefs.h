@@ -19,7 +19,8 @@
 #endif
 
 class Layer;
-class Weights;
+//class Weights;
+class Connection;
 
   // The user is not suppose to use eigen or armadillo. Therefore to input data
   // they will need some other mechanism. Eventually we should write functions
@@ -29,8 +30,8 @@ class Weights;
   typedef std::vector< std::vector<float> > MATRIX;
 
 #ifdef ARMADILLO
-	typedef std::vector<Weights*> WEIGHT_L;
-	typedef std::vector<std::pair<Layer*, Weights*> > PAIRS_L; 
+	typedef std::vector<Connection*> WEIGHT_L;
+	typedef std::vector<std::pair<Layer*, Connection*> > PAIRS_L; 
 	typedef arma::Col<float> AF;
 	typedef arma::Col<float> VF;
 	typedef arma::Col<float> VF1D;

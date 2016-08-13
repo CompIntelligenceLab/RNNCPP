@@ -5,7 +5,7 @@
 #include <string>
 #include "typedefs.h"
 #include "gradient.h"
-#include "weights.h"
+#include "connection.h"
 #include "layers.h"
 #include "optimizer.h"
 #include "objective.h"

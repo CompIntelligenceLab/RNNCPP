@@ -1,8 +1,7 @@
-//#include <armadillo>
 #include <assert.h>
 #include "model.h"
 #include "objective.h"
-#include "weights.h"
+#include "connection.h"
 #include "typedefs.h"
 #include <stdio.h>
 
@@ -145,13 +144,14 @@ void Model::add(Layer* layer_from, Layer* layer)
 
 	// Create weights
 	//weights = WEIGHTS(out, in);
-	Weights* weights = new Weights(out_dim, in_dim);
+	//Weights* weights = new Weights(out_dim, in_dim);
+	Connection* weights = new Connection(out_dim, in_dim);
 	weights->initialize();
 	weights_l.push_back(weights);
 
 	// update prev and next lists in Layers class
-	layer->prev.push_back(std::pair<Layer*,Weights*>(layer_from, weights));
-	layer_from->next.push_back(std::pair<Layer*,Weights*>(layer, weights));
+	layer->prev.push_back(std::pair<Layer*,Connection*>(layer_from, weights));
+	layer_from->next.push_back(std::pair<Layer*,Connection*>(layer, weights));
 }
 //----------------------------------------------------------------------
 void Model::print(std::string msg /* "" */)
@@ -176,6 +176,7 @@ void Model::print(std::string msg /* "" */)
 	}
 }
 //----------------------------------------------------------------------
+#if 0
 VF2D_F Model::predict(VF2D_F x)
 {
   	VF2D_F prod(x); //copy constructor, .n_rows);
@@ -195,6 +196,7 @@ VF2D_F Model::predict(VF2D_F x)
 	}
 	return prod;
 }
+#endif
 //----------------------------------------------------------------------
 VF2D_F Model::predictNew(VF2D_F x)
 {
@@ -207,12 +209,14 @@ VF2D_F Model::predictNew(VF2D_F x)
 		Layer& layer = *cur_layer->next[l].first;
 		//prod = 
 		printf("layer name: %s\n", layer.getName().c_str());
-		Weights* w = layer.next[l].second;
+		Connection* w = layer.next[l].second;
 	}
 	exit(0);
 	
 	for (int l=1; l < layers.size(); l++) {
-  		const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
+  		//const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
+  		Connection* wghtc= layers[l]->prev[0].second; //getWeights(); // between layer (l) and layer (l-1)
+		const WEIGHTS& wght = wghtc->getWeights();
 
 		// loop over batches
   		for (int b=0; b < x.n_rows; b++) { 
@@ -238,7 +242,7 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 		assert(x.n_rows == batch_size && y.n_rows == batch_size);
 	}
 
-	VF2D_F pred = predict(x);
+	VF2D_F pred = predictNew(x);
 	VF1D_F loss = objective->computeError(y, pred);
 	printf("loss.n_rows= ", loss.n_rows);
 	loss.print("loss");

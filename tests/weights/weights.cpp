@@ -4,13 +4,13 @@
 #include <math.h>
 #include "activations.h"
 #include "optimizer.h"
-#include "weights.h"
+#include "connection.h"
 #include "layers.h"
 
 int main() 
 {
-	Weights w1(5,6);
-	Weights w2(5,6);
+	Connection w1(5,6);
+	Connection w2(5,6);
 
 	for (int i=0; i < 5; i++) {
 	for (int j=0; j < 6; j++) {
@@ -20,7 +20,7 @@ int main()
 	}}
 
 	// assume single batch
-	Weights w3(w1);; // + w2; (works fine)
+	Connection w3(w1);; // + w2; (works fine)
 	for (int i=0; i < 2; i++) {
 	for (int j=0; j < 3; j++) {
 		printf("w1,w3(w1)= %f, %f\n", w1(i,j), w3(i,j));
@@ -36,7 +36,7 @@ int main()
 		printf("w1,w2= %f, %f, w3=w1+w2= %f\n", w1(i,j), w2(i,j), w3(i,j));
 	}}
 
-	Weights w10(6,5);
+	Connection w10(6,5);
 	for (int j=0; j < 5; j++) {
 	for (int i=0; i < 6; i++) {
 		w10(i,j) = i+j;
@@ -54,7 +54,7 @@ int main()
 	}}
 
 	//==============================
-	// Multiplication of w * x  (Weights * VF2D_F)
+	// Multiplication of w * x  (Connection * VF2D_F)
 
 	VF2D_F x(3);
 	//VF2D_F y(3);
@@ -71,7 +71,7 @@ int main()
 	}
 
 	//-----------------
-	Weights w11(3,2);  // layer[k], layer[k-1]
+	Connection w11(3,2);  // layer[k], layer[k-1]
 
 	printf("x dims: b: %d, (%d, %d)\n", x.n_rows, x[0].n_rows, x[0].n_cols);
 	printf("w11 rows/cols: %d, %d\n", w11.getNRows(), w11.getNCols());
