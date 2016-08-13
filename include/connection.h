@@ -28,6 +28,7 @@ protected:
 	static int counter;
 	std::string name;
 	WEIGHT weight;
+	WEIGHT delta;
 	int in_dim, out_dim;
 	bool print_verbose;
 	bool temporal; // false: spatial link, true: temporal link
@@ -51,6 +52,12 @@ public:
     virtual void initialize(std::string initialization_type="uniform");  // not sure of data structure
 	int getClock() { return clock; }
 	void incrClock() { clock += 1; }
+	void backProp() {;} // for future use
+	void weightUpdate(float learning_rate) {  // simplest algorithm
+	     for (int b=0; b < delta.n_rows;  b++) {
+		 	weight = weight - learning_rate * delta;
+		}
+	}
 
 	Connection(Connection&& w); // C++11
 
@@ -68,3 +75,6 @@ public:
 typedef std::vector<Connection> ConnectionList;
 
 #endif
+
+/*
+*/

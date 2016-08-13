@@ -28,6 +28,7 @@ protected:
 	int input_dim; // size of previous layer
 	VF2D_F inputs;  // inputs to activation function
 	VF2D_F outputs; // outputs from activation function
+	DELTA delta; // outputs from activation function
 	//WEIGHTS weights; // between this layer and the previous one. Breaks down 
 	                // if layers form graphs (recurrent or not)
 					// in the first layer, weights is not initialized. 

@@ -217,7 +217,7 @@ void Model::printSummary()
 
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i];
-		printf("layer: %s\n", layer->getName().c_str());
+		printf("layer: %s, size: %d\n", layer->getName().c_str(), layer->getLayerSize());
 		PAIRS_L prev = layer->prev;
 		PAIRS_L next = layer->next;
 		printf("  prev: \n");
@@ -281,6 +281,7 @@ VF2D_F Model::predictNew(VF2D_F x)
 			printf("   nlayer layer_size: %d\n", nlayer->getLayerSize());
 			wght.print("    wght");
 			prod[0].print("    prod[0]");
+
 			for (int b=0; b < x.n_rows; b++) {
 				prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
 				                           //left and right of "=" have different dimensions
