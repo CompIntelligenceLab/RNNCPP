@@ -182,7 +182,6 @@ void Model::checkIntegrity(LAYERS& layer_list)
 
 	while (true) {
 		Layer* cur_layer = layer_list[0]; 
-		printf("\nCurrent layer: %s\n", cur_layer->getName().c_str());
 		//cur_layer->incr_Clock(); // Do not increment input layers. 
 	                           	   // This will allow the input layer to also act as an output layer
 
@@ -191,14 +190,10 @@ void Model::checkIntegrity(LAYERS& layer_list)
 			Layer* nlayer = cur_layer->next[l].first;
 			Connection* nconnection = cur_layer->next[l].second;
 
-			printf("cur_layer: %s, next: %s\n", cur_layer->getName().c_str(), nlayer->getName().c_str());
-
 			if (nlayer->getClock() > 0) {
 				nconnection->setTemporal(true);
-				printf("set temporal on connection %s --> %s\n", cur_layer->getName().c_str(), nlayer->getName().c_str());
 			}
 
-			printf("increment clock of layer %s\n", nlayer->getName().c_str());
 			nlayer->incrClock();
 			nconnection->incrClock();
 
@@ -206,9 +201,7 @@ void Model::checkIntegrity(LAYERS& layer_list)
 				layer_list.push_back(nlayer);  // layers left to process
 			}
 		}
-		//printf("before erase: size: %d\n", layer_list.size());
 		layer_list.erase(layer_list.begin());
-		//printf("after erase: size: %d\n", layer_list.size());
 		if (layer_list.size() == 0) {
 			return;
 		}
@@ -244,6 +237,9 @@ void Model::printSummary()
 //----------------------------------------------------------------------
 VF2D_F Model::predictNew(VF2D_F x)
 {
+	// The network is assumed to have a single input. 
+	// Only propagate through the spatial networks
+
   	VF2D_F prod(x); //copy constructor, .n_rows);
 
 	Layer* cur_layer = layers[0];

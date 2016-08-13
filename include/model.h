@@ -73,7 +73,6 @@ public:
   void checkIntegrity(); // change connections from spatial to temporal if necessary
                                 // A signal propagating along spatial connections should never
 								// encounter a node already reached
-  void checkIntegrity(LAYERS& layer_list);
 
   // Still need to decided the data structures and use of this
   GRADIENTS getGradient() const;
@@ -94,6 +93,9 @@ public:
   // Also allow fixed initialization in [-.8, .8] from a uniform distribution */
   // "gaussian", "uniform", "orthogonal"
   void initializeWeights(std::string initialization_type="uniform");
+
+private:
+  void checkIntegrity(LAYERS& layer_list);
 };
 
 #endif
