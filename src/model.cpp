@@ -99,37 +99,6 @@ const Model& Model::operator=(const Model& m)
 	return *this;
 }
 //----------------------------------------------------------------------
-/**
-void Model::add(Layer* layer)
-{
-	// check for layer size compatibility
-	printf("add layer ***** layers size: %d\n", layers.size());
-
-	if (layers.size() == 0) {
-		// 0th layer is an InputLayer
-		;
-	} else {
-		int nb_layers = layers.size();
-		//printf("nb_layers= %d\n", nb_layers);
-		if (layers[nb_layers-1]->getLayerSize() != layer->getInputDim()) {
-			layer->setInputDim(layers[nb_layers-1]->getLayerSize());
-			printf("layer[%d], layer_size= %d\n", nb_layers-1, layers[nb_layers-1]->getLayerSize());
-			printf("new layer input size: %d\n", layer->getInputDim());
-			//printf("Incompatible layer_size between layers %d and %d\n", nb_layers-1, nb_layers);
-			//exit(0);
-		}
-	}
-
-	int in_dim  = layer->getInputDim();
-	int out_dim = layer->getOutputDim();
-	printf("Model::add, layer dim: in_dim: %d, out_dim: %d\n", in_dim, out_dim);
-	layer->createWeights(in_dim, out_dim);
-  	layers.push_back(layer);
-	printf("last layer in layers input size: %d\n", layers[layers.size()-1]->getInputDim());
-}
-**/
-
-//------------------------------------------------------
 void Model::add(Layer* layer_from, Layer* layer)
 {
 	printf("add(layer_from, layer)\n");
@@ -143,15 +112,13 @@ void Model::add(Layer* layer_from, Layer* layer)
 	printf("Model::add, layer dim: in_dim: %d, out_dim: %d\n", in_dim, out_dim);
 
 	// Create weights
-	//weights = WEIGHTS(out, in);
-	//Weights* weights = new Weights(out_dim, in_dim);
-	Connection* weights = new Connection(out_dim, in_dim);
-	weights->initialize();
-	weights_l.push_back(weights);
+	Connection* connection = new Connection(out_dim, in_dim);
+	connection->initialize();
+	connections.push_back(connection);
 
 	// update prev and next lists in Layers class
-	layer->prev.push_back(std::pair<Layer*,Connection*>(layer_from, weights));
-	layer_from->next.push_back(std::pair<Layer*,Connection*>(layer, weights));
+	layer->prev.push_back(std::pair<Layer*,Connection*>(layer_from, connection));
+	layer_from->next.push_back(std::pair<Layer*,Connection*>(layer, connection));
 }
 //----------------------------------------------------------------------
 void Model::print(std::string msg /* "" */)
@@ -216,7 +183,7 @@ VF2D_F Model::predictNew(VF2D_F x)
 	for (int l=1; l < layers.size(); l++) {
   		//const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
   		Connection* wghtc= layers[l]->prev[0].second; //getWeights(); // between layer (l) and layer (l-1)
-		const WEIGHTS& wght = wghtc->getWeights();
+		const WEIGHT& wght = wghtc->getWeight();
 
 		// loop over batches
   		for (int b=0; b < x.n_rows; b++) { 

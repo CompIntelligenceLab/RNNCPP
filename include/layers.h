@@ -28,7 +28,7 @@ protected:
 	int input_dim; // size of previous layer
 	VF2D_F inputs;  // inputs to activation function
 	VF2D_F outputs; // outputs from activation function
-	WEIGHTS weights; // between this layer and the previous one. Breaks down 
+	//WEIGHTS weights; // between this layer and the previous one. Breaks down 
 	                // if layers form graphs (recurrent or not)
 					// in the first layer, weights is not initialized. 
 	//Weights* weights;  // original code. Nathan wants to simplify
@@ -96,7 +96,7 @@ public:
    /** get layer weights */
    //virtual void createWeights(int in, int out);  // not sure of data structure (Just simple matrix for now)
    //virtual void initializeWeights(std::string initialization_type="uniform");  // not sure of data structure
-   WEIGHTS getWeights() const {return weights;}  // not sure of data structure (Just simple matrix for now)
+   //WEIGHTS getWeights() const {return weights;}  // not sure of data structure (Just simple matrix for now)
 
    // gradient of loss function with respect to weights
    void computeGradient();

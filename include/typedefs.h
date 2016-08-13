@@ -30,7 +30,7 @@ class Connection;
   typedef std::vector< std::vector<float> > MATRIX;
 
 #ifdef ARMADILLO
-	typedef std::vector<Connection*> WEIGHT_L;
+	typedef std::vector<Connection*> CONNECTIONS;
 	typedef std::vector<std::pair<Layer*, Connection*> > PAIRS_L; 
 	typedef arma::Col<float> AF;
 	typedef arma::Col<float> VF;
@@ -41,8 +41,7 @@ class Connection;
 	typedef arma::Cube<float> VF3D;
 	typedef arma::Row<int> VI; // not possible to allocate a row of size 3;
 	//typedef arma::Mat<int> VI;
-	typedef arma::Mat<float> WEIGHTS;  // (layer(j-1), layer(j))
-	typedef arma::field<arma::Mat<float> > WEIGHTS_F;  // weight field
+	typedef arma::Mat<float> WEIGHT;  // (layer(j-1), layer(j))
     typedef arma::Mat<float> GRADIENTS; // Remove this if we use the Gradients class
 	// Do not forget () around arguments in macro definition
 	#define APPROX_EQUAL(x,y)  arma::approx_equal((x),(y),"absdiff",.001);

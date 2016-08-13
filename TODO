@@ -31,3 +31,4 @@ Aug 12, 2016
 	 x = f - eps f' xdot
 ----------------------------------------------------------------------
 Aug. 12, 2016
+- For now, we'll assume no shared weights. One weight matrix per connection. Different connections, different weight matrices. 
