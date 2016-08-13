@@ -143,27 +143,17 @@ void Model::print(std::string msg /* "" */)
 	}
 }
 //----------------------------------------------------------------------
-#if 0
-VF2D_F Model::predict(VF2D_F x)
+void Model::checkIntegrity()
 {
-  	VF2D_F prod(x); //copy constructor, .n_rows);
-
-	for (int l=1; l < layers.size(); l++) {
-  		const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
-
-		// loop over batches
-  		for (int b=0; b < x.n_rows; b++) { 
-  			prod(b) = wght * prod(b); // prod(b) has different dimensions before and after the multiplication
-		}
-		layers[l]->setInputs(prod);
-
-		// apply activation function
-		prod = layers[l]->getActivation()(prod);
-		layers[l]->setOutputs(prod);
-	}
-	return prod;
+/*
+   starting with first layer, connect to layer->next layers. Set their clocks to 1. 
+   For each of these next layers l, connect to l->next layers. Set their clocks to 2. 
+   - if the clock of l->next layers is not zero, change connection to temporal. Continue
+   until no more connections to process. 
+   - one should also set the connectiion's clock if used. 
+   - need routines: model.resetLayers(), model.resetConnections() // set clock=0 for connections and layers
+*/
 }
-#endif
 //----------------------------------------------------------------------
 VF2D_F Model::predictNew(VF2D_F x)
 {
@@ -215,25 +205,6 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 	loss.print("loss");
 }
 //----------------------------------------------------------------------
-#if 0
-void Model::initializeWeights(std::string initialization_type /* "uniform" */)
-{
-	int in_dim, out_dim;
-	printf("inside initialize\n");
-	printf("layers size= %d\n", layers.size());
-
-	// NOTE: the loop starts from 1. Layer 0 (input layer) has no weights. 
-	// This issue will disappear once weights act as connectors between layers. 
-	for (int i=1; i < layers.size(); i++) {
-		Layer* layer = layers[i];
-		in_dim = layer->getInputDim(); //(i == 0) ? input_dim : layers[i-1]->getOutputDim();
-		out_dim = layer->getLayerSize();
-		printf("-- Model::initializeWeights, layer %d, in_dim, out_dim= %d, %d\n", i, in_dim, out_dim);
-		layer->createWeights(in_dim, out_dim);
-		layer->initializeWeights(initialization_type);
-	}
-}
-#endif
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
