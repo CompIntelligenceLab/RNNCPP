@@ -26,7 +26,7 @@ protected:
 	std::string name;
 	int layer_size; // number of nodes in layer
 	int input_dim; // size of previous layer
-	VF2D_F inputs;  // inputs to activation function
+	VF2D_F inputs;  // inputs to activation function (batch_sz, seq_len)
 	VF2D_F outputs; // outputs from activation function
 	DELTA delta; // outputs from activation function
 	//WEIGHTS weights; // between this layer and the previous one. Breaks down 
@@ -105,7 +105,7 @@ public:
    GRADIENTS getGradient() const {return gradients;}
 
 	int getNbBatch() { return nb_batch; }
-   	void setNbBatch(int nb_batch) { this->nb_batch = nb_batch; }
+   	void setNbBatch(int nb_batch) { this->nb_batch = nb_batch; initVars(nb_batch);  }
 	//int getInputDim() const {return input_dim;}  // in reality, the layer size
   	//void setInputDim(int input_dim) {this->input_dim = input_dim;}
   	void setSeqLen(int seq_len) { this->seq_len = seq_len;}
@@ -125,6 +125,9 @@ public:
 	std::string getName() { return name; }
 	int getClock() { return clock; }
 	void incrClock() { clock += 1; }
+
+private:
+	virtual void initVars(int nb_batch);
 };
 
 //----------------------------------------------------------------------

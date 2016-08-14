@@ -399,7 +399,6 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 		    nlayer->printSummary("current");
 
 			layer_list.push_back(nlayer);
-			//prod.print("prod");
 
 			if (nconnection->getTemporal()) {  // only consider spatial links (for now)
 				printf("skip connection: %s\n", nconnection->getName().c_str());
@@ -407,7 +406,6 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 			}
 
 			prod = cur_layer->getInputs();
-			//prod.print("prod: cur_layer->getInputs()");
 			VF2D_F new_prod(prod.n_rows);
 
 			U::print(prod, "prod");
@@ -416,7 +414,6 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 				print(wght, "wght");
 				new_prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
 				                           //left and right of "=" have different dimensions
-
 			}
 			print(new_prod, ".... new_prod= wght * prod");
 			
@@ -424,7 +421,6 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 				VF2D_F l = layers[i]->getInputs();
 				print(l, i, "layers[%d]->getInputs()");
 			}
-			exit(0);
 
 			//prod.print("new_prod: cur_layer->getInputs()");
 			print(prod, "prod");
@@ -432,10 +428,9 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 			print(nlayer->getInputs(), "nlayer inputs xx");
 			VF2D_F xx = nlayer->getInputs();
 			print(new_prod, "new_prod");
-			exit(0);
+			//exit(0);
 			print(xx, "xx");
 			nlayer->incrInputs(new_prod);
-	exit(0);
 		}
 		layer_list.erase(layer_list.begin());
 	}
@@ -446,6 +441,7 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 		prod = layers[l]->getActivation()(prod);
 		layers[l]->setOutputs(prod);
 	}
+	exit(0);
 	
 	return prod;
 }

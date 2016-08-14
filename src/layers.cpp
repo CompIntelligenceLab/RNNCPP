@@ -26,11 +26,22 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	seq_len     =  1; 
 	print_verbose   = true;
 	clock = 0;
-	inputs = VF2D_F(layer_size);
-	outputs = VF2D_F(layer_size);
+
+	initVars(nb_batch);
 
 	// Default activation: tanh
 	activation = new Tanh("tanh");
+}
+
+void Layer::initVars(int nb_batch)
+{
+	inputs.set_size(nb_batch);
+	outputs.set_size(nb_batch);
+
+	for (int i=0; i < nb_batch; i++) {
+		inputs[i]  = VF2D(layer_size, 1);
+		outputs[i] = VF2D(layer_size, 1);
+	}
 }
 
 Layer::~Layer()
