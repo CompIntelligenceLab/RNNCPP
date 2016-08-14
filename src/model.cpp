@@ -249,8 +249,6 @@ VF2D_F Model::predict(VF2D_F x)
 {
 	// The network is assumed to have a single input. 
 	// Only propagate through the spatial networks
-	//printf("   nlayer layer_size: %d\n", getLayers()[0]->getLayerSize());
-	//exit(0);
 
   	VF2D_F prod(x); //copy constructor, .n_rows);
 
@@ -347,13 +345,11 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 {
 	// The network is assumed to have a single input. 
 	// Only propagate through the spatial networks
-	//printf("   nlayer layer_size: %d\n", getLayers()[0]->getLayerSize());
-	//exit(0);
 
+	printf("===================================\n");
 	char buf[80];
 
   	VF2D_F prod(x); //copy constructor, .n_rows);
-#if 0
 
  	LAYERS layer_list;  
 	LAYERS layers = getLayers();   // zeroth element is the input layer
@@ -411,7 +407,7 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 			}
 
 			prod = cur_layer->getInputs();
-			prod.print("prod: cur_layer->getInputs()");
+			//prod.print("prod: cur_layer->getInputs()");
 			VF2D_F new_prod(prod.n_rows);
 
 			U::print(prod, "prod");
@@ -421,29 +417,25 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 				new_prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
 				                           //left and right of "=" have different dimensions
 
-	print(new_prod[0], "new_prod[0]");
-	//printf("new_prod[0](%d,%d)\n", new_prod[0].n_rows, new_prod[0].n_cols);
-
-	for (int i=0; i < layers.size(); i++) { // >>>>>>>>>>>>>>
-		VF2D_F l = layers[i]->getInputs();
-		//printf("layer.inputs size (%d, %d)\n", l.n_rows, l.n_cols);
-		print(l, i, "layers[%d]->getInputs()");
-	}
 			}
+			print(new_prod, ".... new_prod= wght * prod");
+			
+			for (int i=0; i < layers.size(); i++) { // >>>>>>>>>>>>>>
+				VF2D_F l = layers[i]->getInputs();
+				print(l, i, "layers[%d]->getInputs()");
+			}
+			exit(0);
 
 			//prod.print("new_prod: cur_layer->getInputs()");
 			print(prod, "prod");
 			nlayer->printSummary("before incrInputs, ");
-			nlayer->getInputs().print("nlayer inputs");
+			print(nlayer->getInputs(), "nlayer inputs xx");
 			VF2D_F xx = nlayer->getInputs();
-			xx(0) = new_prod(0);
-			print(xx(0), "xx(0)");
-			//printf("xx.size= %d\n", xx.n_rows);
-			//printf("xx.n_rows= %d, size= %d\n", xx.n_rows, xx.size());
-			//printf("xx(0) : (%d, %d)\n", xx(0).n_rows, xx(1).n_cols);
-			print(new_prod(0), "new_prod(0)");
-	exit(0);
+			print(new_prod, "new_prod");
+			exit(0);
+			print(xx, "xx");
 			nlayer->incrInputs(new_prod);
+	exit(0);
 		}
 		layer_list.erase(layer_list.begin());
 	}
@@ -455,7 +447,6 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 		layers[l]->setOutputs(prod);
 	}
 	
-#endif
 	return prod;
 }
 //----------------------------------------------------------------------
