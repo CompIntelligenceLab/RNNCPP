@@ -15,17 +15,18 @@
 class Input
 {
 private:
+	static int counter;
 	std::string name;
 	bool print_verbose;
 
 public:
-  	Input();
+  	Input(std::string name="input");
   	~Input();
   	Input(const Input&); 
   	const Input& operator=(const Input&); 
   	void print(std::string msg=std::string());
 
-  	VF1D read1D(std::string filename);
+  	//VF1D read1D(std::string filename);
 	VF2D loadFromCSV(const std::string& filename);
 	VF2D load1DSine(int nb_pts, int period, int nb_pts_per_period);
 };

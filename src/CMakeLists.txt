@@ -12,6 +12,7 @@ set(SOURCE
 	objective.cpp
 	input.cpp
 	input_layer.cpp
+	print_utils.cpp
 	model.cpp)
 
 add_library(core ${SOURCE})

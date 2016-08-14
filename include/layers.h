@@ -69,7 +69,6 @@ protected:
 	//    Object* next;
 	//    Object* prev;
 
-
     GRADIENTS gradients;
 	Activation* activation;
 	bool print_verbose;
@@ -118,6 +117,10 @@ public:
 	VF2D_F getInputs() { return inputs; }
 	void setOutputs(VF2D_F& outputs) { this->outputs = outputs; }
 	VF2D_F getOutputs() { return outputs; }
+	void incrOutputs(VF2D_F& x);
+	void incrInputs(VF2D_F& x);
+	// reset inputs and ouputs to zero
+	void reset();
 	void setName(std::string name) { this->name = name; } // normally not used
 	std::string getName() { return name; }
 	int getClock() { return clock; }

@@ -2,7 +2,7 @@
 #include <math.h>
 #include <string>
 #include <assert.h>
-//#include <iostream>
+#include <iostream>
 //#include <fstream>
 #include "model.h"
 #include "activations.h"
@@ -13,8 +13,10 @@
 #include "lstm_layer.h"
 #include "gmm_layer.h"
 #include "input_layer.h"
+#include "print_utils.h"
 
 using namespace arma;
+using namespace std;
 
 //----------------------------------------------------------------------
 void testCube()
@@ -23,25 +25,27 @@ void testCube()
 	VF3D cub2(size(cub1));
 	VF3D cub3(cub1);
 	cub3.randu();
+
+	U::print(cub3, "cub3");
+	cub3.print("cube");
+
+	#if 0
 	for (int i=0; i < cub3.n_rows; i++) {
 	for (int j=0; j < cub3.n_cols; j++) {
 	for (int k=0; k < cub3.n_slices; k++) {
 		printf("cub3(%d,%d,%d)= %f\n", i,j,k, cub3(i,j,k));
 	}}}
+	#endif
+
 	printf("*** cub3(59)= %f\n", cub3(59));
 	for (int i=0; i < cub3.size(); i++) {
 		printf("cub3(%d)= %f\n", i, cub3(i));
 	}
-	VF2D cub5 = cub3.slice(2);
-	printf("cub5.size()= %d\n", cub5.size());
 
-	printf("cub2: %d\n", cub2.n_rows);
-	printf("cub2: %d\n", cub2.n_cols);
-	printf("cube2 size: %d\n", cub2.size());
-	printf("cub3: %d\n", cub3.n_rows);
-	printf("cub3: %d\n", cub3.n_cols);
-	printf("cub32 size: %d\n", cub3.size());
-	//printf("cub3 size: %d\n", arma::size(cub3)); // only works in C++11
+	VF2D cub5 = cub3.slice(2);
+	printf("cub5.size()= %d\n", (int) cub5.size());
+
+	U::print(cub2,"cub2");
 
 	VF3D cub20(3,4,5);
 	cub20.randu();
@@ -346,12 +350,18 @@ void testFuncModel2()
 	        ---> dense2 ---> dense3 ---> dense4
 	*/
 
-	m->add(0, input);
+	m->add(0, input); // changs input_dim to zero. Why? 
+
 	m->add(input, dense1);
 	m->add(input, dense2);
 	m->add(dense2, dense3);
 	m->add(dense1, dense2);
 	m->add(dense3, dense4);
+
+	input_dim = input->getInputDim();
+	printf("input_dim= %d\n", input_dim);
+
+
 
 	m->checkIntegrity();
 	m->printSummary();
@@ -360,8 +370,10 @@ void testFuncModel2()
 	VF2D_F xf(batch_size);
 	VF2D_F yf(batch_size); 
 
+	printf("batch_size= %d\n", batch_size);
 	input_dim = input->getInputDim();
-	printf("input_dim= %d\n", input_dim); exit(0);
+	printf("input_dim= %d\n", input_dim);
+	printf("xf.size= %llu", xf.n_rows);
 
 	for (int i=0; i < xf.size(); i++) {
 		xf[i].randu(input_dim, 1);
@@ -370,9 +382,12 @@ void testFuncModel2()
 
 	printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
 	printf("   input layer_size: %d\n", input->getLayerSize());
+
+	xf.print("xf");
 	
-	VF2D_F pred = m->predict(xf);
+	VF2D_F pred = m->predictComplex(xf);
 	pred.print("funcModel, predict:");
+	exit(0);
 }
 //----------------------------------------------------------------------
 void testObjective()
@@ -393,7 +408,7 @@ void testObjective()
 //----------------------------------------------------------------------
 int main() 
 {
-	//testCube();
+	testCube();
 	//testModel();
 	//testFuncModel1();
 	testFuncModel2();

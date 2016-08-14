@@ -1,9 +1,13 @@
 #include <assert.h>
+#include <stdio.h>
+#include <iostream>
+#include "typedefs.h"
 #include "model.h"
 #include "objective.h"
 #include "connection.h"
-#include "typedefs.h"
-#include <stdio.h>
+#include "print_utils.h"
+
+using namespace std;
 
 Model::Model(std::string name /* "model" */) 
 {
@@ -105,7 +109,7 @@ void Model::add(Layer* layer_from, Layer* layer)
 	if (layer_from) {
 		layer->setInputDim(layer_from->getLayerSize());
 	} else {
-		layer->setInputDim(this->input_dim);
+		layer->setInputDim(layer->getInputDim());
 	}
 
   	layers.push_back(layer);
@@ -155,7 +159,7 @@ void Model::checkIntegrity()
 	LAYERS layer_list;  // should be a linked list
 	LAYERS layers = getLayers();
 	assert(layers.size() > 1);  // need at least an input layer connected to an output layer
-	printf("layers size: %d\n", layers.size());
+	printf("layers size: %ld\n", layers.size());
 
 	// input layer. Eventually, we might have multiple layers in the network. How to handle that?
 	// A model can only have a single input layer (at this time). How to generalize? Not clear how to input data then. 
@@ -256,7 +260,6 @@ VF2D_F Model::predict(VF2D_F x)
 
     Layer* input_layer = layers[0];
     layer_list.push_back(input_layer);
-	exit(0);
 
 	// going throught the above initializatino might not be necessary. However, if the topology or types of connections
 	// change during training, then layer_list might change between training elements. So keep for generality. The cost 
@@ -300,8 +303,159 @@ VF2D_F Model::predict(VF2D_F x)
 		}
 		layer_list.erase(layer_list.begin());
 	}
-	exit(0);
 	
+	return prod;
+}
+//----------------------------------------------------------------------
+void Model::print(VF2D_F x, std::string msg /*""*/)
+{
+	cout << msg << ",  field size: " << x.n_rows << ", shape: " << x[0].n_rows << ", " << x[0].n_cols << endl;
+} 
+//----------------------------------------------------------------------
+void Model::print(VF2D_F x, int val1, std::string msg)
+{
+	char buf[80];
+	sprintf(buf, msg.c_str(), val1);
+	cout << buf << ", field size: " << x.n_rows << ", shape: (" << x[0].n_rows << ", " << x[0].n_cols << ")" << endl;
+}
+//----------------------------------------------------------------------
+void Model::print(VF2D x, std::string msg /*""*/)
+{
+	cout << msg << ", shape: " << x.n_rows << ", " << x.n_cols << endl;
+} 
+//----------------------------------------------------------------------
+void Model::print(VF2D x, int val1, std::string msg)
+{
+	char buf[80];
+	sprintf(buf, msg.c_str(), val1);
+	cout << buf << ", shape: (" << x.n_rows << ", " << x.n_cols << ")" << endl;
+}
+//----------------------------------------------------------------------
+void Model::print(VF1D x, std::string msg /*""*/)
+{
+	cout << msg << ", shape: " << x.n_rows << endl;
+} 
+//----------------------------------------------------------------------
+void Model::print(VF1D x, int val1, std::string msg)
+{
+	char buf[80];
+	sprintf(buf, msg.c_str(), val1);
+	cout << buf << ", shape: (" << x.n_rows << endl;
+}
+//----------------------------------------------------------------------
+VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with predict
+{
+	// The network is assumed to have a single input. 
+	// Only propagate through the spatial networks
+	//printf("   nlayer layer_size: %d\n", getLayers()[0]->getLayerSize());
+	//exit(0);
+
+	char buf[80];
+
+  	VF2D_F prod(x); //copy constructor, .n_rows);
+#if 0
+
+ 	LAYERS layer_list;  
+	LAYERS layers = getLayers();   // zeroth element is the input layer
+    assert(layers.size() > 1);  // need at least an input layer connected to an output layer
+
+	for (int i=0; i < layers.size(); i++) {
+		layers[i]->reset(); // reset inputs and outputs to zero
+	}
+
+    Layer* input_layer = layers[0];
+	input_layer->setInputs(x);
+    layer_list.push_back(input_layer);
+
+	// going throught the above initializatino might not be necessary. However, if the topology or types of connections
+	// change during training, then layer_list might change between training elements. So keep for generality. The cost 
+	// is minimal compared to the cost of matrix-vector multiplication. 
+
+	Layer* cur_layer = layers[0];
+	cur_layer->setInputs(prod);
+
+	printf("-------------\n");
+	for (int i=0; i < layers.size(); i++) {
+		VF2D_F l = layers[i]->getInputs();
+		//sprintf(buf, "layers[%d].inputs: ", i);
+		print(l, i, "layers[%d].inputs: ");
+	}
+	printf("-------------\n");
+
+	while (true) {
+		Layer* cur_layer = layer_list[0]; 
+		cur_layer->reset();
+		int sz = cur_layer->next.size();
+		if (sz == 0) {
+			break;
+		}
+
+		// scan the layers downstream and connect to cur_layer
+		printf("----------------\n");
+		cur_layer->printSummary("current");
+
+		for (int l=0; l < sz; l++) {
+			Layer* nlayer = cur_layer->next[l].first;
+			Connection* nconnection = cur_layer->next[l].second;
+			WEIGHT& wght = nconnection->getWeight();
+
+		    nconnection->printSummary("current");
+		    nlayer->printSummary("current");
+
+			layer_list.push_back(nlayer);
+			//prod.print("prod");
+
+			if (nconnection->getTemporal()) {  // only consider spatial links (for now)
+				printf("skip connection: %s\n", nconnection->getName().c_str());
+				continue; 
+			}
+
+			prod = cur_layer->getInputs();
+			prod.print("prod: cur_layer->getInputs()");
+			VF2D_F new_prod(prod.n_rows);
+
+			U::print(prod, "prod");
+
+			for (int b=0; b < x.n_rows; b++) {
+				print(wght, "wght");
+				new_prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
+				                           //left and right of "=" have different dimensions
+
+	print(new_prod[0], "new_prod[0]");
+	//printf("new_prod[0](%d,%d)\n", new_prod[0].n_rows, new_prod[0].n_cols);
+
+	for (int i=0; i < layers.size(); i++) { // >>>>>>>>>>>>>>
+		VF2D_F l = layers[i]->getInputs();
+		//printf("layer.inputs size (%d, %d)\n", l.n_rows, l.n_cols);
+		print(l, i, "layers[%d]->getInputs()");
+	}
+			}
+
+			//prod.print("new_prod: cur_layer->getInputs()");
+			print(prod, "prod");
+			nlayer->printSummary("before incrInputs, ");
+			nlayer->getInputs().print("nlayer inputs");
+			VF2D_F xx = nlayer->getInputs();
+			xx(0) = new_prod(0);
+			print(xx(0), "xx(0)");
+			//printf("xx.size= %d\n", xx.n_rows);
+			//printf("xx.n_rows= %d, size= %d\n", xx.n_rows, xx.size());
+			//printf("xx(0) : (%d, %d)\n", xx(0).n_rows, xx(1).n_cols);
+			print(new_prod(0), "new_prod(0)");
+	exit(0);
+			nlayer->incrInputs(new_prod);
+		}
+		layer_list.erase(layer_list.begin());
+	}
+
+	for (int l=0; l < layers.size(); l++) {
+		prod = layers[l]->getInputs();
+		// apply activation function
+		prod = layers[l]->getActivation()(prod);
+		layers[l]->setOutputs(prod);
+	}
+	
+#endif
 	return prod;
 }
 //----------------------------------------------------------------------
@@ -318,22 +472,6 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 
 	VF2D_F pred = predict(x);
 	VF1D_F loss = objective->computeError(y, pred);
-	printf("loss.n_rows= ", loss.n_rows);
 	loss.print("loss");
 }
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
 //----------------------------------------------------------------------

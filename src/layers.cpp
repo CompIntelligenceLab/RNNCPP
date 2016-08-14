@@ -22,10 +22,12 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	this->layer_size = layer_size;
 	//output_dim   = layer_size;  // no such member
 	input_dim   = -1; // no assignment yet. 
-	nb_batch    = 1; 
-	seq_len     = 1; 
+	nb_batch    =  1; 
+	seq_len     =  1; 
 	print_verbose   = true;
 	clock = 0;
+	inputs = VF2D_F(layer_size);
+	outputs = VF2D_F(layer_size);
 
 	// Default activation: tanh
 	activation = new Tanh("tanh");
@@ -95,8 +97,8 @@ void Layer::print(std::string msg /* "" */)
     if (msg != "") printf("%s\n", msg.c_str());
 	printf("layer size: %d\n", layer_size);
 	printf("input_dim: %d\n", input_dim);
-	printf("inputs size: %d\n", inputs.size());
-	printf("outputs size: %d\n", outputs.size());
+	printf("inputs size: %llu\n", inputs.size());
+	printf("outputs size: %llu\n", outputs.size());
 	printf("print_verbose: %d\n", print_verbose);
 
 	if (print_verbose == false) return;
@@ -118,3 +120,24 @@ void Layer::execute()
 	outputs = (*activation)(inputs);
 }
 
+void Layer::reset()
+{
+	for (int b=0; b < inputs.size(); b++) {
+		inputs(b).zeros();
+		outputs(b).zeros();
+	}
+}
+
+void Layer::incrOutputs(VF2D_F& x)
+{
+	for (int b=0; b < x.n_rows; b++) {
+		outputs[b] += x[b];
+	}
+}
+
+void Layer::incrInputs(VF2D_F& x)
+{
+	for (int b=0; b < x.n_rows; b++) {
+		inputs[b] += x[b];
+	}
+}

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include "print_utils.h"
 #include "activations.h"
 
 int main() {
@@ -14,7 +15,8 @@ int main() {
 
 	VF2D_F tt(1);
 	tt = (*ttanh)(c);   // ==> operator= not accepting a field as input
-	printf("tt.n_rows= , %d\n", tt.n_rows);
+	U::print(tt, "tt"); 
+
 	for (int i=0; i < tt[0].size(); i++) {
 		printf("%f, %f\n", tt[0][i], tanh(c[0][i]));
 	}

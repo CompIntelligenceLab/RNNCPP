@@ -1,5 +1,8 @@
-#include "connection.h"
 #include <stdio.h>
+#include "connection.h"
+#include "print_utils.h"
+
+using namespace std;
 
 int Connection::counter = 0;
 
@@ -72,7 +75,9 @@ void Connection::print(std::string msg /* "" */)
 void Connection::printSummary(std::string msg) 
 {
 	std::string type = (temporal) ? "temporal" : "spatial";
-	printf("%sConnection (%s), weight(%d, %d), %s\n", msg.c_str(), name.c_str(), weight.n_rows, weight.n_cols, type.c_str());
+	cout << msg << ", Connection (" << name << ", weight(" << weight.n_rows << ", " << weight.n_cols 
+	     << "), " << type << endl;
+	//printf("%sConnection (%s), weight(%d, %d), %s\n", msg.c_str(), name.c_str(), weight.n_rows, weight.n_cols, type.c_str());
 }
 
 //----------------------------------------------------------------------
@@ -82,8 +87,9 @@ Connection Connection::operator+(const Connection& w)
 	Connection tmp(*this);  // Ideally, this should initialize all components
 	printf("after tmp declaration and definition\n");
 
-	printf("weight.size= %d, %d", weight.n_rows, weight.n_cols);
-	printf("weight.size= %d", weight.size()); // n_rows * n_cols
+	U::print(weight, "weight");
+	//printf("weight.size= %d, %d", weight.n_rows, weight.n_cols);
+	//printf("weight.size= %d", weight.size()); // n_rows * n_cols
 
 	tmp.weight += w.weight;
 
@@ -118,7 +124,7 @@ VF2D_F Connection::operator*(const VF2D_F& x)
 
 void Connection::initialize(std::string initialize_type /*"uniform"*/ )
 {
-	printf("--  Connection::initialize size: %d, %d\n", weight.n_rows, weight.n_cols);
+	U::print(weight, "--  Connection::initialize, weight");
 	clock = 0;
 
 	if (initialize_type == "gaussian") {

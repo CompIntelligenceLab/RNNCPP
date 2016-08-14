@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "print_utils.h"
 #include "activations.h"
 #include "optimizer.h"
 #include "connection.h"
@@ -73,8 +74,10 @@ int main()
 	//-----------------
 	Connection w11(3,2);  // layer[k], layer[k-1]
 
-	printf("x dims: b: %d, (%d, %d)\n", x.n_rows, x[0].n_rows, x[0].n_cols);
-	printf("w11 rows/cols: %d, %d\n", w11.getNRows(), w11.getNCols());
+	U::print(x, "tests_weights, x");
+	w11.printSummary("w11"); 
+	//printf("x dims: b: %d, (%d, %d)\n", x.n_rows, x[0].n_rows, x[0].n_cols);
+	//printf("w11 rows/cols: %d, %d\n", w11.getNRows(), w11.getNCols());
 
 	for (int i=0; i < 3; i++) {
 	for (int j=0; j < 2; j++) {
@@ -99,11 +102,11 @@ int main()
 		}
 	}
 
-	printf("y batch: %d,  dims: %d, %d\n", y.n_rows, y[0].n_rows, y[0].n_cols);
+	U::print(y, "tests_weights, y");
+	//printf("y batch: %d,  dims: %d, %d\n", y.n_rows, y[0].n_rows, y[0].n_cols);
 
 	printf("y = w11 * x\n");
-	printf("y.size() = %d\n", y.size()); // should be (3, ...)
-	printf("print y dim: %d, %d\n", y[0].n_rows, y[0].n_cols);
+	U::print(y, "tests_weights, y");
 
 	for (int i=0; i < 3; i++) {
 		for (int p=0; p < 3; p++) {

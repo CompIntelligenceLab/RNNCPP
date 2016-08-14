@@ -41,9 +41,9 @@ class Connection;
 	typedef arma::Cube<float> VF3D;
 	typedef arma::Row<int> VI; // not possible to allocate a row of size 3;
 	//typedef arma::Mat<int> VI;
-	typedef arma::Mat<float> WEIGHT;  // (layer(j-1), layer(j))
-	typedef arma::Col<float> DELTA;  // (layer(j-1), layer(j))
-    typedef arma::Mat<float> GRADIENTS; // Remove this if we use the Gradients class
+	//typedef arma::Mat<float> WEIGHT;  // (layer(j-1), layer(j))
+	//typedef arma::Col<float> DELTA;  // (layer(j-1), layer(j))
+    //typedef arma::Mat<float> GRADIENTS; // Remove this if we use the Gradients class
 	// Do not forget () around arguments in macro definition
 	#define APPROX_EQUAL(x,y)  arma::approx_equal((x),(y),"absdiff",.001);
 #else
@@ -52,6 +52,11 @@ class Connection;
 	typedef Eigen::Vector3i  VI3;
 	typedef Eigen::MatrixXf WEIGHTS;
 #endif
+
+#define WEIGHT  	VF2D
+#define DELTA   	VF1D
+#define GRADIENTS   VF2D
+
 
 // assumes sequential model (for now)
 
