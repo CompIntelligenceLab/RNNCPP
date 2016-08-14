@@ -5,13 +5,12 @@
 #include "typedefs.h"
 #include <stdio.h>
 
-Model::Model(int input_dim, std::string name /* "model" */) 
+Model::Model(std::string name /* "model" */) 
 {
 	this->name = name;
 	learning_rate = 1.e-5;
 	return_sequences = false;
 	print_verbose = true;
-	this->input_dim = input_dim;
 	printf("Model constructor (%s)\n", this->name.c_str());
 	optimizer = new RMSProp();
 	objective = new MeanSquareError();
@@ -46,7 +45,7 @@ Model::~Model()
 }
 //----------------------------------------------------------------------
 Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_rate), 
-    return_sequences(m.return_sequences), input_dim(m.input_dim), batch_size(m.batch_size),
+    return_sequences(m.return_sequences), batch_size(m.batch_size),
 	seq_len(m.seq_len), print_verbose(m.print_verbose), initialization_type(m.initialization_type),
 	nb_epochs(m.nb_epochs)
 
@@ -71,7 +70,6 @@ const Model& Model::operator=(const Model& m)
 		stateful = m.stateful;
 		learning_rate = m.learning_rate;
 		return_sequences = m.return_sequences;
-		input_dim = m.input_dim;
 		batch_size = m.batch_size;
         nb_epochs = m.nb_epochs;
 		seq_len = m.seq_len;
@@ -117,7 +115,7 @@ void Model::add(Layer* layer_from, Layer* layer)
 	printf("Model::add, layer dim: in_dim: %d, out_dim: %d\n", in_dim, out_dim);
 
 	// Create weights
-	Connection* connection = new Connection(out_dim, in_dim);
+	Connection* connection = new Connection(in_dim, out_dim);
 	connection->initialize();
 	connections.push_back(connection);
 	connection->from = layer_from;
@@ -240,7 +238,7 @@ void Model::printSummary()
 	printf("=============================================================\n");
 }
 //----------------------------------------------------------------------
-VF2D_F Model::predictNew(VF2D_F x)
+VF2D_F Model::predict(VF2D_F x)
 {
 	// The network is assumed to have a single input. 
 	// Only propagate through the spatial networks
@@ -255,21 +253,20 @@ VF2D_F Model::predictNew(VF2D_F x)
 
     Layer* input_layer = layers[0];
     layer_list.push_back(input_layer);
-	printf("   input layer_size: %d\n", layer_list[0]->getLayerSize());
 
 	// going throught the above initializatino might not be necessary. However, if the topology or types of connections
 	// change during training, then layer_list might change between training elements. So keep for generality. The cost 
 	// is minimal compared to the cost of matrix-vector multiplication. 
 
 	Layer* cur_layer = layers[0];
-	printf("***** predictNew *****\n");
 
 	while (true) {
 		Layer* cur_layer = layer_list[0]; 
-	    cur_layer->printSummary("Input: ");
 		int sz = cur_layer->next.size();
+		if (sz == 0) {
+			break;
+		}
 		for (int l=0; l < sz; l++) {
-			printf("   layer: next %d/%d\n", l, sz);
 			Layer* nlayer = cur_layer->next[l].first;
 			Connection* nconnection = cur_layer->next[l].second;
 			WEIGHT& wght = nconnection->getWeight();
@@ -280,19 +277,10 @@ VF2D_F Model::predictNew(VF2D_F x)
 				continue; 
 			}
 
-			printf("-- calculate w*x: \n");
-			nconnection->printSummary("   ");
-			nlayer->printSummary("   ");
-			wght.print("    wght");
-			prod[0].print("    prod[0]");
-
 			for (int b=0; b < x.n_rows; b++) {
 				prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
 				                           //left and right of "=" have different dimensions
 			}
-
-			printf("result of multplication:\n");
-			prod(0).print("prod(result)");
 
 			nlayer->setInputs(prod);
 
@@ -302,7 +290,6 @@ VF2D_F Model::predictNew(VF2D_F x)
 			nlayer->setOutputs(prod);
 
 		}
-		printf("erase layer %s\n", layer_list[0]->getName().c_str());
 		layer_list.erase(layer_list.begin());
 	}
 	exit(0);
@@ -321,7 +308,7 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 		assert(x.n_rows == batch_size && y.n_rows == batch_size);
 	}
 
-	VF2D_F pred = predictNew(x);
+	VF2D_F pred = predict(x);
 	VF1D_F loss = objective->computeError(y, pred);
 	printf("loss.n_rows= ", loss.n_rows);
 	loss.print("loss");

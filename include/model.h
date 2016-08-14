@@ -37,7 +37,7 @@ private:
 	CONNECTIONS connections; // (l)ist of weights
 
 public:
-  Model(int input_dim, std::string name="model");
+  Model(std::string name="model");
   ~Model();
   Model(const Model&); // probably do not need it, but it is a good exercise. 
   const Model& operator=(const Model&); 
@@ -85,7 +85,6 @@ public:
   //  x: signal input: (batch_size, seq_length, dimension)
   //  For non-recursive networks, x has size (batch_size, 1, dimension)
   VF2D_F predict(VF2D_F x); 
-  VF2D_F predictNew(VF2D_F x); 
   void train(VF2D_F x, VF2D_F y, int batch_size=0, int nb_epochs=1);
   void compile();
 

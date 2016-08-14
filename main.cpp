@@ -214,7 +214,7 @@ void testModel1()
 {
 	printf("\n --- testModel1 ---\n");
 	int input_dim = 1;
-	Model* m  = new Model(input_dim); // argument is input_dim of model
+	Model* m  = new Model(); // argument is input_dim of model
 	assert(m->getBatchSize() == 1);
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
@@ -239,14 +239,14 @@ void testModel1()
 void testModel2()
 {
 	printf("\n --- testModel2 ---\n");
-	int input_dim = 1;
-	Model* m  = new Model(input_dim); // argument is input_dim of model
+	Model* m  = new Model(); // argument is input_dim of model
 	assert(m->getBatchSize() == 1);
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
-	Layer* input   = new InputLayer(2, "input_layer");
+	int input_dim = 2;
+	Layer* input   = new InputLayer(input_dim, "input_layer");
 	Layer* dense1  = new DenseLayer(5, "dense");
 	Layer* dense2  = new DenseLayer(3, "dense");
 	Layer* dense3  = new DenseLayer(4, "dense");
@@ -276,14 +276,17 @@ void testModel2()
 void testFuncModel1()
 {
 	printf("\n --- testFuncModel1 ---\n");
-	int input_dim = 1;
-	Model* m  = new Model(input_dim); // argument is input_dim of model
+
+	// In reality, the model should not have an input_dim. 
+	Model* m  = new Model(); 
 	assert(m->getBatchSize() == 1);
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
-	Layer* input   = new InputLayer(2, "input_layer");
+	// Must make sure that input_dim of input layer is the same as model->input_dim
+	int input_dim = 2;
+	Layer* input   = new InputLayer(input_dim, "input_layer");  
 	Layer* dense0  = new DenseLayer(5, "dense0");
 	Layer* dense1  = new DenseLayer(3, "dense1");
 	Layer* dense2  = new DenseLayer(4, "dense2");
@@ -303,7 +306,7 @@ void testFuncModel1()
 	VF2D_F xf(batch_size);
 	VF2D_F yf(batch_size); 
 
-	input_dim = m->getInputDim();
+	input_dim = input->getLayerSize();
 
 	for (int i=0; i < xf.size(); i++) {
 		xf[i].randu(input_dim, 1);
@@ -313,21 +316,21 @@ void testFuncModel1()
 	printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
 	printf("   input layer_size: %d\n", input->getLayerSize());
 	
-	VF2D_F pred = m->predictNew(xf);
+	VF2D_F pred = m->predict(xf);
 	pred.print("funcModel, predict:");
 }
 //----------------------------------------------------------------------
 void testFuncModel2()
 {
 	printf("\n --- testModel2 ---\n");
-	int input_dim = 1;
-	Model* m  = new Model(input_dim); // argument is input_dim of model
+	Model* m  = new Model(); 
 	assert(m->getBatchSize() == 1);
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
-	Layer* input   = new InputLayer(2, "input_layer");
+	int input_dim = 1;
+	Layer* input   = new InputLayer(input_dim, "input_layer");
 	Layer* dense1  = new DenseLayer(5, "dense");
 	Layer* dense2  = new DenseLayer(3, "dense");
 	Layer* dense3  = new DenseLayer(4, "dense");
@@ -357,7 +360,7 @@ void testFuncModel2()
 	VF2D_F xf(batch_size);
 	VF2D_F yf(batch_size); 
 
-	input_dim = m->getInputDim();
+	input_dim = input->getInputDim();
 
 	for (int i=0; i < xf.size(); i++) {
 		xf[i].randu(input_dim, 1);
@@ -367,7 +370,7 @@ void testFuncModel2()
 	printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
 	printf("   input layer_size: %d\n", input->getLayerSize());
 	
-	VF2D_F pred = m->predictNew(xf);
+	VF2D_F pred = m->predict(xf);
 	pred.print("funcModel, predict:");
 }
 //----------------------------------------------------------------------

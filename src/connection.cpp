@@ -7,7 +7,8 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 {
 	in_dim = in;
 	out_dim = out;
-	weight = WEIGHT(in_dim, out_dim);
+	weight = WEIGHT(out_dim, in_dim);
+	//printf("weight(%d, %d)\n", out_dim, in_dim);
 	print_verbose = true;
 	temporal = false; // all connections false for feedforward networks
 	clock = 0;
@@ -34,7 +35,7 @@ Connection::Connection(const Connection& w) : in_dim(w.in_dim), out_dim(w.out_di
      temporal(w.temporal), clock(w.clock), to(w.to), from(w.from)
 {
 	name = w.name + "c";
-	weight = WEIGHT(in_dim, out_dim);
+	weight = WEIGHT(out_dim, in_dim);
 	printf("Connection::copy_constructor (%s)\n", name.c_str());
 }
 
@@ -71,7 +72,7 @@ void Connection::print(std::string msg /* "" */)
 void Connection::printSummary(std::string msg) 
 {
 	std::string type = (temporal) ? "temporal" : "spatial";
-	printf("%sConnection (%s), weight(%d, %d), %s\n", msg.c_str(), name.c_str(), out_dim, in_dim, type.c_str());
+	printf("%sConnection (%s), weight(%d, %d), %s\n", msg.c_str(), name.c_str(), weight.n_rows, weight.n_cols, type.c_str());
 }
 
 //----------------------------------------------------------------------
