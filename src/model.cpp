@@ -213,6 +213,7 @@ void Model::printSummary()
 	printf("=============================================================\n");
 	printf("------ MODEL SUMMARY ------\n");
 	std::string conn_type;
+	char buf[80];
 
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i];
@@ -224,15 +225,17 @@ void Model::printSummary()
 			Layer* pl = prev[p].first;
 			Connection* pc = prev[p].second;
 			conn_type = (pc->getTemporal()) ? "temporal" : "spatial";
-			pl->printSummary("   - prev: ");
-			pc->printSummary("   - prev: ");
+			sprintf(buf, "   - prev[%d]: ", p);
+			pl->printSummary(std::string(buf));
+			pc->printSummary(std::string(buf));
 		}
 		for (int n=0; n < next.size(); n++) {
 			Layer* nl = next[n].first;
 			Connection* nc = next[n].second;
 			conn_type = (nc->getTemporal()) ? "temporal" : "spatial";
-			nl->printSummary("   - next: ");
-			nc->printSummary("   - next: ");
+			sprintf(buf, "   - next[%d]: ", n);
+			nl->printSummary(buf);
+			nc->printSummary(buf);
 		}
 	}
 	printf("=============================================================\n");
@@ -253,6 +256,7 @@ VF2D_F Model::predict(VF2D_F x)
 
     Layer* input_layer = layers[0];
     layer_list.push_back(input_layer);
+	exit(0);
 
 	// going throught the above initializatino might not be necessary. However, if the topology or types of connections
 	// change during training, then layer_list might change between training elements. So keep for generality. The cost 
@@ -266,10 +270,14 @@ VF2D_F Model::predict(VF2D_F x)
 		if (sz == 0) {
 			break;
 		}
+		printf("----------------\n");
+		cur_layer->printSummary("current");
 		for (int l=0; l < sz; l++) {
 			Layer* nlayer = cur_layer->next[l].first;
 			Connection* nconnection = cur_layer->next[l].second;
 			WEIGHT& wght = nconnection->getWeight();
+		    nconnection->printSummary("current");
+		    nlayer->printSummary("current");
 			layer_list.push_back(nlayer);
 
 			if (nconnection->getTemporal()) {  // only consider spatial links (for now)

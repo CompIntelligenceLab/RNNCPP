@@ -361,6 +361,7 @@ void testFuncModel2()
 	VF2D_F yf(batch_size); 
 
 	input_dim = input->getInputDim();
+	printf("input_dim= %d\n", input_dim); exit(0);
 
 	for (int i=0; i < xf.size(); i++) {
 		xf[i].randu(input_dim, 1);
@@ -394,8 +395,8 @@ int main()
 {
 	//testCube();
 	//testModel();
-	testFuncModel1();
-	//testFuncModel2();
+	//testFuncModel1();
+	testFuncModel2();
 	//testModel1();
 	//testModel2();
 	//testPredict();
