@@ -302,26 +302,54 @@ void testFuncModel1()
 	m->add(dense1, dense2);
 	m->add(dense2, dense3);
 
+	m->addInputLayer(input);
+	m->addOutputLayer(dense3);
+
 	m->checkIntegrity();
 	m->printSummary();
 	//----------
 
 	int batch_size = m->getBatchSize();
-	VF2D_F xf(batch_size);
-	VF2D_F yf(batch_size); 
 
 	input_dim = input->getLayerSize();
-
-	for (int i=0; i < xf.size(); i++) {
-		xf[i].randu(input_dim, 1);
-		yf[i].randu(input_dim, 1);
-	}
 
 	printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
 	printf("   input layer_size: %d\n", input->getLayerSize());
 	
-	VF2D_F pred = m->predict(xf);
-	pred.print("funcModel, predict:");
+
+	VF2D_F xf(batch_size);
+	VF2D_F yf(batch_size); 
+	VF2D_F exact(batch_size);
+
+	printf("batch_size= %d\n", batch_size);
+	input_dim = input->getInputDim();
+	printf("input_dim= %d\n", input_dim);
+	printf("xf.size= %llu", xf.n_rows);
+
+	int output_dim = m->getOutputLayers()[0]->getOutputDim();
+	int seq_len = 1;
+	printf("output_dim= %d\n", output_dim);
+
+	for (int i=0; i < xf.size(); i++) {
+		xf[i].randu(input_dim, seq_len); // uniform random numbers
+		yf[i].randu(input_dim, seq_len);
+		exact[i].randu(output_dim, seq_len);
+	}
+
+	printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
+	printf("   input layer_size: %d\n", input->getLayerSize());
+
+	xf.print("xf");
+	exact.print("exact");
+	
+	VF2D_F pred = m->predictComplex(xf);
+	pred.print("funcModel1, predict:");
+	U::print(pred, "pred");
+	U::print(exact, "exact");
+
+	//m->train(xf);
+	m->backPropagation(exact, pred);
+	exit(0);
 }
 //----------------------------------------------------------------------
 void testFuncModel2()
@@ -425,8 +453,8 @@ int main()
 {
 	testCube();
 	//testModel();
-	//testFuncModel1();
-	testFuncModel2();
+	testFuncModel1();
+	//testFuncModel2();
 	//testModel1();
 	//testModel2();
 	//testPredict();

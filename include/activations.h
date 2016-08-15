@@ -53,8 +53,9 @@ public:
 	{
 #ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
+		printf("gordon tanh\n");
 		for (int i=0; i < x.n_rows; i++) {
-			y[i] = 1.-x[i]*x[i];
+			y[i] = 1.-x[i]%x[i];
 		}
 		return y;
 #else
@@ -93,13 +94,14 @@ public:
 	{
 #ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
+		printf("gordon sigmoid\n");
 		for (int i=0; i < x.n_rows; i++) {
-			y[i] = x[i]*(1.-x[i]);
+			y[i] = x[i]%(1.-x[i]);
 		}
 		return y;
 #else
 		AF s = this->operator()(x);
-		return s*(1-s);
+		return s%(1-s);
 #endif
 	}
 };

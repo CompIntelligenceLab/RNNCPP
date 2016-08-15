@@ -1,3 +1,4 @@
+#include <typeinfo>
 #include <assert.h>
 #include <stdio.h>
 #include <iostream>
@@ -669,28 +670,33 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 	VF2D_F prev_grad_act;
 
 
-    while (layer->prev[0].first) {
+    while (layer->prev.size()) {
 		printf("--------------------------------------\n");
 		printf("**** enter while ****\n");
         Layer* prev_layer = layer->prev[0].first; // assume only one previous layer/connection pair
         Connection* prev_connection = layer->prev[0].second;
         prev_layer->getOutputs().print("\n\nPREVLAYER OUTPUTS");
-		delta = layer->getDelta();
+		delta = layer->getDelta(); // ==> dubious
 		out_t = prev_layer->getOutputs(); // (layer_size, seq_len)
 
 		for (int b=0; b < nb_batch; b++) {
+		    printf("--> b= %d\n", b);
 			U::print(delta[b], "delta[b]");
-			U::print(out_t[b], "out_t[b]");
+			U::print(out_t[b], "previous layer outputs, out_t[b]");
+			prev_layer->printSummary("prev_layer");
 			// does not work without cast!! WHY if t
-			U::print((VF2D) out_t[b].t(), "out_t[b].t()");
-			VF2D dd = delta[b];
-			VF2D tt = out_t[b].t();
-			//U::print(dd, "dd");
-			//U::print(tt, "tt");
-			//U::print(tt, "tt");
-        	delta_incr = dd * tt; 
+			U::print( out_t[b], "out_t[b].t()");
+			VF2D a = out_t[b].t();
+			VF2D dd = delta[b]; // 6x1
+			//VF2D tt = out_t[b].t();
+			U::print(dd, "dd");
+			U::print(out_t[b], "out_t");
+        	delta_incr = dd * out_t[b].t(); 
+			//exit(0);
         	//delta_incr = delta[b] * out_t[b].t(); // Update capital Delta ==> (  , seq_len)
 			//U::print(delta_incr, "delta_incr");
+			print(delta_incr, "delta_incr");
+			print(prev_connection->getWeight(), "wght");
         	prev_connection->incrDelta(delta_incr); 
 		}
 
