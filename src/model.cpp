@@ -618,7 +618,7 @@ void Model::backpropNathan(VF2D_F y, VF2D_F pred)
 //----------------------------------------------------------------------
 void Model::backPropagation(VF2D_F y, VF2D_F pred)
 {
-    std::vector<DELTA*> D; // All partial derivatives to be passed to optimizer
+    std::vector<WEIGHT*> D; // All partial derivatives to be passed to optimizer
     // This only works for simple feed forward with one physical layer per
     // conceptual layer
 
@@ -630,13 +630,19 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
         Layer* prevLayer = layer->prev[0].first; // assume only one previous layer/connection pair
         Connection* prevCon = layer->prev[0].second;
         prevLayer->getOutputs().print("\n\nPREVLAYER OUTPUTS");
-		VF out_t = prevLayer->outputs(0).t();
-        VF1D_F delta_incr = (layer.getDelta())*out_t.row(0)); // Update capital Delta
+		VF2D out_t = prevLayer->getOutputs()[0].t();
+		VF1D orow = out_t.row(0);
+        VF1D delta_incr = (layer->getDelta()[0]) * orow; // Update capital Delta
         prevCon->incrDelta(delta_incr); 
-        D.push_back(&(prevCon->getDelta()));
+        D.push_back(&prevCon->getDelta());  // SHOULD work. Does not. 
 		VF2D wght_t = prevCon->getWeight().t();
-        VF1D_F pdelta = (wght_t * layer.getDelta()) % prevLayer->getActivation()->derivative(prevLayer->inputs(0).col(0));
-        prevLayer->setDelta(pdelta); 
+		VF2D_F prev_inputs = prevLayer->getInputs(); // 
+		VF2D prev_act = prevLayer->getActivation().derivative(prev_inputs)(0);
+        VF1D pp = wght_t * layer->getDelta()[0];
+		VF1D qq = prev_act;
+		VF1D_F delta_f(1);
+		delta_f(0) = pp % qq;
+        prevLayer->setDelta(delta_f); 
         layer = prevLayer;
     }
 }

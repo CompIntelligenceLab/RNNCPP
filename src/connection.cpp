@@ -11,6 +11,7 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 	in_dim = in;
 	out_dim = out;
 	weight = WEIGHT(out_dim, in_dim);
+	delta = WEIGHT(out_dim, in_dim);
 	//printf("weight(%d, %d)\n", out_dim, in_dim);
 	print_verbose = true;
 	temporal = false; // all connections false for feedforward networks
