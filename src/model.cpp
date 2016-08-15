@@ -616,19 +616,8 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
     layer->setDelta(grad);  //DELTA: VF1D_F, but grad: VF2D_F (DELTA probably VF2D_F)
 
 	int nb_batch = grad.n_rows;
-
-	VF2D_F delta;
-	VF2D_F out_t;
-	VF2D orow;
 	VF2D delta_incr;
-
-	VF2D wght_t;
-	VF2D_F prev_inputs;
-	VF2D prev_act;
-    VF1D pp;
-	VF1D qq;
 	VF2D_F delta_f(nb_batch);
-	VF2D_F prev_grad_act;
 
     while (layer->prev.size()) {
         Layer* prev_layer = layer->prev[0].first; // assume only one previous layer/connection pair
@@ -644,13 +633,12 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 		// Not sure about the purpose of D
         //D.push_back(&prev_connection->getDelta()); 
 
-		wght_t = prev_connection->getWeight().t();
-		VF2D_F& prev_inputs = prev_layer->getInputs(); //  (layer_size, seq_len)
-		prev_grad_act = prev_layer->getActivation().derivative(prev_inputs); // (layer_size, seq_len)
+		const VF2D wght_t = prev_connection->getWeight().t();
+		const VF2D_F& prev_inputs = prev_layer->getInputs(); //  (layer_size, seq_len)
+		const VF2D_F& prev_grad_act = prev_layer->getActivation().derivative(prev_inputs); // (layer_size, seq_len)
 
 		for (int b=0; b < nb_batch; b++) {
-        	//pp = wght_t * layer->getDelta()[b];  // EXPENSIVE
-        	pp = wght_t * delta[b];  // EXPENSIVE
+        	const VF1D& pp = wght_t * delta[b];  // EXPENSIVE
 			delta_f(b) = pp % prev_grad_act[b];
 		}
 

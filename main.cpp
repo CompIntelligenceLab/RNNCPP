@@ -350,7 +350,7 @@ void testFuncModel1()
 	U::print(exact, "exact");
 
 	//m->train(xf);
-	for (int i=0; i < 1000; i++) {
+	for (int i=0; i < 1; i++) {
 		m->backPropagation(exact, pred);
 		printf("i= %d\n", i);
 	}
