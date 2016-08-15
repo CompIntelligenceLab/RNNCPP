@@ -64,6 +64,7 @@ public:
 	Connection operator*(const Connection&); // not needed, check dimensionality
 	VF2D_F operator*(const VF2D_F&);
 	float& operator()(const int i, const int j) { return weight(i,j); }
+	void incrDelta(WEIGHT& x);
 };
 
 

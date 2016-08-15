@@ -596,3 +596,48 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 	loss.print("loss");
 }
 //----------------------------------------------------------------------
+#if 0
+void Model::backpropNathan(VF2D_F y, VF2D_F pred)
+{
+    std::vector<WEIGHT*> D; // All partial derivatives to be passed to optimizer
+    // This only works for simple feed forward with one physical layer per
+    // conceptual layer
+    Layer* layer = layers[layers.size()-1]; // Start at the output layer
+    layer->delta = objective->computeError(y, pred)(0);
+    while(layer->prev != NULL) {
+        Layer* prevLayer = layer->prev.first;
+        Connection* prevCon = layer->prev.second;
+        prevLayer->outputs.print("\n\nPREVLAYER OUTPUTS");
+        prevCon->delta += (layer->delta)*(prevLayer->outputs(0).t().row(0)); // Update capital Delta
+        D.push_back(&(prevCon->delta));
+        prevLayer->delta = (prevCon->weight.t() * layer->delta) % prevLayer->activation->derivative(prevLayer->inputs(0).col(0));
+        layer = prevLayer;
+    }
+}
+#endif
+//----------------------------------------------------------------------
+void Model::backPropagation(VF2D_F y, VF2D_F pred)
+{
+    std::vector<DELTA*> D; // All partial derivatives to be passed to optimizer
+    // This only works for simple feed forward with one physical layer per
+    // conceptual layer
+
+    Layer* layer = getOutputLayers()[0];   // Assume one output layer
+    VF1D_F obj = objective->computeError(y, pred);
+    layer->setDelta(obj);
+
+    while (layer->prev[0].first) {
+        Layer* prevLayer = layer->prev[0].first; // assume only one previous layer/connection pair
+        Connection* prevCon = layer->prev[0].second;
+        prevLayer->getOutputs().print("\n\nPREVLAYER OUTPUTS");
+		VF out_t = prevLayer->outputs(0).t();
+        VF1D_F delta_incr = (layer.getDelta())*out_t.row(0)); // Update capital Delta
+        prevCon->incrDelta(delta_incr); 
+        D.push_back(&(prevCon->getDelta()));
+		VF2D wght_t = prevCon->getWeight().t();
+        VF1D_F pdelta = (wght_t * layer.getDelta()) % prevLayer->getActivation()->derivative(prevLayer->inputs(0).col(0));
+        prevLayer->setDelta(pdelta); 
+        layer = prevLayer;
+    }
+}
+//----------------------------------------------------------------------

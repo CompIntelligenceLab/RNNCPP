@@ -61,6 +61,8 @@ public:
   void add(Layer* layer_from, Layer* layer);
   void addInputLayer(Layer* layer);
   void addOutputLayer(Layer* layer);
+  LAYERS getOutputLayers() { return output_layers; }
+  LAYERS getInputLayers() { return input_layers; }
   void setOptimizer(Optimizer* opt) {optimizer = opt;}
   Optimizer* getOptimizer() const {return optimizer;}
   void setLoss(Objective* obj) {objective = obj;}
@@ -98,6 +100,7 @@ public:
   VF2D_F predictComplexMaybeWorks(VF2D_F x);  // for testing while Nathan works with predict
   VF2D_F predictComplex(VF2D_F x);  // for testing while Nathan works with predict
   void train(VF2D_F x, VF2D_F y, int batch_size=0, int nb_epochs=1);
+  void backPropagation(VF2D_F y, VF2D_F prep); // should be private
   void compile();
 
   /** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */

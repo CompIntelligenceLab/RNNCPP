@@ -156,3 +156,10 @@ void Layer::incrInputs(VF2D_F& x)
 		inputs[b] += x[b];
 	}
 }
+
+void Layer::incrDelta(VF2D_F& x)
+{
+	for (int b=0; b < x.n_rows; b++) {
+		delta[b] += x[b];
+	}
+}

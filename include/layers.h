@@ -120,12 +120,15 @@ public:
 	VF2D_F getOutputs() { return outputs; }
 	void incrOutputs(VF2D_F& x);
 	void incrInputs(VF2D_F& x);
+	void incrDelta(VF2D_F& x);
 	// reset inputs and ouputs to zero
 	void reset();
 	void setName(std::string name) { this->name = name; } // normally not used
 	std::string getName() { return name; }
 	int getClock() { return clock; }
 	void incrClock() { clock += 1; }
+	DELTA getDelta() { return delta; }
+	void setDelta(DELTA& delta) { this->delta = delta; }
 
 private:
 	virtual void initVars(int nb_batch);
