@@ -28,7 +28,7 @@ protected:
 	int input_dim; // size of previous layer
 	VF2D_F inputs;  // inputs to activation function (batch_sz, seq_len)
 	VF2D_F outputs; // outputs from activation function
-	DELTA delta; // outputs from activation function
+	DELTA delta; // partial derivative of objective w.r.t. outputs from activation function
 	//WEIGHTS weights; // between this layer and the previous one. Breaks down 
 	                // if layers form graphs (recurrent or not)
 					// in the first layer, weights is not initialized. 

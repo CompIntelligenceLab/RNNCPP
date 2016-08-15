@@ -26,6 +26,8 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	seq_len     =  1; 
 	print_verbose   = true;
 	clock = 0;
+    prev = NULL;
+    next = NULL;
 
 	initVars(nb_batch);
 

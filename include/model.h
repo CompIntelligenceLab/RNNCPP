@@ -93,6 +93,7 @@ public:
   VF2D_F predict(VF2D_F x);  // feedforward
   VF2D_F predictComplex(VF2D_F x);  // for testing while Nathan works with predict
   void train(VF2D_F x, VF2D_F y, int batch_size=0, int nb_epochs=1);
+  void backprop(VF2D_F y, VF2D_F prep);
   void compile();
 
   /** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */

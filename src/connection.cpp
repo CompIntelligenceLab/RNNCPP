@@ -11,6 +11,7 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 	in_dim = in;
 	out_dim = out;
 	weight = WEIGHT(out_dim, in_dim);
+    delta = WEIGHT(out_dim, in_dim, arma::fill::zeros);
 	//printf("weight(%d, %d)\n", out_dim, in_dim);
 	print_verbose = true;
 	temporal = false; // all connections false for feedforward networks
@@ -39,6 +40,7 @@ Connection::Connection(const Connection& w) : in_dim(w.in_dim), out_dim(w.out_di
 {
 	name = w.name + "c";
 	weight = WEIGHT(out_dim, in_dim);
+    delta = WEIGHT(out_dim, in_dim, arma::fill::zeros);
 	printf("Connection::copy_constructor (%s)\n", name.c_str());
 }
 
@@ -53,6 +55,7 @@ const Connection& Connection::operator=(const Connection& w)
 		print_verbose = w.print_verbose;
 		temporal = w.temporal;
 		weight   = w.weight; 
+        delta = w.delta;
 		clock = w.clock;
 		from = w.from; 
 		to = w.to;

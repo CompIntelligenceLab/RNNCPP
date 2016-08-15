@@ -462,3 +462,21 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 	loss.print("loss");
 }
 //----------------------------------------------------------------------
+void Model::backprop(VF2D_F y, VF2D_F pred) 
+{
+    std::vector<WEIGHT*> D; // All partial derivatives to be passed to optimizer
+    // This only works for simple feed forward with one physical layer per
+    // conceptual layer
+    Layer* layer = layers[layers.size()-1]; // Start at the output layer
+    layer->delta = objective->computeError(y, pred)(0);
+    while(layer->prev != NULL) {
+        Layer* prevLayer = layer->prev.first;
+        Connection* prevCon = layer->prev.second;
+        prevLayer->outputs.print("\n\nPREVLAYER OUTPUTS");
+        prevCon->delta += (layer->delta)*(prevLayer->outputs(0).t().row(0)); // Update capital Delta
+        D.push_back(&(prevCon->delta));
+        prevLayer->delta = (prevCon->weight.t() * layer->delta) % prevLayer->activation->derivative(prevLayer->inputs(0).col(0));
+        layer = prevLayer;
+    }
+}
+
