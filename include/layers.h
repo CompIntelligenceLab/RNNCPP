@@ -22,7 +22,7 @@ public:
 protected:
 	static int counter;
 	int clock; // initialized to zero. updates by one when signal arrives. If signal arrives when clock != 0,
-	           // change the connection to temporal from spatial. 
+	           // change the connection to temporal from spatial. Also used in predict(). 
 	std::string name;
 	int layer_size; // number of nodes in layer
 	int input_dim; // size of previous layer
@@ -82,7 +82,7 @@ public:
    const Layer& operator=(const Layer&);
    virtual void print(std::string msg="");
    virtual void printSummary(std::string msg="");
-   virtual void printName();
+   virtual void printName(std::string msg="");
 
    virtual int  getInputDim() const { return input_dim; }
    // input from previous layer

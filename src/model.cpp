@@ -341,6 +341,98 @@ void Model::print(VF1D x, int val1, std::string msg)
 	cout << buf << ", shape: (" << x.n_rows << endl;
 }
 //----------------------------------------------------------------------
+VF2D_F Model::predictComplexMaybeWorks(VF2D_F x)  // for testing while Nathan works with predict
+{
+	// The network is assumed to have a single input. 
+	// Only propagate through the spatial networks
+
+	char buf[80];
+  	VF2D_F prod(x); //copy constructor, .n_rows);
+
+ 	LAYERS layer_list;  
+	// The first layer is input, the others can appear multiple times, depending on the network
+	LAYERS layers = getLayers();   // zeroth element is the input layer
+    assert(layers.size() > 1);  // need at least an input layer connected to an output layer
+
+	for (int i=0; i < layers.size(); i++) {
+		layers[i]->reset(); // reset inputs, outputs, and clock to zero
+	}
+
+    Layer* input_layer = layers[0];
+	input_layer->setInputs(x);
+    layer_list.push_back(input_layer);
+	layer_list[0]->printName("layer_list[0]");
+
+	// going throught the above initializatino might not be necessary. However, if the topology or types of connections
+	// change during training, then layer_list might change between training elements. So keep for generality. The cost 
+	// is minimal compared to the cost of matrix-vector multiplication. 
+
+	Layer* cur_layer = layers[0];
+	cur_layer->setInputs(prod); 
+	cur_layer->setOutputs(prod); // inputs are same as outputs for an input layer
+
+	while (true) {
+		Layer* cur_layer = layer_list[0]; 
+		int sz = cur_layer->next.size();
+		if (sz == 0) {
+			break;
+		}
+
+		// scan the layers downstream and connect to cur_layer
+
+		for (int l=0; l < sz; l++) {
+			// for each downstream layer, scan the uptream connections. 
+			Connection* nconnection = cur_layer->next[l].second;
+
+			if (nconnection->getTemporal()) {
+				printf("skip forward propagation along temporal connections (%s)\n", 
+				   nconnection->getName().c_str());
+				continue;
+			}
+
+			Layer* nlayer = cur_layer->next[l].first;
+			layer_list.push_back(nlayer);
+
+			int csz = nlayer->prev.size();
+			VF2D_F new_prod;
+
+			for (int c=0; c < csz; c++) {
+				Connection* pconnection = nlayer->prev[c].second;
+				Layer*      player      = nlayer->prev[c].first;
+
+				if (pconnection->getTemporal()) {  // only consider spatial links (for now)
+					printf("skip temporal back connection: %s\n", pconnection->getName().c_str());
+					continue; 
+				}
+
+				WEIGHT& wght = pconnection->getWeight();
+				prod = player->getOutputs();  
+
+				new_prod.set_size(prod.n_rows);
+	
+				for (int b=0; b < x.n_rows; b++) {
+					new_prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
+				                           	//left and right of "=" have different dimensions
+				}
+
+				nlayer->incrInputs(new_prod);
+			}
+
+			prod = nlayer->getActivation()(new_prod);
+			nlayer->setOutputs(prod);
+		}
+		layer_list.erase(layer_list.begin());
+	}
+
+	// There should be a pointer to the output layer, or it is (for now), simply the last layer
+	// in layers. 
+
+	Layer* output_layer = layers[layers.size()-1]; // will this always work? Not for more general networks. 
+	output_layer->getOutputs(); // not used
+	
+	return prod; 
+}
+//----------------------------------------------------------------------
 VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with predict
 {
 	// The network is assumed to have a single input. 
@@ -352,98 +444,130 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
   	VF2D_F prod(x); //copy constructor, .n_rows);
 
  	LAYERS layer_list;  
+	// The first layer is input, the others can appear multiple times, depending on the network
 	LAYERS layers = getLayers();   // zeroth element is the input layer
     assert(layers.size() > 1);  // need at least an input layer connected to an output layer
 
 	for (int i=0; i < layers.size(); i++) {
-		layers[i]->reset(); // reset inputs and outputs to zero
+		layers[i]->reset(); // reset inputs, outputs, and clock to zero
 	}
 
     Layer* input_layer = layers[0];
+	print(input_layer->getInputs(), "input_layer->getInputs()"); 
+	print(x, "x"); 
+	x.print("x");
+	input_layer->getInputs().print("getInputs");
+
 	input_layer->setInputs(x);
+	input_layer->getInputs().print("getInputs");
     layer_list.push_back(input_layer);
+	layer_list[0]->printName("layer_list[0]");
+
+	print(layer_list[0]->getInputs(), "layer_list[0]->getInputs()");
+	print(layers[0]->getInputs(), "layers[0]->getInputs()");
+	layer_list[0]->getInputs().print("layer_list[0]");
+	layers[0]->getInputs().print("layers[0]");
 
 	// going throught the above initializatino might not be necessary. However, if the topology or types of connections
 	// change during training, then layer_list might change between training elements. So keep for generality. The cost 
 	// is minimal compared to the cost of matrix-vector multiplication. 
 
 	Layer* cur_layer = layers[0];
-	cur_layer->setInputs(prod);
+	cur_layer->printName("layers[0]");
+	prod.print("prod");
+	cur_layer->setInputs(prod); 
+	cur_layer->setOutputs(prod); // inputs are same as outputs for an input layer
 
 	printf("-------------\n");
-	for (int i=0; i < layers.size(); i++) {
-		VF2D_F l = layers[i]->getInputs();
-		//sprintf(buf, "layers[%d].inputs: ", i);
-		print(l, i, "layers[%d].inputs: ");
-	}
-	printf("-------------\n");
+	//for (int i=0; i < layers.size(); i++) {
+		//VF2D_F l = layers[i]->getInputs();
+	//}
 
 	while (true) {
 		Layer* cur_layer = layer_list[0]; 
-		cur_layer->reset();
 		int sz = cur_layer->next.size();
 		if (sz == 0) {
 			break;
 		}
 
 		// scan the layers downstream and connect to cur_layer
-		printf("----------------\n");
-		cur_layer->printSummary("current");
+		printf("-----------------------------------------\n");
+		//cur_layer->printSummary("cur_layer: layer_list[0]");
 
 		for (int l=0; l < sz; l++) {
-			Layer* nlayer = cur_layer->next[l].first;
+			printf("\n- - - - -\n ");
+			// for each downstream layer, scan the uptream connections. 
 			Connection* nconnection = cur_layer->next[l].second;
-			WEIGHT& wght = nconnection->getWeight();
-
-		    nconnection->printSummary("current");
-		    nlayer->printSummary("current");
-
+			if (nconnection->getTemporal()) {
+				printf("skip forward propagation along temporal connections (%s)\n", 
+				   nconnection->getName().c_str());
+				continue;
+			}
+			Layer* nlayer = cur_layer->next[l].first;
+			//nlayer->printSummary("*** nlayer downstream of cur_layer");
 			layer_list.push_back(nlayer);
 
-			if (nconnection->getTemporal()) {  // only consider spatial links (for now)
-				printf("skip connection: %s\n", nconnection->getName().c_str());
-				continue; 
+			int csz = nlayer->prev.size();
+			VF2D_F new_prod;
+			for (int c=0; c < csz; c++) {
+			    printf("... connection %d\n", c);
+				Connection* pconnection = nlayer->prev[c].second;
+				Layer*      player      = nlayer->prev[c].first;
+				pconnection->printSummary("connection upstream to nlayer");
+				player->printSummary("layer upstream to nlayer");
+
+				if (pconnection->getTemporal()) {  // only consider spatial links (for now)
+					printf("skip temporal back connection: %s\n", pconnection->getName().c_str());
+					continue; 
+				}
+
+				WEIGHT& wght = pconnection->getWeight();
+
+				//if (cur_layer->clock == 0) {
+					//prod =
+				//} else {
+					prod = player->getOutputs();  
+					print(wght, "wght from prev connection");
+					U::print(prod, "prod from prev layer");
+					//prod.print("prod from input");
+				//}
+
+				//VF2D_F new_prod(prod.n_rows); // nb_batches = prod.n.rows
+				new_prod.set_size(prod.n_rows);
+			printf("===== before product\n");
+	
+				for (int b=0; b < x.n_rows; b++) {
+					new_prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
+				                           	//left and right of "=" have different dimensions
+				}
+
+				U::print(wght, "wght");
+				U::print(prod, "prod");
+				U::print(new_prod, "new_prod = wght*prod, incrInputs");
+				nlayer->incrInputs(new_prod);
 			}
 
-			prod = cur_layer->getInputs();
-			VF2D_F new_prod(prod.n_rows);
-
-			U::print(prod, "prod");
-
-			for (int b=0; b < x.n_rows; b++) {
-				print(wght, "wght");
-				new_prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
-				                           //left and right of "=" have different dimensions
-			}
-			print(new_prod, ".... new_prod= wght * prod");
-			
-			for (int i=0; i < layers.size(); i++) { // >>>>>>>>>>>>>>
-				VF2D_F l = layers[i]->getInputs();
-				print(l, i, "layers[%d]->getInputs()");
-			}
-
-			//prod.print("new_prod: cur_layer->getInputs()");
-			print(prod, "prod");
-			nlayer->printSummary("before incrInputs, ");
-			print(nlayer->getInputs(), "nlayer inputs xx");
-			VF2D_F xx = nlayer->getInputs();
-			print(new_prod, "new_prod");
-			//exit(0);
-			print(xx, "xx");
-			nlayer->incrInputs(new_prod);
+			prod = nlayer->getActivation()(new_prod);
+			printf(" --> nlayer->setOutputs(prod)");
+			print(prod, " --> prod");
+			nlayer->printSummary(" --> ");
+			nlayer->setOutputs(prod);
+			printf(" --> Finished processing nlayer: \n");
+			nlayer->printSummary(" --> nlayer");
+			print(prod, "final prod --> nlayer");
+			printf("---------------------------\n");
 		}
+		layer_list[0]->print("\n*** Erase layer ***");
 		layer_list.erase(layer_list.begin());
 	}
 
-	for (int l=0; l < layers.size(); l++) {
-		prod = layers[l]->getInputs();
-		// apply activation function
-		prod = layers[l]->getActivation()(prod);
-		layers[l]->setOutputs(prod);
-	}
-	exit(0);
+	// There should be a pointer to the output layer, or it is (for now), simply the last layer
+	// in layers. 
+
+	Layer* output_layer = layers[layers.size()-1]; // will this always work? Not for more general networks. 
+	output_layer->getOutputs();
 	
-	return prod;
+	return prod; 
 }
 //----------------------------------------------------------------------
 // This was hastily decided on primarily as a means to construct feed forward

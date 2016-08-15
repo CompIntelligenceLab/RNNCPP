@@ -1,5 +1,8 @@
 #include "layers.h"
 #include <stdio.h>
+#include <iostream>
+
+using namespace std;
 
 int Layer::counter = 0;
 
@@ -120,9 +123,9 @@ void Layer::printSummary(std::string msg)
 	printf("%sLayer (%s), layer_size: %d\n", msg.c_str(), name.c_str(), layer_size);
 }
 
-void Layer::printName()
+void Layer::printName(std::string msg /*""*/)
 {
-	printf("--layer (%s) --\n", name.c_str());
+	cout << "-- " << msg << ", layer (" << name << ") --" << endl;
 }
 
 // Take the inputs (dimensionality based on previous layer), and generate the outputs
@@ -136,6 +139,7 @@ void Layer::reset()
 	for (int b=0; b < inputs.size(); b++) {
 		inputs(b).zeros();
 		outputs(b).zeros();
+		clock = 0;
 	}
 }
 

@@ -352,6 +352,7 @@ void testFuncModel2()
 
 	m->add(0, input); // changs input_dim to zero. Why? 
 
+	// Currently, the layer list will contain a layer name twice. 
 	m->add(input, dense1);
 	m->add(input, dense2);
 	m->add(dense2, dense3);
@@ -361,6 +362,12 @@ void testFuncModel2()
 	input_dim = input->getInputDim();
 	printf("input_dim= %d\n", input_dim);
 
+
+// 
+    //for (int i=0; i < m->getLayers().size(); i++) {
+		//m->getLayers()[i]->printSummary();
+	//}
+	//exit(0);
 
 
 	m->checkIntegrity();
@@ -385,7 +392,7 @@ void testFuncModel2()
 
 	xf.print("xf");
 	
-	VF2D_F pred = m->predictComplex(xf);
+	VF2D_F pred = m->predictComplexMaybeWorks(xf);
 	pred.print("funcModel, predict:");
 	exit(0);
 }

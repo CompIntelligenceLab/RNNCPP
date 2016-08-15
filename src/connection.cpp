@@ -75,8 +75,7 @@ void Connection::print(std::string msg /* "" */)
 void Connection::printSummary(std::string msg) 
 {
 	std::string type = (temporal) ? "temporal" : "spatial";
-	cout << msg << ", Connection (" << name << ", weight(" << weight.n_rows << ", " << weight.n_cols 
-	     << "), " << type << endl;
+	cout << msg << "Connection (" << name << "), weight(" << weight.n_rows << ", " << weight.n_cols << "), " << type << endl;
 	//printf("%sConnection (%s), weight(%d, %d), %s\n", msg.c_str(), name.c_str(), weight.n_rows, weight.n_cols, type.c_str());
 }
 

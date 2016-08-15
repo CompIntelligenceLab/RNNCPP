@@ -33,3 +33,16 @@ Aug 12, 2016
 Aug. 12, 2016
 - For now, we'll assume no shared weights. One weight matrix per connection. Different connections, different weight matrices. 
 - Identity activation in input layers. 
+
+- I should allow for multiple inputs into my model (with different dimensionalities)
+  - in this case, I need a) an InputLayer class, and b) an additional loop in predictComplex
+  - allow connections not only like:    h(t+1) =  f(h(t), x(t)) (recursion), but I would allow
+    things such as:     h(t+1) = f(h(t), 
+
+In predictComplex():
+	Step 1) for each layer in a list (which only has the input layers to start), collect all the "next" layers. 
+	Step 2) remove all the previous layers from the list (only the new layers remain)
+	Step 3) for each "next" layer, collect all the spatial "prev" connections, compute w*x and call the activation function for that layer. 
+
+	Return to step 1. 
+
