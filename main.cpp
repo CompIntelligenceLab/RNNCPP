@@ -372,24 +372,36 @@ void testFuncModel2()
 	int batch_size = m->getBatchSize();
 	VF2D_F xf(batch_size);
 	VF2D_F yf(batch_size); 
+	VF2D_F exact(batch_size);
 
 	printf("batch_size= %d\n", batch_size);
 	input_dim = input->getInputDim();
 	printf("input_dim= %d\n", input_dim);
 	printf("xf.size= %llu", xf.n_rows);
 
+	int output_dim = m->getOutputLayers()[0]->getOutputDim();
+	int seq_len = 1;
+	printf("output_dim= %d\n", output_dim);
+
 	for (int i=0; i < xf.size(); i++) {
-		xf[i].randu(input_dim, 1);
-		yf[i].randu(input_dim, 1);
+		xf[i].randu(input_dim, seq_len); // uniform random numbers
+		yf[i].randu(input_dim, seq_len);
+		exact[i].randu(output_dim, seq_len);
 	}
 
 	printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
 	printf("   input layer_size: %d\n", input->getLayerSize());
 
 	xf.print("xf");
+	exact.print("exact");
 	
 	VF2D_F pred = m->predictComplex(xf);
 	pred.print("funcModel, predict:");
+	U::print(pred, "pred");
+	U::print(exact, "exact");
+
+	//m->train(xf);
+	m->backPropagation(exact, pred);
 	exit(0);
 }
 //----------------------------------------------------------------------

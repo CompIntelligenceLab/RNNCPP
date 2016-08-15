@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "print_utils.h"
 #include "objective.h"
 
 int Objective::counter = 0;
@@ -100,7 +101,11 @@ void MeanSquareError::computeGradient(VF2D_F& exact, VF2D_F& predict)
 	int nb_batch = exact.n_rows;
 	gradient.set_size(nb_batch);
 
+	printf("gordon\n");
+	U::print(exact, "exact");
+	U::print(predict, "predict");
+
 	for (int i=0; i < nb_batch; i++) {
-		gradient[i] = 2.*(exact[i] - predict[i]); // check size compatibility
+		gradient[i] = 2.* (exact[i] - predict[i]); // check size compatibility
 	}
 }
