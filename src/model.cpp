@@ -658,7 +658,7 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 	VF2D_F delta;
 	VF2D_F out_t;
 	VF2D orow;
-	VF1D delta_incr;
+	VF2D delta_incr;
 
 	VF2D wght_t;
 	VF2D_F prev_inputs;
@@ -670,6 +670,8 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 
 
     while (layer->prev[0].first) {
+		printf("--------------------------------------\n");
+		printf("**** enter while ****\n");
         Layer* prev_layer = layer->prev[0].first; // assume only one previous layer/connection pair
         Connection* prev_connection = layer->prev[0].second;
         prev_layer->getOutputs().print("\n\nPREVLAYER OUTPUTS");
@@ -677,7 +679,18 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 		out_t = prev_layer->getOutputs(); // (layer_size, seq_len)
 
 		for (int b=0; b < nb_batch; b++) {
-        	delta_incr = delta[b] * out_t[b].t(); // Update capital Delta ==> (  , seq_len)
+			U::print(delta[b], "delta[b]");
+			U::print(out_t[b], "out_t[b]");
+			// does not work without cast!! WHY if t
+			U::print((VF2D) out_t[b].t(), "out_t[b].t()");
+			VF2D dd = delta[b];
+			VF2D tt = out_t[b].t();
+			//U::print(dd, "dd");
+			//U::print(tt, "tt");
+			//U::print(tt, "tt");
+        	delta_incr = dd * tt; 
+        	//delta_incr = delta[b] * out_t[b].t(); // Update capital Delta ==> (  , seq_len)
+			//U::print(delta_incr, "delta_incr");
         	prev_connection->incrDelta(delta_incr); 
 		}
 
@@ -696,5 +709,6 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
         prev_layer->setDelta(delta_f); 
         layer = prev_layer;
     }
+	exit(0);
 }
 //----------------------------------------------------------------------
