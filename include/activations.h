@@ -53,7 +53,6 @@ public:
 	{
 #ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
-		printf("gordon tanh\n");
 		for (int i=0; i < x.n_rows; i++) {
 			y[i] = 1.-x[i]%x[i];
 		}
@@ -94,7 +93,6 @@ public:
 	{
 #ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
-		printf("gordon sigmoid\n");
 		for (int i=0; i < x.n_rows; i++) {
 			y[i] = x[i]%(1.-x[i]);
 		}

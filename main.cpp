@@ -290,11 +290,12 @@ void testFuncModel1()
 	// the names have a counter value attached to it, so there is no duplication. 
 	// Must make sure that input_dim of input layer is the same as model->input_dim
 	int input_dim = 2;
+	int layer_size = 16;
 	Layer* input   = new InputLayer(input_dim, "input_layer");  
-	Layer* dense0  = new DenseLayer(5, "dense0");
+	Layer* dense0  = new DenseLayer(2, "dense0");
 	Layer* dense1  = new DenseLayer(3, "dense1");
 	Layer* dense2  = new DenseLayer(4, "dense2");
-	Layer* dense3  = new DenseLayer(6, "dense3");
+	Layer* dense3  = new DenseLayer(5, "dense3");
 
 	m->add(0, input);
 	m->add(input, dense0);
@@ -348,8 +349,10 @@ void testFuncModel1()
 	U::print(exact, "exact");
 
 	//m->train(xf);
-	m->backPropagation(exact, pred);
-	exit(0);
+	for (int i=0; i < 1; i++) {
+		m->backPropagation(exact, pred);
+		printf("i= %d\n", i);
+	}
 }
 //----------------------------------------------------------------------
 void testFuncModel2()
@@ -429,8 +432,10 @@ void testFuncModel2()
 	U::print(exact, "exact");
 
 	//m->train(xf);
-	m->backPropagation(exact, pred);
-	exit(0);
+	for (int i=0; i < 100000; i++) {
+		m->backPropagation(exact, pred);
+		printf("i= %d\n", i);
+	}
 }
 //----------------------------------------------------------------------
 void testObjective()

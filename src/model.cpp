@@ -598,63 +598,19 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 	loss.print("loss");
 }
 //----------------------------------------------------------------------
-#if 0
-void Model::backpropNathan(VF2D_F y, VF2D_F pred)
-{
-    std::vector<WEIGHT*> D; // All partial derivatives to be passed to optimizer
-    // This only works for simple feed forward with one physical layer per
-    // conceptual layer
-    Layer* layer = layers[layers.size()-1]; // Start at the output layer
-    layer->delta = objective->computeLoss(y, pred)(0);
-    while(layer->prev != NULL) {
-        Layer* prevLayer = layer->prev.first;
-        Connection* prevCon = layer->prev.second;
-        prevLayer->outputs.print("\n\nPREVLAYER OUTPUTS");
-        prevCon->delta += (layer->delta)*(prevLayer->outputs(0).t().row(0)); // Update capital Delta
-        D.push_back(&(prevCon->delta));
-        prevLayer->delta = (prevCon->weight.t() * layer->delta) % prevLayer->activation->derivative(prevLayer->inputs(0).col(0));
-        layer = prevLayer;
-    }
-}
-#endif
-//----------------------------------------------------------------------
 void Model::backPropagation(VF2D_F y, VF2D_F pred)
 {
+	// Not sure why required
     std::vector<WEIGHT*> D; // All partial derivatives to be passed to optimizer
     // This only works for simple feed forward with one physical layer per
     // conceptual layer
 
     Layer* layer = getOutputLayers()[0];   // Assume one output layer
-    //VF1D_F obj = objective->computeLoss(y, pred);
     objective->computeGradient(y, pred);
     VF2D_F grad = objective->getGradient();
     layer->setDelta(grad);  //DELTA: VF1D_F, but grad: VF2D_F (DELTA probably VF2D_F)
 
 	int nb_batch = grad.n_rows;
-
-	// Assume a linear sequence of layers (everything is per batch). 
-	// weights are 2D matrices
-	// Transposes of larger matrices are expensive
-	// loss: VF1D_F  (seq_len)
-	// dloss/dzL: VF2D_F (dim, seq_len)
-	/*
-	dloss/dwL   = dloss/dzL * fL'*  dzL/dwL = dloss/dzL * fL' * xL
-	dxL  /dwLm1 = fLm1' * dzLm1/dwLm2 
-	dxLm1/dwLm2 = fLm2' * dzLm2/dwLm3 
-
-    dloss/dwL   = loss' * fL' * xL
-    dloss/dwLm1 = loss' * fL' * fLm1' * xLm1
-    dloss/dwLm2 = loss' * fL' * fLm1' * fLm2' * xLm2
-    dloss/dwLm3 = loss' * fL' * fLm1' * fLm2' * fLm3' * xLm3
-	---------------------
-	del0 = loss' * fL'  (fL' is VF2D_F)
-	del1 = del0  * fLm1'
-	del2 = del3  * fLm2'
-
-    dL/dwL   = del0 * xL
-    dL/dwLm1 = del1 * xLm1
-    dL/dwLm2 = del2 * xLm2
-	*/
 
 	VF2D_F delta;
 	VF2D_F out_t;
@@ -669,34 +625,16 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 	VF2D_F delta_f(nb_batch);
 	VF2D_F prev_grad_act;
 
-
     while (layer->prev.size()) {
-		printf("--------------------------------------\n");
-		printf("**** enter while ****\n");
         Layer* prev_layer = layer->prev[0].first; // assume only one previous layer/connection pair
         Connection* prev_connection = layer->prev[0].second;
-        prev_layer->getOutputs().print("\n\nPREVLAYER OUTPUTS");
 		delta = layer->getDelta(); // ==> dubious
 		out_t = prev_layer->getOutputs(); // (layer_size, seq_len)
 
 		for (int b=0; b < nb_batch; b++) {
-		    printf("--> b= %d\n", b);
-			U::print(delta[b], "delta[b]");
-			U::print(out_t[b], "previous layer outputs, out_t[b]");
-			prev_layer->printSummary("prev_layer");
-			// does not work without cast!! WHY if t
-			U::print( out_t[b], "out_t[b].t()");
 			VF2D a = out_t[b].t();
 			VF2D dd = delta[b]; // 6x1
-			//VF2D tt = out_t[b].t();
-			U::print(dd, "dd");
-			U::print(out_t[b], "out_t");
-        	delta_incr = dd * out_t[b].t(); 
-			//exit(0);
-        	//delta_incr = delta[b] * out_t[b].t(); // Update capital Delta ==> (  , seq_len)
-			//U::print(delta_incr, "delta_incr");
-			print(delta_incr, "delta_incr");
-			print(prev_connection->getWeight(), "wght");
+        	delta_incr = dd * out_t[b].t();    // EXPENSIVE
         	prev_connection->incrDelta(delta_incr); 
 		}
 
@@ -708,13 +646,12 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 		prev_grad_act = prev_layer->getActivation().derivative(prev_inputs); // (layer_size, seq_len)
 
 		for (int b=0; b < nb_batch; b++) {
-        	pp = wght_t * layer->getDelta()[b];
+        	pp = wght_t * layer->getDelta()[b];  // EXPENSIVE
 			delta_f(b) = pp % prev_grad_act[b];
 		}
 
         prev_layer->setDelta(delta_f); 
         layer = prev_layer;
     }
-	exit(0);
 }
 //----------------------------------------------------------------------
