@@ -101,6 +101,16 @@ const Model& Model::operator=(const Model& m)
 	return *this;
 }
 //----------------------------------------------------------------------
+void Model::addInputLayer(Layer* layer)
+{
+	input_layers.push_back(layer);
+}
+//----------------------------------------------------------------------
+void Model::addOutputLayer(Layer* layer)
+{
+	output_layers.push_back(layer);
+}
+//----------------------------------------------------------------------
 void Model::add(Layer* layer_from, Layer* layer)
 {
 	printf("add(layer_from, layer)\n");

@@ -34,6 +34,8 @@ private:
 	bool print_verbose;
 	// keep pointers to all weights into a dynamical linked list
 	LAYERS layers;
+	LAYERS input_layers;
+	LAYERS output_layers;
 	CONNECTIONS connections; // (l)ist of weights
 
 public:
@@ -57,6 +59,8 @@ public:
 
   //void add(Layer* layer);
   void add(Layer* layer_from, Layer* layer);
+  void addInputLayer(Layer* layer);
+  void addOutputLayer(Layer* layer);
   void setOptimizer(Optimizer* opt) {optimizer = opt;}
   Optimizer* getOptimizer() const {return optimizer;}
   void setLoss(Objective* obj) {objective = obj;}

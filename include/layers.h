@@ -19,6 +19,7 @@ public:
 	PAIRS_L prev;
 	PAIRS_L next;
 
+
 protected:
 	static int counter;
 	int clock; // initialized to zero. updates by one when signal arrives. If signal arrives when clock != 0,
