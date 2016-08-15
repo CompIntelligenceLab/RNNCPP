@@ -24,6 +24,7 @@ public:
 	virtual VF1D_F getLoss() { return loss; }
 	
 	virtual VF1D_F computeError(VF2D_F& exact, VF2D_F& predict) = 0;
+	virtual VF1D_F computeGradient(VF2D_F& exact, VF2D_F& predict) = 0;
 };
 
 class MeanSquareError : public Objective
@@ -39,6 +40,7 @@ public:
 
 	/** sum_{batches} (predict - exact)^2 */
 	VF1D_F computeError(VF2D_F& exact, VF2D_F& predict);
+	VF1D_F computeGradient(VF2D_F& exact, VF2D_F& predict);
 };
 
 #endif
