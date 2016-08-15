@@ -55,7 +55,7 @@ public:
 	void incrClock() { clock += 1; }
 	void backProp() {;} // for future use
 	void weightUpdate(float learning_rate);
-	WEIGHT getDelta() { return this->delta; }
+	WEIGHT& getDelta() { return this->delta; }
 	void setDelta(WEIGHT delta) { this->delta = delta; }
 
 

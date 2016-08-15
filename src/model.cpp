@@ -626,6 +626,30 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
     VF1D_F obj = objective->computeError(y, pred);
     layer->setDelta(obj);
 
+	// Assume a linear sequence of layers (everything is per batch). 
+	// weights are 2D matrices
+	// Transposes of larger matrices are expensive
+	// loss: VF1D_F  (seq_len)
+	// dloss/dzL: VF2D_F (dim, seq_len)
+	/*
+	dloss/dwL   = dloss/dzL * fL'*  dzL/dwL = dloss/dzL * fL' * xL
+	dxL  /dwLm1 = fLm1' * dzLm1/dwLm2 
+	dxLm1/dwLm2 = fLm2' * dzLm2/dwLm3 
+
+    dloss/dwL   = loss' * fL' * xL
+    dloss/dwLm1 = loss' * fL' * fLm1' * xLm1
+    dloss/dwLm2 = loss' * fL' * fLm1' * fLm2' * xLm2
+    dloss/dwLm3 = loss' * fL' * fLm1' * fLm2' * fLm3' * xLm3
+	---------------------
+	del0 = loss' * fL'
+	del1 = del0  * fLm1'
+	del2 = del3  * fLm2'
+
+    dL/dwL   = del0 * xL
+    dL/dwLm1 = del1 * xLm1
+    dL/dwLm2 = del2 * xLm2
+	*/
+
     while (layer->prev[0].first) {
         Layer* prevLayer = layer->prev[0].first; // assume only one previous layer/connection pair
         Connection* prevCon = layer->prev[0].second;
