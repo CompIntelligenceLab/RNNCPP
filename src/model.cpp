@@ -666,6 +666,7 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
     VF1D pp;
 	VF1D qq;
 	VF2D_F delta_f(nb_batch);
+	VF2D_F prev_grad_act;
 
 
     while (layer->prev[0].first) {
@@ -684,12 +685,14 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
         //D.push_back(&prev_connection->getDelta()); 
 
 		wght_t = prev_connection->getWeight().t();
-		prev_inputs = prev_layer->getInputs(); // 
-		prev_act = prev_layer->getActivation().derivative(prev_inputs)(0);
-        pp = wght_t * layer->getDelta()[0];
-		qq = prev_act;
+		prev_inputs = prev_layer->getInputs(); //  (layer_size, seq_len)
+		prev_grad_act = prev_layer->getActivation().derivative(prev_inputs); // (layer_size, seq_len)
 
-		delta_f(0) = pp % qq;
+		for (int b=0; b < nb_batch; b++) {
+        	pp = wght_t * layer->getDelta()[b];
+			delta_f(b) = pp % prev_grad_act[b];
+		}
+
         prev_layer->setDelta(delta_f); 
         layer = prev_layer;
     }
