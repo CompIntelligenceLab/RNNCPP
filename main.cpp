@@ -283,7 +283,8 @@ void testFuncModel1()
 
 	// In reality, the model should not have an input_dim. 
 	Model* m  = new Model(); 
-	assert(m->getBatchSize() == 1);
+    m->setBatchSize(2);
+	assert(m->getBatchSize() == 2);
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
@@ -292,10 +293,10 @@ void testFuncModel1()
 	int input_dim = 2;
 	int layer_size = 16;
 	Layer* input   = new InputLayer(input_dim, "input_layer");  
-	Layer* dense0  = new DenseLayer(2, "dense0");
-	Layer* dense1  = new DenseLayer(3, "dense1");
-	Layer* dense2  = new DenseLayer(4, "dense2");
-	Layer* dense3  = new DenseLayer(5, "dense3");
+	Layer* dense0  = new DenseLayer(layer_size, "dense0");
+	Layer* dense1  = new DenseLayer(layer_size, "dense1");
+	Layer* dense2  = new DenseLayer(layer_size, "dense2");
+	Layer* dense3  = new DenseLayer(layer_size, "dense3");
 
 	m->add(0, input);
 	m->add(input, dense0);
@@ -349,7 +350,7 @@ void testFuncModel1()
 	U::print(exact, "exact");
 
 	//m->train(xf);
-	for (int i=0; i < 1; i++) {
+	for (int i=0; i < 1000; i++) {
 		m->backPropagation(exact, pred);
 		printf("i= %d\n", i);
 	}
@@ -456,6 +457,21 @@ void testObjective()
 //----------------------------------------------------------------------
 int main() 
 {
+	VF2D_F a;
+	printf("sizeof(VF2D_F)= %d\n", sizeof(a));
+	a.set_size(10);
+	a[0] = VF2D(100,100);
+	printf("sizeof(VF2D_F)(10)(100,100)= %d\n", sizeof(a));
+
+	VF2D b;
+	printf("sizeof(VF2D)= %d\n", sizeof(b));
+	VF2D c(100,100);
+	printf("sizeof(VF2D(100,100))= %d\n", sizeof(c));
+	b.set_size(100,100);
+	printf("sizeof(VF2D(100,100))= %d\n", sizeof(b));
+	//exit(0);
+
+
 	testCube();
 	//testModel();
 	testFuncModel1();

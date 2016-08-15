@@ -25,7 +25,7 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	this->layer_size = layer_size;
 	//output_dim   = layer_size;  // no such member
 	input_dim   = -1; // no assignment yet. 
-	nb_batch    =  1; 
+	nb_batch    =  1;   // HOW TO SET BATCH FOR LAYERS? 
 	seq_len     =  1; 
 	print_verbose   = true;
 	clock = 0;
@@ -152,6 +152,9 @@ void Layer::incrOutputs(VF2D_F& x)
 
 void Layer::incrInputs(VF2D_F& x)
 {
+	printf("incrInputs: x.n_rows= %d\n", x.n_rows);
+	printf("inputs.n_rows= %d\n", inputs.n_rows);
+	// inputs has incorrect number of fields.
 	for (int b=0; b < x.n_rows; b++) {
 		inputs[b] += x[b];
 	}

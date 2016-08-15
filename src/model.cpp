@@ -172,6 +172,11 @@ void Model::checkIntegrity()
 	assert(layers.size() > 1);  // need at least an input layer connected to an output layer
 	printf("layers size: %ld\n", layers.size());
 
+	// set all batch_sizes in layers to the model batch_layer
+	for (int i=0; i < layers.size(); i++) {
+		layers[i]->initVars(batch_size);
+	}
+
 	// input layer. Eventually, we might have multiple layers in the network. How to handle that?
 	// A model can only have a single input layer (at this time). How to generalize? Not clear how to input data then. 
 	// Probably need a list of input layers in a vector. In that case, it is not clear that layers[0] would be the input layer. 
@@ -607,7 +612,7 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 
     Layer* layer = getOutputLayers()[0];   // Assume one output layer
     objective->computeGradient(y, pred);
-    VF2D_F grad = objective->getGradient();
+    VF2D_F& grad = objective->getGradient();
     layer->setDelta(grad);  //DELTA: VF1D_F, but grad: VF2D_F (DELTA probably VF2D_F)
 
 	int nb_batch = grad.n_rows;
@@ -628,13 +633,11 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
     while (layer->prev.size()) {
         Layer* prev_layer = layer->prev[0].first; // assume only one previous layer/connection pair
         Connection* prev_connection = layer->prev[0].second;
-		delta = layer->getDelta(); // ==> dubious
-		out_t = prev_layer->getOutputs(); // (layer_size, seq_len)
+		VF2D_F& delta = layer->getDelta(); // ==> dubious
+		VF2D_F& out_t = prev_layer->getOutputs(); // (layer_size, seq_len)
 
 		for (int b=0; b < nb_batch; b++) {
-			VF2D a = out_t[b].t();
-			VF2D dd = delta[b]; // 6x1
-        	delta_incr = dd * out_t[b].t();    // EXPENSIVE
+        	delta_incr = delta[b] * out_t[b].t();    // EXPENSIVE
         	prev_connection->incrDelta(delta_incr); 
 		}
 
@@ -642,11 +645,12 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
         //D.push_back(&prev_connection->getDelta()); 
 
 		wght_t = prev_connection->getWeight().t();
-		prev_inputs = prev_layer->getInputs(); //  (layer_size, seq_len)
+		VF2D_F& prev_inputs = prev_layer->getInputs(); //  (layer_size, seq_len)
 		prev_grad_act = prev_layer->getActivation().derivative(prev_inputs); // (layer_size, seq_len)
 
 		for (int b=0; b < nb_batch; b++) {
-        	pp = wght_t * layer->getDelta()[b];  // EXPENSIVE
+        	//pp = wght_t * layer->getDelta()[b];  // EXPENSIVE
+        	pp = wght_t * delta[b];  // EXPENSIVE
 			delta_f(b) = pp % prev_grad_act[b];
 		}
 
