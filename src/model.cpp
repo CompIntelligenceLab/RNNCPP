@@ -592,7 +592,8 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 	}
 
 	VF2D_F pred = predict(x);
-	VF1D_F loss = objective->computeError(y, pred);
+	objective->computeLoss(y, pred);
+	VF1D_F loss = objective->getLoss();
 	loss.print("loss");
 }
 //----------------------------------------------------------------------
@@ -603,7 +604,7 @@ void Model::backpropNathan(VF2D_F y, VF2D_F pred)
     // This only works for simple feed forward with one physical layer per
     // conceptual layer
     Layer* layer = layers[layers.size()-1]; // Start at the output layer
-    layer->delta = objective->computeError(y, pred)(0);
+    layer->delta = objective->computeLoss(y, pred)(0);
     while(layer->prev != NULL) {
         Layer* prevLayer = layer->prev.first;
         Connection* prevCon = layer->prev.second;
@@ -623,8 +624,12 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
     // conceptual layer
 
     Layer* layer = getOutputLayers()[0];   // Assume one output layer
-    VF1D_F obj = objective->computeError(y, pred);
-    layer->setDelta(obj);
+    //VF1D_F obj = objective->computeLoss(y, pred);
+    objective->computeGradient(y, pred);
+    VF2D_F grad = objective->getGradient();
+    layer->setDelta(grad);  //DELTA: VF1D_F, but grad: VF2D_F (DELTA probably VF2D_F)
+
+	int nb_batch = grad.n_rows;
 
 	// Assume a linear sequence of layers (everything is per batch). 
 	// weights are 2D matrices
@@ -641,7 +646,7 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
     dloss/dwLm2 = loss' * fL' * fLm1' * fLm2' * xLm2
     dloss/dwLm3 = loss' * fL' * fLm1' * fLm2' * fLm3' * xLm3
 	---------------------
-	del0 = loss' * fL'
+	del0 = loss' * fL'  (fL' is VF2D_F)
 	del1 = del0  * fLm1'
 	del2 = del3  * fLm2'
 
@@ -650,24 +655,43 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
     dL/dwLm2 = del2 * xLm2
 	*/
 
+	VF2D_F delta;
+	VF2D_F out_t;
+	VF2D orow;
+	VF1D delta_incr;
+
+	VF2D wght_t;
+	VF2D_F prev_inputs;
+	VF2D prev_act;
+    VF1D pp;
+	VF1D qq;
+	VF2D_F delta_f(nb_batch);
+
+
     while (layer->prev[0].first) {
-        Layer* prevLayer = layer->prev[0].first; // assume only one previous layer/connection pair
-        Connection* prevCon = layer->prev[0].second;
-        prevLayer->getOutputs().print("\n\nPREVLAYER OUTPUTS");
-		VF2D out_t = prevLayer->getOutputs()[0].t();
-		VF1D orow = out_t.row(0);
-        VF1D delta_incr = (layer->getDelta()[0]) * orow; // Update capital Delta
-        prevCon->incrDelta(delta_incr); 
-        D.push_back(&prevCon->getDelta());  // SHOULD work. Does not. 
-		VF2D wght_t = prevCon->getWeight().t();
-		VF2D_F prev_inputs = prevLayer->getInputs(); // 
-		VF2D prev_act = prevLayer->getActivation().derivative(prev_inputs)(0);
-        VF1D pp = wght_t * layer->getDelta()[0];
-		VF1D qq = prev_act;
-		VF1D_F delta_f(1);
+        Layer* prev_layer = layer->prev[0].first; // assume only one previous layer/connection pair
+        Connection* prev_connection = layer->prev[0].second;
+        prev_layer->getOutputs().print("\n\nPREVLAYER OUTPUTS");
+		delta = layer->getDelta();
+		out_t = prev_layer->getOutputs(); // (layer_size, seq_len)
+
+		for (int b=0; b < nb_batch; b++) {
+        	delta_incr = delta[b] * out_t[b].t(); // Update capital Delta ==> (  , seq_len)
+        	prev_connection->incrDelta(delta_incr); 
+		}
+
+		// Not sure about the purpose of D
+        //D.push_back(&prev_connection->getDelta()); 
+
+		wght_t = prev_connection->getWeight().t();
+		prev_inputs = prev_layer->getInputs(); // 
+		prev_act = prev_layer->getActivation().derivative(prev_inputs)(0);
+        pp = wght_t * layer->getDelta()[0];
+		qq = prev_act;
+
 		delta_f(0) = pp % qq;
-        prevLayer->setDelta(delta_f); 
-        layer = prevLayer;
+        prev_layer->setDelta(delta_f); 
+        layer = prev_layer;
     }
 }
 //----------------------------------------------------------------------

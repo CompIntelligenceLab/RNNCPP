@@ -127,8 +127,8 @@ public:
 	std::string getName() { return name; }
 	int getClock() { return clock; }
 	void incrClock() { clock += 1; }
-	DELTA getDelta() { return delta; }
-	void setDelta(DELTA& delta) { this->delta = delta; }
+	DELTA& getDelta() { return delta; }
+	void setDelta(DELTA delta) { this->delta = delta; }
 
 private:
 	virtual void initVars(int nb_batch);

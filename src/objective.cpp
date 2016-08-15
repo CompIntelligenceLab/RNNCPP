@@ -84,7 +84,7 @@ MeanSquareError::MeanSquareError(const MeanSquareError& mse) : Objective(mse)
 	//return *this;
 //}
 
-VF1D_F MeanSquareError::computeError(VF2D_F& exact, VF2D_F& predict)
+void MeanSquareError::computeLoss(VF2D_F& exact, VF2D_F& predict)
 {
 	int nb_batch = exact.n_rows;
 	loss.set_size(nb_batch);
@@ -93,18 +93,14 @@ VF1D_F MeanSquareError::computeError(VF2D_F& exact, VF2D_F& predict)
 		loss[i] = exact[i] - predict[i]; // check size compatibility
 		loss[i] = arma::square(loss[i]);
 	}
-
-	return loss;
 }
 
-VF1D_F MeanSquareError::computeGradient(VF2D_F& exact, VF2D_F& predict)
+void MeanSquareError::computeGradient(VF2D_F& exact, VF2D_F& predict)
 {
 	int nb_batch = exact.n_rows;
-	loss.set_size(nb_batch);
+	gradient.set_size(nb_batch);
 
 	for (int i=0; i < nb_batch; i++) {
-		loss[i] = 2.*(exact[i] - predict[i]); // check size compatibility
+		gradient[i] = 2.*(exact[i] - predict[i]); // check size compatibility
 	}
-
-	return loss;
 }
