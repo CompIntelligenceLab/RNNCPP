@@ -45,4 +45,8 @@ In predictComplex():
 	Step 3) for each "next" layer, collect all the spatial "prev" connections, compute w*x and call the activation function for that layer. 
 
 	Return to step 1. 
-
+----------------------------------------------------------------------
+Aug. 16, 2016
+- Probably better to have user specify which links are temporal, and even specify the order in which information flows
+through the system, at least for now. 
+----------------------------------------------------------------------

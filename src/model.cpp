@@ -180,9 +180,10 @@ void Model::checkIntegrity()
 	// input layer. Eventually, we might have multiple layers in the network. How to handle that?
 	// A model can only have a single input layer (at this time). How to generalize? Not clear how to input data then. 
 	// Probably need a list of input layers in a vector. In that case, it is not clear that layers[0] would be the input layer. 
-	Layer* input_layer = layers[0];
+	Layer* input_layer = getInputLayers()[0];
 	layer_list.push_back(input_layer); 
 	checkIntegrity(layer_list);
+	exit(0);
 
 	// A recursive solution would be better. 
 }
@@ -200,7 +201,7 @@ void Model::checkIntegrity(LAYERS& layer_list)
 */
 	// input layer. Eventually, we might have multiple layers in the network. How to handle that?
 
-	while (true) {
+	while (layer_list.size()) {
 		Layer* cur_layer = layer_list[0]; 
 		//cur_layer->incr_Clock(); // Do not increment input layers. 
 	                           	   // This will allow the input layer to also act as an output layer
@@ -209,12 +210,15 @@ void Model::checkIntegrity(LAYERS& layer_list)
 		for (int l=0; l < sz; l++) {
 			Layer* nlayer = cur_layer->next[l].first;
 			Connection* nconnection = cur_layer->next[l].second;
+			nlayer->printSummary("nlayer");
 
-			if (nlayer->getClock() > 0) {
+			//if (nlayer->getClock() > 0) {
+			if (nconnection->getClock() > 0) {
 				nconnection->setTemporal(true);
+				nconnection->printSummary("checkIntegrity, setTemporal\n");
 			}
 
-			nlayer->incrClock();
+		    //nlayer->incrClock();
 			nconnection->incrClock();
 
 			if (nlayer->getClock() == 1) { // only add a layer once to the list of layers to process
@@ -222,10 +226,8 @@ void Model::checkIntegrity(LAYERS& layer_list)
 			}
 		}
 		layer_list.erase(layer_list.begin());
-		if (layer_list.size() == 0) {
-			return;
-		}
 	}
+	return;
 }
 //----------------------------------------------------------------------
 void Model::printSummary()
@@ -610,6 +612,12 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
     // This only works for simple feed forward with one physical layer per
     // conceptual layer
 
+	// reset connection delta variables
+	for (int i=0; i < connections.size(); i++) {
+		printf("i=%d\n", i);
+		connections[i]->resetDelta();
+	}
+
     Layer* layer = getOutputLayers()[0];   // Assume one output layer
     objective->computeGradient(y, pred);
     VF2D_F& grad = objective->getGradient();
@@ -631,7 +639,7 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 		}
 
 		// Not sure about the purpose of D
-        //D.push_back(&prev_connection->getDelta()); 
+        // D.push_back(&prev_connection->getDelta()); 
 
 		const VF2D wght_t = prev_connection->getWeight().t();
 		const VF2D_F& prev_inputs = prev_layer->getInputs(); //  (layer_size, seq_len)
@@ -644,6 +652,67 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 
         prev_layer->setDelta(delta_f); 
         layer = prev_layer;
+    }
+}
+//----------------------------------------------------------------------
+void Model::backPropagationComplex(VF2D_F y, VF2D_F pred)
+{
+	// Not sure why required
+    std::vector<WEIGHT*> D; // All partial derivatives to be passed to optimizer
+    // This only works for simple feed forward with one physical layer per
+    // conceptual layer
+
+	// reset connection delta variables
+	for (int i=0; i < connections.size(); i++) {
+		printf("i=%d\n", i);
+		connections[i]->resetDelta();
+	}
+
+    Layer* layer = getOutputLayers()[0];   // Assume one output layer
+    objective->computeGradient(y, pred);
+    VF2D_F& grad = objective->getGradient();
+    layer->setDelta(grad);  //DELTA: VF1D_F, but grad: VF2D_F (DELTA probably VF2D_F)
+
+	int nb_batch = grad.n_rows;
+	VF2D delta_incr;
+	VF2D_F delta_f(nb_batch);
+
+	// reset connections (must have a set of connections, so that there are no duplicates)
+
+    while (layer->prev.size()) {
+	  	for (int p=0; p < layer->prev.size(); p++) {
+        	Layer* prev_layer = layer->prev[p].first; // assume only one previous layer/connection pair
+        	Connection* prev_connection = layer->prev[p].second;
+
+        	if (prev_connection->getTemporal()) {
+				printf("skip temporal links\n");
+				continue;
+			}
+
+			VF2D_F& delta = layer->getDelta(); // ==> dubious
+			VF2D_F& out_t = prev_layer->getOutputs(); // (layer_size, seq_len)
+
+			for (int b=0; b < nb_batch; b++) {
+        		delta_incr = delta[b] * out_t[b].t();    // EXPENSIVE
+        		prev_connection->incrDelta(delta_incr); 
+			}
+
+			// Not sure about the purpose of D
+        	//D.push_back(&prev_connection->getDelta()); 
+
+			const VF2D wght_t = prev_connection->getWeight().t();
+			const VF2D_F& prev_inputs = prev_layer->getInputs(); //  (layer_size, seq_len)
+			const VF2D_F& prev_grad_act = prev_layer->getActivation().derivative(prev_inputs); // (layer_size, seq_len)
+
+			for (int b=0; b < nb_batch; b++) {
+        		const VF1D& pp = wght_t * delta[b];  // EXPENSIVE
+				delta_f(b) = pp % prev_grad_act[b];  // stored with layer
+			}
+
+        	printf("setDelta, layer: (%s)\n", prev_layer->getName().c_str());
+        	prev_layer->setDelta(delta_f);    // setDelta or incrDelta (when a layer is hit twice?)
+        	layer = prev_layer;
+	  	}
     }
 }
 //----------------------------------------------------------------------

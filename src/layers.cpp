@@ -45,6 +45,8 @@ void Layer::initVars(int nb_batch)
 		inputs[i]  = VF2D(layer_size, 1);
 		outputs[i] = VF2D(layer_size, 1);
 	}
+
+	reset();
 }
 
 Layer::~Layer()
@@ -140,6 +142,13 @@ void Layer::reset()
 		inputs(b).zeros();
 		outputs(b).zeros();
 		clock = 0;
+	}
+}
+
+void Layer::resetBackprop()
+{
+	for (int b=0; b < delta.size(); b++) {
+		delta(b).zeros();
 	}
 }
 

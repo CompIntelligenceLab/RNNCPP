@@ -18,6 +18,8 @@
 using namespace arma;
 using namespace std;
 
+void testBackprop(Model* m);
+
 //----------------------------------------------------------------------
 void testCube()
 {
@@ -311,55 +313,18 @@ void testFuncModel1()
 	m->printSummary();
 	//----------
 
-	int batch_size = m->getBatchSize();
+	testBackprop(m);
 
-	input_dim = input->getLayerSize();
-
-	printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
-	printf("   input layer_size: %d\n", input->getLayerSize());
-	
-
-	VF2D_F xf(batch_size);
-	VF2D_F yf(batch_size); 
-	VF2D_F exact(batch_size);
-
-	printf("batch_size= %d\n", batch_size);
-	input_dim = input->getInputDim();
-	printf("input_dim= %d\n", input_dim);
-	printf("xf.size= %llu", xf.n_rows);
-
-	int output_dim = m->getOutputLayers()[0]->getOutputDim();
-	int seq_len = 1;
-	printf("output_dim= %d\n", output_dim);
-
-	for (int i=0; i < xf.size(); i++) {
-		xf[i].randu(input_dim, seq_len); // uniform random numbers
-		yf[i].randu(input_dim, seq_len);
-		exact[i].randu(output_dim, seq_len);
-	}
-
-	printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
-	printf("   input layer_size: %d\n", input->getLayerSize());
-
-	xf.print("xf");
-	exact.print("exact");
-	
-	VF2D_F pred = m->predictComplex(xf);
-	pred.print("funcModel1, predict:");
-	U::print(pred, "pred");
-	U::print(exact, "exact");
-
-	//m->train(xf);
-	for (int i=0; i < 1; i++) {
-		m->backPropagation(exact, pred);
-		printf("i= %d\n", i);
-	}
+	// Test derivative calculations via finite-differences
+	CONNECTIONS connections = m->getConnections();
+	//for (int i=0; i < 
 }
 //----------------------------------------------------------------------
 void testFuncModel2()
 {
 	printf("\n --- testModel2 ---\n");
 	Model* m  = new Model(); 
+	m->setBatchSize(1);
 	assert(m->getBatchSize() == 1);
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
@@ -396,18 +361,66 @@ void testFuncModel2()
 	input_dim = input->getInputDim();
 	printf("input_dim= %d\n", input_dim);
 
+	m->checkIntegrity();
+	m->printSummary();
 
+	testBackprop(m);
+}
+//----------------------------------------------------------------------
+void testFuncModel3()
+{
+	printf("\n --- testModel2 ---\n");
+	Model* m  = new Model(); 
+	m->setBatchSize(1);
+	assert(m->getBatchSize() == 1);
+
+	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
+	// 2 is the dimensionality of the data
+	// the names have a counter value attached to it, so there is no duplication. 
+	int input_dim = 1;
+	Layer* input   = new InputLayer(input_dim, "input_layer");
+	Layer* dense1  = new DenseLayer(5, "dense");
+	Layer* dense2  = new DenseLayer(3, "dense");
+	Layer* dense3  = new DenseLayer(4, "dense");
+
+	/*  S: Spatial, T: Temporal
+
+	          S
+	   input ---> dense1 -------> dense3 --> loss
+         \                 ^ 
+          \                |
+           \               |
+	        ---> dense2 ---|
+	*/
+
+	m->add(0, input); // changs input_dim to zero. Why? 
+	m->add(input, dense1);
+	m->add(input, dense2);
+	m->add(dense1, dense3);
+	m->add(dense2, dense3);
+
+	m->addInputLayer(input);
+	m->addOutputLayer(dense3);
+
+	input_dim = input->getInputDim();
+	printf("input_dim= %d\n", input_dim);
 
 	m->checkIntegrity();
 	m->printSummary();
 
+	testBackprop(m);
+}
+//----------------------------------------------------------------------
+void testBackprop(Model* m)
+{
 	int batch_size = m->getBatchSize();
 	VF2D_F xf(batch_size);
 	VF2D_F yf(batch_size); 
 	VF2D_F exact(batch_size);
 
 	printf("batch_size= %d\n", batch_size);
-	input_dim = input->getInputDim();
+	Layer* input = m->getInputLayers()[0];
+	int input_dim = input->getInputDim();
 	printf("input_dim= %d\n", input_dim);
 	printf("xf.size= %llu", xf.n_rows);
 
@@ -427,14 +440,17 @@ void testFuncModel2()
 	xf.print("xf");
 	exact.print("exact");
 	
+	printf("\n=====================================\n");
+	printf("\n\n --- Prediciton --- \n\n");
 	VF2D_F pred = m->predictComplex(xf);
 	pred.print("funcModel, predict:");
+	exit(0);
 	U::print(pred, "pred");
 	U::print(exact, "exact");
 
 	//m->train(xf);
-	for (int i=0; i < 100000; i++) {
-		m->backPropagation(exact, pred);
+	for (int i=0; i < 1; i++) {
+		m->backPropagationComplex(exact, pred);
 		printf("i= %d\n", i);
 	}
 }
@@ -474,8 +490,9 @@ int main()
 
 	testCube();
 	//testModel();
-	testFuncModel1();
+	//testFuncModel1();
 	//testFuncModel2();
+	testFuncModel3();
 	//testModel1();
 	//testModel2();
 	//testPredict();

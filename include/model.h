@@ -80,7 +80,8 @@ public:
   void setBatchSize(int batch_size) {this->batch_size = batch_size;}
   void setSeqLen(int seq_len) { this->seq_len = seq_len;}
   void setName(std::string name) { this->name = name; }
-  LAYERS getLayers() const { return layers; };
+  const LAYERS& getLayers() const { return layers; };
+  LAYERS setLayers(LAYERS layer_list) { layers = layer_list; }
   std::string getName() const { return name; }
   void checkIntegrity(); // change connections from spatial to temporal if necessary
                                 // A signal propagating along spatial connections should never
@@ -100,7 +101,10 @@ public:
   VF2D_F predictComplexMaybeWorks(VF2D_F x);  // for testing while Nathan works with predict
   VF2D_F predictComplex(VF2D_F x);  // for testing while Nathan works with predict
   void train(VF2D_F x, VF2D_F y, int batch_size=0, int nb_epochs=1);
-  void backPropagation(VF2D_F y, VF2D_F prep); // should be private
+  void backPropagation(VF2D_F y, VF2D_F prep);
+  // networks that have multiple layers leaving a layer arriving at a layer
+  // should be the inverse of the forward propagation (predict)
+  void backPropagationComplex(VF2D_F y, VF2D_F pred);
   void compile();
 
   /** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */

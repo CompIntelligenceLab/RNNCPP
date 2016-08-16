@@ -123,6 +123,8 @@ public:
 	void incrDelta(VF2D_F& x);
 	// reset inputs and ouputs to zero
 	void reset();
+	// reset deltas
+	void resetBackprop();
 	void setName(std::string name) { this->name = name; } // normally not used
 	std::string getName() { return name; }
 	int getClock() { return clock; }

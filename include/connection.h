@@ -57,6 +57,7 @@ public:
 	void weightUpdate(float learning_rate);
 	WEIGHT& getDelta() { return this->delta; }
 	void setDelta(WEIGHT delta) { this->delta = delta; }
+	void resetDelta() { delta.zeros(); }
 
 
 	Connection(Connection&& w); // C++11
@@ -73,7 +74,7 @@ public:
 
 //----------------------------------------------------------------------
 //typedef std::vector<Weights> WeightList;
-typedef std::vector<Connection> ConnectionList;
+//typedef std::vector<Connection> ConnectionList;
 
 #endif
 
