@@ -15,7 +15,7 @@ Objective::Objective(std::string name /* "objective" */)
 	}
 	sprintf(cname, "%s%d", name.c_str(), counter);
 	this->name = cname;
-	printf("Objective constructor (%s)\n", this->name.c_str());
+	//printf("Objective constructor (%s)\n", this->name.c_str());
 
 	learning_rate = 1.e-5; // arbitrary value
 }
@@ -60,7 +60,7 @@ MeanSquareError::MeanSquareError(std::string name /* mse */)
 	}
 	sprintf(cname, "%s%d", name.c_str(), counter);
 	this->name = cname;
-	printf("MeanSquareError constructor (%s)\n", this->name.c_str());
+	//printf("MeanSquareError constructor (%s)\n", this->name.c_str());
 	counter++;
 }
 
@@ -88,9 +88,9 @@ void MeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 
 	for (int i=0; i < nb_batch; i++) {
 		loss[i] = exact[i] - predict[i]; // check size compatibility
-		loss[i] = arma::square(loss[i]);
-		printf("--- i= %d --\n", i);
-		loss[i].print("loss[i]");
+		loss[i] = arma::square(loss[i]);  // sum of output dimensions
+		loss[i] = arma::sum(loss[i], 0);  // sum over 1st index
+		//loss[i].print("loss[i]");
 	}
 }
 

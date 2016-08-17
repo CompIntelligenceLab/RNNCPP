@@ -22,16 +22,20 @@ VF2D_F testBackprop(Model* m);
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F&);
 
 
-float weightDerivative(Model* m, int c, int rr, int cc, int inc, VF2D_F& xf, VF2D_F& exact)
+float weightDerivative(Model* m, Connection& con, WEIGHT& w0, int inc, VF2D_F& xf, VF2D_F& exact)
 {
-		CONNECTIONS connections = m->getConnections();
-		WEIGHT w0 = connections[c]->getWeight(); 
+	int rrows = w0.n_rows;
+	int ccols = w0.n_cols;
+	float dLdw = 0;
 
-		WEIGHT& wp = connections[c]->getWeight(); 
+	for (int rr=0; rr < rrows; rr++) {
+	for (int cc=0; cc < ccols; cc++) {
+
+		WEIGHT& wp = con.getWeight(); 
 		wp(rr,cc) += inc;
 		VF2D_F pred_n = m->predictComplex(xf);
 
-		WEIGHT& wm = connections[c]->getWeight(); 
+		WEIGHT& wm = con.getWeight(); 
 		wm(rr,cc) -= (2.*inc);
 		VF2D_F pred_p = m->predictComplex(xf);
 
@@ -40,12 +44,23 @@ float weightDerivative(Model* m, int c, int rr, int cc, int inc, VF2D_F& xf, VF2
 			sub(i) = pred_n(i) - pred_p(i);
 		}
 
+		//U::print(exact, "exact"); 
+		//printf("exact.nrows= %d\n", exact.n_rows); 
+
 		Objective* mse = new MeanSquareError();
 		VF1D_F loss_p = (*mse)(pred_p, exact);
 		VF1D_F loss_n = (*mse)(pred_n, exact);
-		float dLdw = (loss_n(0)(0) - loss_p(0)(0)) / (2.*inc);
-		connections[c]->setWeight(w0);
-		return dLdw;
+		//U::print(loss_p, "loss_p"); exit(0);
+		//U::print(loss_n, "loss_n");
+		//loss_n.print("loss_n");
+		//loss_p.print("loss_p");
+		dLdw = (loss_n(0)(0) - loss_p(0)(0)) / (2.*inc);
+		con.setWeight(w0);
+		//printf("loss: %f, %f\n", loss_n(0)(0), loss_p(0)(0));
+		printf("dLdw(%d, %d)= %f\n", rr, cc, dLdw);
+	}}
+
+	return dLdw;
 }
 //----------------------------------------------------------------------
 void testCube()
@@ -356,8 +371,10 @@ void testFuncModel1()
 	int cc = 0;
 
 	printf("<<<<<<<<<<<<<<<<<<\n");
-	int c = 1;
-	float dLdw = weightDerivative(m, c, rr, cc, inc, xf, exact);
+
+	CONNECTIONS connections = m->getConnections();
+	WEIGHT w0 = connections[1]->getWeight(); 
+	float dLdw = weightDerivative(m, *connections[1], w0, inc, xf, exact);
 	printf("dLdw= %f\n", dLdw);
 }
 //----------------------------------------------------------------------
