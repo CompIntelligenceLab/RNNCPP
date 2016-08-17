@@ -18,7 +18,8 @@
 using namespace arma;
 using namespace std;
 
-void testBackprop(Model* m);
+VF2D_F testBackprop(Model* m);
+void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F& exact);
 
 //----------------------------------------------------------------------
 void testCube()
@@ -285,14 +286,14 @@ void testFuncModel1()
 
 	// In reality, the model should not have an input_dim. 
 	Model* m  = new Model(); 
-    m->setBatchSize(2);
-	assert(m->getBatchSize() == 2);
+    m->setBatchSize(1);
+	assert(m->getBatchSize() == 1);
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	// Must make sure that input_dim of input layer is the same as model->input_dim
-	int input_dim = 2;
+	int input_dim = 1;
 	int layer_size = 16;
 	Layer* input   = new InputLayer(input_dim, "input_layer");  
 	Layer* dense0  = new DenseLayer(layer_size, "dense0");
@@ -302,22 +303,80 @@ void testFuncModel1()
 
 	m->add(0, input);
 	m->add(input, dense0);
-	m->add(dense0, dense1);
-	m->add(dense1, dense2);
-	m->add(dense2, dense3);
+	//m->add(dense0, dense1);
+	//m->add(dense1, dense2);
+	//m->add(dense2, dense3);
 
 	m->addInputLayer(input);
-	m->addOutputLayer(dense3);
+	m->addOutputLayer(dense0);
 
 	m->checkIntegrity();
 	m->printSummary();
 	//----------
 
-	testBackprop(m);
+	VF2D_F xf, yf, exact;
+	testData(*m, xf, yf, exact);
+
+// xxxxxxxxx
+
+	//xf = testBackprop(m);
+	xf.print("xf");
+	exact.print("exact");
 
 	// Test derivative calculations via finite-differences
 	CONNECTIONS connections = m->getConnections();
-	//for (int i=0; i < 
+	float inc = 1.001;
+
+	int rr = 0;
+	int cc = 0;
+
+	for (int c=1; c < connections.size(); c++) {
+		printf("<<<<<<<<<<<<<<<<<<\n");
+	    printf("c= %d\n", c);
+	    connections[c]->printSummary();
+		WEIGHT w0 = connections[c]->getWeight(); 
+	printf("--> w0(rr,cc)= %f\n", w0(rr,cc));
+
+		WEIGHT& wp = connections[c]->getWeight(); 
+		wp(rr,cc) += inc;
+	printf("--> wp(rr,cc)= %f\n", wp(rr,cc));
+		VF2D_F pred_n = m->predictComplex(xf);
+
+		WEIGHT& wm = connections[c]->getWeight(); 
+		wm(rr,cc) -= (2.*inc);
+	printf("--> wm(rr,cc)= %f\n", wm(rr,cc));
+		VF2D_F pred_p = m->predictComplex(xf);
+
+		U::print(pred_n, "pred_n");
+		U::print(pred_p, "pred_p");
+		pred_n.print("pred_n");
+		VF2D_F sub(pred_n.n_rows);
+		for (int i=0; i < pred_n.size(); i++) {
+			sub(i) = pred_n(i) - pred_p(i);
+		}
+		sub.print("sub (should not be zero)");
+
+		Objective* mse = new MeanSquareError();
+		VF1D_F loss_p = (*mse)(pred_p, exact);
+		VF1D_F loss_n = (*mse)(pred_n, exact);
+		printf("nb_batch= %d\n", m->getBatchSize());
+		printf("loss_p= %f, loss_n= %f\n", loss_p(0)(0), loss_n(0)(0));
+		pred_n.print("pred_n");
+		pred_p.print("pred_p");
+		float dLdw = (loss_n(0)(0) - loss_p(0)(0)) / (2.*inc);
+		printf("losses(n,p)= %f, %f\n", loss_n(0)(0), loss_p(0)(0));
+		printf("dL/dw= %f\n", dLdw);
+		exit(0);
+		xf.print("xf");
+		printf("gordon\n");exit(0);
+		//printf("gordon\n"); exit(0);
+
+		connections[c]->setWeight(w0);
+	
+		//float loss1 = 
+		//mm->computeLoss(   , pred1);
+		
+	}
 }
 //----------------------------------------------------------------------
 void testFuncModel2()
@@ -411,22 +470,43 @@ void testFuncModel3()
 	testBackprop(m);
 }
 //----------------------------------------------------------------------
-void testBackprop(Model* m)
+void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F& exact)
+{
+	int batch_size = m.getBatchSize();
+	xf.set_size(batch_size);
+	yf.set_size(batch_size);
+	exact.set_size(batch_size);
+
+	Layer* input = m.getInputLayers()[0];
+	int input_dim = input->getInputDim();
+
+	int output_dim = m.getOutputLayers()[0]->getOutputDim();
+	printf("output_dim= %d\n", output_dim);
+	int seq_len = 1;
+
+	for (int i=0; i < xf.size(); i++) {
+		xf[i].randu(input_dim, seq_len); // uniform random numbers
+		yf[i].randu(input_dim, seq_len);
+		exact[i].randu(output_dim, seq_len);
+	}
+}
+//----------------------------------------------------------------------
+VF2D_F testBackprop(Model* m)
 {
 	int batch_size = m->getBatchSize();
 	VF2D_F xf(batch_size);
 	VF2D_F yf(batch_size); 
 	VF2D_F exact(batch_size);
 
-	printf("batch_size= %d\n", batch_size);
+	//printf("batch_size= %d\n", batch_size);
 	Layer* input = m->getInputLayers()[0];
 	int input_dim = input->getInputDim();
-	printf("input_dim= %d\n", input_dim);
-	printf("xf.size= %llu", xf.n_rows);
+	//printf("input_dim= %d\n", input_dim);
+	//printf("xf.size= %llu", xf.n_rows);
 
 	int output_dim = m->getOutputLayers()[0]->getOutputDim();
 	int seq_len = 1;
-	printf("output_dim= %d\n", output_dim);
+	//printf("output_dim= %d\n", output_dim);
 
 	for (int i=0; i < xf.size(); i++) {
 		xf[i].randu(input_dim, seq_len); // uniform random numbers
@@ -434,25 +514,28 @@ void testBackprop(Model* m)
 		exact[i].randu(output_dim, seq_len);
 	}
 
-	printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
-	printf("   input layer_size: %d\n", input->getLayerSize());
+	//printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
+	//printf("   input layer_size: %d\n", input->getLayerSize());
 
-	xf.print("xf");
-	exact.print("exact");
+	//xf.print("xf");
+	//exact.print("exact");
 	
-	printf("\n=====================================\n");
-	printf("\n\n --- Prediciton --- \n\n");
+	//printf("\n=====================================\n");
+	//printf("\n\n --- Prediciton --- \n\n");
 	VF2D_F pred = m->predictComplex(xf);
-	pred.print("funcModel, predict:");
-	exit(0);
-	U::print(pred, "pred");
-	U::print(exact, "exact");
+	//pred.print("funcModel, predict:");
+	
+	//U::print(pred, "pred");
+	//U::print(exact, "exact");
 
 	//m->train(xf);
+
 	for (int i=0; i < 1; i++) {
 		m->backPropagationComplex(exact, pred);
-		printf("i= %d\n", i);
+		//printf("i= %d\n", i);
 	}
+
+	return xf;
 }
 //----------------------------------------------------------------------
 void testObjective()
@@ -488,11 +571,11 @@ int main()
 	//exit(0);
 
 
-	testCube();
+	//testCube();
 	//testModel();
-	//testFuncModel1();
+	testFuncModel1();
 	//testFuncModel2();
-	testFuncModel3();
+	//testFuncModel3();
 	//testModel1();
 	//testModel2();
 	//testPredict();

@@ -183,7 +183,6 @@ void Model::checkIntegrity()
 	Layer* input_layer = getInputLayers()[0];
 	layer_list.push_back(input_layer); 
 	checkIntegrity(layer_list);
-	exit(0);
 
 	// A recursive solution would be better. 
 }

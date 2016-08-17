@@ -25,8 +25,13 @@ public:
 	virtual VF1D_F& getLoss() { return loss; }
 	virtual VF2D_F& getGradient() { return gradient; }
 	
-	virtual void computeLoss(VF2D_F& exact, VF2D_F& predict) = 0;
-	virtual void computeGradient(VF2D_F& exact, VF2D_F& predict) = 0;
+	virtual void computeLoss(const VF2D_F& exact, const VF2D_F& predict) = 0;
+	virtual void computeGradient(const VF2D_F& exact, const VF2D_F& predict) = 0;
+
+	virtual VF1D_F& operator()(const VF2D_F& exact, const VF2D_F& predict) {
+		computeLoss(exact, predict);
+		return getLoss();
+	}
 };
 
 class MeanSquareError : public Objective
@@ -41,8 +46,8 @@ public:
 	//const MeanSquareError& MeanSquareError=(const MeanSquareError&);
 
 	/** sum_{batches} (predict - exact)^2 */
-	void computeLoss(VF2D_F& exact, VF2D_F& predict);
-	void computeGradient(VF2D_F& exact, VF2D_F& predict);
+	void computeLoss(const VF2D_F& exact, const VF2D_F& predict);
+	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
 };
 
 #endif

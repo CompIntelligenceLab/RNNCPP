@@ -81,7 +81,7 @@ public:
   void setSeqLen(int seq_len) { this->seq_len = seq_len;}
   void setName(std::string name) { this->name = name; }
   const LAYERS& getLayers() const { return layers; };
-  LAYERS setLayers(LAYERS layer_list) { layers = layer_list; }
+  void setLayers(LAYERS layer_list) { layers = layer_list; }
   std::string getName() const { return name; }
   void checkIntegrity(); // change connections from spatial to temporal if necessary
                                 // A signal propagating along spatial connections should never

@@ -18,10 +18,6 @@ Objective::Objective(std::string name /* "objective" */)
 	printf("Objective constructor (%s)\n", this->name.c_str());
 
 	learning_rate = 1.e-5; // arbitrary value
-
-	for (int i=0; i < loss.n_rows; i++) {
-		loss[i].fill(1.e9f); // very large value
-	}
 }
 
 Objective::~Objective()
@@ -85,7 +81,7 @@ MeanSquareError::MeanSquareError(const MeanSquareError& mse) : Objective(mse)
 	//return *this;
 //}
 
-void MeanSquareError::computeLoss(VF2D_F& exact, VF2D_F& predict)
+void MeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 {
 	int nb_batch = exact.n_rows;
 	loss.set_size(nb_batch);
@@ -93,10 +89,12 @@ void MeanSquareError::computeLoss(VF2D_F& exact, VF2D_F& predict)
 	for (int i=0; i < nb_batch; i++) {
 		loss[i] = exact[i] - predict[i]; // check size compatibility
 		loss[i] = arma::square(loss[i]);
+		printf("--- i= %d --\n", i);
+		loss[i].print("loss[i]");
 	}
 }
 
-void MeanSquareError::computeGradient(VF2D_F& exact, VF2D_F& predict)
+void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 {
 	int nb_batch = exact.n_rows;
 	gradient.set_size(nb_batch);
@@ -109,3 +107,4 @@ void MeanSquareError::computeGradient(VF2D_F& exact, VF2D_F& predict)
 		gradient[i] = 2.* (exact[i] - predict[i]); // check size compatibility
 	}
 }
+

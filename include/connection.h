@@ -43,6 +43,7 @@ public:
 	Connection(const Connection&);
 	const Connection& operator=(const Connection& w);
 	std::string getName() { return name; } // more generally, return a vector of weights
+	void setWeight(WEIGHT w) { weight = w; } // 
 	WEIGHT& getWeight() { return weight; } // more generally, return a vector of weights
 	void print(std::string name= "");
 	void printSummary(std::string name= "");
