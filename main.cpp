@@ -19,8 +19,34 @@ using namespace arma;
 using namespace std;
 
 VF2D_F testBackprop(Model* m);
-void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F& exact);
+void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F&);
 
+
+float weightDerivative(Model* m, int c, int rr, int cc, int inc, VF2D_F& xf, VF2D_F& exact)
+{
+		CONNECTIONS connections = m->getConnections();
+		WEIGHT w0 = connections[c]->getWeight(); 
+
+		WEIGHT& wp = connections[c]->getWeight(); 
+		wp(rr,cc) += inc;
+		VF2D_F pred_n = m->predictComplex(xf);
+
+		WEIGHT& wm = connections[c]->getWeight(); 
+		wm(rr,cc) -= (2.*inc);
+		VF2D_F pred_p = m->predictComplex(xf);
+
+		VF2D_F sub(pred_n.n_rows);
+		for (int i=0; i < pred_n.size(); i++) {
+			sub(i) = pred_n(i) - pred_p(i);
+		}
+
+		Objective* mse = new MeanSquareError();
+		VF1D_F loss_p = (*mse)(pred_p, exact);
+		VF1D_F loss_n = (*mse)(pred_n, exact);
+		float dLdw = (loss_n(0)(0) - loss_p(0)(0)) / (2.*inc);
+		connections[c]->setWeight(w0);
+		return dLdw;
+}
 //----------------------------------------------------------------------
 void testCube()
 {
@@ -324,59 +350,15 @@ void testFuncModel1()
 	exact.print("exact");
 
 	// Test derivative calculations via finite-differences
-	CONNECTIONS connections = m->getConnections();
-	float inc = 1.001;
 
+	float inc = 1.001;
 	int rr = 0;
 	int cc = 0;
 
-	for (int c=1; c < connections.size(); c++) {
-		printf("<<<<<<<<<<<<<<<<<<\n");
-	    printf("c= %d\n", c);
-	    connections[c]->printSummary();
-		WEIGHT w0 = connections[c]->getWeight(); 
-	printf("--> w0(rr,cc)= %f\n", w0(rr,cc));
-
-		WEIGHT& wp = connections[c]->getWeight(); 
-		wp(rr,cc) += inc;
-	printf("--> wp(rr,cc)= %f\n", wp(rr,cc));
-		VF2D_F pred_n = m->predictComplex(xf);
-
-		WEIGHT& wm = connections[c]->getWeight(); 
-		wm(rr,cc) -= (2.*inc);
-	printf("--> wm(rr,cc)= %f\n", wm(rr,cc));
-		VF2D_F pred_p = m->predictComplex(xf);
-
-		U::print(pred_n, "pred_n");
-		U::print(pred_p, "pred_p");
-		pred_n.print("pred_n");
-		VF2D_F sub(pred_n.n_rows);
-		for (int i=0; i < pred_n.size(); i++) {
-			sub(i) = pred_n(i) - pred_p(i);
-		}
-		sub.print("sub (should not be zero)");
-
-		Objective* mse = new MeanSquareError();
-		VF1D_F loss_p = (*mse)(pred_p, exact);
-		VF1D_F loss_n = (*mse)(pred_n, exact);
-		printf("nb_batch= %d\n", m->getBatchSize());
-		printf("loss_p= %f, loss_n= %f\n", loss_p(0)(0), loss_n(0)(0));
-		pred_n.print("pred_n");
-		pred_p.print("pred_p");
-		float dLdw = (loss_n(0)(0) - loss_p(0)(0)) / (2.*inc);
-		printf("losses(n,p)= %f, %f\n", loss_n(0)(0), loss_p(0)(0));
-		printf("dL/dw= %f\n", dLdw);
-		exit(0);
-		xf.print("xf");
-		printf("gordon\n");exit(0);
-		//printf("gordon\n"); exit(0);
-
-		connections[c]->setWeight(w0);
-	
-		//float loss1 = 
-		//mm->computeLoss(   , pred1);
-		
-	}
+	printf("<<<<<<<<<<<<<<<<<<\n");
+	int c = 1;
+	float dLdw = weightDerivative(m, c, rr, cc, inc, xf, exact);
+	printf("dLdw= %f\n", dLdw);
 }
 //----------------------------------------------------------------------
 void testFuncModel2()
