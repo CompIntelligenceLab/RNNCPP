@@ -112,6 +112,16 @@ void Model::addOutputLayer(Layer* layer)
 	output_layers.push_back(layer);
 }
 //----------------------------------------------------------------------
+void Model::addLossLayer(Layer* layer)
+{
+	loss_layers.push_back(layer);
+}
+//----------------------------------------------------------------------
+void Model::addProbeLayer(Layer* layer)
+{
+	probe_layers.push_back(layer);
+}
+//----------------------------------------------------------------------
 void Model::add(Layer* layer_from, Layer* layer)
 {
 	printf("add(layer_from, layer)\n");
@@ -365,12 +375,16 @@ VF2D_F Model::predictComplexMaybeWorks(VF2D_F xf)  // for testing while Nathan w
 
 	char buf[80];
   	VF2D_F prod(xf); //copy constructor, .n_rows);
+  	xf.print("xf");
 
  	LAYERS layer_list;  
 	// The first layer is input, the others can appear multiple times, depending on the network
 	LAYERS layers = getLayers();   // zeroth element is the input layer
     assert(layers.size() > 1);  // need at least an input layer connected to an output layer
 
+	// not necessarily a good idea if one wishes to maintain state for recursive nets. 
+	// Works for feedfoward networks
+	// Unless on maintains one input per connection, and resets the spatial connections. 
 	for (int i=0; i < layers.size(); i++) {
 		layers[i]->reset(); // reset inputs, outputs, and clock to zero
 	}
@@ -380,7 +394,7 @@ VF2D_F Model::predictComplexMaybeWorks(VF2D_F xf)  // for testing while Nathan w
     layer_list.push_back(input_layer);
 	layer_list[0]->printName("layer_list[0]"); // input layer
 
-	// going throught the above initializatino might not be necessary. However, if the topology or types of connections
+	// going throught the above initializatin might not be necessary. However, if the topology or types of connections
 	// change during training, then layer_list might change between training elements. So keep for generality. The cost 
 	// is minimal compared to the cost of matrix-vector multiplication. 
 
@@ -438,9 +452,11 @@ VF2D_F Model::predictComplexMaybeWorks(VF2D_F xf)  // for testing while Nathan w
 				nlayer->incrInputs(new_prod);
 			}
 
+			new_prod.print("** layer, (" + nlayer->getName() + ") input");
 			prod = nlayer->getActivation()(new_prod);
-			nlayer->printName("nlayer");
-			prod.print("nlayer");
+
+			printf("activation: %s\n", nlayer->getActivation().getName().c_str());
+			prod.print("** layer, (" + nlayer->getName() + ") output");
 			nlayer->setOutputs(prod);
 		}
 		layer_list.erase(layer_list.begin());
@@ -573,11 +589,13 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 				nlayer->incrInputs(new_prod);
 			}
 
+			prod.print("** layer inputs");
 			prod = nlayer->getActivation()(new_prod);
 			printf(" --> nlayer->setOutputs(prod)");
 			print(prod, " --> prod");
 			nlayer->printSummary(" --> ");
 			nlayer->setOutputs(prod);
+			prod.print("** layer outputs");
 			printf(" --> Finished processing nlayer: \n");
 			nlayer->printSummary(" --> nlayer");
 			print(prod, "final prod --> nlayer");
@@ -592,6 +610,7 @@ VF2D_F Model::predictComplex(VF2D_F x)  // for testing while Nathan works with p
 
 	Layer* output_layer = layers[layers.size()-1]; // will this always work? Not for more general networks. 
 	output_layer->getOutputs();
+	exit(0);
 	
 	return prod; 
 }
@@ -620,6 +639,8 @@ void Model::backPropagation(VF2D_F exact, VF2D_F pred)
     // This only works for simple feed forward with one physical layer per
     // conceptual layer
 
+	//pred.print("xpred"); exit(0);
+
 	// reset connection delta variables
 	for (int i=0; i < connections.size(); i++) {
 		printf("i=%d\n", i);
@@ -627,10 +648,14 @@ void Model::backPropagation(VF2D_F exact, VF2D_F pred)
 	}
 
     Layer* layer = getOutputLayers()[0];   // Assume one output layer
+	exact.print("exact");
     objective->computeGradient(exact, pred);
     VF2D_F& grad = objective->getGradient();
     layer->setDelta(grad);  //DELTA: VF1D_F, but grad: VF2D_F (DELTA probably VF2D_F)
-	grad.print("+++> grad(objective), output layer");
+	pred.print("+++>pred"); // OK
+	grad.print("+++> grad(objective), output layer"); //OK
+	//VF2D grad10 = 10.*grad(0);
+	//grad10.print("grad*10");
 	printf("output layer\n");
 	layer->printName("output layer");
 	layer->getDelta().print("delta output layer");
@@ -641,19 +666,24 @@ void Model::backPropagation(VF2D_F exact, VF2D_F pred)
 
     while (layer->prev.size()) {
 		printf("*** inside while ***\n"); 
-        Layer* prev_layer = layer->prev[0].first; // assume only one previous layer/connection pair
+        Layer* prev_layer = layer->prev[0].first; // assume only one previous layer/connection pair (input layer)
+		//prev_layer->printName(""); exit(0);
         Connection* prev_connection = layer->prev[0].second;
-		VF2D_F& delta = layer->getDelta(); // ==> dubious
-        prev_layer->printName("+++> prev layer");
-        delta.print("+++> delta"); 
+		VF2D_F& delta = layer->getDelta(); // grad from output layer
+		//delta.print("delta"); exit(0); // grad
+        prev_layer->printName("+++> prev layer"); // input
+        //delta.print("+++> delta");  exit(0); // grad from outpu tlayer
 		VF2D_F& out_t = prev_layer->getOutputs(); // (layer_size, seq_len)
-		out_t.print("+++> out_t, prev_layer");
+		//out_t.print("+++> out_t, prev_layer"); exit(0); // xf from input layer (f = identity)
 
 		for (int b=0; b < nb_batch; b++) {
         	delta_incr = delta[b] * out_t[b].t();    // EXPENSIVE
 			delta_incr.print("+++> delta_incr, prev connection");
-        	prev_connection->incrDelta(delta_incr); 
 		}
+        prev_connection->incrDelta(delta_incr); 
+        delta_incr.print("delta_incr");
+		prev_connection->printSummary("prev connection"); // input - dense01
+		//exit(0);
 
 		// Not sure about the purpose of D
         // D.push_back(&prev_connection->getDelta()); 
@@ -723,7 +753,7 @@ void Model::backPropagationComplex(VF2D_F exact, VF2D_F pred)
 			}
 
 			// Not sure about the purpose of D
-        	//D.push_back(&prev_connection->getDelta()); 
+        	// D.push_back(&prev_connection->getDelta()); 
 
 			const VF2D wght_t = prev_connection->getWeight().t();
 			const VF2D_F& prev_inputs = prev_layer->getInputs(); //  (layer_size, seq_len)

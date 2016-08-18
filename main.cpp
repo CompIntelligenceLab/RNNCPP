@@ -339,19 +339,24 @@ void testFuncModel1()
 	int input_dim = 1;
 	int layer_size = 1;
 	Layer* input   = new InputLayer(input_dim, "input_layer");  
-	Layer* dense0  = new DenseLayer(layer_size, "dense0");
-	Layer* dense1  = new DenseLayer(layer_size, "dense1");
+	Layer* dense0  = new DenseLayer(layer_size, "dense0");  // weights between dense0 and dense1
+	Layer* dense1  = new DenseLayer(layer_size, "dense1");  // weights btween dense1 and dense2
 	Layer* dense2  = new DenseLayer(layer_size, "dense2");
 	Layer* dense3  = new DenseLayer(layer_size, "dense3");
+	dense1->setActivation(new Identity());
 
 	m->add(0, input);
 	m->add(input, dense0);
-	//m->add(dense0, dense1);
+	m->add(dense0, dense1);
+
 	//m->add(dense1, dense2);
 	//m->add(dense2, dense3);
 
 	m->addInputLayer(input);
-	m->addOutputLayer(dense0);
+	m->addOutputLayer(dense1);
+	m->addProbeLayer(dense0);
+	m->addProbeLayer(dense1);
+	m->addLossLayer(dense1);
 
 	m->checkIntegrity();
 	m->printSummary();
@@ -361,6 +366,11 @@ void testFuncModel1()
 	testData(*m, xf, yf, exact);
 	exact.print("exact"); // .0470
 
+	//VF2D_F ee = dense0->getActivation()(exact);
+	//ee.print("ee");
+	//exact.print("exact");
+	//exit(0);
+
 // xxxxxxxxx
 
 	//xf = testBackprop(m);
@@ -368,12 +378,14 @@ void testFuncModel1()
 
 	printf("\n===== PREDICT ===============================================================================================\n");
 	VF2D_F pred = m->predictComplexMaybeWorks(xf);  // for testing while Nathan works with predict
+	exit(0);
 
 	xf.print("xf"); //    0.5328
 	pred.print("pred"); //    0.2396  (matches analytical)
 	// Output to dens0: tanh(w*xf) = tanh(.4587*.5328) = tanh(.2444) = 0.2396
 	// objective: (.239643-.0470)**2 = .037094
 	// tanh gradient: (1-.239643^2) = .9426
+	// objective gradient: 2*(.239643-.0470) = .385286
 	WEIGHT w =  m->getConnections()[1]->getWeight();
 	m->getConnections()[1]->getWeight().print("weight"); //    0.4587
 	(*m->getObjective())(exact, pred).print("objective");  // .0371 (ok)
@@ -384,6 +396,7 @@ void testFuncModel1()
 		VF1D dLdw_exact = 2.*(pred(b)-exact(b))*(1.-arma::tanh(xf(b)*w(0,0))%tanh(xf(b)*w(0,0))) * xf(b);
 		dLdw_exact.print("==> dLdw_exact");
 	}
+	//pred.print("pred"); exit(0);
 
 	printf("\n===== BACK PROPAGATION =================================================================================\n");
 	m->backPropagation(exact, pred);
@@ -399,7 +412,7 @@ void testFuncModel1()
 
 	printf("\n===== EXACT DERIVATIVES dL/dw ============================================================================\n");
 
-	float inc = .011;
+	float inc = .001;
 	int rr = 0;
 	int cc = 0;
 
@@ -409,6 +422,7 @@ void testFuncModel1()
 
 	// calculate derivative with respect to all elements of weight matri
 	float dLdw = weightDerivative(m, *connections[1], inc, xf, exact);
+	dLdw = weightDerivative(m, *connections[2], inc, xf, exact);
 	// dLdw(0, 0)= 0.128712  (weight: 1x1)
 	printf("\n===== END EXACT DERIVATIVES dL/dw ============================================================================\n");
 

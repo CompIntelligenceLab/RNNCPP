@@ -36,6 +36,9 @@ private:
 	LAYERS layers;
 	LAYERS input_layers;
 	LAYERS output_layers;
+	LAYERS loss_layers;
+	// Probe layers have no output
+	LAYERS probe_layers; // to help read output of previous layer 
 	CONNECTIONS connections; // (l)ist of weights
 
 public:
@@ -61,8 +64,12 @@ public:
   void add(Layer* layer_from, Layer* layer);
   void addInputLayer(Layer* layer);
   void addOutputLayer(Layer* layer);
+  void addLossLayer(Layer* layer);
+  void addProbeLayer(Layer* layer);
   LAYERS getOutputLayers() { return output_layers; }
   LAYERS getInputLayers() { return input_layers; }
+  LAYERS getLossLayers() { return loss_layers; }
+  LAYERS getProbeLayers() { return probe_layers; }
   void setOptimizer(Optimizer* opt) {optimizer = opt;}
   Optimizer* getOptimizer() const {return optimizer;}
   void setLoss(Objective* obj) {objective = obj;}

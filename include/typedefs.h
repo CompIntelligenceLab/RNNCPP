@@ -32,12 +32,15 @@ class Connection;
 #ifdef ARMADILLO
 	typedef std::vector<Connection*> CONNECTIONS;
 	typedef std::vector<std::pair<Layer*, Connection*> > PAIRS_L; 
+	// 1st argument: input to a layer, or output to a connection
+	// 2nd argument: connection type, or clock or counter
 	typedef arma::Col<float> AF;
 	typedef arma::Col<float> VF;
 	typedef arma::Col<float> VF1D;
 	typedef arma::Mat<float> VF2D;
 	typedef arma::field<arma::Col<float> > VF1D_F;  // [batch](seq_len) 
 	typedef arma::field<arma::Mat<float> > VF2D_F;  // [batch](dimension, seq_len) 
+	typedef std::vector<std::pair<VF2D_F*, int> > LAYER_INPUTS;
 	typedef arma::Cube<float> VF3D;
 	typedef arma::Row<int> VI; // not possible to allocate a row of size 3;
 	//typedef arma::Mat<int> VI;

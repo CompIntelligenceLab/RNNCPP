@@ -85,3 +85,22 @@ const Sigmoid& Sigmoid::operator=(const Sigmoid& s)
 }
 
 //----------------------------------------------------------------------
+Identity::~Identity()
+{
+}
+ 
+Identity::Identity(const Identity& s) : Activation(s)
+{
+	printf("Identity constructor (%s)\n", this->name.c_str());
+}
+
+const Identity& Identity::operator=(const Identity& s)
+{
+	if (this != &s) {
+		name = s.name + '=';
+	}
+	return *this;
+}
+
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------

@@ -24,8 +24,31 @@ public:
 	virtual VF2D_F derivative(const VF2D_F& x) = 0; // derivative of activation function evaluated at x
 	virtual VF2D_F operator()(const VF2D_F& x) = 0;
 	virtual void print(std::string name= "");
+	virtual std::string getName() { return name; }
 };
 
+//----------------------------------------------------------------------
+class Identity : public Activation
+{
+public:
+	Identity(std::string name="Identity") : Activation(name) {;}
+	~Identity();
+    Identity(const Identity&);
+    const Identity& operator=(const Identity&);
+ 
+	VF2D_F operator()(const VF2D_F& x) {
+		return x;
+	}
+
+	VF2D_F derivative(const VF2D_F& x)
+	{
+		VF2D_F y(x);
+		for (int b=0; b < x.size(); b++) {
+			y[b].zeros();
+		}
+		return y;
+	}
+};
 //----------------------------------------------------------------------
 class Tanh : public Activation
 {

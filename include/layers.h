@@ -18,6 +18,9 @@ public:
 	// list of layers this layer is sending information to
 	PAIRS_L prev;
 	PAIRS_L next;
+	// main inputs to activation in a list to better handle backpropagation when 
+	// more than one layer hits a downstream layer
+	LAYER_INPUTS layer_inputs;  // change to inputs later
 
 
 protected:
@@ -27,7 +30,7 @@ protected:
 	std::string name;
 	int layer_size; // number of nodes in layer
 	int input_dim; // size of previous layer
-	VF2D_F inputs;  // inputs to activation function (batch_sz, seq_len)
+	VF2D_F inputs;  // inputs to activation function (batch_sz, seq_len)  // change to input later
 	VF2D_F outputs; // outputs from activation function
 	DELTA delta; // outputs from activation function
 	//WEIGHTS weights; // between this layer and the previous one. Breaks down 
