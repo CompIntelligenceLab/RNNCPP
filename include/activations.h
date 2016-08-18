@@ -53,9 +53,12 @@ public:
 	{
 #ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
+		x.print("***> input to activation (tanh): x");
 		for (int i=0; i < x.n_rows; i++) {
-			y[i] = 1.-x[i]%x[i];
+			y[i] = tanh(x[i]);
+			y[i] = 1.-y[i]%y[i];
 		}
+		printf("***> tanh= %f, deriv= %f\n", tanh(x[0](0,0)), y[0](0,0));
 		return y;
 #else
 		VF s = this->operator()(x);

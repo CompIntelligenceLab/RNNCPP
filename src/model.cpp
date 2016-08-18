@@ -358,13 +358,13 @@ void Model::print(VF1D x, int val1, std::string msg)
 	cout << buf << ", shape: (" << x.n_rows << endl;
 }
 //----------------------------------------------------------------------
-VF2D_F Model::predictComplexMaybeWorks(VF2D_F x)  // for testing while Nathan works with predict
+VF2D_F Model::predictComplexMaybeWorks(VF2D_F xf)  // for testing while Nathan works with predict
 {
 	// The network is assumed to have a single input. 
 	// Only propagate through the spatial networks
 
 	char buf[80];
-  	VF2D_F prod(x); //copy constructor, .n_rows);
+  	VF2D_F prod(xf); //copy constructor, .n_rows);
 
  	LAYERS layer_list;  
 	// The first layer is input, the others can appear multiple times, depending on the network
@@ -376,16 +376,16 @@ VF2D_F Model::predictComplexMaybeWorks(VF2D_F x)  // for testing while Nathan wo
 	}
 
     Layer* input_layer = layers[0];
-	input_layer->setInputs(x);
+	input_layer->setInputs(xf);
     layer_list.push_back(input_layer);
-	layer_list[0]->printName("layer_list[0]");
+	layer_list[0]->printName("layer_list[0]"); // input layer
 
 	// going throught the above initializatino might not be necessary. However, if the topology or types of connections
 	// change during training, then layer_list might change between training elements. So keep for generality. The cost 
 	// is minimal compared to the cost of matrix-vector multiplication. 
 
-	Layer* cur_layer = layers[0];
-	cur_layer->setInputs(prod); 
+	Layer* cur_layer = layer_list[0]; // input layer
+	cur_layer->setInputs(prod);  // input value xf
 	cur_layer->setOutputs(prod); // inputs are same as outputs for an input layer
 
 	while (true) {
@@ -424,18 +424,23 @@ VF2D_F Model::predictComplexMaybeWorks(VF2D_F x)  // for testing while Nathan wo
 
 				WEIGHT& wght = pconnection->getWeight();
 				prod = player->getOutputs();  
+				wght.print("wght, prev connection");
+				prod.print("prod, prev layer");
 
 				new_prod.set_size(prod.n_rows);
 	
-				for (int b=0; b < x.n_rows; b++) {
+				for (int b=0; b < xf.n_rows; b++) {
 					new_prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
 				                           	//left and right of "=" have different dimensions
 				}
+				new_prod.print("wght*prod");
 
 				nlayer->incrInputs(new_prod);
 			}
 
 			prod = nlayer->getActivation()(new_prod);
+			nlayer->printName("nlayer");
+			prod.print("nlayer");
 			nlayer->setOutputs(prod);
 		}
 		layer_list.erase(layer_list.begin());
@@ -446,6 +451,10 @@ VF2D_F Model::predictComplexMaybeWorks(VF2D_F x)  // for testing while Nathan wo
 
 	Layer* output_layer = layers[layers.size()-1]; // will this always work? Not for more general networks. 
 	output_layer->getOutputs(); // not used
+
+	prod.print("return value");
+	printf("=== END PREDICT =====================\n");
+	//exit(0);
 	
 	return prod; 
 }
@@ -604,7 +613,7 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 	loss.print("loss");
 }
 //----------------------------------------------------------------------
-void Model::backPropagation(VF2D_F y, VF2D_F pred)
+void Model::backPropagation(VF2D_F exact, VF2D_F pred)
 {
 	// Not sure why required
     std::vector<WEIGHT*> D; // All partial derivatives to be passed to optimizer
@@ -618,22 +627,31 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 	}
 
     Layer* layer = getOutputLayers()[0];   // Assume one output layer
-    objective->computeGradient(y, pred);
+    objective->computeGradient(exact, pred);
     VF2D_F& grad = objective->getGradient();
     layer->setDelta(grad);  //DELTA: VF1D_F, but grad: VF2D_F (DELTA probably VF2D_F)
+	grad.print("+++> grad(objective), output layer");
+	printf("output layer\n");
+	layer->printName("output layer");
+	layer->getDelta().print("delta output layer");
 
 	int nb_batch = grad.n_rows;
 	VF2D delta_incr;
 	VF2D_F delta_f(nb_batch);
 
     while (layer->prev.size()) {
+		printf("*** inside while ***\n"); 
         Layer* prev_layer = layer->prev[0].first; // assume only one previous layer/connection pair
         Connection* prev_connection = layer->prev[0].second;
 		VF2D_F& delta = layer->getDelta(); // ==> dubious
+        prev_layer->printName("+++> prev layer");
+        delta.print("+++> delta"); 
 		VF2D_F& out_t = prev_layer->getOutputs(); // (layer_size, seq_len)
+		out_t.print("+++> out_t, prev_layer");
 
 		for (int b=0; b < nb_batch; b++) {
         	delta_incr = delta[b] * out_t[b].t();    // EXPENSIVE
+			delta_incr.print("+++> delta_incr, prev connection");
         	prev_connection->incrDelta(delta_incr); 
 		}
 
@@ -641,8 +659,15 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
         // D.push_back(&prev_connection->getDelta()); 
 
 		const VF2D wght_t = prev_connection->getWeight().t();
-		const VF2D_F& prev_inputs = prev_layer->getInputs(); //  (layer_size, seq_len)
+		wght_t.print("+++> wght_t, prev connection");
+		//const VF2D_F& prev_inputs = prev_layer->getInputs(); //  (layer_size, seq_len)
+		const VF2D_F& prev_inputs = prev_layer->getOutputs(); //  (layer_size, seq_len)
+		// input and output are the same. True. WHY IS IT NOT w*x? where is w? 
+		prev_layer->printName("prev_layer");
+		// I FEEL it should be prev-layer->getOutputs()
+		wght_t.print("+++> prev_inputs, prev layer");
 		const VF2D_F& prev_grad_act = prev_layer->getActivation().derivative(prev_inputs); // (layer_size, seq_len)
+		prev_grad_act.print("+++> derivative, prev layer");
 
 		for (int b=0; b < nb_batch; b++) {
         	const VF1D& pp = wght_t * delta[b];  // EXPENSIVE
@@ -650,11 +675,12 @@ void Model::backPropagation(VF2D_F y, VF2D_F pred)
 		}
 
         prev_layer->setDelta(delta_f); 
+		delta_f.print("+++> delta_f, previous layer");
         layer = prev_layer;
     }
 }
 //----------------------------------------------------------------------
-void Model::backPropagationComplex(VF2D_F y, VF2D_F pred)
+void Model::backPropagationComplex(VF2D_F exact, VF2D_F pred)
 {
 	// Not sure why required
     std::vector<WEIGHT*> D; // All partial derivatives to be passed to optimizer
@@ -668,7 +694,7 @@ void Model::backPropagationComplex(VF2D_F y, VF2D_F pred)
 	}
 
     Layer* layer = getOutputLayers()[0];   // Assume one output layer
-    objective->computeGradient(y, pred);
+    objective->computeGradient(exact, pred);
     VF2D_F& grad = objective->getGradient();
     layer->setDelta(grad);  //DELTA: VF1D_F, but grad: VF2D_F (DELTA probably VF2D_F)
 

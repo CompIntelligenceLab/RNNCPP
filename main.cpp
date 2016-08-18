@@ -6,6 +6,7 @@
 //#include <fstream>
 #include "model.h"
 #include "activations.h"
+#include "connection.h"
 #include "optimizer.h"
 #include "objective.h"
 #include "layers.h"
@@ -22,8 +23,9 @@ VF2D_F testBackprop(Model* m);
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F&);
 
 
-float weightDerivative(Model* m, Connection& con, WEIGHT& w0, int inc, VF2D_F& xf, VF2D_F& exact)
+float weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
 {
+	WEIGHT w0 = con.getWeight();
 	int rrows = w0.n_rows;
 	int ccols = w0.n_cols;
 	float dLdw = 0;
@@ -48,8 +50,8 @@ float weightDerivative(Model* m, Connection& con, WEIGHT& w0, int inc, VF2D_F& x
 		//printf("exact.nrows= %d\n", exact.n_rows); 
 
 		Objective* mse = new MeanSquareError();
-		VF1D_F loss_p = (*mse)(pred_p, exact);
-		VF1D_F loss_n = (*mse)(pred_n, exact);
+		VF1D_F loss_p = (*mse)(exact, pred_p);
+		VF1D_F loss_n = (*mse)(exact, pred_n);
 		//U::print(loss_p, "loss_p"); exit(0);
 		//U::print(loss_n, "loss_n");
 		//loss_n.print("loss_n");
@@ -57,7 +59,7 @@ float weightDerivative(Model* m, Connection& con, WEIGHT& w0, int inc, VF2D_F& x
 		dLdw = (loss_n(0)(0) - loss_p(0)(0)) / (2.*inc);
 		con.setWeight(w0);
 		//printf("loss: %f, %f\n", loss_n(0)(0), loss_p(0)(0));
-		printf("dLdw(%d, %d)= %f\n", rr, cc, dLdw);
+		printf("...> Finite-Difference, dLdw(%d, %d)= %f\n", rr, cc, dLdw);
 	}}
 
 	return dLdw;
@@ -335,7 +337,7 @@ void testFuncModel1()
 	// the names have a counter value attached to it, so there is no duplication. 
 	// Must make sure that input_dim of input layer is the same as model->input_dim
 	int input_dim = 1;
-	int layer_size = 16;
+	int layer_size = 1;
 	Layer* input   = new InputLayer(input_dim, "input_layer");  
 	Layer* dense0  = new DenseLayer(layer_size, "dense0");
 	Layer* dense1  = new DenseLayer(layer_size, "dense1");
@@ -357,25 +359,59 @@ void testFuncModel1()
 
 	VF2D_F xf, yf, exact;
 	testData(*m, xf, yf, exact);
+	exact.print("exact"); // .0470
 
 // xxxxxxxxx
 
 	//xf = testBackprop(m);
 	xf.print("xf");
-	exact.print("exact");
+
+	printf("\n===== PREDICT ===============================================================================================\n");
+	VF2D_F pred = m->predictComplexMaybeWorks(xf);  // for testing while Nathan works with predict
+
+	xf.print("xf"); //    0.5328
+	pred.print("pred"); //    0.2396  (matches analytical)
+	// Output to dens0: tanh(w*xf) = tanh(.4587*.5328) = tanh(.2444) = 0.2396
+	// objective: (.239643-.0470)**2 = .037094
+	// tanh gradient: (1-.239643^2) = .9426
+	WEIGHT w =  m->getConnections()[1]->getWeight();
+	m->getConnections()[1]->getWeight().print("weight"); //    0.4587
+	(*m->getObjective())(exact, pred).print("objective");  // .0371 (ok)
+
+	// dL/dw = (dL/dz) (dz/da) (da/dw) = 2.*(pred-exact)*tanh'(xf*w) * xf
+	//       = 2.*(pred-exact)*(1-(xf*w)**2) * xf
+    for (int b=0; b < pred.size(); b++) {
+		VF1D dLdw_exact = 2.*(pred(b)-exact(b))*(1.-arma::tanh(xf(b)*w(0,0))%tanh(xf(b)*w(0,0))) * xf(b);
+		dLdw_exact.print("==> dLdw_exact");
+	}
+
+	printf("\n===== BACK PROPAGATION =================================================================================\n");
+	m->backPropagation(exact, pred);
+
+	for (int c=1; c < m->getConnections().size(); c++) {
+		Connection* con = m->getConnections()[c];
+		WEIGHT delta = con->getDelta();
+		delta.print("==> delta"); //   -0.2052
+	}
+	printf("\n===== END BACK PROPAGATION =================================================================================\n");
 
 	// Test derivative calculations via finite-differences
 
-	float inc = 1.001;
+	printf("\n===== EXACT DERIVATIVES dL/dw ============================================================================\n");
+
+	float inc = .011;
 	int rr = 0;
 	int cc = 0;
 
-	printf("<<<<<<<<<<<<<<<<<<\n");
-
 	CONNECTIONS connections = m->getConnections();
 	WEIGHT w0 = connections[1]->getWeight(); 
-	float dLdw = weightDerivative(m, *connections[1], w0, inc, xf, exact);
-	printf("dLdw= %f\n", dLdw);
+	w0.print("w0");
+
+	// calculate derivative with respect to all elements of weight matri
+	float dLdw = weightDerivative(m, *connections[1], inc, xf, exact);
+	// dLdw(0, 0)= 0.128712  (weight: 1x1)
+	printf("\n===== END EXACT DERIVATIVES dL/dw ============================================================================\n");
+
 }
 //----------------------------------------------------------------------
 void testFuncModel2()

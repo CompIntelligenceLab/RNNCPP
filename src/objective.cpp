@@ -90,7 +90,9 @@ void MeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 		loss[i] = exact[i] - predict[i]; // check size compatibility
 		loss[i] = arma::square(loss[i]);  // sum of output dimensions
 		loss[i] = arma::sum(loss[i], 0);  // sum over 1st index
-		//loss[i].print("loss[i]");
+		loss[i].print("computeLoss::loss[i]");
+		exact[i].print("computeLoss::exact[i]");
+		predict[i].print("computeLoss::predict[i]");
 	}
 }
 
