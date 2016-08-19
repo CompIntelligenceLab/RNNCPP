@@ -2,6 +2,7 @@
 #define __Model_H__
 
 #include <vector>
+#include <list>
 #include <string>
 #include "typedefs.h"
 #include "gradient.h"
@@ -40,6 +41,7 @@ private:
 	// Probe layers have no output
 	LAYERS probe_layers; // to help read output of previous layer 
 	CONNECTIONS connections; // (l)ist of weights
+	CONNECTIONS order_eval; // Order in which connections are evaluated for prediction, and possibly training.
 
 public:
   Model(std::string name="model");
@@ -113,14 +115,21 @@ public:
   // should be the inverse of the forward propagation (predict)
   void backPropagationComplex(VF2D_F y, VF2D_F pred);
   void compile();
+  // Evaluate connection order to run prediction of a spatial network
+  void connectionOrder();
+	Layer* checkPrevconnections(std::list<Layer*> llist);
+	void removeFromList(LAYERS& llist, Layer* cur_layer);
 
   /** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */
   // Also allow fixed initialization in [-.8, .8] from a uniform distribution */
   // "gaussian", "uniform", "orthogonal"
   void initializeWeights(std::string initialization_type="uniform");
+	void removeFromList(std::list<Layer*>& llist, Layer* cur_layer);
 
 private:
   void checkIntegrity(LAYERS& layer_list);
+  bool isLayerComplete(Layer* layer);
+  bool areIncomingLayerConnectionsComplete(Layer* layer);
 };
 
 #endif

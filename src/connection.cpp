@@ -18,6 +18,7 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 	temporal = false; // all connections false for feedforward networks
 	clock = 0;
 	from = to = 0;
+	hit = 0;
 
 	char cname[80];
 

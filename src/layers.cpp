@@ -46,6 +46,9 @@ void Layer::initVars(int nb_batch)
 		outputs[i] = VF2D(layer_size, 1);
 	}
 
+	layer_inputs.resize(prev.size());
+	nb_hit = 0;
+
 	reset();
 }
 

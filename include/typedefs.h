@@ -30,6 +30,9 @@ class Connection;
   typedef std::vector< std::vector<float> > MATRIX;
 
 #ifdef ARMADILLO
+
+#define ZEROS(field) for (int i=0; i < field.size(); i++) { field[i].zeros(); }
+
 	typedef std::vector<Connection*> CONNECTIONS;
 	typedef std::vector<std::pair<Layer*, Connection*> > PAIRS_L; 
 	// 1st argument: input to a layer, or output to a connection
@@ -40,7 +43,7 @@ class Connection;
 	typedef arma::Mat<float> VF2D;
 	typedef arma::field<arma::Col<float> > VF1D_F;  // [batch](seq_len) 
 	typedef arma::field<arma::Mat<float> > VF2D_F;  // [batch](dimension, seq_len) 
-	typedef std::vector<std::pair<VF2D_F*, int> > LAYER_INPUTS;
+	typedef std::vector<std::pair<VF2D_F, int> > LAYER_INPUTS;
 	typedef arma::Cube<float> VF3D;
 	typedef arma::Row<int> VI; // not possible to allocate a row of size 3;
 	//typedef arma::Mat<int> VI;

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "typedefs.h"
+#include <list>
 #include "model.h"
 #include "objective.h"
 #include "connection.h"
@@ -239,6 +240,168 @@ void Model::checkIntegrity(LAYERS& layer_list)
 	return;
 }
 //----------------------------------------------------------------------
+bool Model::areIncomingLayerConnectionsComplete(Layer* layer) 
+{
+	printf("enter areIncomingLayerConnectionsComplete\n");
+	layer->printSummary("  ");
+	int nb_arrivals = layer->prev.size();
+	int nb_hits = layer->nb_hit;
+
+	printf("  - nb_hits/prevsize= %d/%d\n", nb_hits, nb_arrivals);
+	if (nb_hits == nb_arrivals) {
+		layer->printSummary("  - INCOMING CONNECTIONS COMPLETE, ");
+	} else {
+		layer->printSummary("  - INCOMING CONNECTIONS NOT COMPLETE, ");
+	}
+
+	printf("exit areIncomingLayerConnectionsComplete, ");
+	return (nb_hits == nb_arrivals);
+}
+//----------------------------------------------------------------------
+bool Model::isLayerComplete(Layer* layer) 
+// Is the number of active connections = to the number of incoming connections
+// Assume all connections are spatial
+{
+	layer->printSummary("enter isLayerComplete, ");
+
+	// Check that all outgoing connections are "hit"
+
+	int nb_departures = layer->next.size();
+	printf(" - nb_departures= %d\n", nb_departures);
+
+	int all_hits = 0;
+	for (int i=0; i < nb_departures; i++) {
+		all_hits += layer->next[i].second->hit;
+		//if (layer->next[i].second->hit == 0) {
+			//printf("  - one of departures still zero\n");
+			//return false;
+		//}
+	}
+
+	if (all_hits < layer->next.size()) {
+		printf("  - OUTGOING CONNECTIONS NOT COMPLETE, %d/%d\n", all_hits, layer->next.size());
+	} else {
+		printf("  - OUTGOING CONNECTIONS COMPLETE, %d/%d\n", all_hits, layer->next.size());
+	}
+
+	if (areIncomingLayerConnectionsComplete(layer)) printf("  LAYER COMPLETE");
+
+	return areIncomingLayerConnectionsComplete(layer);
+}
+//----------------------------------------------------------------------
+void Model::removeFromList(std::list<Layer*>& llist, Layer* cur_layer)
+{
+	llist.remove(cur_layer);
+}
+//----------------------------------------------------------------------
+Layer* Model::checkPrevconnections(std::list<Layer*> llist)
+// Find first layer in the list which has all its previous connections hit. 
+{
+	typedef std::list<Layer*>::iterator IT;
+	IT it;
+
+	//for (int i=0; i < llist.size(); i++) {
+	for (it=llist.begin(); it != llist.end(); ++it){ 
+		Layer* cur_layer = *it;
+		int count = 0;
+		for (int c=0; c < cur_layer->prev.size(); c++) {
+			Connection* con = cur_layer->prev[c].second;
+			count += con->hit;
+		}
+		if (count == cur_layer->prev.size()) {
+		}
+		//Connection* pc = cur_layer->prev[c].second;
+		//Connection* nc = next[n].second;
+	}
+}
+//----------------------------------------------------------------------
+void Model::connectionOrder()
+{
+	typedef std::list<Layer*>::iterator IT;
+	IT it;
+
+	// STL list to allow erase of elements via address
+	std::list<Layer*> llist;
+	std::vector<Layer*> completed_layers;
+	CONNECTIONS clist;
+	Layer* cur_layer = getInputLayers()[0]; // assumes a single input layer
+	cur_layer->nb_hit = 0;
+	llist.push_back(cur_layer);
+
+	int xcount = 0;
+
+//bool Model::areIncomingLayerConnectionsComplete(Layer* layer) 
+	while(llist.size()) {
+		xcount++; 
+		printf("******** entered while ******************************************\n");
+
+		PAIRS_L next = cur_layer->next;
+
+		// the following loop can only be entered if all the layer inputs are activated
+		if (areIncomingLayerConnectionsComplete(cur_layer)) {
+			for (int n=0; n < next.size(); n++) {
+				Layer* nl      = next[n].first;
+				nl->printSummary("xx nl");
+				Connection* nc = next[n].second;
+				clist.push_back(nc);
+				nc->hit = 1;
+				nl->nb_hit++; 
+				llist.push_back(nl);
+				if (isLayerComplete(cur_layer)) { // access error
+					// these layers will be deleted from llist. They should never reappear
+					// since that would imply a cycle in the network, which is prohibited.
+					completed_layers.push_back(cur_layer);
+				}
+			}
+			if (next.size() == 0) {
+				if (isLayerComplete(cur_layer)) { // access error
+					completed_layers.push_back(cur_layer);
+				}
+			}
+		}
+		printf("---------------------\n");
+
+		llist.sort();
+		llist.unique();
+
+		// remove all layers that are "complete"
+	    printf("before remove all complete layers, llist size: %d\n", llist.size());
+		for (int i=0; i < completed_layers.size(); i++) {
+			completed_layers[i]->printSummary("completed_layers");
+			llist.remove(completed_layers[i]);
+		}
+	    printf("after remove all complete layers, llist size: %d\n", llist.size());
+		//printf("before clear: completed layer size: %d\n", completed_layers.size());
+		completed_layers.clear();
+		for (it=llist.begin(); it != llist.end(); ++it) {
+			(*it)->printSummary("llist");
+		}
+		//if (xcount == 2) {
+			//exit(0);
+		//}
+		cur_layer = *llist.begin();
+		if (xcount == 7) exit(0);
+	}
+	exit(0);
+
+	printf("list.size= %d\n", llist.size());
+	if (cur_layer->prev.size() == cur_layer->nb_hit) {
+		llist.remove(cur_layer);
+	}
+
+	cur_layer = *llist.begin();
+	printf("list.size= %d\n", llist.size());
+
+	printf("Connection order\n");
+	for (int c=0; c < clist.size(); c++) {
+		Connection* con = clist[c];
+		Layer* from = con->from;
+		Layer* to = con->to;
+		printf("con: %s, Layers: %s, %s\n", con->getName().c_str(), from->getName().c_str(), to->getName().c_str());
+	}
+	exit(0);
+}
+//----------------------------------------------------------------------
 void Model::printSummary()
 {
 	printf("=============================================================\n");
@@ -390,7 +553,7 @@ VF2D_F Model::predictComplexMaybeWorks(VF2D_F xf)  // for testing while Nathan w
 	}
 
     Layer* input_layer = layers[0];
-	input_layer->setInputs(xf);
+	//printf("layer_inputs size: %d\n", input_layer->layer_inputs.size()); exit(0); // returned zero
     layer_list.push_back(input_layer);
 	layer_list[0]->printName("layer_list[0]"); // input layer
 
@@ -399,11 +562,11 @@ VF2D_F Model::predictComplexMaybeWorks(VF2D_F xf)  // for testing while Nathan w
 	// is minimal compared to the cost of matrix-vector multiplication. 
 
 	Layer* cur_layer = layer_list[0]; // input layer
-	cur_layer->setInputs(prod);  // input value xf
 	cur_layer->setOutputs(prod); // inputs are same as outputs for an input layer
 
 	while (true) {
 		Layer* cur_layer = layer_list[0]; 
+		printf("New current layer: %s\n",  cur_layer->getName().c_str());
 		int sz = cur_layer->next.size();
 		if (sz == 0) {
 			break;
@@ -411,6 +574,7 @@ VF2D_F Model::predictComplexMaybeWorks(VF2D_F xf)  // for testing while Nathan w
 
 		// scan the layers downstream and connect to cur_layer
 
+		printf("Scan downstream layers");
 		for (int l=0; l < sz; l++) {
 			// for each downstream layer, scan the uptream connections. 
 			Connection* nconnection = cur_layer->next[l].second;
@@ -424,12 +588,16 @@ VF2D_F Model::predictComplexMaybeWorks(VF2D_F xf)  // for testing while Nathan w
 			Layer* nlayer = cur_layer->next[l].first;
 			layer_list.push_back(nlayer);
 
+			printf("  Downstream layer/connection %s/%s", nlayer->getName().c_str(), nconnection->getName().c_str());
 			int csz = nlayer->prev.size();
 			VF2D_F new_prod;
+
+			printf("     Scan upstream layers: ");
 
 			for (int c=0; c < csz; c++) {
 				Connection* pconnection = nlayer->prev[c].second;
 				Layer*      player      = nlayer->prev[c].first;
+				printf("  Upstream layer/connection %s/%s\n",  player->getName().c_str(), pconnection->getName().c_str());
 
 				if (pconnection->getTemporal()) {  // only consider spatial links (for now)
 					printf("skip temporal back connection: %s\n", pconnection->getName().c_str());
@@ -444,12 +612,21 @@ VF2D_F Model::predictComplexMaybeWorks(VF2D_F xf)  // for testing while Nathan w
 				new_prod.set_size(prod.n_rows);
 	
 				for (int b=0; b < xf.n_rows; b++) {
+				 	// several matrix/vector multiplications: innefficient since wght could stay in memory
 					new_prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
 				                           	//left and right of "=" have different dimensions
 				}
 				new_prod.print("wght*prod");
+				nlayer->layer_inputs[c] = new_prod;
+			}
 
-				nlayer->incrInputs(new_prod);
+			ZEROS(new_prod);
+
+			// Sum all the layer inputs (if they have all arrived)
+			for (int c=0; c < csz; c++) {
+				for (int b=0; b < xf.n_rows; b++) {
+					new_prod[b] += nlayer->layer_inputs[c][b];
+				}
 			}
 
 			new_prod.print("** layer, (" + nlayer->getName() + ") input");

@@ -20,7 +20,8 @@ public:
 	PAIRS_L next;
 	// main inputs to activation in a list to better handle backpropagation when 
 	// more than one layer hits a downstream layer
-	LAYER_INPUTS layer_inputs;  // change to inputs later
+	std::vector<VF2D_F> layer_inputs;
+	int nb_hit; // used to determine order of evaluation of a general spatial network
 
 
 protected:

@@ -313,14 +313,18 @@ void testModel2()
 	*/
 
 	m->add(0, input);
-	m->add(input, dense1);
+	m->add(dense3, dense4);
 	m->add(input, dense2);
+	m->add(input, dense1);
 	m->add(dense2, dense3);
 	m->add(dense1, dense2);
-	m->add(dense3, dense4);
 
-	m->checkIntegrity();
+	m->addInputLayer(input);
+	m->addOutputLayer(dense4);
+
+	//m->checkIntegrity();  // seg error
 	m->printSummary();
+	m->connectionOrder();
 }
 //----------------------------------------------------------------------
 void testFuncModel1()
@@ -360,6 +364,7 @@ void testFuncModel1()
 
 	m->checkIntegrity();
 	m->printSummary();
+	m->connectionOrder();
 	//----------
 
 	VF2D_F xf, yf, exact;
@@ -378,6 +383,7 @@ void testFuncModel1()
 
 	printf("\n===== PREDICT ===============================================================================================\n");
 	VF2D_F pred = m->predictComplexMaybeWorks(xf);  // for testing while Nathan works with predict
+	m->backPropagation(exact, pred);
 	exit(0);
 
 	xf.print("xf"); //    0.5328
@@ -399,7 +405,6 @@ void testFuncModel1()
 	//pred.print("pred"); exit(0);
 
 	printf("\n===== BACK PROPAGATION =================================================================================\n");
-	m->backPropagation(exact, pred);
 
 	for (int c=1; c < m->getConnections().size(); c++) {
 		Connection* con = m->getConnections()[c];
@@ -622,11 +627,11 @@ int main()
 
 	//testCube();
 	//testModel();
-	testFuncModel1();
+	//testFuncModel1();
 	//testFuncModel2();
 	//testFuncModel3();
 	//testModel1();
-	//testModel2();
+	testModel2();
 	//testPredict();
 	//testObjective();
 }
