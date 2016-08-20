@@ -22,7 +22,17 @@ using namespace std;
 VF2D_F testBackprop(Model* m);
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F&);
 
+//----------------------------------------------------------------------
+float runModel(Model* m)
+{
+	m->printSummary();
+	m->connectionOrderClean(); // no print statements
 
+	VF2D_F xf, yf, exact;
+	testData(*m, xf, yf, exact);
+	m->predictViaConnections(xf);
+}
+//----------------------------------------------------------------------
 float weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
 {
 	WEIGHT w0 = con.getWeight();
@@ -281,8 +291,9 @@ void testModel1()
 	m->add(dense1, dense2);
 	m->add(dense2, dense3);
 
-	m->checkIntegrity();
-	m->printSummary();
+	m->addInputLayer(input);
+	m->addOutputLayer(dense3);
+	runModel(m);
 }
 //----------------------------------------------------------------------
 // TEST MODELS for structure
@@ -322,6 +333,9 @@ void testModel2()
 	m->addInputLayer(input);
 	m->addOutputLayer(dense4);
 
+	runModel(m);
+
+	#if 0
 	//m->checkIntegrity();  // seg error
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
@@ -330,6 +344,7 @@ void testModel2()
 	testData(*m, xf, yf, exact);
 	m->predictViaConnections(xf);
 	exit(0);
+	#endif
 }
 //----------------------------------------------------------------------
 void testFuncModel1()
@@ -352,33 +367,28 @@ void testFuncModel1()
 	Layer* dense1  = new DenseLayer(layer_size, "dense1");  // weights btween dense1 and dense2
 	Layer* dense2  = new DenseLayer(layer_size, "dense2");
 	Layer* dense3  = new DenseLayer(layer_size, "dense3");
-	dense1->setActivation(new Identity());
 
 	m->add(0, input);
 	m->add(input, dense0);
 	m->add(dense0, dense1);
-
-	//m->add(dense1, dense2);
-	//m->add(dense2, dense3);
+	m->add(dense1, dense2);
+	m->add(dense2, dense3);
 
 	m->addInputLayer(input);
-	m->addOutputLayer(dense1);
+	m->addOutputLayer(dense3);
 	m->addProbeLayer(dense0);
 	m->addProbeLayer(dense1);
 	m->addLossLayer(dense1);
 
-	m->checkIntegrity();
-	m->printSummary();
-	m->connectionOrderClean(); // no print statements
+	runModel(m);
+	return;
 
-	//----------
-
-	VF2D_F xf, yf, exact;
-	testData(*m, xf, yf, exact);
-	exact.print("exact"); // .0470
-	m->predictViaConnections(xf);
-	printf("end predictViaConnections\n");
-	exit(0);
+	//VF2D_F xf, yf, exact;
+	//testData(*m, xf, yf, exact);
+	//exact.print("exact"); // .0470
+	//m->predictViaConnections(xf);
+	//printf("end predictViaConnections\n");
+	//exit(0);
 
 	//VF2D_F ee = dense0->getActivation()(exact);
 	//ee.print("ee");
@@ -388,6 +398,7 @@ void testFuncModel1()
 // xxxxxxxxx
 
 	//xf = testBackprop(m);
+#if 0
 	xf.print("xf");
 
 	printf("\n===== PREDICT ===============================================================================================\n");
@@ -439,12 +450,12 @@ void testFuncModel1()
 	dLdw = weightDerivative(m, *connections[2], inc, xf, exact);
 	// dLdw(0, 0)= 0.128712  (weight: 1x1)
 	printf("\n===== END EXACT DERIVATIVES dL/dw ============================================================================\n");
-
+#endif
 }
 //----------------------------------------------------------------------
 void testFuncModel2()
 {
-	printf("\n --- testModel2 ---\n");
+	printf("\n --- testFuncModel2 ---\n");
 	Model* m  = new Model(); 
 	m->setBatchSize(1);
 	assert(m->getBatchSize() == 1);
@@ -454,10 +465,14 @@ void testFuncModel2()
 	// the names have a counter value attached to it, so there is no duplication. 
 	int input_dim = 1;
 	Layer* input   = new InputLayer(input_dim, "input_layer");
-	Layer* dense1  = new DenseLayer(5, "dense");
-	Layer* dense2  = new DenseLayer(3, "dense");
-	Layer* dense3  = new DenseLayer(4, "dense");
-	Layer* dense4  = new DenseLayer(6, "dense");
+	//Layer* dense1  = new DenseLayer(5, "dense");
+	//Layer* dense2  = new DenseLayer(3, "dense");
+	//Layer* dense3  = new DenseLayer(4, "dense");
+	//Layer* dense4  = new DenseLayer(6, "dense");
+	Layer* dense1  = new DenseLayer(1, "dense");
+	Layer* dense2  = new DenseLayer(1, "dense");
+	Layer* dense3  = new DenseLayer(1, "dense");
+	Layer* dense4  = new DenseLayer(1, "dense");
 
 	/*  S: Spatial, T: Temporal
 
@@ -472,21 +487,19 @@ void testFuncModel2()
 	m->add(0, input); // changs input_dim to zero. Why? 
 
 	m->add(input, dense1);
-	m->add(input, dense2);
-	m->add(dense2, dense3);
+	//m->add(input, dense2);
+	//m->add(dense2, dense3);
 	m->add(dense1, dense2);
-	m->add(dense3, dense4);
+	//m->add(dense3, dense4);
 
 	m->addInputLayer(input);
-	m->addOutputLayer(dense4);
+	m->addOutputLayer(dense2);
 
-	input_dim = input->getInputDim();
-	printf("input_dim= %d\n", input_dim);
+	runModel(m);
 
-	m->checkIntegrity();
-	m->printSummary();
-
+	#if 0
 	testBackprop(m);
+	#endif
 }
 //----------------------------------------------------------------------
 void testFuncModel3()
@@ -524,13 +537,16 @@ void testFuncModel3()
 	m->addInputLayer(input);
 	m->addOutputLayer(dense3);
 
-	input_dim = input->getInputDim();
-	printf("input_dim= %d\n", input_dim);
+	//input_dim = input->getInputDim();
+	//printf("input_dim= %d\n", input_dim);
 
-	m->checkIntegrity();
-	m->printSummary();
+	runModel(m);
+	//m->checkIntegrity();
+	//m->printSummary();
 
+	#if 0
 	testBackprop(m);
+	#endif
 }
 //----------------------------------------------------------------------
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F& exact)
@@ -637,13 +653,12 @@ int main()
 	//testCube();
 	//testModel();
 
-	//testFuncModel1();
-
-	//testFuncModel2();
-	//testFuncModel3();
-	//testModel1();
-
+	testFuncModel1();
+	testFuncModel2();
+	testFuncModel3();
+	testModel1();
 	testModel2();
+	exit(0);
 
 	//testPredict();
 	//testObjective();

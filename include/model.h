@@ -66,6 +66,7 @@ public:
   //void add(Layer* layer);
   void add(Layer* layer_from, Layer* layer);
   void addInputLayer(Layer* layer);
+  // Specify output layer and activation function to Identity()
   void addOutputLayer(Layer* layer);
   void addLossLayer(Layer* layer);
   void addProbeLayer(Layer* layer);
@@ -119,7 +120,7 @@ public:
   void compile();
   // Evaluate connection order to run prediction of a spatial network
   CONNECTIONS connectionOrder();
-  CONNECTIONS connectionOrderClean();
+  void connectionOrderClean();
 	Layer* checkPrevconnections(std::list<Layer*> llist);
 	void removeFromList(LAYERS& llist, Layer* cur_layer);
 

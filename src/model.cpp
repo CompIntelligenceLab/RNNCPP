@@ -111,6 +111,7 @@ void Model::addInputLayer(Layer* layer)
 void Model::addOutputLayer(Layer* layer)
 {
 	output_layers.push_back(layer);
+	layer->setActivation(new Identity());
 }
 //----------------------------------------------------------------------
 void Model::addLossLayer(Layer* layer)
@@ -405,7 +406,7 @@ CONNECTIONS Model::connectionOrder()
     return clist;
 }
 //----------------------------------------------------------------------
-CONNECTIONS Model::connectionOrderClean()
+void Model::connectionOrderClean()
 {
 	typedef std::list<Layer*>::iterator IT;
 	IT it;
@@ -413,17 +414,14 @@ CONNECTIONS Model::connectionOrderClean()
 	// STL list to allow erase of elements via address
 	std::list<Layer*> llist;
 	std::vector<Layer*> completed_layers;
-	//CONNECTIONS clist;
 	Layer* cur_layer = getInputLayers()[0]; // assumes a single input layer
 	cur_layer->nb_hit = 0;
 	llist.push_back(cur_layer);
 
 	int xcount = 0;
 
-//bool Model::areIncomingLayerConnectionsComplete(Layer* layer) 
 	while(llist.size()) {
 		xcount++; 
-		//printf("******** entered while ******************************************\n");
 
 		PAIRS_L next = cur_layer->next;
 
@@ -431,25 +429,23 @@ CONNECTIONS Model::connectionOrderClean()
 		if (areIncomingLayerConnectionsComplete(cur_layer)) {
 			for (int n=0; n < next.size(); n++) {
 				Layer* nl      = next[n].first;
-				//nl->printSummary("xx nl");
 				Connection* nc = next[n].second;
 				clist.push_back(nc);
 				nc->hit = 1;
 				nl->nb_hit++; 
 				llist.push_back(nl);
-				if (isLayerComplete(cur_layer)) { // access error
+				if (isLayerComplete(cur_layer)) { 
 					// these layers will be deleted from llist. They should never reappear
 					// since that would imply a cycle in the network, which is prohibited.
 					completed_layers.push_back(cur_layer);
 				}
 			}
 			if (next.size() == 0) {
-				if (isLayerComplete(cur_layer)) { // access error
+				if (isLayerComplete(cur_layer)) {
 					completed_layers.push_back(cur_layer);
 				}
 			}
 		}
-		//printf("---------------------\n");
 
 		llist.sort();
 		llist.unique();
@@ -460,27 +456,19 @@ CONNECTIONS Model::connectionOrderClean()
 			completed_layers[i]->printSummary("completed_layers");
 			llist.remove(completed_layers[i]);
 		}
-	    //printf("after remove all complete layers, llist size: %d\n", llist.size());
 		completed_layers.clear();
-		//for (it=llist.begin(); it != llist.end(); ++it) {
-			//(*it)->printSummary("llist");
-		//}
 		cur_layer = *llist.begin();
 	}
 
-	printf("Connection order\n");
 	for (int c=0; c < clist.size(); c++) {
 		Connection* con = clist[c];
 		Layer* from = con->from;
 		Layer* to = con->to;
-		printf("con: %s, Layers: %s, %s\n", con->getName().c_str(), from->getName().c_str(), to->getName().c_str());
 	}
 
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->layer_inputs.resize(layers[l]->prev.size());
-		printf("layers[%d]->layer_inputs size: %d, (%s)\n", l, layers[l]->layer_inputs.size(), layers[l]->getName().c_str());
 	}
-	//exit(0);
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
