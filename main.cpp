@@ -314,8 +314,8 @@ void testModel2()
 
 	m->add(0, input);
 	m->add(dense3, dense4);
-	m->add(input, dense2);
 	m->add(input, dense1);
+	m->add(input, dense2);
 	m->add(dense2, dense3);
 	m->add(dense1, dense2);
 
@@ -324,7 +324,7 @@ void testModel2()
 
 	//m->checkIntegrity();  // seg error
 	m->printSummary();
-	m->connectionOrder();
+	m->connectionOrderClean(); // no print statements
 }
 //----------------------------------------------------------------------
 void testFuncModel1()
@@ -364,7 +364,7 @@ void testFuncModel1()
 
 	m->checkIntegrity();
 	m->printSummary();
-	m->connectionOrder();
+	m->connectionOrderClean(); // no print statements
 	//----------
 
 	VF2D_F xf, yf, exact;

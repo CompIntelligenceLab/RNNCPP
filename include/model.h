@@ -19,6 +19,7 @@
 class Model
 {
 private:
+	CONNECTIONS clist;
 	std::string name;
 	bool   stateful;
 	float learning_rate;
@@ -116,7 +117,8 @@ public:
   void backPropagationComplex(VF2D_F y, VF2D_F pred);
   void compile();
   // Evaluate connection order to run prediction of a spatial network
-  void connectionOrder();
+  CONNECTIONS connectionOrder();
+  CONNECTIONS connectionOrderClean();
 	Layer* checkPrevconnections(std::list<Layer*> llist);
 	void removeFromList(LAYERS& llist, Layer* cur_layer);
 
