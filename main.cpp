@@ -325,6 +325,11 @@ void testModel2()
 	//m->checkIntegrity();  // seg error
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
+
+	VF2D_F xf, yf, exact;
+	testData(*m, xf, yf, exact);
+	m->predictViaConnections(xf);
+	exit(0);
 }
 //----------------------------------------------------------------------
 void testFuncModel1()
@@ -632,13 +637,13 @@ int main()
 	//testCube();
 	//testModel();
 
-	testFuncModel1();
+	//testFuncModel1();
 
 	//testFuncModel2();
 	//testFuncModel3();
 	//testModel1();
 
-	//testModel2();
+	testModel2();
 
 	//testPredict();
 	//testObjective();

@@ -248,6 +248,7 @@ bool Model::areIncomingLayerConnectionsComplete(Layer* layer)
 
 	int nb_arrivals = layer->prev.size();
 	int nb_hits = layer->nb_hit;
+	printf("areIncoming: nb_arrivals, nb_hits= %d, %d\n", nb_arrivals, nb_hits);
 
 	#if 0
 	printf("  - nb_hits/prevsize= %d/%d\n", nb_hits, nb_arrivals);
@@ -474,6 +475,12 @@ CONNECTIONS Model::connectionOrderClean()
 		Layer* to = con->to;
 		printf("con: %s, Layers: %s, %s\n", con->getName().c_str(), from->getName().c_str(), to->getName().c_str());
 	}
+
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->layer_inputs.resize(layers[l]->prev.size());
+		printf("layers[%d]->layer_inputs size: %d, (%s)\n", l, layers[l]->layer_inputs.size(), layers[l]->getName().c_str());
+	}
+	//exit(0);
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -512,43 +519,48 @@ void Model::printSummary()
 //----------------------------------------------------------------------
 VF2D_F Model::predictViaConnections(VF2D_F x)
 {
-	printf("enter Model::predictViaConnections\n");
+	VF2D_F prod(x.size());
+
 	Layer* input_layer = getInputLayers()[0];
-	x.print("x");
 	input_layer->setOutputs(x);
-	printf("clist.size= %d\n", clist.size());
 
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->nb_hit = 0;
+		//printf("layer_inputs size: %d\n", layers[l]->layer_inputs.size());
+	}
+		
 	for (int c=0; c < clist.size(); c++) {
-		printf("---------- c= %d -------------\n", c);
 		Connection* conn = clist[c];
-		Layer* from = conn->from;
-		Layer* to   = conn->to;
-		VF2D_F& from_outputs = from->getOutputs();
-		from_outputs.print("from_outputs");
+		Layer* from_layer = conn->from;
+		Layer* to_layer   = conn->to;
+		VF2D_F& from_outputs = from_layer->getOutputs();
 		WEIGHT& wght = conn->getWeight();
-
-		// SOMETHING NOT WORKING. LOOK AT OUTPUT
-
-		VF2D_F prod(from_outputs.size());
 
 		// matrix multiplication
 		for (int b=0; b < from_outputs.size(); b++) {
 			prod(b) = wght[b] * from_outputs[b];
 		}
 
-		VF2D_F& to_inputs    = to->layer_inputs[clist[c]->which_lc];
+		int which_lc = clist[c]->which_lc; 
+		VF2D_F& to_inputs = to_layer->layer_inputs[clist[c]->which_lc];
+		//to_layer->printName("to_layer, ");
+		//printf("layer_inputs size: %d\n", to_layer->layer_inputs.size());
+		//printf("which_lc= %d\n", which_lc);
+		//to_inputs.print("to_inputs");
+		//printf("gordon");
+		++to_layer->nb_hit;
 
-		printf("which_lc= %d\n", clist[c]->which_lc);
+		if (areIncomingLayerConnectionsComplete(to_layer)) {
+			 prod = to_layer->getActivation()(prod);
+			 to_layer->setOutputs(prod);
+		}
+
+		//prod.print("prod");
 		to_inputs = prod;
-
-		to_inputs.print("to_inputs");
-
-		// w*outputs --> inputs(to), but which connection? 
-		// One should store the connection number in the connection itself 
-		// (although it is not satisfying)
+		//to_inputs.print("to_inputs");
+	//exit(0);
 	}
-	exit(0);
-	printf("exit Model::predictViaConnections\n");
+	x.print("predictViaConnection return: "); 
 	return x; // TEMPORARY
 }
 //----------------------------------------------------------------------
