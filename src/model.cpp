@@ -123,34 +123,35 @@ void Model::addProbeLayer(Layer* layer)
 	probe_layers.push_back(layer);
 }
 //----------------------------------------------------------------------
-void Model::add(Layer* layer_from, Layer* layer)
+void Model::add(Layer* layer_from, Layer* layer_to)
 {
 	printf("add(layer_from, layer)\n");
 	// Layers should only require layer_size 
 
 	if (layer_from) {
-		layer->setInputDim(layer_from->getLayerSize());
+		layer_to->setInputDim(layer_from->getLayerSize());
 	} else {
-		layer->setInputDim(layer->getInputDim());
+		layer_to->setInputDim(layer_to->getInputDim());
 	}
 
-  	layers.push_back(layer);
+  	layers.push_back(layer_to);
 
-	int in_dim  = layer->getInputDim();
-	int out_dim = layer->getOutputDim();
-	printf("Model::add, layer dim: in_dim: %d, out_dim: %d\n", in_dim, out_dim);
+	int in_dim  = layer_to->getInputDim();
+	int out_dim = layer_to->getOutputDim();
+	printf("Model::add, layer_to dim: in_dim: %d, out_dim: %d\n", in_dim, out_dim);
 
 	// Create weights
 	Connection* connection = new Connection(in_dim, out_dim);
 	connection->initialize();
 	connections.push_back(connection);
 	connection->from = layer_from;
-	connection->to = layer;
+	connection->to = layer_to;
 
 	// update prev and next lists in Layers class
 	if (layer_from) {
-		layer_from->next.push_back(std::pair<Layer*, Connection*>(layer, connection));
-		layer->prev.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
+		layer_from->next.push_back(std::pair<Layer*, Connection*>(layer_to, connection));
+		layer_to->prev.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
+		connection->which_lc = layer_to->prev.size()-1;
 	}
 }
 //----------------------------------------------------------------------
@@ -507,6 +508,48 @@ void Model::printSummary()
 		}
 	}
 	printf("=============================================================\n");
+}
+//----------------------------------------------------------------------
+VF2D_F Model::predictViaConnections(VF2D_F x)
+{
+	printf("enter Model::predictViaConnections\n");
+	Layer* input_layer = getInputLayers()[0];
+	x.print("x");
+	input_layer->setOutputs(x);
+	printf("clist.size= %d\n", clist.size());
+
+	for (int c=0; c < clist.size(); c++) {
+		printf("---------- c= %d -------------\n", c);
+		Connection* conn = clist[c];
+		Layer* from = conn->from;
+		Layer* to   = conn->to;
+		VF2D_F& from_outputs = from->getOutputs();
+		from_outputs.print("from_outputs");
+		WEIGHT& wght = conn->getWeight();
+
+		// SOMETHING NOT WORKING. LOOK AT OUTPUT
+
+		VF2D_F prod(from_outputs.size());
+
+		// matrix multiplication
+		for (int b=0; b < from_outputs.size(); b++) {
+			prod(b) = wght[b] * from_outputs[b];
+		}
+
+		VF2D_F& to_inputs    = to->layer_inputs[clist[c]->which_lc];
+
+		printf("which_lc= %d\n", clist[c]->which_lc);
+		to_inputs = prod;
+
+		to_inputs.print("to_inputs");
+
+		// w*outputs --> inputs(to), but which connection? 
+		// One should store the connection number in the connection itself 
+		// (although it is not satisfying)
+	}
+	exit(0);
+	printf("exit Model::predictViaConnections\n");
+	return x; // TEMPORARY
 }
 //----------------------------------------------------------------------
 VF2D_F Model::predict(VF2D_F x)

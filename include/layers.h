@@ -23,7 +23,6 @@ public:
 	std::vector<VF2D_F> layer_inputs;
 	int nb_hit; // used to determine order of evaluation of a general spatial network
 
-
 protected:
 	static int counter;
 	int clock; // initialized to zero. updates by one when signal arrives. If signal arrives when clock != 0,

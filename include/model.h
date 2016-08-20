@@ -110,6 +110,7 @@ public:
   VF2D_F predict(VF2D_F x);  // feedforward
   VF2D_F predictComplexMaybeWorks(VF2D_F x);  // for testing while Nathan works with predict
   VF2D_F predictComplex(VF2D_F x);  // for testing while Nathan works with predict
+  VF2D_F predictViaConnections(VF2D_F x); 
   void train(VF2D_F x, VF2D_F y, int batch_size=0, int nb_epochs=1);
   void backPropagation(VF2D_F y, VF2D_F prep);
   // networks that have multiple layers leaving a layer arriving at a layer

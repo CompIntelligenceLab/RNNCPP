@@ -365,11 +365,15 @@ void testFuncModel1()
 	m->checkIntegrity();
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
+
 	//----------
 
 	VF2D_F xf, yf, exact;
 	testData(*m, xf, yf, exact);
 	exact.print("exact"); // .0470
+	m->predictViaConnections(xf);
+	printf("end predictViaConnections\n");
+	exit(0);
 
 	//VF2D_F ee = dense0->getActivation()(exact);
 	//ee.print("ee");
@@ -627,11 +631,15 @@ int main()
 
 	//testCube();
 	//testModel();
-	//testFuncModel1();
+
+	testFuncModel1();
+
 	//testFuncModel2();
 	//testFuncModel3();
 	//testModel1();
-	testModel2();
+
+	//testModel2();
+
 	//testPredict();
 	//testObjective();
 }

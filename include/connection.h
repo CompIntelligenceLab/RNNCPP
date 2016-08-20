@@ -23,7 +23,8 @@ class Connection
 public:
 	Layer* from;  // pointers to the two layers that form the connection
 	Layer* to;    // useful for some algorithms
-	int hit; // track whether a connection was hit (make private later perhaps)
+	int hit;      // track whether a connection was hit (make private later perhaps)
+	int which_lc; // which index into layer_connections
 
 protected:
 	static int counter;
