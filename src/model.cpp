@@ -168,6 +168,7 @@ void Model::print(std::string msg /* "" */)
 
   if (optimizer != NULL) 
 	  optimizer->print();
+
   if (objective != NULL)
 	  objective->print();
 
@@ -514,7 +515,6 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->nb_hit = 0;
-		//printf("layer_inputs size: %d\n", layers[l]->layer_inputs.size());
 	}
 		
 	for (int c=0; c < clist.size(); c++) {
@@ -531,11 +531,6 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 
 		int which_lc = clist[c]->which_lc; 
 		VF2D_F& to_inputs = to_layer->layer_inputs[clist[c]->which_lc];
-		//to_layer->printName("to_layer, ");
-		//printf("layer_inputs size: %d\n", to_layer->layer_inputs.size());
-		//printf("which_lc= %d\n", which_lc);
-		//to_inputs.print("to_inputs");
-		//printf("gordon");
 		++to_layer->nb_hit;
 
 		if (areIncomingLayerConnectionsComplete(to_layer)) {
@@ -543,13 +538,10 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 			 to_layer->setOutputs(prod);
 		}
 
-		//prod.print("prod");
 		to_inputs = prod;
-		//to_inputs.print("to_inputs");
-	//exit(0);
 	}
 	x.print("predictViaConnection return: "); 
-	return x; // TEMPORARY
+	return x; 
 }
 //----------------------------------------------------------------------
 VF2D_F Model::predict(VF2D_F x)
@@ -924,6 +916,10 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 	objective->computeLoss(y, pred);
 	VF1D_F loss = objective->getLoss();
 	loss.print("loss");
+}
+//----------------------------------------------------------------------
+void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
+{
 }
 //----------------------------------------------------------------------
 void Model::backPropagation(VF2D_F exact, VF2D_F pred)

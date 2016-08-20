@@ -117,6 +117,7 @@ public:
   // networks that have multiple layers leaving a layer arriving at a layer
   // should be the inverse of the forward propagation (predict)
   void backPropagationComplex(VF2D_F y, VF2D_F pred);
+  void backPropagationViaConnections(VF2D_F exact, VF2D_F pred);
   void compile();
   // Evaluate connection order to run prediction of a spatial network
   CONNECTIONS connectionOrder();
