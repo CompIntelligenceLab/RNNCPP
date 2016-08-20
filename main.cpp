@@ -30,7 +30,8 @@ float runModel(Model* m)
 
 	VF2D_F xf, yf, exact;
 	testData(*m, xf, yf, exact);
-	m->predictViaConnections(xf);
+	VF2D_F pred = m->predictViaConnections(xf);
+	m->backPropagationViaConnections(exact, pred);
 }
 //----------------------------------------------------------------------
 float weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
@@ -281,10 +282,10 @@ void testModel1()
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input   = new InputLayer(2, "input_layer");
-	Layer* dense0  = new DenseLayer(5, "dense0");
-	Layer* dense1  = new DenseLayer(3, "dense1");
-	Layer* dense2  = new DenseLayer(4, "dense2");
-	Layer* dense3  = new DenseLayer(6, "dense3");
+	Layer* dense0  = new DenseLayer(5, "dense");
+	Layer* dense1  = new DenseLayer(3, "dense");
+	Layer* dense2  = new DenseLayer(4, "dense");
+	Layer* dense3  = new DenseLayer(6, "dense");
 
 	m->add(input, dense0);
 	m->add(dense0, dense1);
@@ -363,10 +364,10 @@ void testFuncModel1()
 	int input_dim = 1;
 	int layer_size = 1;
 	Layer* input   = new InputLayer(input_dim, "input_layer");  
-	Layer* dense0  = new DenseLayer(layer_size, "dense0");  // weights between dense0 and dense1
-	Layer* dense1  = new DenseLayer(layer_size, "dense1");  // weights btween dense1 and dense2
-	Layer* dense2  = new DenseLayer(layer_size, "dense2");
-	Layer* dense3  = new DenseLayer(layer_size, "dense3");
+	Layer* dense0  = new DenseLayer(layer_size, "dense");  // weights between dense0 and dense1
+	Layer* dense1  = new DenseLayer(layer_size, "dense");  // weights btween dense1 and dense2
+	Layer* dense2  = new DenseLayer(layer_size, "dense");
+	Layer* dense3  = new DenseLayer(layer_size, "dense");
 
 	m->add(0, input);
 	m->add(input, dense0);

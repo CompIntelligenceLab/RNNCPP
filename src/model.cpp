@@ -920,6 +920,56 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 //----------------------------------------------------------------------
 void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
 {
+	printf("ENTER BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
+	typedef CONNECTIONS::reverse_iterator IT;
+	IT it;
+
+	VF2D delta_incr;
+	VF2D_F delta_f(pred.size());
+
+	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+		(*it)->resetDelta();
+	}
+
+	Layer* layer = getOutputLayers()[0];
+	layer->printSummary("output_layer");
+
+    objective->computeGradient(exact, pred);
+    VF2D_F& grad = objective->getGradient();
+    layer->setDelta(grad);  //DELTA: VF1D_F, but grad: VF2D_F (DELTA probably VF2D_F)
+
+	int nb_batch = exact.size();
+	printf("nb_batch= %d\n", nb_batch);
+
+	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+		Connection* conn = *it;
+		Layer* layer_from = conn->from;
+		Layer* layer_to   = conn->to;
+		VF2D_F& delta = layer_to->getDelta(); // ==> dubious
+		VF2D_F& out_t = layer_from->getOutputs(); // (layer_size, seq_len)
+
+		for (int b=0; b < nb_batch; b++) {
+        	delta_incr = delta[b] * out_t[b].t();    // EXPENSIVE
+		}
+        conn->incrDelta(delta_incr); 
+
+		const VF2D wght_t = conn->getWeight().t();
+		const VF2D_F& prev_inputs = layer_from->getOutputs(); //  (layer_size, seq_len)
+		const VF2D_F& prev_grad_act = layer_from->getActivation().derivative(prev_inputs); // (layer_size, seq_len)
+
+		for (int b=0; b < nb_batch; b++) {
+        	const VF1D& pp = wght_t * delta[b];  // EXPENSIVE
+			delta_f(b) = pp % prev_grad_act[b];
+		}
+
+        layer_from->setDelta(delta_f); 
+    }
+	exit(0);
+
+	exact.print("exact");
+	pred.print("pred");
+
+	exit(0);
 }
 //----------------------------------------------------------------------
 void Model::backPropagation(VF2D_F exact, VF2D_F pred)
