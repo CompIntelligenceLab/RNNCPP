@@ -21,6 +21,7 @@ public:
 	// main inputs to activation in a list to better handle backpropagation when 
 	// more than one layer hits a downstream layer
 	std::vector<VF2D_F> layer_inputs;
+	std::vector<VF2D_F> layer_deltas;
 	int nb_hit; // used to determine order of evaluation of a general spatial network
 
 protected:
@@ -133,7 +134,9 @@ public:
 	int getClock() { return clock; }
 	void incrClock() { clock += 1; }
 	DELTA& getDelta() { return delta; }
+	DELTA& getDelta(int which_lc) { return layer_deltas[which_lc]; }
 	void setDelta(DELTA delta) { this->delta = delta; }
+	void setDelta(DELTA delta, int which_lc) { layer_deltas[which_lc] = delta; } // CHANGE
 
 public:
 	virtual void initVars(int nb_batch);

@@ -469,6 +469,7 @@ void Model::connectionOrderClean()
 
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->layer_inputs.resize(layers[l]->prev.size());
+		layers[l]->layer_deltas.resize(layers[l]->prev.size());
 	}
 }
 //----------------------------------------------------------------------
@@ -926,6 +927,7 @@ void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
 
 	VF2D delta_incr;
 	VF2D_F delta_f(pred.size());
+	int which_lc;   // HOW TO DETERMINE IT? 
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		(*it)->resetDelta();
@@ -945,13 +947,13 @@ void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
 		Connection* conn = *it;
 		Layer* layer_from = conn->from;
 		Layer* layer_to   = conn->to;
-		VF2D_F& delta = layer_to->getDelta(); // ==> dubious
+		VF2D_F& delta = layer_to->getDelta(which_lc); // ==> dubious
 		VF2D_F& out_t = layer_from->getOutputs(); // (layer_size, seq_len)
 
 		for (int b=0; b < nb_batch; b++) {
         	delta_incr = delta[b] * out_t[b].t();    // EXPENSIVE
 		}
-        conn->incrDelta(delta_incr); 
+        conn->incrDelta(delta_incr);   // Used to update weights
 
 		const VF2D wght_t = conn->getWeight().t();
 		const VF2D_F& prev_inputs = layer_from->getOutputs(); //  (layer_size, seq_len)
@@ -962,7 +964,7 @@ void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
 			delta_f(b) = pp % prev_grad_act[b];
 		}
 
-        layer_from->setDelta(delta_f); 
+        layer_from->setDelta(delta_f, which_lc); 
     }
 	exit(0);
 
