@@ -1,4 +1,5 @@
 #include "layers.h"
+#include "print_utils.h"
 #include <stdio.h>
 #include <iostream>
 
@@ -40,6 +41,7 @@ void Layer::initVars(int nb_batch)
 {
 	inputs.set_size(nb_batch);
 	outputs.set_size(nb_batch);
+	delta.set_size(nb_batch);
 
 	for (int i=0; i < nb_batch; i++) {
 		inputs[i]  = VF2D(layer_size, 1);
@@ -59,7 +61,7 @@ Layer::~Layer()
 
 Layer::Layer(const Layer& l) : layer_size(l.layer_size), input_dim(l.input_dim),
    print_verbose(l.print_verbose), seq_len(l.seq_len), nb_batch(l.nb_batch),
-   inputs(l.inputs), outputs(l.outputs), clock(l.clock)
+   inputs(l.inputs), outputs(l.outputs), clock(l.clock), delta(l.delta)
 {
 	name    = l.name + 'c';
 	printf("Layer copy constructor (%s)\n", name.c_str());
@@ -82,6 +84,7 @@ const Layer& Layer::operator=(const Layer& l)
 		print_verbose = l.print_verbose;
 		inputs = l.inputs;
 		outputs = l.outputs;
+		delta = l.delta;
 		inputs = l.inputs;
 		outputs = l.outputs;
 		seq_len = l.seq_len;
@@ -172,7 +175,26 @@ void Layer::incrInputs(VF2D_F& x)
 
 void Layer::incrDelta(VF2D_F& x)
 {
-	for (int b=0; b < x.n_rows; b++) {
-		delta[b] += x[b];
+	printf("delta.rows: %d\n", delta.n_rows);
+	U::print(delta, "delta");
+	U::print(x, "incrDelta");
+	printf("x.n_rows = %d\n", x.n_rows);
+	printf("deltax.n_rows = %d\n", delta.n_rows);
+
+	if (delta[0].n_rows == 0) {
+		for (int b=0; b < x.n_rows; b++) {
+			delta[b] = x[b];
+		}
+		//printf("deltax.n_rows = %d\n", delta.n_rows);
+	} else {
+		for (int b=0; b < x.n_rows; b++) {
+			delta[b] += x[b];
+		}
 	}
 }
+
+void Layer::computeGradient()
+{
+	gradient = activation->derivative(outputs);
+}
+

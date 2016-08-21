@@ -23,6 +23,7 @@ public:
 	std::vector<VF2D_F> layer_inputs;
 	std::vector<VF2D_F> layer_deltas;
 	int nb_hit; // used to determine order of evaluation of a general spatial network
+	VF2D_F dLdOut;  // use getters and setters later.  d(loss)/d(layer_output)
 
 protected:
 	static int counter;
@@ -33,7 +34,8 @@ protected:
 	int input_dim; // size of previous layer
 	VF2D_F inputs;  // inputs to activation function (batch_sz, seq_len)  // change to input later
 	VF2D_F outputs; // outputs from activation function
-	DELTA delta; // outputs from activation function
+	DELTA delta; // d(loss) / d(layer output)
+
 	//WEIGHTS weights; // between this layer and the previous one. Breaks down 
 	                // if layers form graphs (recurrent or not)
 					// in the first layer, weights is not initialized. 
@@ -74,7 +76,7 @@ protected:
 	//    Object* next;
 	//    Object* prev;
 
-    GRADIENTS gradients;
+    GRADIENTS gradient;  // derivative of activation function with respect to argument
 	Activation* activation;
 	bool print_verbose;
 	int nb_batch; // number of batches (batch_size = nb_batch)
@@ -106,8 +108,9 @@ public:
    //WEIGHTS getWeights() const {return weights;}  // not sure of data structure (Just simple matrix for now)
 
    // gradient of loss function with respect to weights
+   GRADIENTS getGradient() const {return gradient;}
+   // make private?
    void computeGradient();
-   GRADIENTS getGradient() const {return gradients;}
 
 	int getNbBatch() { return nb_batch; }
    	void setNbBatch(int nb_batch) { this->nb_batch = nb_batch; initVars(nb_batch);  }
@@ -137,6 +140,11 @@ public:
 	DELTA& getDelta(int which_lc) { return layer_deltas[which_lc]; }
 	void setDelta(DELTA delta) { this->delta = delta; }
 	void setDelta(DELTA delta, int which_lc) { layer_deltas[which_lc] = delta; } // CHANGE
+	void resetDelta() { 
+		for (int b=0; b < delta.n_rows; b++) {
+			delta[b].zeros();
+		}
+	}
 
 public:
 	virtual void initVars(int nb_batch);

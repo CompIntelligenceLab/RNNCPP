@@ -49,7 +49,7 @@ class Connection;
 	//typedef arma::Mat<int> VI;
 	typedef arma::Mat<float> WEIGHT;  // (layer(j-1), layer(j))
 	typedef VF2D_F DELTA;  // (layer(j-1), layer(j))
-    typedef arma::Mat<float> GRADIENTS; // Remove this if we use the Gradients class
+    typedef VF2D_F GRADIENTS; // Remove this if we use the Gradients class
 	// Do not forget () around arguments in macro definition
 	#define APPROX_EQUAL(x,y)  arma::approx_equal((x),(y),"absdiff",.001);
 #else

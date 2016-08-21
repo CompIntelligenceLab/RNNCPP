@@ -31,6 +31,7 @@ float runModel(Model* m)
 	VF2D_F xf, yf, exact;
 	testData(*m, xf, yf, exact);
 	VF2D_F pred = m->predictViaConnections(xf);
+    pred.print("before backprop: pred");
 	m->backPropagationViaConnections(exact, pred);
 }
 //----------------------------------------------------------------------
@@ -538,16 +539,7 @@ void testFuncModel3()
 	m->addInputLayer(input);
 	m->addOutputLayer(dense3);
 
-	//input_dim = input->getInputDim();
-	//printf("input_dim= %d\n", input_dim);
-
 	runModel(m);
-	//m->checkIntegrity();
-	//m->printSummary();
-
-	#if 0
-	testBackprop(m);
-	#endif
 }
 //----------------------------------------------------------------------
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F& exact)
@@ -654,9 +646,10 @@ int main()
 	//testCube();
 	//testModel();
 
-	testFuncModel1();
-	testFuncModel2();
+	//testFuncModel1();
+	//testFuncModel2();
 	testFuncModel3();
+	exit(0);
 	testModel1();
 	testModel2();
 	exit(0);

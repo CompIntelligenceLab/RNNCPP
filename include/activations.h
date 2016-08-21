@@ -44,7 +44,7 @@ public:
 	{
 		VF2D_F y(x);
 		for (int b=0; b < x.size(); b++) {
-			y[b].zeros();
+			y[b].ones();
 		}
 		return y;
 	}
@@ -76,7 +76,7 @@ public:
 	{
 #ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
-		x.print("***> input to activation (tanh): x");
+		//x.print("***> input to activation (tanh): x");
 		for (int i=0; i < x.n_rows; i++) {
 			y[i] = tanh(x[i]);
 			y[i] = 1.-y[i]%y[i];

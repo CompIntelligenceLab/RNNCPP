@@ -153,6 +153,10 @@ void Model::add(Layer* layer_from, Layer* layer_to)
 		layer_from->next.push_back(std::pair<Layer*, Connection*>(layer_to, connection));
 		layer_to->prev.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
 		connection->which_lc = layer_to->prev.size()-1;
+		connection->printSummary(" -> Model::add, connection, ");
+		layer_from->printSummary(" -> Model::add, layer_from, ");
+		layer_to->printSummary(" -> Model::add, layer_to, ");
+		printf("    connection->which_lc= %d\n", connection->which_lc);
 	}
 }
 //----------------------------------------------------------------------
@@ -467,10 +471,20 @@ void Model::connectionOrderClean()
 		Layer* to = con->to;
 	}
 
+	for (int l=0; l < input_layers.size(); l++) {
+		if (input_layers[l]->prev.size() == 0) {
+			input_layers[l]->prev.resize(1);
+		}
+	}
+
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->layer_inputs.resize(layers[l]->prev.size());
 		layers[l]->layer_deltas.resize(layers[l]->prev.size());
+		layers[l]->printSummary("layers");
+		printf("prev.size= %d\n", layers[l]->prev.size());
 	}
+	
+	//exit(0);
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -510,8 +524,11 @@ void Model::printSummary()
 VF2D_F Model::predictViaConnections(VF2D_F x)
 {
 	VF2D_F prod(x.size());
+	printf("ENTER predictViaConnections ***************\n");
 
 	Layer* input_layer = getInputLayers()[0];
+	input_layer->printSummary("input_layer");
+	x.print("x");
 	input_layer->setOutputs(x);
 
 	for (int l=0; l < layers.size(); l++) {
@@ -522,13 +539,20 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 		Connection* conn = clist[c];
 		Layer* from_layer = conn->from;
 		Layer* to_layer   = conn->to;
+
 		VF2D_F& from_outputs = from_layer->getOutputs();
 		WEIGHT& wght = conn->getWeight();
+		from_layer->printSummary("--> from_layer");
+		to_layer->printSummary("--> to_layer");
+		wght.print("--> wght");
+		from_outputs.print("--> from_outputs");
+		U::print(from_outputs, "from_outputs");
 
 		// matrix multiplication
 		for (int b=0; b < from_outputs.size(); b++) {
-			prod(b) = wght[b] * from_outputs[b];
+			prod(b) = wght * from_outputs[b];
 		}
+		prod.print("after matmul, prod");
 
 		int which_lc = clist[c]->which_lc; 
 		VF2D_F& to_inputs = to_layer->layer_inputs[clist[c]->which_lc];
@@ -536,13 +560,16 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 
 		if (areIncomingLayerConnectionsComplete(to_layer)) {
 			 prod = to_layer->getActivation()(prod);
+			 to_layer->printSummary("to_layer");
+			 prod.print("to_layer->setOutputs(prod)");
 			 to_layer->setOutputs(prod);
 		}
 
 		to_inputs = prod;
 	}
-	x.print("predictViaConnection return: "); 
-	return x; 
+	prod.print("predictViaConnection return: "); 
+	//exit(0);
+	return prod;
 }
 //----------------------------------------------------------------------
 VF2D_F Model::predict(VF2D_F x)
@@ -919,11 +946,80 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 	loss.print("loss");
 }
 //----------------------------------------------------------------------
+void Model::storeGradientsInLayers()
+{
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->computeGradient();
+		layers[l]->getOutputs().print("layer outputs");
+		printf("activation name: %s\n", layers[l]->getActivation().getName().c_str());
+		layers[l]->getGradient().print("layer gradient");
+		U::print(layers[l]->getGradient(), "layer gradient");
+		//U::print(layers[l]->getDelta(), "layer Delta"); // seg fault
+	}
+}
+//----------------------------------------------------------------------
+void Model::storeDactivationDoutputInLayers()
+{
+	typedef CONNECTIONS::reverse_iterator IT;
+	IT it;
+
+	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
+	// Run layers backwards
+	// Run connections backwards
+
+	VF2D_F& grad = output_layers[0]->getDelta();
+	int nb_batch = grad.n_rows;
+	printf("model nb_batch= %d\n", nb_batch);
+	VF2D_F prod(nb_batch);
+	//exit(0);
+
+	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+		Connection* conn = (*it);
+		Layer* layer_from = conn->from;
+		Layer* layer_to   = conn->to;
+		(*it)->printSummary("************ connection");
+
+		const VF2D_F& grad = layer_to->getGradient();
+		WEIGHT& wght = conn->getWeight();
+		VF2D_F& old_deriv = layer_to->getDelta();
+
+		layer_to->printSummary("layer_to");
+		layer_from->printSummary("layer_from");
+		U::print(grad[0], "grad[b]");
+		U::print(old_deriv[0], "old_deriv[b]");
+		U::print(wght, "wght");
+		
+		for (int b=0; b < nb_batch; b++) {
+			prod[b] = wght.t() * (grad[b] % old_deriv[b]);
+		}
+		#if 1
+		layer_from->incrDelta(prod);
+		printf("    ==== after product  \n");
+		#endif
+	}
+		//exit(0);
+}
+//----------------------------------------------------------------------
+void Model::storeDLossDweightInConnections()
+{
+	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+	}
+}
+//----------------------------------------------------------------------
 void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
 {
 	printf("ENTER BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
+
+	nb_batch = pred.n_rows;
+	//printf(" model nb_batch = %d\n", nb_batch);
+	if (nb_batch == 0) {
+		printf("backPropagationViaConnections, nb_batch must be > 0\n");
+		exit(0);
+	}
+	//printf("Gordon\n"); exit(0);
+
 
 	VF2D delta_incr;
 	VF2D_F delta_f(pred.size());
@@ -933,27 +1029,77 @@ void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
 		(*it)->resetDelta();
 	}
 
-	Layer* layer = getOutputLayers()[0];
-	layer->printSummary("output_layer");
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->resetDelta();
+	}
 
-    objective->computeGradient(exact, pred);
+	Layer* layer = getOutputLayers()[0];
+	//layer->printSummary("output_layer");
+
+	//exact.print("exact");
+	//pred.print("pred");
+	//U::print(exact, "exact");
+
+    objective->computeGradient(exact, pred);   // =========> ERROR in modelFunc3
     VF2D_F& grad = objective->getGradient();
-    layer->setDelta(grad);  //DELTA: VF1D_F, but grad: VF2D_F (DELTA probably VF2D_F)
+	layer->setDelta(grad);  // assumes single output layer
+
+	storeGradientsInLayers();
+	storeDactivationDoutputInLayers();
+	storeDLossDweightInConnections();
+	//printf("GG\n"); exit(0);
+	printf("================  END DEBUGGING ====================\n");
+
+	return;
+
+	U::print(pred, "pred");
+
+
+	//for (int c=0; c < layer->prev.size(); c++) {
+    	//layer->setDelta(grad, c);  //DELTA: VF1D_F, but grad: VF2D_F (DELTA probably VF2D_F)
+	//}
 
 	int nb_batch = exact.size();
 	printf("nb_batch= %d\n", nb_batch);
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+		(*it)->printSummary("-- connection -- ");
+		printf("  --> which_lc= %d\n", (*it)->which_lc);
+	}
+	printf("GG\n"); exit(0);
+
+	printf("... layers sometimes appear twice in layers vector ...\n");
+	for (int l=0; l < layers.size(); l++) {
+	    layers[l]->printSummary("-- layers --");
+		printf(" --> prev size: %d\n", layers[l]->prev.size());
+		printf(" --> next size: %d\n", layers[l]->next.size());
+		layers[l]->getGradient().print("gradient");
+	}
+
+	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+		printf("**************** inside iteration over connections *****************\n");
 		Connection* conn = *it;
+		conn->printSummary("-- connection -- ");
+		which_lc = conn->which_lc;
 		Layer* layer_from = conn->from;
 		Layer* layer_to   = conn->to;
-		VF2D_F& delta = layer_to->getDelta(which_lc); // ==> dubious
+		printf("which_lc= %d\n", which_lc);
+		layer_to->printSummary("layer_to, get delta, ");
+		VF2D_F& delta = layer_to->getDelta(which_lc); // ERROR
 		VF2D_F& out_t = layer_from->getOutputs(); // (layer_size, seq_len)
+		U::print(delta, "delta"); 
+		U::print(out_t, "out_t before transpose");
+
+		VF2D_F& out = layer_to->getOutputs(); // (layer_size, seq_len)
+		for (int b=0; b < out.n_rows; b++) {
+		   ;
+		}
+			
 
 		for (int b=0; b < nb_batch; b++) {
-        	delta_incr = delta[b] * out_t[b].t();    // EXPENSIVE
+        	delta_incr = delta[b] * out_t[b].t();    // EXPENSIVE BUG
+        	conn->incrDelta(delta_incr);   // Used to update weights  (SHOULD BE INITIALIZED TO ZERO)
 		}
-        conn->incrDelta(delta_incr);   // Used to update weights
 
 		const VF2D wght_t = conn->getWeight().t();
 		const VF2D_F& prev_inputs = layer_from->getOutputs(); //  (layer_size, seq_len)
@@ -964,14 +1110,17 @@ void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
 			delta_f(b) = pp % prev_grad_act[b];
 		}
 
+		printf("from->setDelta, which_lc= %d\n", which_lc);
+		layer_from->printSummary("layer_from, set delta, ");
         layer_from->setDelta(delta_f, which_lc); 
+		U::print(delta, "layer_from->setDelta(delta_f)"); 
     }
 	exit(0);
 
 	exact.print("exact");
 	pred.print("pred");
 
-	exit(0);
+	//exit(0);
 }
 //----------------------------------------------------------------------
 void Model::backPropagation(VF2D_F exact, VF2D_F pred)
