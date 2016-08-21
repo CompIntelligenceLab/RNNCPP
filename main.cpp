@@ -21,6 +21,7 @@ using namespace std;
 
 VF2D_F testBackprop(Model* m);
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F&);
+void weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact);
 
 //----------------------------------------------------------------------
 float runModel(Model* m)
@@ -31,50 +32,63 @@ float runModel(Model* m)
 	VF2D_F xf, yf, exact;
 	testData(*m, xf, yf, exact);
 	VF2D_F pred = m->predictViaConnections(xf);
-    pred.print("before backprop: pred");
-	m->backPropagationViaConnections(exact, pred);
+    //pred.print("before backprop: pred");
+
+	CONNECTIONS connections = m->getConnections();
+	float inc = .001;
+	float dLdw;
+
+	for (int c=0; c < connections.size(); c++) {
+		connections[c]->printSummary();
+		weightDerivative(m, *connections[c], inc, xf, exact);
+	}
+	//weightDerivative(m, *connections[4], inc, xf, exact);
+	//printf("gg \n"); exit(0);
+	//printf("gordon\n"); exit(0);
+	//weightDerivative(m, *connections[1], inc, xf, exact);
+
+	//exit(0);
+	//m->backPropagationViaConnections(exact, pred);
+	//exit(0);
 }
 //----------------------------------------------------------------------
-float weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
+void weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
 {
 	WEIGHT w0 = con.getWeight();
 	int rrows = w0.n_rows;
 	int ccols = w0.n_cols;
-	float dLdw = 0;
+	//float dLdw = 0;
+	WEIGHT dLdw(size(w0));
+	dLdw.zeros();
+	Objective* mse = new MeanSquareError();
+	printf("rrows/cols= %d, %d\n", rrows, ccols);
 
 	for (int rr=0; rr < rrows; rr++) {
 	for (int cc=0; cc < ccols; cc++) {
 
 		WEIGHT& wp = con.getWeight(); 
 		wp(rr,cc) += inc;
-		VF2D_F pred_n = m->predictComplex(xf);
+		//VF2D_F pred_n = m->predictComplex(xf);
+		VF2D_F pred_n = m->predictViaConnections(xf);
 
 		WEIGHT& wm = con.getWeight(); 
 		wm(rr,cc) -= (2.*inc);
-		VF2D_F pred_p = m->predictComplex(xf);
+		//VF2D_F pred_p = m->predictComplex(xf);
+		VF2D_F pred_p = m->predictViaConnections(xf);
 
-		VF2D_F sub(pred_n.n_rows);
-		for (int i=0; i < pred_n.size(); i++) {
-			sub(i) = pred_n(i) - pred_p(i);
-		}
-
-		//U::print(exact, "exact"); 
-		//printf("exact.nrows= %d\n", exact.n_rows); 
-
-		Objective* mse = new MeanSquareError();
 		VF1D_F loss_p = (*mse)(exact, pred_p);
 		VF1D_F loss_n = (*mse)(exact, pred_n);
 		//U::print(loss_p, "loss_p"); exit(0);
 		//U::print(loss_n, "loss_n");
 		//loss_n.print("loss_n");
 		//loss_p.print("loss_p");
-		dLdw = (loss_n(0)(0) - loss_p(0)(0)) / (2.*inc);
-		con.setWeight(w0);
-		//printf("loss: %f, %f\n", loss_n(0)(0), loss_p(0)(0));
-		printf("...> Finite-Difference, dLdw(%d, %d)= %f\n", rr, cc, dLdw);
-	}}
 
-	return dLdw;
+		//loss_n(0).print("loss_n(0)");
+		//U::print(loss_n(0), "loss_n(0)");
+		dLdw(rr, cc) = (loss_n(0)(0) - loss_p(0)(0)) / (2.*inc);
+		//printf("...> Finite-Difference, dLdw(%d, %d)= %f\n", rr, cc, dLdw);
+	}}
+	dLdw.print("dLdw");
 }
 //----------------------------------------------------------------------
 void testCube()
@@ -448,8 +462,8 @@ void testFuncModel1()
 	w0.print("w0");
 
 	// calculate derivative with respect to all elements of weight matri
-	float dLdw = weightDerivative(m, *connections[1], inc, xf, exact);
-	dLdw = weightDerivative(m, *connections[2], inc, xf, exact);
+	 weightDerivative(m, *connections[1], inc, xf, exact);
+	weightDerivative(m, *connections[2], inc, xf, exact);
 	// dLdw(0, 0)= 0.128712  (weight: 1x1)
 	printf("\n===== END EXACT DERIVATIVES dL/dw ============================================================================\n");
 #endif
@@ -646,10 +660,9 @@ int main()
 	//testCube();
 	//testModel();
 
-	//testFuncModel1();
-	//testFuncModel2();
+	testFuncModel1();
+	testFuncModel2();
 	testFuncModel3();
-	exit(0);
 	testModel1();
 	testModel2();
 	exit(0);

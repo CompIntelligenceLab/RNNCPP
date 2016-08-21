@@ -134,6 +134,7 @@ public:
   // "gaussian", "uniform", "orthogonal"
   void initializeWeights(std::string initialization_type="uniform");
 	void removeFromList(std::list<Layer*>& llist, Layer* cur_layer);
+	void resetDeltas();
 
 private:
   void checkIntegrity(LAYERS& layer_list);
