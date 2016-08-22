@@ -1001,7 +1001,8 @@ void Model::storeDactivationDoutputInLayers()
 		//U::print(wght, "wght");
 		
 		for (int b=0; b < nb_batch; b++) {
-			prod[b] = wght.t() * (grad[b] % old_deriv[b]);
+			//prod[b] = wght.t() * (grad[b] % old_deriv[b]);
+			prod[b] = (grad[b] % old_deriv[b]) * wght;
 		}
 		prod[0].print("prod[0]");
 		layer_from->incrDelta(prod);
@@ -1019,17 +1020,20 @@ void Model::storeDLossDweightInConnections()
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* conn = (*it);
-		conn->printSummary("Connection, ");
 		Layer* layer_from = conn->from;
 		Layer* layer_to   = conn->to;
-		VF2D_F& out = layer_to->getOutputs();
+
+		VF2D_F& out = layer_from->getOutputs();
 		const VF2D_F& grad = layer_to->getGradient();
-		grad.print("layer_to->getGradient, grad, ");
 		VF2D_F& old_deriv = layer_to->getDelta();
+
+		conn->printSummary("Connection, ");
+		grad.print("layer_to->getGradient, grad, ");
 		old_deriv.print("layer_to->getDelta, old_deriv, ");
 
 		for (int b=0; b < nb_batch; b++) {
-			prod = (old_deriv[b] % grad[b]) * out(b).t();
+			//prod = (old_deriv[b] % grad[b]) * out(b).t();
+			prod = (old_deriv[b] % grad[b]) * out(b);
 			prod.print("storeDLossDweightInConnections, prod");
 			(*it)->incrDelta(prod);
 		}
