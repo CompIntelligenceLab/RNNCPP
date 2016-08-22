@@ -89,7 +89,7 @@ public:
   int getBatchSize() const {return batch_size;}
   int getSeqLen() const {return seq_len;}
   void setInputDim(int input_dim) {this->input_dim = input_dim;}
-  void setBatchSize(int batch_size) {this->batch_size = batch_size;}
+  void setBatchSize(int batch_size) {this->batch_size = this->nb_batch = batch_size;}
   void setSeqLen(int seq_len) { this->seq_len = seq_len;}
   void setName(std::string name) { this->name = name; }
   const LAYERS& getLayers() const { return layers; };

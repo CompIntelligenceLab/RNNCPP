@@ -42,6 +42,7 @@ void Layer::initVars(int nb_batch)
 	inputs.set_size(nb_batch);
 	outputs.set_size(nb_batch);
 	delta.set_size(nb_batch);
+	//printf("nb_batch= %d\n", nb_batch); exit(0);
 
 	for (int i=0; i < nb_batch; i++) {
 		inputs[i]  = VF2D(layer_size, 1);

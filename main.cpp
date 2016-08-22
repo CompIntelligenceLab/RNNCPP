@@ -113,8 +113,6 @@ storeDLossDweightInConnections, prod 0.0995
 ***************** EXIT BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<
 *******************/
 
-
-
 	m->backPropagationViaConnections(exact, pred);
 	printf("BackProp derivatives\n");
 	for (int c=1; c < connections.size(); c++) {
@@ -123,8 +121,7 @@ storeDLossDweightInConnections, prod 0.0995
 	}
 
 	// Go through connections and print out weight derivatives
-	exit(0);
-	printf("gordon\n"); exit(0);
+	//printf("gordon\n"); exit(0);
 }
 //----------------------------------------------------------------------
 WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
@@ -776,9 +773,9 @@ int main()
 	//testCube();
 	//testModel();
 
-	testModel1a(1);
-	exit(0);
+	//testModel1a(1);
 	testModel1a(2);
+	exit(0);
 	testModel1a(5);
 
 	testFuncModel1();

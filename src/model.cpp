@@ -136,6 +136,8 @@ void Model::add(Layer* layer_from, Layer* layer_to)
 	}
 
   	layers.push_back(layer_to);
+	layer_to->setNbBatch(nb_batch); // check
+	printf("layers: nb_batch= %d\n", nb_batch);
 
 	int in_dim  = layer_to->getInputDim();
 	int out_dim = layer_to->getOutputDim();
@@ -1005,6 +1007,8 @@ void Model::storeDactivationDoutputInLayers()
 			prod[b] = (grad[b] % old_deriv[b]) * wght;
 		}
 		prod[0].print("prod[0]");
+		printf("nb_batch= %d\n", nb_batch);
+		U::print(prod, "prod");
 		layer_from->incrDelta(prod);
 	}
 	printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
@@ -1051,6 +1055,7 @@ void Model::resetDeltas()
 	}
 
 	for (int l=0; l < layers.size(); l++) {
+		//printf("- nb batch= %d\n", layers[0]->getNbBatch()); exit(0);
 		layers[l]->resetDelta();
 	}
 }
