@@ -175,11 +175,11 @@ void Layer::incrInputs(VF2D_F& x)
 
 void Layer::incrDelta(VF2D_F& x)
 {
-	printf("delta.rows: %d\n", delta.n_rows);
-	U::print(delta, "delta");
-	U::print(x, "incrDelta");
-	printf("x.n_rows = %d\n", x.n_rows);
-	printf("deltax.n_rows = %d\n", delta.n_rows);
+	//printf("delta.rows: %d\n", delta.n_rows);
+	//U::print(delta, "delta");
+	//U::print(x, "incrDelta");
+	//printf("x.n_rows = %d\n", x.n_rows);
+	//printf("deltax.n_rows = %d\n", delta.n_rows);
 
 	if (delta[0].n_rows == 0) {
 		for (int b=0; b < x.n_rows; b++) {

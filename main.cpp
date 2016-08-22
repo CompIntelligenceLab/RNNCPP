@@ -21,7 +21,8 @@ using namespace std;
 
 VF2D_F testBackprop(Model* m);
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F&);
-void weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact);
+WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact);
+WEIGHT dLdw(1,1);
 
 //----------------------------------------------------------------------
 float runModel(Model* m)
@@ -31,34 +32,86 @@ float runModel(Model* m)
 
 	VF2D_F xf, yf, exact;
 	testData(*m, xf, yf, exact);
-	VF2D_F pred = m->predictViaConnections(xf);
-    //pred.print("before backprop: pred");
 
 	CONNECTIONS connections = m->getConnections();
-	float inc = .001;
-	float dLdw;
 
+	xf(0) = .3;
+	yf(0) = .4;
+	exact(0) = .5;
+	float w =  m->getConnections()[0]->getWeight()[0];
+	printf("w = %f\n", w);
+
+	printf("*** connections.size() = %d\n", connections.size());
 	for (int c=0; c < connections.size(); c++) {
 		connections[c]->printSummary();
-		weightDerivative(m, *connections[c], inc, xf, exact);
 	}
-	//weightDerivative(m, *connections[4], inc, xf, exact);
-	//printf("gg \n"); exit(0);
-	//printf("gordon\n"); exit(0);
-	//weightDerivative(m, *connections[1], inc, xf, exact);
+	// xf = .3
+	// yf = w * .3;
+	w =  m->getConnections()[0]->getWeight()(0,0);
+	printf("w[0] = %f\n", w);
+	printf("w[0]*xf = %f\n", w*xf(0)(0,0));
+	w =  m->getConnections()[1]->getWeight()(0,0);
+	printf("w[1] = %f\n", w);
+	printf("w[1]*xf = %f\n", w*xf(0)(0,0));
+
+	const WEIGHT& wght =  m->getConnections()[1]->getWeight();
+	VF2D exact_prediction = wght % xf(0);
+	// WRONG RESULT for Model1a
+
+	VF2D_F pred = m->predictViaConnections(xf);
+	pred.print("predicted value");
+	exact_prediction.print("exact predicted");
+	VF2D err = (pred(0) - exact_prediction); 
+	err.print("absolute error on prediction");
+	err = err / exact_prediction;
+	err.print("relative error on prediction");
+	printf("----------------------------\n");
+
+	float inc = .001;
+	WEIGHT fd_dLdw;
+	// First connection is between 0 and input (does not count)
+	for (int c=1; c < connections.size(); c++) {
+		connections[c]->printSummary();
+		fd_dLdw = weightDerivative(m, *connections[c], inc, xf, exact);
+	}
+
+	/*
+	loss = (exact - pred)**2
+	pred = w*x
+	dL/dw = 2.*(exact-pred) * xf
+	*/
+
+	// Exact dL/dw
+	VF2D dLdw_analytical = 2.*(exact(0) - pred(0)) * xf(0);
+	printf("Analytical dLdw: = %f\n", dLdw(0));
+	printf("F-D  derivative: = %f\n", fd_dLdw(0));
+
+	printf("gordon\n"); exit(0);
+
+	exit(0);
+
+
+
 
 	//exit(0);
-	//m->backPropagationViaConnections(exact, pred);
+	m->backPropagationViaConnections(exact, pred);
+	printf("gordon\n");
+
+	// Go through connections and print out weight derivatives
 	//exit(0);
 }
 //----------------------------------------------------------------------
-void weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
+WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
 {
+	printf("************** ENTER weightDerivative ********************\n");
+	// I'd expect the code to work with nb_batch=1 
+
 	WEIGHT w0 = con.getWeight();
 	int rrows = w0.n_rows;
 	int ccols = w0.n_cols;
 	//float dLdw = 0;
-	WEIGHT dLdw(size(w0));
+	//WEIGHT dLdw(size(w0));
+	dLdw = arma::Mat<float>(size(w0));
 	dLdw.zeros();
 	Objective* mse = new MeanSquareError();
 	printf("rrows/cols= %d, %d\n", rrows, ccols);
@@ -89,6 +142,8 @@ void weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& 
 		//printf("...> Finite-Difference, dLdw(%d, %d)= %f\n", rr, cc, dLdw);
 	}}
 	dLdw.print("dLdw");
+	printf("************** EXIT weightDerivative ********************\n");
+	return dLdw;
 }
 //----------------------------------------------------------------------
 void testCube()
@@ -286,6 +341,41 @@ void testModel()
 }
 //----------------------------------------------------------------------
 // TEST MODELS for structure
+void testModel1a(int nb_batch)
+{
+/***
+	Simplest possible network: two nodes with the identity activation. 
+	seq_len = nb_batch = 1
+	This allows testing via simple matrix-multiplication
+
+                 w1
+	    input ---------> dense --> loss    (loss is attached to the output layer)
+***/
+	printf("\n --- testModel1a ---\n");
+	int input_dim = 1;
+	Model* m  = new Model(); // argument is input_dim of model
+
+	// I am not sure that batchSize and nb_batch are the same thing
+	m->setBatchSize(nb_batch);
+	assert(m->getBatchSize() == nb_batch);
+
+	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
+	// 2 is the dimensionality of the data
+	// the names have a counter value attached to it, so there is no duplication. 
+	Layer* input   = new InputLayer(1, "input_layer");
+	Layer* dense  = new DenseLayer(1, "dense");
+
+	m->add(0,      input);
+	m->add(input,  dense);
+
+	dense->setActivation(new Identity());
+	input->setActivation(new Identity());
+
+	m->addInputLayer(input);
+	m->addOutputLayer(dense);
+	runModel(m);
+}
+//----------------------------------------------------------------------
 void testModel1()
 {
 	printf("\n --- testModel1 ---\n");
@@ -659,6 +749,11 @@ int main()
 
 	//testCube();
 	//testModel();
+
+	testModel1a(1);
+	exit(0);
+	testModel1a(2);
+	testModel1a(5);
 
 	testFuncModel1();
 	testFuncModel2();

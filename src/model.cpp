@@ -524,7 +524,7 @@ void Model::printSummary()
 VF2D_F Model::predictViaConnections(VF2D_F x)
 {
 	VF2D_F prod(x.size());
-	//printf("ENTER predictViaConnections ***************\n");
+	printf("****************** ENTER predictViaConnections ***************\n");
 
 	Layer* input_layer = getInputLayers()[0];
 	//input_layer->printSummary("input_layer");
@@ -542,11 +542,13 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 
 		VF2D_F& from_outputs = from_layer->getOutputs();
 		WEIGHT& wght = conn->getWeight();
+
+		conn->printSummary();
 		//from_layer->printSummary("--> from_layer");
 		//to_layer->printSummary("--> to_layer");
-		//wght.print("--> wght");
-		//from_outputs.print("--> from_outputs");
-		//U::print(from_outputs, "from_outputs");
+		wght.print("--> wght");
+		from_outputs.print("--> from_outputs");
+		U::print(from_outputs, "from_outputs");
 
 		// matrix multiplication
 		for (int b=0; b < from_outputs.size(); b++) {
@@ -567,7 +569,7 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 
 		to_inputs = prod;
 	}
-	//prod.print("predictViaConnection return: "); 
+	prod.print("************ EXIT predictViaConnection ***************"); 
 	//exit(0);
 	return prod;
 }
@@ -950,9 +952,9 @@ void Model::storeGradientsInLayers()
 {
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->computeGradient();
-		layers[l]->getOutputs().print("layer outputs");
+		//layers[l]->getOutputs().print("layer outputs");
 		//printf("activation name: %s\n", layers[l]->getActivation().getName().c_str());
-		layers[l]->getGradient().print("layer gradient");
+		//layers[l]->getGradient().print("layer gradient");
 		//U::print(layers[l]->getGradient(), "layer gradient");
 		//U::print(layers[l]->getDelta(), "layer Delta"); // seg fault
 	}
@@ -1013,7 +1015,10 @@ void Model::storeDLossDweightInConnections()
 
 		for (int b=0; b < nb_batch; b++) {
 			prod[b] = (old_deriv[b] % grad[b]) * out(b).t();
+			//(*it)->incrDelta(prod[b]);
 		}
+		U::print(prod, "prod");
+
 	}
 	//printf("GGG\n"); exit(0);
 }

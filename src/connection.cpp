@@ -154,7 +154,9 @@ void Connection::weightUpdate(float learning_rate) {  // simplest algorithm
 
 void Connection::incrDelta(WEIGHT& x)
 {
-	for (int b=0; b < x.n_rows; b++) {
+	if (delta.n_rows == 0) {
+		delta = x;
+	} else {
 		delta += x;
 	}
 }
