@@ -86,19 +86,45 @@ float runModel(Model* m)
 	printf("Analytical dLdw: = %f\n", dLdw(0));
 	printf("F-D  derivative: = %f\n", fd_dLdw(0));
 
-	printf("gordon\n"); exit(0);
+/*********************
+storeGradientsInLayers, Layer (input_layer0), layer_size: 1
+layer outputs, 0.3000
+layer gradient, 1.0000
+layer Delta, [matrix size: 0x0]
 
-	exit(0);
+storeGradientsInLayers, Layer (dense1), layer_size: 1
+layer outputs, 0.1373
+layer gradient, 1.0000
+layer Delta, 0.7248
+********* ENTER storeDactivationDoutputInLayers() ************** connectionConnection (weight1), weight(1, 1), layers: (input_layer0, dense1), type: spatial
+layer_toLayer (dense1), layer_size: 1
+layer_fromLayer (input_layer0), layer_size: 1
+grad[0], 1.0000
+old_deriv[0], 0.7248
+wght, 0.4577
+prod[0], 0.3317
+********* EXIT storeDactivationDoutputInLayers() **************
+********** ENTER storeDLossDweightInConnections ***********
+Connection, Connection (weight1), weight(1, 1), layers: (input_layer0, dense1), type: spatial
+layer_to->getGradient, grad, 1.0000
+layer_to->getDelta, old_deriv, 0.7248
+storeDLossDweightInConnections, prod 0.0995
+********** EXIT storeDLossDweightInConnections ***********
+***************** EXIT BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<
+*******************/
 
 
 
-
-	//exit(0);
 	m->backPropagationViaConnections(exact, pred);
-	printf("gordon\n");
+	printf("BackProp derivatives\n");
+	for (int c=1; c < connections.size(); c++) {
+		connections[c]->printSummary("Connection (backprop)");
+		connections[c]->getDelta().print("delta");
+	}
 
 	// Go through connections and print out weight derivatives
-	//exit(0);
+	exit(0);
+	printf("gordon\n"); exit(0);
 }
 //----------------------------------------------------------------------
 WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)

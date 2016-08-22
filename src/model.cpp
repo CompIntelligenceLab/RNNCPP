@@ -950,20 +950,26 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 //----------------------------------------------------------------------
 void Model::storeGradientsInLayers()
 {
+	printf("---- enter storeGradientsInLayers ----\n");
 	for (int l=0; l < layers.size(); l++) {
+		layers[l]->printSummary("storeGradientsInLayers, ");
 		layers[l]->computeGradient();
-		//layers[l]->getOutputs().print("layer outputs");
+		layers[l]->getOutputs().print("layer outputs, ");
 		//printf("activation name: %s\n", layers[l]->getActivation().getName().c_str());
-		//layers[l]->getGradient().print("layer gradient");
 		//U::print(layers[l]->getGradient(), "layer gradient");
+		layers[l]->getGradient().print("layer gradient, ");
 		//U::print(layers[l]->getDelta(), "layer Delta"); // seg fault
+		layers[l]->getDelta().print("layer Delta, "); // seg fault
 	}
+	printf("---- exit storeGradientsInLayers ----\n");
 }
 //----------------------------------------------------------------------
 void Model::storeDactivationDoutputInLayers()
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
+
+	printf("********* ENTER storeDactivationDoutputInLayers() **************\n");
 
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
@@ -979,14 +985,17 @@ void Model::storeDactivationDoutputInLayers()
 		Connection* conn = (*it);
 		Layer* layer_from = conn->from;
 		Layer* layer_to   = conn->to;
-		//(*it)->printSummary("************ connection");
+		(*it)->printSummary("************ connection");
 
 		const VF2D_F& grad = layer_to->getGradient();
 		WEIGHT& wght = conn->getWeight();
 		VF2D_F& old_deriv = layer_to->getDelta();
 
-		//layer_to->printSummary("layer_to");
-		//layer_from->printSummary("layer_from");
+		layer_to->printSummary("layer_to");
+		layer_from->printSummary("layer_from");
+		grad[0].print("grad[0]");
+		old_deriv[0].print("old_deriv[0]");
+		wght.print("wght");
 		//U::print(grad[0], "grad[b]");
 		//U::print(old_deriv[0], "old_deriv[b]");
 		//U::print(wght, "wght");
@@ -994,33 +1003,38 @@ void Model::storeDactivationDoutputInLayers()
 		for (int b=0; b < nb_batch; b++) {
 			prod[b] = wght.t() * (grad[b] % old_deriv[b]);
 		}
+		prod[0].print("prod[0]");
 		layer_from->incrDelta(prod);
 	}
-		//exit(0);
+	printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
 }
 //----------------------------------------------------------------------
 void Model::storeDLossDweightInConnections()
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
-	VF2D_F prod(nb_batch);
+	WEIGHT prod;
+
+	printf("********** ENTER storeDLossDweightInConnections ***********\n");
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* conn = (*it);
+		conn->printSummary("Connection, ");
 		Layer* layer_from = conn->from;
 		Layer* layer_to   = conn->to;
 		VF2D_F& out = layer_to->getOutputs();
 		const VF2D_F& grad = layer_to->getGradient();
+		grad.print("layer_to->getGradient, grad, ");
 		VF2D_F& old_deriv = layer_to->getDelta();
+		old_deriv.print("layer_to->getDelta, old_deriv, ");
 
 		for (int b=0; b < nb_batch; b++) {
-			prod[b] = (old_deriv[b] % grad[b]) * out(b).t();
-			//(*it)->incrDelta(prod[b]);
+			prod = (old_deriv[b] % grad[b]) * out(b).t();
+			prod.print("storeDLossDweightInConnections, prod");
+			(*it)->incrDelta(prod);
 		}
-		U::print(prod, "prod");
-
 	}
-	//printf("GGG\n"); exit(0);
+	printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }
 //----------------------------------------------------------------------
 void Model::resetDeltas()
@@ -1039,7 +1053,7 @@ void Model::resetDeltas()
 //----------------------------------------------------------------------
 void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
 {
-	//printf("ENTER BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
+	printf("***************** ENTER BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 
@@ -1059,6 +1073,7 @@ void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
 	storeGradientsInLayers();
 	storeDactivationDoutputInLayers();
 	storeDLossDweightInConnections();
+	printf("***************** EXIT BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 }
 //----------------------------------------------------------------------
 void Model::backPropagation(VF2D_F exact, VF2D_F pred)
