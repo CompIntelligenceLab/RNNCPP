@@ -997,14 +997,15 @@ void Model::storeDactivationDoutputInLayers()
 		layer_from->printSummary("layer_from");
 		grad[0].print("grad[0]");
 		old_deriv[0].print("old_deriv[0]");
+
 		wght.print("wght");
-		//U::print(grad[0], "grad[b]");
-		//U::print(old_deriv[0], "old_deriv[b]");
-		//U::print(wght, "wght");
+		U::print(grad[0], "grad[b]");
+		U::print(old_deriv[0], "old_deriv[b]");
+		U::print(wght, "wght");
 		
 		for (int b=0; b < nb_batch; b++) {
 			//prod[b] = wght.t() * (grad[b] % old_deriv[b]);
-			prod[b] = (grad[b] % old_deriv[b]) * wght;
+			prod[b] = wght.t() * (grad[b] % old_deriv[b]);
 		}
 		prod[0].print("prod[0]");
 		printf("nb_batch= %d\n", nb_batch);
@@ -1034,10 +1035,12 @@ void Model::storeDLossDweightInConnections()
 		conn->printSummary("Connection, ");
 		grad.print("layer_to->getGradient, grad, ");
 		old_deriv.print("layer_to->getDelta, old_deriv, ");
+		out.print("layer_from_getOutputs()");
 
 		for (int b=0; b < nb_batch; b++) {
 			//prod = (old_deriv[b] % grad[b]) * out(b).t();
-			prod = (old_deriv[b] % grad[b]) * out(b);
+			//prod = (old_deriv[b] % grad[b]) * out(b);
+			prod = (old_deriv[b] % grad[b]) * out(b).t();
 			prod.print("storeDLossDweightInConnections, prod");
 			(*it)->incrDelta(prod);
 		}

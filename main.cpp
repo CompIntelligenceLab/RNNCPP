@@ -33,11 +33,21 @@ float runModel(Model* m)
 	VF2D_F xf, yf, exact;
 	testData(*m, xf, yf, exact);
 
+	Layer* outLayer = m->getOutputLayers()[0];
+	int output_dim = outLayer->getOutputDim();
+	printf("output_dim = %d\n", output_dim);
+
 	CONNECTIONS connections = m->getConnections();
 
-	xf(0) = .3;
-	yf(0) = .4;
-	exact(0) = .5;
+	for (int b=0; b < m->getBatchSize(); b++) {
+		xf(b) = .3;
+		yf(b) = .4;
+		exact(b) = arma::Mat<float>(output_dim,1);
+		exact(b).ones();
+		exact(b) *= .5;
+	}
+	//exact.print("exact");
+	//exit(0);
 	float w =  m->getConnections()[0]->getWeight()[0];
 	printf("w = %f\n", w);
 
@@ -54,11 +64,13 @@ float runModel(Model* m)
 	printf("w[1] = %f\n", w);
 	printf("w[1]*xf = %f\n", w*xf(0)(0,0));
 
-	const WEIGHT& wght =  m->getConnections()[1]->getWeight();
-	VF2D exact_prediction = wght % xf(0);
+	//const WEIGHT& wght =  m->getConnections()[1]->getWeight();
+	//VF2D exact_prediction = wght % xf(0);
 	// WRONG RESULT for Model1a
 
 	VF2D_F pred = m->predictViaConnections(xf);
+
+	#if 0
 	pred.print("predicted value");
 	exact_prediction.print("exact predicted");
 	VF2D err = (pred(0) - exact_prediction); 
@@ -66,8 +78,9 @@ float runModel(Model* m)
 	err = err / exact_prediction;
 	err.print("relative error on prediction");
 	printf("----------------------------\n");
+	#endif
 
-	float inc = .001;
+	float inc = .0001;
 	WEIGHT fd_dLdw;
 	// First connection is between 0 and input (does not count)
 	for (int c=1; c < connections.size(); c++) {
@@ -152,6 +165,8 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 		//VF2D_F pred_p = m->predictComplex(xf);
 		VF2D_F pred_p = m->predictViaConnections(xf);
 
+		U::print(exact, "exact");
+		U::print(pred_p, "pred_p");
 		VF1D_F loss_p = (*mse)(exact, pred_p);
 		VF1D_F loss_n = (*mse)(exact, pred_n);
 		//U::print(loss_p, "loss_p"); exit(0);
@@ -497,11 +512,21 @@ void testFuncModel1()
 	Layer* dense2  = new DenseLayer(layer_size, "dense");
 	Layer* dense3  = new DenseLayer(layer_size, "dense");
 
+	input->setActivation(new Identity());
+	dense0->setActivation(new Identity());
+	dense1->setActivation(new Identity());
+	dense2->setActivation(new Identity());
+	dense3->setActivation(new Identity());
+
 	m->add(0, input);
 	m->add(input, dense0);
 	m->add(dense0, dense1);
 	m->add(dense1, dense2);
 	m->add(dense2, dense3);
+
+	/*
+	    input --> dense0 --> dense1 --> dense2 --> dense3
+	*/
 
 	m->addInputLayer(input);
 	m->addOutputLayer(dense3);
@@ -510,76 +535,9 @@ void testFuncModel1()
 	m->addLossLayer(dense1);
 
 	runModel(m);
+
+	// Backprop works
 	return;
-
-	//VF2D_F xf, yf, exact;
-	//testData(*m, xf, yf, exact);
-	//exact.print("exact"); // .0470
-	//m->predictViaConnections(xf);
-	//printf("end predictViaConnections\n");
-	//exit(0);
-
-	//VF2D_F ee = dense0->getActivation()(exact);
-	//ee.print("ee");
-	//exact.print("exact");
-	//exit(0);
-
-// xxxxxxxxx
-
-	//xf = testBackprop(m);
-#if 0
-	xf.print("xf");
-
-	printf("\n===== PREDICT ===============================================================================================\n");
-	VF2D_F pred = m->predictComplexMaybeWorks(xf);  // for testing while Nathan works with predict
-	m->backPropagation(exact, pred);
-	exit(0);
-
-	xf.print("xf"); //    0.5328
-	pred.print("pred"); //    0.2396  (matches analytical)
-	// Output to dens0: tanh(w*xf) = tanh(.4587*.5328) = tanh(.2444) = 0.2396
-	// objective: (.239643-.0470)**2 = .037094
-	// tanh gradient: (1-.239643^2) = .9426
-	// objective gradient: 2*(.239643-.0470) = .385286
-	WEIGHT w =  m->getConnections()[1]->getWeight();
-	m->getConnections()[1]->getWeight().print("weight"); //    0.4587
-	(*m->getObjective())(exact, pred).print("objective");  // .0371 (ok)
-
-	// dL/dw = (dL/dz) (dz/da) (da/dw) = 2.*(pred-exact)*tanh'(xf*w) * xf
-	//       = 2.*(pred-exact)*(1-(xf*w)**2) * xf
-    for (int b=0; b < pred.size(); b++) {
-		VF1D dLdw_exact = 2.*(pred(b)-exact(b))*(1.-arma::tanh(xf(b)*w(0,0))%tanh(xf(b)*w(0,0))) * xf(b);
-		dLdw_exact.print("==> dLdw_exact");
-	}
-	//pred.print("pred"); exit(0);
-
-	printf("\n===== BACK PROPAGATION =================================================================================\n");
-
-	for (int c=1; c < m->getConnections().size(); c++) {
-		Connection* con = m->getConnections()[c];
-		WEIGHT delta = con->getDelta();
-		delta.print("==> delta"); //   -0.2052
-	}
-	printf("\n===== END BACK PROPAGATION =================================================================================\n");
-
-	// Test derivative calculations via finite-differences
-
-	printf("\n===== EXACT DERIVATIVES dL/dw ============================================================================\n");
-
-	float inc = .001;
-	int rr = 0;
-	int cc = 0;
-
-	CONNECTIONS connections = m->getConnections();
-	WEIGHT w0 = connections[1]->getWeight(); 
-	w0.print("w0");
-
-	// calculate derivative with respect to all elements of weight matri
-	 weightDerivative(m, *connections[1], inc, xf, exact);
-	weightDerivative(m, *connections[2], inc, xf, exact);
-	// dLdw(0, 0)= 0.128712  (weight: 1x1)
-	printf("\n===== END EXACT DERIVATIVES dL/dw ============================================================================\n");
-#endif
 }
 //----------------------------------------------------------------------
 void testFuncModel2()
@@ -773,14 +731,16 @@ int main()
 	//testCube();
 	//testModel();
 
-	//testModel1a(1);
-	testModel1a(2);
-	exit(0);
+	#if 0
+	testModel1a(1);
+	//testModel1a(2);
 	testModel1a(5);
-
 	testFuncModel1();
 	testFuncModel2();
+	#endif
+
 	testFuncModel3();
+	exit(0);
 	testModel1();
 	testModel2();
 	exit(0);
