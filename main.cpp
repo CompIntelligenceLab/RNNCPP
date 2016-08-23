@@ -326,56 +326,39 @@ void testPredict()
 #endif
 }
 //----------------------------------------------------------------------
-void testModel()
+void testRecurrentModel1(int nb_batch=1)
 {
-#if 0
-	WEIGHTS w1, w2;
-	int input_dim = 2;
-	Model* m  = new Model(input_dim); // argument is input_dim of model
-    m->setBatchSize(2);
-	assert(m->getBatchSize() == 2);
+/***
+	Simplest possible network: two nodes with the identity activation. 
+	seq_len = nb_batch = 1
+	This allows testing via simple matrix-multiplication
+
+                 w1
+	    input ---------> rdense --> loss    (loss is attached to the output layer)
+***/
+	printf("\n --- testModel1a ---\n");
+	int input_dim = 1;
+	Model* m  = new Model(); // argument is input_dim of model
+
+	// I am not sure that batchSize and nb_batch are the same thing
+	m->setBatchSize(nb_batch);
+	assert(m->getBatchSize() == nb_batch);
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
-	Layer* input = new InputLayer(2, "input_layer");
-	m->add(input);
-	Layer* dense = new DenseLayer(5, "dense");
-	m->add(dense);
-	Layer* dense1 = new DenseLayer(3, "dense");
-	m->add(dense1); // weights should be defined when add is done
-	Layer* dense2 = new DenseLayer(input_dim, "dense");
-	m->add(dense2); // weights should be defined when add is done
+	// 2 is the dimensionality of the data
+	// the names have a counter value attached to it, so there is no duplication. 
+	Layer* input   = new InputLayer(1, "input_layer");
+	Layer* dense  = new DenseLayer(1, "rdense");
 
-	w1 = dense->getWeights();
-	w2 = dense1->getWeights();
-	w1.print("w1");
-	w2.print("w2");
+	m->add(0,      input);
+	m->add(input,  dense);
 
-	Optimizer* opt = new RMSProp("myrmsprop");
-	m->setOptimizer(opt);
-	opt->print();
+	dense->setActivation(new Identity());
+	input->setActivation(new Identity());
 
-	//m->print();
-
-	int batch_size = m->getBatchSize();
-	VF2D_F xf(batch_size);
-	VF2D_F yf(batch_size); 
-
-	input_dim = m->getInputDim();
-
-	for (int i=0; i < xf.size(); i++) {
-		xf[i].randu(input_dim, 1);
-		yf[i].randu(input_dim, 1);
-	}
-
-	xf.print("xf");
-	VF2D_F pred = m->predict(xf);
-	pred.print("prediction: ");
-
-	m->train(xf,yf);
-
-
-	exit(0);
-#endif
+	m->addInputLayer(input);
+	m->addOutputLayer(dense);
+	runModel(m);
 }
 //----------------------------------------------------------------------
 // TEST MODELS for structure
@@ -738,6 +721,9 @@ int main()
 	testFuncModel1();
 	testFuncModel2();
 	#endif
+
+	testRecurrentModel1(1);
+	exit(0);
 
 	testFuncModel3();
 	exit(0);

@@ -6,7 +6,7 @@
 // Recurrent Layer have a connection to itself, which, for now, 
 // is treated specially. 
 
-class RecurrentLayer
+class RecurrentLayer : public Layer
 {
 public:
 
