@@ -5,6 +5,7 @@ set(SOURCE
 	activations.cpp
 	dense_layer.cpp
 	layers.cpp
+	recurrent_layer.cpp
 	#weights.cpp
 	connection.cpp
 	gmm_layer.cpp
