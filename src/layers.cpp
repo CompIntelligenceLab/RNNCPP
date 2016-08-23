@@ -199,3 +199,13 @@ void Layer::computeGradient()
 	gradient = activation->derivative(outputs);
 }
 
+void Layer::forwardData(Connection* conn, VF2D_F& prod)
+{
+		VF2D_F& from_outputs = getOutputs();
+		WEIGHT& wght = conn->getWeight();
+
+		// matrix multiplication
+		for (int b=0; b < from_outputs.size(); b++) {
+			prod(b) = wght * from_outputs[b];
+		}
+}

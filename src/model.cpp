@@ -529,9 +529,10 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 	printf("****************** ENTER predictViaConnections ***************\n");
 
 	Layer* input_layer = getInputLayers()[0];
+	input_layer->setOutputs(x);
+
 	//input_layer->printSummary("input_layer");
 	//x.print("x");
-	input_layer->setOutputs(x);
 
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->nb_hit = 0;
@@ -542,20 +543,22 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 		Layer* from_layer = conn->from;
 		Layer* to_layer   = conn->to;
 
-		VF2D_F& from_outputs = from_layer->getOutputs();
-		WEIGHT& wght = conn->getWeight();
+		from_layer->forwardData(conn, prod);  // additional copy not in original code
 
-		conn->printSummary();
+		//VF2D_F& from_outputs = from_layer->getOutputs();
+		//WEIGHT& wght = conn->getWeight();
+
+		//conn->printSummary();
 		//from_layer->printSummary("--> from_layer");
 		//to_layer->printSummary("--> to_layer");
-		wght.print("--> wght");
-		from_outputs.print("--> from_outputs");
-		U::print(from_outputs, "from_outputs");
+		//wght.print("--> wght");
+		//from_outputs.print("--> from_outputs");
+		//U::print(from_outputs, "from_outputs");
 
 		// matrix multiplication
-		for (int b=0; b < from_outputs.size(); b++) {
-			prod(b) = wght * from_outputs[b];
-		}
+		//for (int b=0; b < from_outputs.size(); b++) {
+			//prod(b) = wght * from_outputs[b];
+		//}
 		//prod.print("after matmul, prod");
 
 		int which_lc = clist[c]->which_lc; 
@@ -564,9 +567,10 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 
 		if (areIncomingLayerConnectionsComplete(to_layer)) {
 			 prod = to_layer->getActivation()(prod);
+			 to_layer->setOutputs(prod);
+
 			 //to_layer->printSummary("to_layer");
 			 //prod.print("to_layer->setOutputs(prod)");
-			 to_layer->setOutputs(prod);
 		}
 
 		to_inputs = prod;

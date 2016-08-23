@@ -145,6 +145,7 @@ public:
 			delta[b].zeros();
 		}
 	}
+	virtual void forwardData(Connection* conn, VF2D_F& prod);
 
 public:
 	virtual void initVars(int nb_batch);

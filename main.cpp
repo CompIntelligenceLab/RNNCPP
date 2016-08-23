@@ -10,6 +10,7 @@
 #include "optimizer.h"
 #include "objective.h"
 #include "layers.h"
+#include "recurrent_layer.h"
 #include "dense_layer.h"
 #include "lstm_layer.h"
 #include "gmm_layer.h"
@@ -347,8 +348,8 @@ void testRecurrentModel1(int nb_batch=1)
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
-	Layer* input   = new InputLayer(1, "input_layer");
-	Layer* dense  = new DenseLayer(1, "rdense");
+	Layer* input  = new InputLayer(1, "input_layer");
+	Layer* dense  = new RecurrentLayer(1, "rdense");
 
 	m->add(0,      input);
 	m->add(input,  dense);
