@@ -50,3 +50,16 @@ Aug. 16, 2016
 - Probably better to have user specify which links are temporal, and even specify the order in which information flows
 through the system, at least for now. 
 ----------------------------------------------------------------------
+Aug. 24, 2016
+To treat temporal connections, separate out connection scans for spatial from temporal scans. 
+// there should always be data (or zero) at the input node of a temporal connection
+
+Perhaps I need a connection from the output to the loss. In that way, when scanning the connections, 
+the last connection will go from the output_layer, which can then forward information to the loss function, 
+and to backward nodes via recursion. 
+
+Create a loss layer, which cannot have recursion. It is only there to make prediction and backprop more consistent across different types of networks. 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------

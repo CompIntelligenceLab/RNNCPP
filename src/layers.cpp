@@ -198,14 +198,54 @@ void Layer::computeGradient()
 {
 	gradient = activation->derivative(outputs);
 }
-
-void Layer::forwardData(Connection* conn, VF2D_F& prod)
+//----------------------------------------------------------------------
+void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 {
-		VF2D_F& from_outputs = getOutputs();
-		WEIGHT& wght = conn->getWeight();
+	// forward data to spatial connections
 
-		// matrix multiplication
-		for (int b=0; b < from_outputs.size(); b++) {
-			prod(b) = wght * from_outputs[b];
-		}
+	VF2D_F& from_outputs = getOutputs();
+	WEIGHT& wght = conn->getWeight();
+
+	// matrix multiplication
+	for (int b=0; b < from_outputs.size(); b++) {
+		prod(b) = wght * from_outputs[b];
+	}
+
+	// Data is not actually forwarded. It should be forwarded to the input 
+	// of the following layer. 
 }
+//----------------------------------------------------------------------
+bool Layer::areIncomingLayerConnectionsComplete()
+{
+	//printf("enter areIncomingLayerConnectionsComplete\n");
+	//layer->printSummary("  ");
+
+	int nb_arrivals = prev.size();
+	//printf("areIncoming: nb_arrivals, nb_hits= %d, %d\n", nb_arrivals, nb_hits);
+
+	#if 0
+	printf("  - nb_hits/prevsize= %d/%d\n", nb_hits, nb_arrivals);
+	if (nb_hits == nb_arrivals) {
+		layer->printSummary("  - INCOMING CONNECTIONS COMPLETE, ");
+	} else {
+		layer->printSummary("  - INCOMING CONNECTIONS NOT COMPLETE, ");
+	}
+	printf("exit areIncomingLayerConnectionsComplete, ");
+	#endif
+
+	return (nb_hit == nb_arrivals);
+}
+//----------------------------------------------------------------------
+void Layer::processData(Connection* conn, VF2D_F& prod)
+{
+		++nb_hit;
+
+		if (areIncomingLayerConnectionsComplete()) {
+			 prod = getActivation()(prod);
+			 setOutputs(prod);
+		}
+
+		VF2D_F& to_inputs = layer_inputs[conn->which_lc];
+		to_inputs = prod;
+}
+//----------------------------------------------------------------------

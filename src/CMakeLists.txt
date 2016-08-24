@@ -4,6 +4,7 @@ set(SOURCE
     optimizer.cpp
 	activations.cpp
 	dense_layer.cpp
+	out_layer.cpp
 	layers.cpp
 	recurrent_layer.cpp
 	#weights.cpp

@@ -145,7 +145,9 @@ public:
 			delta[b].zeros();
 		}
 	}
-	virtual void forwardData(Connection* conn, VF2D_F& prod);
+	virtual void forwardData(Connection* conn, VF2D_F& prod, int seq);
+	virtual void processData(Connection* conn, VF2D_F& prod);
+	virtual bool areIncomingLayerConnectionsComplete();
 
 public:
 	virtual void initVars(int nb_batch);

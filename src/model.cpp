@@ -144,6 +144,8 @@ void Model::add(Layer* layer_from, Layer* layer_to)
 	printf("Model::add, layer_to dim: in_dim: %d, out_dim: %d\n", in_dim, out_dim);
 
 	// Create weights
+	// Later on, we might create different kinds of connection. This would require a rework of 
+	// the interface. 
 	Connection* connection = new Connection(in_dim, out_dim);
 	connection->initialize();
 	connections.push_back(connection);
@@ -531,52 +533,24 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 	Layer* input_layer = getInputLayers()[0];
 	input_layer->setOutputs(x);
 
-	//input_layer->printSummary("input_layer");
-	//x.print("x");
-
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->nb_hit = 0;
 	}
 		
 	for (int c=0; c < clist.size(); c++) {
-		Connection* conn = clist[c];
+		Connection* conn  = clist[c];
 		Layer* from_layer = conn->from;
 		Layer* to_layer   = conn->to;
 
-		from_layer->forwardData(conn, prod);  // additional copy not in original code
+		int seq = 0;
 
-		//VF2D_F& from_outputs = from_layer->getOutputs();
-		//WEIGHT& wght = conn->getWeight();
+		//from_layer->printSummary("from layer, ");
+		from_layer->forwardData(conn, prod, seq);  // additional copy not in original code
 
-		//conn->printSummary();
-		//from_layer->printSummary("--> from_layer");
-		//to_layer->printSummary("--> to_layer");
-		//wght.print("--> wght");
-		//from_outputs.print("--> from_outputs");
-		//U::print(from_outputs, "from_outputs");
-
-		// matrix multiplication
-		//for (int b=0; b < from_outputs.size(); b++) {
-			//prod(b) = wght * from_outputs[b];
-		//}
-		//prod.print("after matmul, prod");
-
-		int which_lc = clist[c]->which_lc; 
-		VF2D_F& to_inputs = to_layer->layer_inputs[clist[c]->which_lc];
-		++to_layer->nb_hit;
-
-		if (areIncomingLayerConnectionsComplete(to_layer)) {
-			 prod = to_layer->getActivation()(prod);
-			 to_layer->setOutputs(prod);
-
-			 //to_layer->printSummary("to_layer");
-			 //prod.print("to_layer->setOutputs(prod)");
-		}
-
-		to_inputs = prod;
+		// set outputs and forward temporal links
+		to_layer->processData(conn, prod);
 	}
 	prod.print("************ EXIT predictViaConnection ***************"); 
-	//exit(0);
 	return prod;
 }
 //----------------------------------------------------------------------

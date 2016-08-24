@@ -12,6 +12,7 @@
 #include "layers.h"
 #include "recurrent_layer.h"
 #include "dense_layer.h"
+#include "out_layer.h"
 #include "lstm_layer.h"
 #include "gmm_layer.h"
 #include "input_layer.h"
@@ -70,6 +71,7 @@ float runModel(Model* m)
 	// WRONG RESULT for Model1a
 
 	VF2D_F pred = m->predictViaConnections(xf);
+exit(0);
 
 	#if 0
 	pred.print("predicted value");
@@ -331,15 +333,17 @@ void testRecurrentModel1(int nb_batch=1)
 {
 /***
 	Simplest possible network: two nodes with the identity activation. 
-	seq_len = nb_batch = 1
+	seq_len = 2
+	nb_batch = 1
 	This allows testing via simple matrix-multiplication
 
                  w1
 	    input ---------> rdense --> loss    (loss is attached to the output layer)
 ***/
-	printf("\n --- testModel1a ---\n");
+	printf("\n --- testRecurrentModel1 ---\n");
 	int input_dim = 1;
 	Model* m  = new Model(); // argument is input_dim of model
+	m->setSeqLen(2);
 
 	// I am not sure that batchSize and nb_batch are the same thing
 	m->setBatchSize(nb_batch);
@@ -350,9 +354,15 @@ void testRecurrentModel1(int nb_batch=1)
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input  = new InputLayer(1, "input_layer");
 	Layer* dense  = new RecurrentLayer(1, "rdense");
+	Layer* out  = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
+	                                       // Automate this at a later time
 
 	m->add(0,      input);
 	m->add(input,  dense);
+	m->add(dense,  out); 
+	//m->add(dense,  out); // No weights and no recursion. It is only there to connect with the loss function. 
+	                     // There is a connection from dense to out. 
+						 // Waste of memory if dimensionality is high (even if using identity matrix). 
 
 	dense->setActivation(new Identity());
 	input->setActivation(new Identity());

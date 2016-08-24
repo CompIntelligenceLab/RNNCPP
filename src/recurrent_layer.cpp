@@ -7,6 +7,7 @@ RecurrentLayer::RecurrentLayer(int layer_size /*1*/, std::string name /*rec_laye
 {
 	printf("RecurrentLayer (%s): constructor\n", this->name.c_str());
 	recurrent_conn = new Connection(layer_size, layer_size, "loop_conn");
+	loop_input.set_size(nb_batch);
 }
 //----------------------------------------------------------------------
 RecurrentLayer::~RecurrentLayer()
@@ -31,17 +32,34 @@ const RecurrentLayer& RecurrentLayer::operator=(const RecurrentLayer& l)
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-void RecurrentLayer::forwardData(Connection* conn, VF2D_F& prod)
+void RecurrentLayer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 {
-		VF2D_F& from_outputs = getOutputs();
-		WEIGHT& wght = conn->getWeight();
+	// forward data to spatial connections
+	Layer::forwardData(conn, prod, seq);
 
-		// matrix multiplication
-		for (int b=0; b < from_outputs.size(); b++) {
-			prod(b) = wght * from_outputs[b];
+	// forward data to temporal connections
+	// handle self loop
+	WEIGHT& loop_wght = recurrent_conn->getWeight();
+
+	if (areIncomingLayerConnectionsComplete()) {
+		for (int b=0; b < loop_input.n_rows; b++) {
+			loop_input(b) = loop_wght * outputs[b];
 		}
+	}
+}
+//----------------------------------------------------------------------
+#if 0
+bool RecurrentLayer::areIncomingLayerConnectionsComplete()
+{
+	int nb_arrivals = prev.size();
 
-		// handle self loop
-
+	// +1 to account for the self-loop of the recurrent node. 
+	return ((nb_hit+1) == nb_arrivals);
+}
+#endif
+//----------------------------------------------------------------------
+void RecurrentLayer::processData(Connection* conn, VF2D_F& prod)
+{
+		Layer::processData(conn, prod);
 }
 //----------------------------------------------------------------------
