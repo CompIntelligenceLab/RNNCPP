@@ -21,7 +21,6 @@
 using namespace arma;
 using namespace std;
 
-VF2D_F testBackprop(Model* m);
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F&);
 WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact);
 WEIGHT dLdw(1,1);
@@ -71,7 +70,6 @@ float runModel(Model* m)
 	// WRONG RESULT for Model1a
 
 	VF2D_F pred = m->predictViaConnections(xf);
-exit(0);
 
 	#if 0
 	pred.print("predicted value");
@@ -91,16 +89,11 @@ exit(0);
 		fd_dLdw = weightDerivative(m, *connections[c], inc, xf, exact);
 	}
 
-	/*
-	loss = (exact - pred)**2
-	pred = w*x
-	dL/dw = 2.*(exact-pred) * xf
-	*/
-
 	// Exact dL/dw
 	VF2D dLdw_analytical = 2.*(exact(0) - pred(0)) * xf(0);
 	printf("Analytical dLdw: = %f\n", dLdw(0));
 	printf("F-D  derivative: = %f\n", fd_dLdw(0));
+exit(0);
 
 /*********************
 storeGradientsInLayers, Layer (input_layer0), layer_size: 1
@@ -394,14 +387,17 @@ void testModel1a(int nb_batch)
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
-	Layer* input   = new InputLayer(1, "input_layer");
+	Layer* input  = new InputLayer(1, "input_layer");
 	Layer* dense  = new DenseLayer(1, "dense");
+	Layer* out    = new OutLayer(1, "out");
 
 	m->add(0,      input);
 	m->add(input,  dense);
+	m->add(dense,  out);
 
 	dense->setActivation(new Identity());
 	input->setActivation(new Identity());
+	out->setActivation(new Identity());
 
 	m->addInputLayer(input);
 	m->addOutputLayer(dense);
@@ -577,10 +573,6 @@ void testFuncModel2()
 	m->addOutputLayer(dense2);
 
 	runModel(m);
-
-	#if 0
-	testBackprop(m);
-	#endif
 }
 //----------------------------------------------------------------------
 void testFuncModel3()
@@ -642,53 +634,6 @@ void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F& exact)
 	}
 }
 //----------------------------------------------------------------------
-VF2D_F testBackprop(Model* m)
-{
-	int batch_size = m->getBatchSize();
-	VF2D_F xf(batch_size);
-	VF2D_F yf(batch_size); 
-	VF2D_F exact(batch_size);
-
-	//printf("batch_size= %d\n", batch_size);
-	Layer* input = m->getInputLayers()[0];
-	int input_dim = input->getInputDim();
-	//printf("input_dim= %d\n", input_dim);
-	//printf("xf.size= %llu", xf.n_rows);
-
-	int output_dim = m->getOutputLayers()[0]->getOutputDim();
-	int seq_len = 1;
-	//printf("output_dim= %d\n", output_dim);
-
-	for (int i=0; i < xf.size(); i++) {
-		xf[i].randu(input_dim, seq_len); // uniform random numbers
-		yf[i].randu(input_dim, seq_len);
-		exact[i].randu(output_dim, seq_len);
-	}
-
-	//printf("   nlayer layer_size: %d\n", m->getLayers()[0]->getLayerSize());
-	//printf("   input layer_size: %d\n", input->getLayerSize());
-
-	//xf.print("xf");
-	//exact.print("exact");
-	
-	//printf("\n=====================================\n");
-	//printf("\n\n --- Prediciton --- \n\n");
-	VF2D_F pred = m->predictComplex(xf);
-	//pred.print("funcModel, predict:");
-	
-	//U::print(pred, "pred");
-	//U::print(exact, "exact");
-
-	//m->train(xf);
-
-	for (int i=0; i < 1; i++) {
-		m->backPropagationComplex(exact, pred);
-		//printf("i= %d\n", i);
-	}
-
-	return xf;
-}
-//----------------------------------------------------------------------
 void testObjective()
 {
 	printf("--------------------\n");
@@ -725,8 +670,10 @@ int main()
 	//testCube();
 	//testModel();
 
+	//testModel1a(1);
+	//exit(0);
+
 	#if 0
-	testModel1a(1);
 	//testModel1a(2);
 	testModel1a(5);
 	testFuncModel1();
