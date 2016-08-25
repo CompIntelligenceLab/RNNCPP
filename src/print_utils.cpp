@@ -1,4 +1,5 @@
 #include <iostream>
+#include "typedefs.h"
 #include "print_utils.h"
 
 using namespace std;
@@ -121,3 +122,31 @@ void U::print(VF1D_F x, std::string msg /*""*/)
 	cout << msg << ", field size: " << x.n_rows << ", shape: (" << x[0].n_rows <<  ")" 
 	     << same_size << endl;
 }
+//----------------------------------------------------------------------
+// Efficiency is not the purpose. 
+VF1D_F U::matmul(const VF2D& mat, const VF2D_F& vec)
+{
+	VF1D_F prod(vec.n_rows);
+	//prod.print("prod");
+
+	for (int b=0; b < vec.n_rows; b++) {
+		//prod(b) = mat * vec(b);
+		//prod(b).col(1) = mat * vec(b).col(1);
+		prod(b) = mat * vec(b).col(1);
+	}
+
+	return prod;
+}
+//----------------------------------------------------------------------
+void U::createMat(VF2D_F& mat, int nb_batch, int nb_rows, int nb_cols)
+{
+	arma::field<arma::Mat<float> > m; m.set_size(3);
+	VF2D_F mm; mm.set_size(3);
+	mat.set_size(nb_batch);
+
+	for (int b=0; b < nb_batch; b++) {
+		mat(b) = VF2D(nb_rows, nb_cols);
+	}
+}
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------

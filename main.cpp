@@ -622,10 +622,11 @@ void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F& exact)
 
 	Layer* input = m.getInputLayers()[0];
 	int input_dim = input->getInputDim();
+	printf("input_dim= %d\n", input_dim);
 
 	int output_dim = m.getOutputLayers()[0]->getOutputDim();
 	printf("output_dim= %d\n", output_dim);
-	int seq_len = 1;
+	int seq_len = m.getSeqLen();
 
 	for (int i=0; i < xf.size(); i++) {
 		xf[i].randu(input_dim, seq_len); // uniform random numbers
@@ -650,6 +651,71 @@ void testObjective()
 }
 
 //----------------------------------------------------------------------
+void testMatMulSequences()
+{
+	printf("\n --- testMatMulSequences ---\n");
+	int input_dim = 3;
+	Model* m  = new Model(); // argument is input_dim of model
+
+	// I am not sure that batchSize and nb_batch are the same thing
+	int nb_batch = 4;
+	m->setBatchSize(nb_batch);
+    int seq_len = 5;
+	m->setSeqLen(seq_len);
+
+	assert(m->getBatchSize() == nb_batch);
+
+	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
+	// 2 is the dimensionality of the data
+	// the names have a counter value attached to it, so there is no duplication. 
+	Layer* input  = new InputLayer(2, "input_layer");
+	Layer* dense  = new DenseLayer(3, "dense");
+	Layer* out    = new OutLayer(1, "out");
+
+	m->add(0,      input);
+	m->add(input,  dense);
+	m->add(dense,  out);
+
+	dense->setActivation(new Identity());
+	input->setActivation(new Identity());
+	out->setActivation(new Identity());
+
+	m->addInputLayer(input);
+	m->addOutputLayer(dense);  // Notice: I did not specify "out" as output layer
+	
+	Connection* conn = input->next[0].second;
+	WEIGHT& wght = conn->getWeight();
+	m->printSummary();
+	conn->printSummary("connection");
+	wght.print("weight");
+
+	VF2D_F xf, yf, exact;
+	testData(*m, xf, yf, exact);
+	printf("xf batch: %d\n", xf.n_rows);
+
+	VF2D_F prod;
+	U::createMat(prod, nb_batch, wght.n_rows, seq_len); 
+
+	int seq = 2;
+	prod(3).col(1) = wght * xf(0).col(2);
+	// I can assign each batch. But not each sequence, unless memory is 
+	// preallocated (I think)
+	prod.print("prod");
+	//U::matmul(wght, xf);
+	exit(0);
+
+	U::print(wght, "wght");
+	U::print(xf, "xf");
+	U::print(prod, "prod");
+
+	xf.print("xf");
+	prod.print("prod=wght*xf");
+	U::print(prod, "prod");
+	exit(0);
+	//xf[0].col(0) = prod[0].col(0);
+	//printf("xf batch: %d\n", xf.n_rows);
+}
+//----------------------------------------------------------------------
 int main() 
 {
 	VF2D_F a;
@@ -665,6 +731,10 @@ int main()
 	b.set_size(100,100);
 	printf("sizeof(VF2D(100,100))= %d\n", sizeof(b));
 	//exit(0);
+
+testMatMulSequences();
+exit(0);
+	
 
 
 	//testCube();

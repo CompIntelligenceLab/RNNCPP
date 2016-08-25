@@ -60,6 +60,9 @@ and to backward nodes via recursion.
 
 Create a loss layer, which cannot have recursion. It is only there to make prediction and backprop more consistent across different types of networks. 
 ----------------------------------------------------------------------
+Aug. 24, 2016
+I am having serious problem dealing with sequences using Armadillo
+- I have to allocate memory immediately in order to manipulate matrices column by column
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

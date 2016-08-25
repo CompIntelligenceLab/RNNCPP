@@ -7,6 +7,7 @@ RecurrentLayer::RecurrentLayer(int layer_size /*1*/, std::string name /*rec_laye
 {
 	printf("RecurrentLayer (%s): constructor\n", this->name.c_str());
 	recurrent_conn = new Connection(layer_size, layer_size, "loop_conn");
+	recurrent_conn->initialize();
 	loop_input.set_size(nb_batch);
 }
 //----------------------------------------------------------------------
@@ -34,6 +35,7 @@ const RecurrentLayer& RecurrentLayer::operator=(const RecurrentLayer& l)
 //----------------------------------------------------------------------
 void RecurrentLayer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 {
+	printf("recurrent: forward data\n");
 	// forward data to spatial connections
 	Layer::forwardData(conn, prod, seq);
 
@@ -46,6 +48,10 @@ void RecurrentLayer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 			loop_input(b) = loop_wght * outputs[b];
 		}
 	}
+	loop_wght.print("loop weight");
+	outputs.print("loop outputs");
+	loop_input.print("loop");
+	exit(0);
 }
 //----------------------------------------------------------------------
 #if 0
@@ -60,6 +66,7 @@ bool RecurrentLayer::areIncomingLayerConnectionsComplete()
 //----------------------------------------------------------------------
 void RecurrentLayer::processData(Connection* conn, VF2D_F& prod)
 {
+		printf("recurrent: process data\n");
 		Layer::processData(conn, prod);
 }
 //----------------------------------------------------------------------
