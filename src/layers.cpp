@@ -233,7 +233,6 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 		printf("enter Layer::processOutputDataFromPreviousLayern");
 		++nb_hit;
 
-		//VF2D_F prod(1);
 		VF2D_F& from_outputs = conn->from->getOutputs();
 		WEIGHT& wght = conn->getWeight();  // what if connection operates differently
 		VF2D_F& to_inputs = layer_inputs[conn->which_lc];
@@ -277,14 +276,14 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 			 resetInputs();
 			 for (int i=0; i < layer_inputs.size(); i++) {
 			 	incrInputs(layer_inputs[i]);
-				layer_inputs[i].print("layer_inputs incr");
+				//layer_inputs[i].print("layer_inputs incr");
 				//printf("incrInputs, input: %d\n", i);
 			 }
 			 // add the self-looping if there. 
 			 incrInputs(loop_input);
-			 loop_input.print("add loop_input, ");
+			 //loop_input.print("add loop_input, ");
 			 prod = getActivation()(getInputs());
-			 prod.print("processData, output, ");
+			 //prod.print("processData, output, ");
 			 setOutputs(prod);
 		}
 }

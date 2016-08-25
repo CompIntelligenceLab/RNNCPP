@@ -109,8 +109,8 @@ public:
   /** predict: run through the model  */
   //  x: signal input: (batch_size, seq_length, dimension)
   //  For non-recursive networks, x has size (batch_size, 1, dimension)
-  VF2D_F predictComplexMaybeWorks(VF2D_F x);  // for testing while Nathan works with predict
-  VF2D_F predictComplex(VF2D_F x);  // for testing while Nathan works with predict
+  //VF2D_F predictComplexMaybeWorks(VF2D_F x);  // for testing while Nathan works with predict
+  //VF2D_F predictComplex(VF2D_F x);  // for testing while Nathan works with predict
   VF2D_F predictViaConnections(VF2D_F x); 
   void   storeGradientsInLayers();
   void   storeDactivationDoutputInLayers();
@@ -119,7 +119,7 @@ public:
   void backPropagation(VF2D_F y, VF2D_F prep);
   // networks that have multiple layers leaving a layer arriving at a layer
   // should be the inverse of the forward propagation (predict)
-  void backPropagationComplex(VF2D_F y, VF2D_F pred);
+  //void backPropagationComplex(VF2D_F y, VF2D_F pred);
   void backPropagationViaConnections(VF2D_F exact, VF2D_F pred);
   void compile();
   // Evaluate connection order to run prediction of a spatial network

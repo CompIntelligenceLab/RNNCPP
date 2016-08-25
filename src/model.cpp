@@ -470,37 +470,19 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->nb_hit = 0;
-		//layers[l]->getInputs().print("layer inputs");
-		//printf("layer %d\n", l);
-		//printf("layer: layer_inputs.size= %d\n", layers[l]->layer_inputs.size());
-		//U::print(layers[l]->layer_inputs[0](0), "U::layer_inputs");
 	}
-	//exit(0);
-
-	//for (int c=0; c < clist.size(); c++) {
-		//clist[c]->printSummary("connection");
-	//}
 
 	// go through all the layers and update the temporal connections
 	// On the first pass, connections are empty
 	for (int l=0; l < layers.size(); l++) {
-		//printf("l=%d, forward loop\n", l);
-		layers[l]->forwardLoops();
+		layers[l]->forwardLoops();           // *****************
 	}
 		
 	for (int c=0; c < clist.size(); c++) {
 		Connection* conn  = clist[c];
-		//conn->printSummary("predict connection");
 
 		Layer* to_layer   = conn->to;
 		to_layer->processOutputDataFromPreviousLayer(conn, prod);
-
-
-		//from_layer->printSummary("from layer, ");
-		//from_layer->forwardData(conn, prod, seq);  // additional copy not in original code
-
-		// set outputs and forward temporal links
-		//to_layer->processData(conn, prod);
 	}
 
 
