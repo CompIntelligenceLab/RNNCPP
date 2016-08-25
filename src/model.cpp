@@ -398,22 +398,32 @@ void Model::connectionOrderClean()
 		}
 	}
 
+	// Assign memory
 	for (int l=0; l < layers.size(); l++) {
-		printf("*** layer %d\n", l);
-		layers[l]->printSummary();
+		//printf("*** layer %d\n", l);
+		//layers[l]->printSummary();
 		layers[l]->layer_inputs.resize(layers[l]->prev.size());
 		layers[l]->layer_deltas.resize(layers[l]->prev.size());
-		layers[l]->printSummary("layers");
-		printf("prev.size= %d\n", layers[l]->prev.size());
+		//printf("prev.size= %d\n", layers[l]->prev.size());
 
 		for (int i=0; i < layers[l]->layer_inputs.size(); i++) {
 			layers[l]->layer_inputs[i] = VF2D_F(nb_batch);
+			int input_dim = layers[l]->getLayerSize();
+			int seq_len   = layers[l]->getSeqLen();
+			printf("input_dim, seq_len= %d, %d\n", input_dim, seq_len);
+			for (int b=0; b < nb_batch; b++) {
+				layers[l]->layer_inputs[i](b) = VF2D(input_dim, seq_len);
+				U::print(layers[l]->layer_inputs[i](b), "layer_inputs");
+			}
 			//printf("nb_batch= %d\n", nb_batch); 
 			//exit(0);
 		}
-		printf(".. layer %d\n", l);
+		//printf(".. layer %d\n", l);
+
+		// layer_deltas are unsused at this time
 	}
-	exit(0);
+	//exit(0);
+	printf("============== EXIT connectionOrderClean =================\n");
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -460,32 +470,31 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->nb_hit = 0;
-		layers[l]->getInputs().print("layer inputs");
-		printf("layer: layer_inputs.size= %d\n", layers[l]->layer_inputs.size());
+		//layers[l]->getInputs().print("layer inputs");
+		//printf("layer %d\n", l);
+		//printf("layer: layer_inputs.size= %d\n", layers[l]->layer_inputs.size());
+		//U::print(layers[l]->layer_inputs[0](0), "U::layer_inputs");
 	}
 	//exit(0);
 
-	for (int c=0; c < clist.size(); c++) {
-		clist[c]->printSummary("connection");
-	}
-	//exit(0);
+	//for (int c=0; c < clist.size(); c++) {
+		//clist[c]->printSummary("connection");
+	//}
 
 	// go through all the layers and update the temporal connections
 	// On the first pass, connections are empty
 	for (int l=0; l < layers.size(); l++) {
-		printf("l=%d, forward loop\n", l);
+		//printf("l=%d, forward loop\n", l);
 		layers[l]->forwardLoops();
 	}
 		
 	for (int c=0; c < clist.size(); c++) {
 		Connection* conn  = clist[c];
-		conn->printSummary("predict connection");
-		//Layer* from_layer = conn->from;
+		//conn->printSummary("predict connection");
 
 		Layer* to_layer   = conn->to;
-		to_layer->processOutputDataFromPreviousLayer(conn);
+		to_layer->processOutputDataFromPreviousLayer(conn, prod);
 
-		//int seq = 0;
 
 		//from_layer->printSummary("from layer, ");
 		//from_layer->forwardData(conn, prod, seq);  // additional copy not in original code
@@ -496,66 +505,6 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 
 
 	prod.print("************ EXIT predictViaConnection ***************"); 
-	return prod;
-}
-//----------------------------------------------------------------------
-VF2D_F Model::predict(VF2D_F x)
-{
-	// The network is assumed to have a single input. 
-	// Only propagate through the spatial networks
-
-  	VF2D_F prod(x); //copy constructor, .n_rows);
-
- 	LAYERS layer_list;  
-	LAYERS layers = getLayers();   // zeroth element is the input layer
-    assert(layers.size() > 1);  // need at least an input layer connected to an output layer
-
-    Layer* input_layer = layers[0];
-    layer_list.push_back(input_layer);
-
-	// going throught the above initializatino might not be necessary. However, if the topology or types of connections
-	// change during training, then layer_list might change between training elements. So keep for generality. The cost 
-	// is minimal compared to the cost of matrix-vector multiplication. 
-
-	Layer* cur_layer = layers[0];
-
-	while (true) {
-		Layer* cur_layer = layer_list[0]; 
-		int sz = cur_layer->next.size();
-		if (sz == 0) {
-			break;
-		}
-		printf("----------------\n");
-		cur_layer->printSummary("current");
-		for (int l=0; l < sz; l++) {
-			Layer* nlayer = cur_layer->next[l].first;
-			Connection* nconnection = cur_layer->next[l].second;
-			WEIGHT& wght = nconnection->getWeight();
-		    nconnection->printSummary("current");
-		    nlayer->printSummary("current");
-			layer_list.push_back(nlayer);
-
-			if (nconnection->getTemporal()) {  // only consider spatial links (for now)
-				printf("skip connection: %s\n", nconnection->getName().c_str());
-				continue; 
-			}
-
-			for (int b=0; b < x.n_rows; b++) {
-				prod(b) = wght * prod(b);  // not possible with cube since prod(b) on 
-				                           //left and right of "=" have different dimensions
-			}
-
-			nlayer->setInputs(prod);
-
-			// apply activation function
-			prod = layers[l]->getActivation()(prod);
-
-			nlayer->setOutputs(prod);
-
-		}
-		layer_list.erase(layer_list.begin());
-	}
-	
 	return prod;
 }
 //----------------------------------------------------------------------
@@ -606,7 +555,7 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 		assert(x.n_rows == batch_size && y.n_rows == batch_size);
 	}
 
-	VF2D_F pred = predict(x);
+	VF2D_F pred = predictViaConnections(x);
 	objective->computeLoss(y, pred);
 	VF1D_F loss = objective->getLoss();
 	loss.print("loss");

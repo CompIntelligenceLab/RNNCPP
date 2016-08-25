@@ -242,19 +242,29 @@ float runModelRecurrent(Model* m)
 	/*** Analytical solution with two time steps (seq_len=2)
 	 Activation: Identity 
 	 x = .3;   w = .2; exact: .5
-	 input to dense0: w*x = .06
-	 output to dense0: w*x = .06
+	 input to dense0: x = .3
+	 output to dense0: x = .3
+	 input to dense1: w*x = .06
+	 output to dense1: w*x = .06
 	 Loss function: (.5-.06)**2 = .44^2 = .1936
-	 Output of dense0
+
+	 2nd prediction. Recursion kicks in
+	 Input/output to dense0: x = 0.3
+	 Input to dense1: w*x + wloop*layer1->output = 0.06 + 0.1315*.06 = 0.06 + 0.00789
+	 Output to dense1: 0.06789
 	***/
 
 	//exact.print("exact");
-	WEIGHT w0(1,1);
+	WEIGHT w0(1,1), w1(1,1);
 	w0(0,0) = .2;
+	w1(0,0) = .1315;
 	m->getConnections()[0]->setWeight(w0);
 	m->getConnections()[1]->setWeight(w0);
+	m->getLayers()[1]->recurrent_conn->setWeight(w1);
+
 	m->getConnections()[0]->getWeight().print("weight0");
 	m->getConnections()[1]->getWeight().print("weight1");
+	m->getLayers()[1]->recurrent_conn->getWeight().print("weight_recurrent");
 
 	printf("*** connections.size() = %d\n", connections.size());
 	for (int c=0; c < connections.size(); c++) {
@@ -271,8 +281,9 @@ float runModelRecurrent(Model* m)
 	printf("w[1]*xf = %f\n", w*xf(0)(0,0));
 
 	VF2D_F pred = m->predictViaConnections(xf);
+	printf("-------------\n");
 	pred.print("first prediction\n");
-	exit(0);
+	//exit(0);
 	pred = m->predictViaConnections(xf);
 	pred.print("second prediction\n");
 	exit(0);

@@ -9,11 +9,8 @@
 class RecurrentLayer : public Layer
 {
 public:
-	VF2D_F loop_input;
-	VF2D_F loop_delta;
 
 protected:
-	Connection* recurrent_conn;
 
 public:
    	RecurrentLayer(int layer_size=1, std::string name="layer"); // allows for default constructor

@@ -25,6 +25,13 @@ public:
 	int nb_hit; // used to determine order of evaluation of a general spatial network
 	VF2D_F dLdOut;  // use getters and setters later.  d(loss)/d(layer_output)
 
+	// should really be in recurrent.h, but I do not know how to elegantly add up the inputs
+	// otherwise. One approach would be to add up the inputs as they arrive: keep them in both 
+	// inputs and in layer_inputs. 
+	Connection* recurrent_conn;
+	VF2D_F loop_input;
+	VF2D_F loop_delta;
+
 protected:
 	static int counter;
 	int clock; // initialized to zero. updates by one when signal arrives. If signal arrives when clock != 0,
@@ -127,6 +134,7 @@ public:
 	VF2D_F& getOutputs() { return outputs; }
 	void incrOutputs(VF2D_F& x);
 	void incrInputs(VF2D_F& x);
+	void resetInputs();
 	void incrDelta(VF2D_F& x);
 	// reset inputs and ouputs to zero
 	void reset();
@@ -149,7 +157,7 @@ public:
 	virtual void forwardLoops();
 	virtual void processData(Connection* conn, VF2D_F& prod);
 	virtual bool areIncomingLayerConnectionsComplete();
-	virtual void processOutputDataFromPreviousLayer(Connection* conn);
+	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod);
 
 public:
 	virtual void initVars(int nb_batch);

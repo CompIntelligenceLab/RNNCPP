@@ -166,13 +166,21 @@ void Layer::incrOutputs(VF2D_F& x)
 
 void Layer::incrInputs(VF2D_F& x)
 {
-	printf("incrInputs: x.n_rows= %d\n", x.n_rows);
-	printf("inputs.n_rows= %d\n", inputs.n_rows);
+	//printf("incrInputs: x.n_rows= %d\n", x.n_rows);
+	//printf("inputs.n_rows= %d\n", inputs.n_rows);
 	// inputs has incorrect number of fields.
 	for (int b=0; b < x.n_rows; b++) {
 		inputs[b] += x[b];
 	}
 }
+
+void Layer::resetInputs()
+{
+	for (int b=0; b < inputs.n_rows; b++) {
+		inputs[b].zeros();
+	}
+}
+
 
 void Layer::incrDelta(VF2D_F& x)
 {
@@ -220,35 +228,63 @@ bool Layer::areIncomingLayerConnectionsComplete()
 }
 //----------------------------------------------------------------------
 // Perhaps break this up into processing by Connection then by output layer
-void Layer::processOutputDataFromPreviousLayer(Connection* conn)
+void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 {
 		printf("enter Layer::processOutputDataFromPreviousLayern");
 		++nb_hit;
 
-		VF2D_F prod(1);
+		//VF2D_F prod(1);
 		VF2D_F& from_outputs = conn->from->getOutputs();
 		WEIGHT& wght = conn->getWeight();  // what if connection operates differently
 		VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 
+		#if 0
 		conn->printSummary("conn");
 		printf("which_lc= %d\n", conn->which_lc);
 		printf("layer_inputs.size= %d\n",layer_inputs.size());
-		layer_inputs[conn->which_lc].print("layer_inputs");  // ===> zero
+		layer_inputs[conn->which_lc].print("layer_inputs, which_lc");  // ===> zero
 		wght.print("wght");
 		from_outputs.print("from_outputs");
+		#endif
+
+
+		// TEMPORARY LOOP
+		#if 0
+		for (int i=0; i < layer_inputs.size(); i++) {
+			//layer_inputs[i] = VF2D_F(nb_batch);
+			int input_dim = getLayerSize();
+			int seq_len   = getSeqLen();
+			printf("input_dim, seq_len= %d, %d\n", input_dim, seq_len);
+			for (int b=0; b < nb_batch; b++) {
+				//layer_inputs[i](b) = VF2D(input_dim, seq_len);
+				U::print(layer_inputs[i](b), "U:: layer_inputs (tmp)");
+			}
+		}
+		#endif
 
 		//U::matmul(to_inputs, wght, from_outputs);  // w * x
 		U::matmul(prod, wght, from_outputs);  // w * x
 		to_inputs = prod;
-		exit(0);
+
 
 		prod.print("enter processData, prod");
 
 		// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
 
+		// completeness only happens once per layer and per input value into the predicition module
 		if (areIncomingLayerConnectionsComplete()) {
-			 prod = getActivation()(prod);
-			 prod.print("processData, set output");
+			 // sum up all the inputs + the temporal input if there is one
+			 resetInputs();
+			 for (int i=0; i < layer_inputs.size(); i++) {
+			 	incrInputs(layer_inputs[i]);
+				layer_inputs[i].print("layer_inputs incr");
+				//printf("incrInputs, input: %d\n", i);
+			 }
+			 // add the self-looping if there. 
+			 incrInputs(loop_input);
+			 loop_input.print("add loop_input, ");
+			 prod = getActivation()(getInputs());
+			 prod.print("processData, output, ");
 			 setOutputs(prod);
 		}
 }
