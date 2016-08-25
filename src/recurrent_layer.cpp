@@ -9,6 +9,9 @@ RecurrentLayer::RecurrentLayer(int layer_size /*1*/, std::string name /*rec_laye
 	printf("RecurrentLayer (%s): constructor\n", this->name.c_str());
 	recurrent_conn = new Connection(layer_size, layer_size, "loop_conn");
 	recurrent_conn->initialize();
+	recurrent_conn->from = this;
+	recurrent_conn->to = this;
+	recurrent_conn->setTemporal(true);
 	loop_input.set_size(nb_batch);
 }
 //----------------------------------------------------------------------
@@ -61,10 +64,12 @@ void RecurrentLayer::forwardLoops()
 {
 	// forward data to temporal connections
 	// handle self loop
+	printf("inside RecurrentLayer::forwardLoops\n");
 	WEIGHT& loop_wght = recurrent_conn->getWeight();
 
-	if (areIncomingLayerConnectionsComplete()) {
+	//if (areIncomingLayerConnectionsComplete()) {
 		U::matmul(loop_input, loop_wght, outputs);
-	}
+	//}
+	loop_input.print("loop input");
 }
 //----------------------------------------------------------------------

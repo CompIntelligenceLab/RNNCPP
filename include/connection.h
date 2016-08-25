@@ -36,7 +36,9 @@ protected:
 	bool temporal; // false: spatial link, true: temporal link
 	int clock; // 0: weight has not been used. 1 otherwise. Potential problem if a weight is used twice, 
 	           // which is possible if they are shared. Step 1: change Connection class to Connections class. . 
-			   // step 2: 
+	std::string type; // standard, 
+	             // passthrough (from/to layers have same layer_size, pass through information)
+				 //         weights not used. 
 
 public:
 	// input and output dimensions 

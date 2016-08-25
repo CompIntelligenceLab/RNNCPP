@@ -238,10 +238,23 @@ float runModelRecurrent(Model* m)
 		exact(b).ones();
 		exact(b) *= .5;
 	}
+
+	/*** Analytical solution with two time steps (seq_len=2)
+	 Activation: Identity 
+	 x = .3;   w = .2; exact: .5
+	 input to dense0: w*x = .06
+	 output to dense0: w*x = .06
+	 Loss function: (.5-.06)**2 = .44^2 = .1936
+	 Output of dense0
+	***/
+
 	//exact.print("exact");
-	//exit(0);
-	float w =  m->getConnections()[0]->getWeight()[0];
-	printf("w = %f\n", w);
+	WEIGHT w0(1,1);
+	w0(0,0) = .2;
+	m->getConnections()[0]->setWeight(w0);
+	m->getConnections()[1]->setWeight(w0);
+	m->getConnections()[0]->getWeight().print("weight0");
+	m->getConnections()[1]->getWeight().print("weight1");
 
 	printf("*** connections.size() = %d\n", connections.size());
 	for (int c=0; c < connections.size(); c++) {
@@ -249,6 +262,7 @@ float runModelRecurrent(Model* m)
 	}
 	// xf = .3
 	// yf = w * .3;
+	float w;
 	w =  m->getConnections()[0]->getWeight()(0,0);
 	printf("w[0] = %f\n", w);
 	printf("w[0]*xf = %f\n", w*xf(0)(0,0));
@@ -258,6 +272,7 @@ float runModelRecurrent(Model* m)
 
 	VF2D_F pred = m->predictViaConnections(xf);
 	pred.print("first prediction\n");
+	exit(0);
 	pred = m->predictViaConnections(xf);
 	pred.print("second prediction\n");
 	exit(0);
@@ -421,14 +436,15 @@ void testRecurrentModel1(int nb_batch=1)
 
 	m->add(0,     input);
 	m->add(input, dense);
-	m->add(dense, out); 
+	//printf("m->layers size: %d\n", m->getLayers().size()); exit(0);
+	//m->add(dense, out); 
 	//m->add(dense,  out); // No weights and no recursion. It is only there to connect with the loss function. 
 	                     // There is a connection from dense to out. 
 						 // Waste of memory if dimensionality is high (even if using identity matrix). 
 
 	dense->setActivation(new Identity());
 	input->setActivation(new Identity());
-	out->setActivation(new Identity());
+	//out->setActivation(new Identity());
 
 	m->addInputLayer(input);
 	m->addOutputLayer(dense);

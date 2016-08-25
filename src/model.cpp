@@ -328,77 +328,6 @@ Layer* Model::checkPrevconnections(std::list<Layer*> llist)
 	}
 }
 //----------------------------------------------------------------------
-CONNECTIONS Model::connectionOrder()
-{
-	typedef std::list<Layer*>::iterator IT;
-	IT it;
-
-	// STL list to allow erase of elements via address
-	std::list<Layer*> llist;
-	std::vector<Layer*> completed_layers;
-	//CONNECTIONS clist;
-	Layer* cur_layer = getInputLayers()[0]; // assumes a single input layer
-	cur_layer->nb_hit = 0;
-	llist.push_back(cur_layer);
-
-	int xcount = 0;
-
-	while(llist.size()) {
-		xcount++; 
-		printf("******** entered while ******************************************\n");
-
-		PAIRS_L next = cur_layer->next;
-
-		// the following loop can only be entered if all the layer inputs are activated
-		if (areIncomingLayerConnectionsComplete(cur_layer)) {
-			for (int n=0; n < next.size(); n++) {
-				Layer* nl      = next[n].first;
-				nl->printSummary("xx nl");
-				Connection* nc = next[n].second;
-				clist.push_back(nc);
-				nc->hit = 1;
-				nl->nb_hit++; 
-				llist.push_back(nl);
-				if (isLayerComplete(cur_layer)) { // access error
-					// these layers will be deleted from llist. They should never reappear
-					// since that would imply a cycle in the network, which is prohibited.
-					completed_layers.push_back(cur_layer);
-				}
-			}
-			if (next.size() == 0) {
-				if (isLayerComplete(cur_layer)) { // access error
-					completed_layers.push_back(cur_layer);
-				}
-			}
-		}
-		printf("---------------------\n");
-
-		llist.sort();
-		llist.unique();
-
-		// remove all layers that are "complete"
-	    printf("before remove all complete layers, llist size: %d\n", llist.size());
-		for (int i=0; i < completed_layers.size(); i++) {
-			completed_layers[i]->printSummary("completed_layers");
-			llist.remove(completed_layers[i]);
-		}
-	    printf("after remove all complete layers, llist size: %d\n", llist.size());
-		completed_layers.clear();
-		for (it=llist.begin(); it != llist.end(); ++it) {
-			(*it)->printSummary("llist");
-		}
-		cur_layer = *llist.begin();
-	}
-
-	printf("Connection order\n");
-	for (int c=0; c < clist.size(); c++) {
-		Connection* con = clist[c];
-		Layer* from = con->from;
-		Layer* to = con->to;
-		printf("con: %s, Layers: %s, %s\n", con->getName().c_str(), from->getName().c_str(), to->getName().c_str());
-	}
-    return clist;
-}
 //----------------------------------------------------------------------
 void Model::connectionOrderClean()
 {
@@ -411,6 +340,9 @@ void Model::connectionOrderClean()
 	Layer* cur_layer = getInputLayers()[0]; // assumes a single input layer
 	cur_layer->nb_hit = 0;
 	llist.push_back(cur_layer);
+
+	//printf("order clean: %d\n", layers.size()); 
+	//exit(0);
 
 	int xcount = 0;
 
@@ -467,13 +399,21 @@ void Model::connectionOrderClean()
 	}
 
 	for (int l=0; l < layers.size(); l++) {
+		printf("*** layer %d\n", l);
+		layers[l]->printSummary();
 		layers[l]->layer_inputs.resize(layers[l]->prev.size());
 		layers[l]->layer_deltas.resize(layers[l]->prev.size());
 		layers[l]->printSummary("layers");
 		printf("prev.size= %d\n", layers[l]->prev.size());
+
+		for (int i=0; i < layers[l]->layer_inputs.size(); i++) {
+			layers[l]->layer_inputs[i] = VF2D_F(nb_batch);
+			//printf("nb_batch= %d\n", nb_batch); 
+			//exit(0);
+		}
+		printf(".. layer %d\n", l);
 	}
-	
-	//exit(0);
+	exit(0);
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -520,31 +460,40 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->nb_hit = 0;
+		layers[l]->getInputs().print("layer inputs");
+		printf("layer: layer_inputs.size= %d\n", layers[l]->layer_inputs.size());
 	}
+	//exit(0);
 
 	for (int c=0; c < clist.size(); c++) {
 		clist[c]->printSummary("connection");
 	}
 	//exit(0);
+
+	// go through all the layers and update the temporal connections
+	// On the first pass, connections are empty
+	for (int l=0; l < layers.size(); l++) {
+		printf("l=%d, forward loop\n", l);
+		layers[l]->forwardLoops();
+	}
 		
 	for (int c=0; c < clist.size(); c++) {
 		Connection* conn  = clist[c];
-		Layer* from_layer = conn->from;
-		Layer* to_layer   = conn->to;
+		conn->printSummary("predict connection");
+		//Layer* from_layer = conn->from;
 
-		int seq = 0;
+		Layer* to_layer   = conn->to;
+		to_layer->processOutputDataFromPreviousLayer(conn);
+
+		//int seq = 0;
 
 		//from_layer->printSummary("from layer, ");
-		from_layer->forwardData(conn, prod, seq);  // additional copy not in original code
+		//from_layer->forwardData(conn, prod, seq);  // additional copy not in original code
 
 		// set outputs and forward temporal links
-		to_layer->processData(conn, prod);
+		//to_layer->processData(conn, prod);
 	}
 
-	// go through all the layers and update the temporal connections
-	for (int l=0; l < layers.size(); l++) {
-		layers[l]->forwardLoops();
-	}
 
 	prod.print("************ EXIT predictViaConnection ***************"); 
 	return prod;

@@ -205,8 +205,10 @@ void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 
 	VF2D_F& from_outputs = getOutputs();
 	WEIGHT& wght = conn->getWeight();
-	//U::matmul(prod, wght, from_outputs, 0);  // sequence zero)
-	U::matmul(prod, wght, from_outputs);  // sequence zero)
+	//U::matmul(prod, wght, from_outputs, 0);  // sequence element zero)
+	U::matmul(prod, wght, from_outputs);
+
+	prod.print("prod, forwardData");
 
 	// Data is not actually forwarded. It should be forwarded to the input 
 	// of the following layer. 
@@ -217,17 +219,53 @@ bool Layer::areIncomingLayerConnectionsComplete()
 	return (nb_hit == prev.size());
 }
 //----------------------------------------------------------------------
+// Perhaps break this up into processing by Connection then by output layer
+void Layer::processOutputDataFromPreviousLayer(Connection* conn)
+{
+		printf("enter Layer::processOutputDataFromPreviousLayern");
+		++nb_hit;
+
+		VF2D_F prod(1);
+		VF2D_F& from_outputs = conn->from->getOutputs();
+		WEIGHT& wght = conn->getWeight();  // what if connection operates differently
+		VF2D_F& to_inputs = layer_inputs[conn->which_lc];
+
+		conn->printSummary("conn");
+		printf("which_lc= %d\n", conn->which_lc);
+		printf("layer_inputs.size= %d\n",layer_inputs.size());
+		layer_inputs[conn->which_lc].print("layer_inputs");  // ===> zero
+		wght.print("wght");
+		from_outputs.print("from_outputs");
+
+		//U::matmul(to_inputs, wght, from_outputs);  // w * x
+		U::matmul(prod, wght, from_outputs);  // w * x
+		to_inputs = prod;
+		exit(0);
+
+		prod.print("enter processData, prod");
+
+		// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
+
+		if (areIncomingLayerConnectionsComplete()) {
+			 prod = getActivation()(prod);
+			 prod.print("processData, set output");
+			 setOutputs(prod);
+		}
+}
+//----------------------------------------------------------------------
 void Layer::processData(Connection* conn, VF2D_F& prod)
 {
 		++nb_hit;
 
 		VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 		to_inputs = prod;
+		prod.print("enter processData, prod");
 
 		// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
 
 		if (areIncomingLayerConnectionsComplete()) {
 			 prod = getActivation()(prod);
+			 prod.print("processData, set output");
 			 setOutputs(prod);
 		}
 }

@@ -149,6 +149,7 @@ public:
 	virtual void forwardLoops();
 	virtual void processData(Connection* conn, VF2D_F& prod);
 	virtual bool areIncomingLayerConnectionsComplete();
+	virtual void processOutputDataFromPreviousLayer(Connection* conn);
 
 public:
 	virtual void initVars(int nb_batch);

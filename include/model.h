@@ -124,7 +124,7 @@ public:
   void backPropagationViaConnections(VF2D_F exact, VF2D_F pred);
   void compile();
   // Evaluate connection order to run prediction of a spatial network
-  CONNECTIONS connectionOrder();
+  //CONNECTIONS connectionOrder();
   void connectionOrderClean();
 	Layer* checkPrevconnections(std::list<Layer*> llist);
 	void removeFromList(LAYERS& llist, Layer* cur_layer);

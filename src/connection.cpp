@@ -9,6 +9,7 @@ int Connection::counter = 0;
 
 Connection::Connection(int in, int out, std::string name /* "weight" */)
 {
+	type = "standard";
 	in_dim = in;
 	out_dim = out;
 	weight = WEIGHT(out_dim, in_dim);
