@@ -1,3 +1,4 @@
+#include "print_utils.h"
 #include "recurrent_layer.h"
 
 
@@ -38,20 +39,6 @@ void RecurrentLayer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 	printf("recurrent: forward data\n");
 	// forward data to spatial connections
 	Layer::forwardData(conn, prod, seq);
-
-	// forward data to temporal connections
-	// handle self loop
-	WEIGHT& loop_wght = recurrent_conn->getWeight();
-
-	if (areIncomingLayerConnectionsComplete()) {
-		for (int b=0; b < loop_input.n_rows; b++) {
-			loop_input(b) = loop_wght * outputs[b];
-		}
-	}
-	loop_wght.print("loop weight");
-	outputs.print("loop outputs");
-	loop_input.print("loop");
-	exit(0);
 }
 //----------------------------------------------------------------------
 #if 0
@@ -68,5 +55,16 @@ void RecurrentLayer::processData(Connection* conn, VF2D_F& prod)
 {
 		printf("recurrent: process data\n");
 		Layer::processData(conn, prod);
+}
+//----------------------------------------------------------------------
+void RecurrentLayer::forwardLoops()
+{
+	// forward data to temporal connections
+	// handle self loop
+	WEIGHT& loop_wght = recurrent_conn->getWeight();
+
+	if (areIncomingLayerConnectionsComplete()) {
+		U::matmul(loop_input, loop_wght, outputs);
+	}
 }
 //----------------------------------------------------------------------

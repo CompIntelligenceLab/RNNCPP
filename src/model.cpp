@@ -521,6 +521,11 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->nb_hit = 0;
 	}
+
+	for (int c=0; c < clist.size(); c++) {
+		clist[c]->printSummary("connection");
+	}
+	//exit(0);
 		
 	for (int c=0; c < clist.size(); c++) {
 		Connection* conn  = clist[c];
@@ -535,6 +540,12 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 		// set outputs and forward temporal links
 		to_layer->processData(conn, prod);
 	}
+
+	// go through all the layers and update the temporal connections
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->forwardLoops();
+	}
+
 	prod.print("************ EXIT predictViaConnection ***************"); 
 	return prod;
 }
@@ -704,7 +715,7 @@ void Model::storeDactivationDoutputInLayers()
 		U::print(grad[0], "grad[b]");
 		U::print(old_deriv[0], "old_deriv[b]");
 		U::print(wght, "wght");
-		
+
 		for (int b=0; b < nb_batch; b++) {
 			//prod[b] = wght.t() * (grad[b] % old_deriv[b]);
 			prod[b] = wght.t() * (grad[b] % old_deriv[b]);
@@ -734,16 +745,17 @@ void Model::storeDLossDweightInConnections()
 		const VF2D_F& grad = layer_to->getGradient();
 		VF2D_F& old_deriv = layer_to->getDelta();
 
-		conn->printSummary("Connection, ");
-		grad.print("layer_to->getGradient, grad, ");
-		old_deriv.print("layer_to->getDelta, old_deriv, ");
-		out.print("layer_from_getOutputs()");
+		//conn->printSummary("Connection, ");
+		//grad.print("layer_to->getGradient, grad, ");
+		//old_deriv.print("layer_to->getDelta, old_deriv, ");
+		//out.print("layer_from_getOutputs()");
 
+		// How to do this for a particular sequence element? 
+		// Currently, only works for sequence length of 1
+		// Could work if sequence were the field index
 		for (int b=0; b < nb_batch; b++) {
-			//prod = (old_deriv[b] % grad[b]) * out(b).t();
-			//prod = (old_deriv[b] % grad[b]) * out(b);
 			prod = (old_deriv[b] % grad[b]) * out(b).t();
-			prod.print("storeDLossDweightInConnections, prod");
+			//prod.print("storeDLossDweightInConnections, prod");
 			(*it)->incrDelta(prod);
 		}
 	}
@@ -760,7 +772,6 @@ void Model::resetDeltas()
 	}
 
 	for (int l=0; l < layers.size(); l++) {
-		//printf("- nb batch= %d\n", layers[0]->getNbBatch()); exit(0);
 		layers[l]->resetDelta();
 	}
 }

@@ -63,6 +63,8 @@ Create a loss layer, which cannot have recursion. It is only there to make predi
 Aug. 24, 2016
 I am having serious problem dealing with sequences using Armadillo
 - I have to allocate memory immediately in order to manipulate matrices column by column
+
+I did not yet try case with input_dim > 1, which should not work, theoretically. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

@@ -216,7 +216,76 @@ void testCube()
 	printf("cub20(1,1,1)= %f\n", cub20(1,1,1));
 	printf("cub21(1,1,1)= %f\n", cub21(1,1,1));
 }
+//----------------------------------------------------------------------
+float runModelRecurrent(Model* m)
+{
+	m->printSummary();
+	m->connectionOrderClean(); // no print statements
 
+	VF2D_F xf, yf, exact;
+	testData(*m, xf, yf, exact);
+
+	Layer* outLayer = m->getOutputLayers()[0];
+	int output_dim = outLayer->getOutputDim();
+	printf("output_dim = %d\n", output_dim);
+
+	CONNECTIONS connections = m->getConnections();
+
+	for (int b=0; b < m->getBatchSize(); b++) {
+		xf(b) = .3;
+		yf(b) = .4;
+		exact(b) = arma::Mat<float>(output_dim,1);
+		exact(b).ones();
+		exact(b) *= .5;
+	}
+	//exact.print("exact");
+	//exit(0);
+	float w =  m->getConnections()[0]->getWeight()[0];
+	printf("w = %f\n", w);
+
+	printf("*** connections.size() = %d\n", connections.size());
+	for (int c=0; c < connections.size(); c++) {
+		connections[c]->printSummary();
+	}
+	// xf = .3
+	// yf = w * .3;
+	w =  m->getConnections()[0]->getWeight()(0,0);
+	printf("w[0] = %f\n", w);
+	printf("w[0]*xf = %f\n", w*xf(0)(0,0));
+	w =  m->getConnections()[1]->getWeight()(0,0);
+	printf("w[1] = %f\n", w);
+	printf("w[1]*xf = %f\n", w*xf(0)(0,0));
+
+	VF2D_F pred = m->predictViaConnections(xf);
+	pred.print("first prediction\n");
+	pred = m->predictViaConnections(xf);
+	pred.print("second prediction\n");
+	exit(0);
+
+	float inc = .0001;
+	WEIGHT fd_dLdw;
+	// First connection is between 0 and input (does not count)
+	for (int c=1; c < connections.size(); c++) {
+		connections[c]->printSummary();
+		fd_dLdw = weightDerivative(m, *connections[c], inc, xf, exact);
+	}
+
+	// Exact dL/dw
+	VF2D dLdw_analytical = 2.*(exact(0) - pred(0)) * xf(0);
+	printf("Analytical dLdw: = %f\n", dLdw(0));
+	printf("F-D  derivative: = %f\n", fd_dLdw(0));
+exit(0);
+
+	m->backPropagationViaConnections(exact, pred);
+	printf("BackProp derivatives\n");
+	for (int c=1; c < connections.size(); c++) {
+		connections[c]->printSummary("Connection (backprop)");
+		connections[c]->getDelta().print("delta");
+	}
+
+	// Go through connections and print out weight derivatives
+	//printf("gordon\n"); exit(0);
+}
 //----------------------------------------------------------------------
 void testPredict()
 // MUST BE RETESTED
@@ -336,7 +405,7 @@ void testRecurrentModel1(int nb_batch=1)
 	printf("\n --- testRecurrentModel1 ---\n");
 	int input_dim = 1;
 	Model* m  = new Model(); // argument is input_dim of model
-	m->setSeqLen(2);
+	m->setSeqLen(1);
 
 	// I am not sure that batchSize and nb_batch are the same thing
 	m->setBatchSize(nb_batch);
@@ -345,24 +414,25 @@ void testRecurrentModel1(int nb_batch=1)
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
-	Layer* input  = new InputLayer(1, "input_layer");
-	Layer* dense  = new RecurrentLayer(1, "rdense");
-	Layer* out  = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
+	Layer* input = new InputLayer(1, "input_layer");
+	Layer* dense = new RecurrentLayer(1, "rdense");
+	Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
 	                                       // Automate this at a later time
 
-	m->add(0,      input);
-	m->add(input,  dense);
-	m->add(dense,  out); 
+	m->add(0,     input);
+	m->add(input, dense);
+	m->add(dense, out); 
 	//m->add(dense,  out); // No weights and no recursion. It is only there to connect with the loss function. 
 	                     // There is a connection from dense to out. 
 						 // Waste of memory if dimensionality is high (even if using identity matrix). 
 
 	dense->setActivation(new Identity());
 	input->setActivation(new Identity());
+	out->setActivation(new Identity());
 
 	m->addInputLayer(input);
 	m->addOutputLayer(dense);
-	runModel(m);
+	runModelRecurrent(m);
 }
 //----------------------------------------------------------------------
 // TEST MODELS for structure
@@ -732,8 +802,8 @@ int main()
 	printf("sizeof(VF2D(100,100))= %d\n", sizeof(b));
 	//exit(0);
 
-testMatMulSequences();
-exit(0);
+	//testMatMulSequences();
+	//exit(0);
 	
 
 

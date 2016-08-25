@@ -24,6 +24,7 @@ public:
 	// there should always be data (or zero) at the input node of a temporal connection
 	//virtual bool areIncomingLayerConnectionsComplete();
 	virtual void processData(Connection* conn, VF2D_F& prod);
+	virtual void forwardLoops();
 };
 
 //----------------------------------------------------------------------

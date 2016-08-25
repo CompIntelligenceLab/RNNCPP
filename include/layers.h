@@ -146,6 +146,7 @@ public:
 		}
 	}
 	virtual void forwardData(Connection* conn, VF2D_F& prod, int seq);
+	virtual void forwardLoops();
 	virtual void processData(Connection* conn, VF2D_F& prod);
 	virtual bool areIncomingLayerConnectionsComplete();
 

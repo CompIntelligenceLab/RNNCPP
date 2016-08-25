@@ -20,7 +20,7 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 
 	counter++;
 
-	// Input dimension has no significance if the layer is connect to several upstream layers
+	// Input dimension has no significance if the layer is connected to several upstream layers
 	// How to access connection to previous layer if this is the first layer? 
 
 	this->layer_size = layer_size;
@@ -193,7 +193,7 @@ void Layer::incrDelta(VF2D_F& x)
 		}
 	}
 }
-
+//----------------------------------------------------------------------
 void Layer::computeGradient()
 {
 	gradient = activation->derivative(outputs);
@@ -205,11 +205,8 @@ void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 
 	VF2D_F& from_outputs = getOutputs();
 	WEIGHT& wght = conn->getWeight();
-
-	// matrix multiplication
-	for (int b=0; b < from_outputs.size(); b++) {
-		prod(b) = wght * from_outputs[b];
-	}
+	//U::matmul(prod, wght, from_outputs, 0);  // sequence zero)
+	U::matmul(prod, wght, from_outputs);  // sequence zero)
 
 	// Data is not actually forwarded. It should be forwarded to the input 
 	// of the following layer. 
@@ -217,35 +214,25 @@ void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 //----------------------------------------------------------------------
 bool Layer::areIncomingLayerConnectionsComplete()
 {
-	//printf("enter areIncomingLayerConnectionsComplete\n");
-	//layer->printSummary("  ");
-
-	int nb_arrivals = prev.size();
-	//printf("areIncoming: nb_arrivals, nb_hits= %d, %d\n", nb_arrivals, nb_hits);
-
-	#if 0
-	printf("  - nb_hits/prevsize= %d/%d\n", nb_hits, nb_arrivals);
-	if (nb_hits == nb_arrivals) {
-		layer->printSummary("  - INCOMING CONNECTIONS COMPLETE, ");
-	} else {
-		layer->printSummary("  - INCOMING CONNECTIONS NOT COMPLETE, ");
-	}
-	printf("exit areIncomingLayerConnectionsComplete, ");
-	#endif
-
-	return (nb_hit == nb_arrivals);
+	return (nb_hit == prev.size());
 }
 //----------------------------------------------------------------------
 void Layer::processData(Connection* conn, VF2D_F& prod)
 {
 		++nb_hit;
 
+		VF2D_F& to_inputs = layer_inputs[conn->which_lc];
+		to_inputs = prod;
+
+		// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
+
 		if (areIncomingLayerConnectionsComplete()) {
 			 prod = getActivation()(prod);
 			 setOutputs(prod);
 		}
-
-		VF2D_F& to_inputs = layer_inputs[conn->which_lc];
-		to_inputs = prod;
+}
+//----------------------------------------------------------------------
+void Layer::forwardLoops()
+{
 }
 //----------------------------------------------------------------------
