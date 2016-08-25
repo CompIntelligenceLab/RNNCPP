@@ -341,6 +341,11 @@ void Model::connectionOrderClean()
 	cur_layer->nb_hit = 0;
 	llist.push_back(cur_layer);
 
+	// set correct batch size in layers
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->setNbBatch(nb_batch);
+	}
+
 	//printf("order clean: %d\n", layers.size()); 
 	//exit(0);
 

@@ -22,6 +22,7 @@ public:
 	//virtual bool areIncomingLayerConnectionsComplete();
 	virtual void processData(Connection* conn, VF2D_F& prod);
 	virtual void forwardLoops();
+	virtual void initVars(int nb_batch);
 };
 
 //----------------------------------------------------------------------

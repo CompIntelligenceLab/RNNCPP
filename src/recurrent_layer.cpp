@@ -67,9 +67,25 @@ void RecurrentLayer::forwardLoops()
 	printf("inside RecurrentLayer::forwardLoops\n");
 	WEIGHT& loop_wght = recurrent_conn->getWeight();
 
-	//if (areIncomingLayerConnectionsComplete()) {
-		U::matmul(loop_input, loop_wght, outputs);
-	//}
+	U::print(loop_input, "loop_input");
+	U::print(loop_wght, "loop_wght");
+	U::print(outputs, "outputs");
+	U::matmul(loop_input, loop_wght, outputs); // out of bounds
 	loop_input.print("loop input");
 }
+//----------------------------------------------------------------------
+void RecurrentLayer::initVars(int nb_batch)
+{
+	Layer::initVars(nb_batch);
+
+	loop_input.set_size(nb_batch);
+	loop_delta.set_size(nb_batch);
+
+    for (int b=0; b < nb_batch; b++) {
+        loop_input[b] = VF2D(layer_size, 1);   // << NEED proper sequence length, maybe
+        loop_delta[b] = VF2D(layer_size, 1);
+    }   
+    
+    reset();
+}  
 //----------------------------------------------------------------------
