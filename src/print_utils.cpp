@@ -124,18 +124,19 @@ void U::print(VF1D_F x, std::string msg /*""*/)
 }
 //----------------------------------------------------------------------
 // Efficiency is not the purpose. 
-VF1D_F U::matmul(const VF2D& mat, const VF2D_F& vec)
+void U::matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec)
 {
-	VF1D_F prod(vec.n_rows);
-	//prod.print("prod");
-
 	for (int b=0; b < vec.n_rows; b++) {
-		//prod(b) = mat * vec(b);
-		//prod(b).col(1) = mat * vec(b).col(1);
-		prod(b) = mat * vec(b).col(1);
+		prod(b) = mat * vec(b);
 	}
-
-	return prod;
+}
+//----------------------------------------------------------------------
+// Efficiency is not the purpose. 
+void U::matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int seq)
+{
+	for (int b=0; b < vec.n_rows; b++) {
+		prod(b).col(seq) = mat * vec(b).col(seq);
+	}
 }
 //----------------------------------------------------------------------
 void U::createMat(VF2D_F& mat, int nb_batch, int nb_rows, int nb_cols)

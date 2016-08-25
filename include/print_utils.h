@@ -16,8 +16,9 @@ public:
 	static void print(VF1D x, int val1, std::string msg);
 	static void print(VF1D x, std::string msg="");
 
-	static VF1D_F matmul(const VF2D& mat, const VF2D_F& vec);
 	static void createMat(VF2D_F& mat, int nb_batch, int nb_rows, int nb_cols);
+	static void matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec);
+	static void matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int seq);
 };
 
 #endif
