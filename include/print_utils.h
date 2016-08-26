@@ -25,8 +25,8 @@ public:
 	static void t(VF2D_F& mat, VF2D_F& transpose);
 	static void leftTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c);
 	static void leftTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c, int from, int to);
-	static void rightTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c);
-	static void rightTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c, int from, int to);
+	static void rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c);
+	static void rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c, int from, int to);
 };
 
 #endif

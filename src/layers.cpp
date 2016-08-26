@@ -232,11 +232,11 @@ void Layer::computeGradient(int t)
 {
 	// Error. Derivatives must be evaluated for the input argument!
 	//gradient = activation->derivative(outputs);
-	U::print(inputs, "inputs");
-	gradient.print("gradient");
-	U::print(gradient, "gradient");
-	printf("t= %d\n", t);
 	// Cannot do lazy assignment if using columns
+
+	// More efficient would be: 
+	// gradient[b].col(t) = activation->derivative(gradient, inputs, k); 
+	//     to avoid a copy. 
 
 	for (int b=0; b < inputs.n_rows; b++) {
 		gradient[b].col(t) = activation->derivative(inputs[b].col(t));

@@ -615,38 +615,23 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 
 	VF2D_F& grad = output_layers[0]->getDelta();
 	int nb_batch = grad.n_rows;
-	//printf("model nb_batch= %d\n", nb_batch);
 	VF2D_F prod(nb_batch);
-	//exit(0);
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* conn = (*it);
-		Layer* layer_from = conn->from;
 		Layer* layer_to   = conn->to;
-		//(*it)->printSummary("************ connection");
 
 		const VF2D_F& grad = layer_to->getGradient();
 		WEIGHT& wght = conn->getWeight();
 		VF2D_F& old_deriv = layer_to->getDelta();
 
-		//layer_to->printSummary("layer_to");
-		//layer_from->printSummary("layer_from");
-		//grad[0].print("grad[0]");
-		//old_deriv[0].print("old_deriv[0]");
-
-		//wght.print("wght");
-		//U::print(grad[0], "grad[b]");
-		//U::print(old_deriv[0], "old_deriv[b]");
-		//U::print(wght, "wght");
-
-		for (int b=0; b < nb_batch; b++) {
+		const WEIGHT wghtt = wght.t(); // inefficient
+		U::rightTriad(prod, wghtt, grad, old_deriv, t+1, t);
+		//for (int b=0; b < nb_batch; b++) {
 			//prod[b] = wght.t() * (grad[b] % old_deriv[b]);
-			prod[b] = wght.t() * (grad[b] % old_deriv[b]);
-		}
-		//prod[0].print("prod[0]");
-		//printf("nb_batch= %d\n", nb_batch);
-		//U::print(prod, "prod");
+		//}
 
+		Layer* layer_from = conn->from;
 		layer_from->incrDelta(prod);
 	}
 	printf("********* EXIT storeDactivationDoutputInLayers() **************\n");

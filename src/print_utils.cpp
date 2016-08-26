@@ -188,17 +188,17 @@ void U::leftTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c, int from, int t
 	}
 }
 //----------------------------------------------------------------------
-void U::rightTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c)
+void U::rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c)
 {
 	for (int p=0; p < a.n_rows; p++) {
-		prod[p] = a(p) * (b(p) % c(p));
+		prod[p] = a * (b(p) % c(p));
 	}
 }
 //----------------------------------------------------------------------
-void U::rightTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c, int from, int to)
+void U::rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c, int from, int to)
 {
 	for (int p=0; p < a.n_rows; p++) {
-		prod(p).col(to) = a(p).col(from) * (b(p).col(from) % c(p).col(from));
+		prod(p).col(to) = a * (b(p).col(from) % c(p).col(from));
 	}
 }
 //----------------------------------------------------------------------
