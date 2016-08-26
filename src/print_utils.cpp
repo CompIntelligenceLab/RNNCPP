@@ -139,6 +139,14 @@ void U::matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int seq)
 	}
 }
 //----------------------------------------------------------------------
+// Efficiency is not the purpose. 
+void U::matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int from, int to)
+{
+	for (int b=0; b < vec.n_rows; b++) {
+		prod(b).col(to) = mat * vec(b).col(from);
+	}
+}
+//----------------------------------------------------------------------
 void U::createMat(VF2D_F& mat, int nb_batch, int nb_rows, int nb_cols)
 {
 	arma::field<arma::Mat<float> > m; m.set_size(3);

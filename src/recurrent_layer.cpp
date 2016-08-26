@@ -60,6 +60,20 @@ void RecurrentLayer::processData(Connection* conn, VF2D_F& prod)
 		Layer::processData(conn, prod);
 }
 //----------------------------------------------------------------------
+void RecurrentLayer::forwardLoops(int seq_i)
+{
+	// forward data to temporal connections
+	// handle self loop
+	WEIGHT& loop_wght = recurrent_conn->getWeight();
+
+	//U::matmul(loop_input, loop_wght, outputs); // out of bounds
+	// calculate for sequence 0, store in sequence 1
+
+	if (seq_i >= 0) {
+		U::matmul(loop_input, loop_wght, outputs, seq_i, seq_i+1); // out of bounds
+	}
+}
+//----------------------------------------------------------------------
 void RecurrentLayer::forwardLoops()
 {
 	// forward data to temporal connections
@@ -67,11 +81,15 @@ void RecurrentLayer::forwardLoops()
 	printf("inside RecurrentLayer::forwardLoops\n");
 	WEIGHT& loop_wght = recurrent_conn->getWeight();
 
-	U::print(loop_input, "loop_input");
-	U::print(loop_wght, "loop_wght");
-	U::print(outputs, "outputs");
+	//U::print(loop_input, "loop_input");
+	//U::print(loop_wght, "loop_wght");
+	//U::print(outputs, "outputs");
+
 	U::matmul(loop_input, loop_wght, outputs); // out of bounds
-	loop_input.print("loop input");
+	// calculate for sequence 0, store in sequence 1
+	U::matmul(loop_input, loop_wght, outputs, 0, 1); // out of bounds
+
+	//loop_input.print("loop input");
 }
 //----------------------------------------------------------------------
 void RecurrentLayer::initVars(int nb_batch)

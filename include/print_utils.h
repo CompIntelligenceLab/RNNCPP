@@ -19,6 +19,7 @@ public:
 	static void createMat(VF2D_F& mat, int nb_batch, int nb_rows, int nb_cols);
 	static void matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec);
 	static void matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int seq);
+	static void matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int from, int to);
 };
 
 #endif

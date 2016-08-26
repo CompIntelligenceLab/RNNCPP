@@ -310,6 +310,7 @@ void Layer::processData(Connection* conn, VF2D_F& prod)
 }
 //----------------------------------------------------------------------
 void Layer::forwardLoops()
-{
-}
+{ }
+void Layer::forwardLoops(int seq)
+{ }
 //----------------------------------------------------------------------

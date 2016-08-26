@@ -475,6 +475,7 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 	Layer* input_layer = getInputLayers()[0];
 	input_layer->setOutputs(x);
 
+ for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->nb_hit = 0;
 	}
@@ -482,8 +483,9 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 	// go through all the layers and update the temporal connections
 	// On the first pass, connections are empty
 	for (int l=0; l < layers.size(); l++) {
-		layers[l]->forwardLoops();           // *****************
+		layers[l]->forwardLoops(t-1);           // *****************
 	}
+ }
 		
 	for (int c=0; c < clist.size(); c++) {
 		Connection* conn  = clist[c];
