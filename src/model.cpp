@@ -477,73 +477,38 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 
 	// input layer (ASSUMED to be 0th entry to layer_inputs);
 	//U::print(layer_inputs[0], layer_inputs[0]);
-	U::print(layers[0]->layer_inputs[0], "layer_input[0]");
+	//U::print(layers[0]->layer_inputs[0], "layer_input[0]");
+
 	layers[0]->layer_inputs[0] = x;
-	layers[0]->layer_inputs[0].print("layer_input[0]");
 	layers[0]->setOutputs(x);
+
+	//layers[0]->layer_inputs[0].print("layer_input[0]");
 	//layers[0]->printSummary("");exit(0);
 
- for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
-	for (int l=0; l < layers.size(); l++) {
-		layers[l]->nb_hit = 0;
-	}
+ 	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
+		for (int l=0; l < layers.size(); l++) {
+			layers[l]->nb_hit = 0;
+		}
 
-	// go through all the layers and update the temporal connections
-	// On the first pass, connections are empty
-	for (int l=0; l < layers.size(); l++) {
-		layers[l]->forwardLoops(t-1);           // *****************
-	}
+		// go through all the layers and update the temporal connections
+		// On the first pass, connections are empty
+		for (int l=0; l < layers.size(); l++) {
+			layers[l]->forwardLoops(t-1);           // *****************
+		}
 		
-	printf("**** t= %d **************\n", t);
-	for (int c=0; c < clist.size(); c++) {
-		Connection* conn  = clist[c];
-
-		Layer* to_layer   = conn->to;
-		to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
-		prod.print("prod after processOutputData, ");
-	}
- }
-
+		//printf("**** t= %d **************\n", t);
+		for (int c=0; c < clist.size(); c++) {
+			Connection* conn  = clist[c];
+	
+			Layer* to_layer   = conn->to;
+			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
+			//prod.print("prod after processOutputData, ");
+		}
+ 	}
 
 	prod.print("************ EXIT predictViaConnection ***************"); 
 	//U::print(prod, "prod, exit predict, ");
 	return prod;
-}
-//----------------------------------------------------------------------
-void Model::print(VF2D_F x, std::string msg /*""*/)
-{
-	cout << msg << ",  field size: " << x.n_rows << ", shape: " << x[0].n_rows << ", " << x[0].n_cols << endl;
-} 
-//----------------------------------------------------------------------
-void Model::print(VF2D_F x, int val1, std::string msg)
-{
-	char buf[80];
-	sprintf(buf, msg.c_str(), val1);
-	cout << buf << ", field size: " << x.n_rows << ", shape: (" << x[0].n_rows << ", " << x[0].n_cols << ")" << endl;
-}
-//----------------------------------------------------------------------
-void Model::print(VF2D x, std::string msg /*""*/)
-{
-	cout << msg << ", shape: " << x.n_rows << ", " << x.n_cols << endl;
-} 
-//----------------------------------------------------------------------
-void Model::print(VF2D x, int val1, std::string msg)
-{
-	char buf[80];
-	sprintf(buf, msg.c_str(), val1);
-	cout << buf << ", shape: (" << x.n_rows << ", " << x.n_cols << ")" << endl;
-}
-//----------------------------------------------------------------------
-void Model::print(VF1D x, std::string msg /*""*/)
-{
-	cout << msg << ", shape: " << x.n_rows << endl;
-} 
-//----------------------------------------------------------------------
-void Model::print(VF1D x, int val1, std::string msg)
-{
-	char buf[80];
-	sprintf(buf, msg.c_str(), val1);
-	cout << buf << ", shape: (" << x.n_rows << endl;
 }
 //----------------------------------------------------------------------
 // This was hastily decided on primarily as a means to construct feed forward
@@ -674,6 +639,20 @@ void Model::resetDeltas()
 
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->resetDelta();
+	}
+}
+//----------------------------------------------------------------------
+void Model::resetState()
+{
+	//typedef CONNECTIONS::reverse_iterator IT;
+	//IT it;
+
+	//for (it=clist.rbegin(); it != clist.rend(); ++it) {
+		//(*it)->resetDelta();
+	//}
+
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->resetState();
 	}
 }
 //----------------------------------------------------------------------

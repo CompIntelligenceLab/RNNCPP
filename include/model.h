@@ -51,12 +51,6 @@ public:
   Model(const Model&); // probably do not need it, but it is a good exercise. 
   const Model& operator=(const Model&); 
   void print(std::string msg="");
-  void print(VF2D_F x, std::string msg="");
-  void print(VF2D_F x, int val1, std::string msg);
-	void print(VF2D x, std::string msg="");
-	void print(VF2D x, int val1, std::string msg);
-	void print(VF1D x, std::string msg="");
-	void print(VF1D x, int val1, std::string msg);
 
   /** print connections, connection type, weight matrix size, layers, layer types */
   void printSummary();
@@ -132,8 +126,9 @@ public:
   // Also allow fixed initialization in [-.8, .8] from a uniform distribution */
   // "gaussian", "uniform", "orthogonal"
   void initializeWeights(std::string initialization_type="uniform");
-	void removeFromList(std::list<Layer*>& llist, Layer* cur_layer);
-	void resetDeltas();
+  void removeFromList(std::list<Layer*>& llist, Layer* cur_layer);
+  void resetDeltas();
+  void resetState();
 
 private:
   void checkIntegrity(LAYERS& layer_list);

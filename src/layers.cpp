@@ -369,3 +369,20 @@ void Layer::forwardLoops()
 void Layer::forwardLoops(int seq)
 { }
 //----------------------------------------------------------------------
+void Layer::resetState()
+{
+	U::zeros(inputs);
+	U::zeros(outputs);
+
+	for (int i=0; i < layer_inputs.size(); i++) {
+		U::zeros(layer_inputs[i]);
+	}
+}
+//----------------------------------------------------------------------
+void Layer::resetDelta()
+{
+	for (int b=0; b < delta.n_rows; b++) {
+		delta[b].zeros();
+	}
+}
+//----------------------------------------------------------------------

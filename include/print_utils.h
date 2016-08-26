@@ -20,6 +20,8 @@ public:
 	static void matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec);
 	static void matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int seq);
 	static void matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int from, int to);
+	static void zeros(VF2D_F& mat);
+	static void zeros(VF1D_F& mat);
 };
 
 #endif

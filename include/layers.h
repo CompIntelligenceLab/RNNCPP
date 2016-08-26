@@ -148,11 +148,8 @@ public:
 	DELTA& getDelta(int which_lc) { return layer_deltas[which_lc]; }
 	void setDelta(DELTA delta) { this->delta = delta; }
 	void setDelta(DELTA delta, int which_lc) { layer_deltas[which_lc] = delta; } // CHANGE
-	void resetDelta() { 
-		for (int b=0; b < delta.n_rows; b++) {
-			delta[b].zeros();
-		}
-	}
+	void resetDelta();
+	void resetState();
 	virtual void forwardData(Connection* conn, VF2D_F& prod, int seq);
 	virtual void forwardLoops();
 	virtual void forwardLoops(int seq_index);
