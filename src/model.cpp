@@ -28,7 +28,6 @@ Model::Model(std::string name /* "model" */)
     stateful = false; 
 	seq_len = 1; // should be equivalent to feedforward (no time to unroll)
 	initialization_type = "uniform";  // can also choose Gaussian
-
 }
 //----------------------------------------------------------------------
 Model::~Model()
@@ -544,7 +543,73 @@ void Model::storeGradientsInLayers()
 	printf("---- exit storeGradientsInLayers ----\n");
 }
 //----------------------------------------------------------------------
+void Model::storeGradientsInLayersRec()
+{
+	printf("---- enter storeGradientsInLayers ----\n");
+	for (int l=0; l < layers.size(); l++) {
+		//layers[l]->printSummary("storeGradientsInLayers, ");
+		layers[l]->computeGradient();
+		//layers[l]->getOutputs().print("layer outputs, ");
+		//printf("activation name: %s\n", layers[l]->getActivation().getName().c_str());
+		//U::print(layers[l]->getGradient(), "layer gradient");
+		//layers[l]->getGradient().print("layer gradient, ");
+		//U::print(layers[l]->getDelta(), "layer Delta"); // seg fault
+		//layers[l]->getDelta().print("layer Delta, "); // seg fault
+	}
+	printf("---- exit storeGradientsInLayers ----\n");
+}
+//----------------------------------------------------------------------
 void Model::storeDactivationDoutputInLayers()
+{
+	typedef CONNECTIONS::reverse_iterator IT;
+	IT it;
+
+	printf("********* ENTER storeDactivationDoutputInLayers() **************\n");
+
+	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
+	// Run layers backwards
+	// Run connections backwards
+
+	VF2D_F& grad = output_layers[0]->getDelta();
+	int nb_batch = grad.n_rows;
+	//printf("model nb_batch= %d\n", nb_batch);
+	VF2D_F prod(nb_batch);
+	//exit(0);
+
+	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+		Connection* conn = (*it);
+		Layer* layer_from = conn->from;
+		Layer* layer_to   = conn->to;
+		//(*it)->printSummary("************ connection");
+
+		const VF2D_F& grad = layer_to->getGradient();
+		WEIGHT& wght = conn->getWeight();
+		VF2D_F& old_deriv = layer_to->getDelta();
+
+		//layer_to->printSummary("layer_to");
+		//layer_from->printSummary("layer_from");
+		//grad[0].print("grad[0]");
+		//old_deriv[0].print("old_deriv[0]");
+
+		//wght.print("wght");
+		//U::print(grad[0], "grad[b]");
+		//U::print(old_deriv[0], "old_deriv[b]");
+		//U::print(wght, "wght");
+
+		for (int b=0; b < nb_batch; b++) {
+			//prod[b] = wght.t() * (grad[b] % old_deriv[b]);
+			prod[b] = wght.t() * (grad[b] % old_deriv[b]);
+		}
+		//prod[0].print("prod[0]");
+		//printf("nb_batch= %d\n", nb_batch);
+		//U::print(prod, "prod");
+
+		layer_from->incrDelta(prod);
+	}
+	printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
+}
+//----------------------------------------------------------------------
+void Model::storeDactivationDoutputInLayersRec()
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
@@ -628,6 +693,40 @@ void Model::storeDLossDweightInConnections()
 	printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }
 //----------------------------------------------------------------------
+void Model::storeDLossDweightInConnectionsRec()
+{
+	typedef CONNECTIONS::reverse_iterator IT;
+	IT it;
+	WEIGHT prod;
+
+	printf("********** ENTER storeDLossDweightInConnections ***********\n");
+
+	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+		Connection* conn = (*it);
+		Layer* layer_from = conn->from;
+		Layer* layer_to   = conn->to;
+
+		VF2D_F& out = layer_from->getOutputs();
+		const VF2D_F& grad = layer_to->getGradient();
+		VF2D_F& old_deriv = layer_to->getDelta();
+
+		//conn->printSummary("Connection, ");
+		//grad.print("layer_to->getGradient, grad, ");
+		//old_deriv.print("layer_to->getDelta, old_deriv, ");
+		//out.print("layer_from_getOutputs()");
+
+		// How to do this for a particular sequence element? 
+		// Currently, only works for sequence length of 1
+		// Could work if sequence were the field index
+		for (int b=0; b < nb_batch; b++) {
+			prod = (old_deriv[b] % grad[b]) * out(b).t();
+			//prod.print("storeDLossDweightInConnections, prod");
+			(*it)->incrDelta(prod);
+		}
+	}
+	printf("********** EXIT storeDLossDweightInConnections ***********\n");
+}
+//----------------------------------------------------------------------
 void Model::resetDeltas()
 {
 	typedef CONNECTIONS::reverse_iterator IT;
@@ -656,14 +755,14 @@ void Model::resetState()
 	}
 }
 //----------------------------------------------------------------------
-void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
+void Model::backPropagationViaConnections(VF2D_F& exact, VF2D_F& pred)
 {
 	printf("***************** ENTER BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
-	U::print(exact, "exact");
-	U::print(pred, "pred");
-	exit(0);
-	typedef CONNECTIONS::reverse_iterator IT;
-	IT it;
+	//U::print(exact, "exact");
+	//U::print(pred, "pred");
+	//exit(0);
+	//typedef CONNECTIONS::reverse_iterator IT;
+	//IT it;
 
 	nb_batch = pred.n_rows;
 
@@ -683,6 +782,38 @@ void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
 	storeDLossDweightInConnections();
 	printf("***************** EXIT BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 }
+//----------------------------------------------------------------------
+void Model::backPropagationViaConnectionsRecursion(VF2D_F& exact, VF2D_F& pred)
+{
+	printf("***************** ENTER BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
+	//U::print(exact, "exact");
+	//U::print(pred, "pred");
+	//exit(0);
+	//typedef CONNECTIONS::reverse_iterator IT;
+	//IT it;
+
+	nb_batch = pred.n_rows;
+
+	if (nb_batch == 0) {
+		printf("backPropagationViaConnections, nb_batch must be > 0\n");
+		exit(0);
+	}
+
+	resetDeltas();
+
+ 	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
+    	objective->computeGradient(exact, pred);
+    	VF2D_F& grad = objective->getGradient();
+		getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
+
+		storeGradientsInLayersRec();
+		storeDactivationDoutputInLayersRec();
+		storeDLossDweightInConnectionsRec();
+	}
+	printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
+}
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

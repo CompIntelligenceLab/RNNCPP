@@ -234,62 +234,62 @@ bool Layer::areIncomingLayerConnectionsComplete()
 // Perhaps break this up into processing by Connection then by output layer
 void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 {
-		printf("enter Layer::processOutputDataFromPreviousLayern");
-		++nb_hit;
+	printf("enter Layer::processOutputDataFromPreviousLayern");
+	++nb_hit;
 
-		VF2D_F& from_outputs = conn->from->getOutputs();
-		WEIGHT& wght = conn->getWeight();  // what if connection operates differently
-		VF2D_F& to_inputs = layer_inputs[conn->which_lc];
+	VF2D_F& from_outputs = conn->from->getOutputs();
+	WEIGHT& wght = conn->getWeight();  // what if connection operates differently
+	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 
-		#if 0
-		conn->printSummary("conn");
-		printf("which_lc= %d\n", conn->which_lc);
-		printf("layer_inputs.size= %d\n",layer_inputs.size());
-		layer_inputs[conn->which_lc].print("layer_inputs, which_lc");  // ===> zero
-		wght.print("wght");
-		from_outputs.print("from_outputs");
-		#endif
+	#if 0
+	conn->printSummary("conn");
+	printf("which_lc= %d\n", conn->which_lc);
+	printf("layer_inputs.size= %d\n",layer_inputs.size());
+	layer_inputs[conn->which_lc].print("layer_inputs, which_lc");  // ===> zero
+	wght.print("wght");
+	from_outputs.print("from_outputs");
+	#endif
 
 
-		// TEMPORARY LOOP
-		#if 0
-		for (int i=0; i < layer_inputs.size(); i++) {
-			//layer_inputs[i] = VF2D_F(nb_batch);
-			int input_dim = getLayerSize();
-			int seq_len   = getSeqLen();
-			printf("input_dim, seq_len= %d, %d\n", input_dim, seq_len);
-			for (int b=0; b < nb_batch; b++) {
-				//layer_inputs[i](b) = VF2D(input_dim, seq_len);
-				U::print(layer_inputs[i](b), "U:: layer_inputs (tmp)");
-			}
+	// TEMPORARY LOOP
+	#if 0
+	for (int i=0; i < layer_inputs.size(); i++) {
+		//layer_inputs[i] = VF2D_F(nb_batch);
+		int input_dim = getLayerSize();
+		int seq_len   = getSeqLen();
+		printf("input_dim, seq_len= %d, %d\n", input_dim, seq_len);
+		for (int b=0; b < nb_batch; b++) {
+			//layer_inputs[i](b) = VF2D(input_dim, seq_len);
+			U::print(layer_inputs[i](b), "U:: layer_inputs (tmp)");
 		}
-		#endif
+	}
+	#endif
 
-		//U::matmul(to_inputs, wght, from_outputs);  // w * x
-		U::matmul(prod, wght, from_outputs);  // w * x
-		to_inputs = prod;
+	//U::matmul(to_inputs, wght, from_outputs);  // w * x
+	U::matmul(prod, wght, from_outputs);  // w * x
+	to_inputs = prod;
 
 
-		prod.print("enter processData, prod");
+	//prod.print("enter processData, prod");
 
-		// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
+	// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
 
-		// completeness only happens once per layer and per input value into the predicition module
-		if (areIncomingLayerConnectionsComplete()) {
-			 // sum up all the inputs + the temporal input if there is one
-			 resetInputs();
-			 for (int i=0; i < layer_inputs.size(); i++) {
-			 	incrInputs(layer_inputs[i]);
-				//layer_inputs[i].print("layer_inputs incr");
-				//printf("incrInputs, input: %d\n", i);
-			 }
-			 // add the self-looping if there. 
-			 incrInputs(loop_input);
-			 //loop_input.print("add loop_input, ");
-			 prod = getActivation()(getInputs());
-			 //prod.print("processData, output, ");
-			 setOutputs(prod);
-		}
+	// completeness only happens once per layer and per input value into the predicition module
+	if (areIncomingLayerConnectionsComplete()) {
+		 // sum up all the inputs + the temporal input if there is one
+		 resetInputs();
+		 for (int i=0; i < layer_inputs.size(); i++) {
+		 	incrInputs(layer_inputs[i]);
+			//layer_inputs[i].print("layer_inputs incr");
+			//printf("incrInputs, input: %d\n", i);
+		 }
+		 // add the self-looping if there. 
+		 incrInputs(loop_input);
+		 //loop_input.print("add loop_input, ");
+		 prod = getActivation()(getInputs());
+		 //prod.print("processData, output, ");
+		 setOutputs(prod);
+	}
 }
 //----------------------------------------------------------------------
 void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int seq_i)
@@ -301,8 +301,8 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	WEIGHT& wght = conn->getWeight();  // what if connection operates differently
 	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 
-	layer_inputs[0].print("layer_input[0]");
-	this->printSummary();
+	//layer_inputs[0].print("layer_input[0]");
+	//this->printSummary();
 
 		#if 0
 		conn->printSummary("conn");
@@ -323,7 +323,7 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	U::matmul(to_inputs, wght, from_outputs, seq_i, seq_i);  // w * x
 
 	//U::print(to_inputs, "to_inputs");
-	to_inputs.print("to_inputs");
+	//to_inputs.print("to_inputs");
 	//to_inputs = prod;
 	//exit(0);
 
