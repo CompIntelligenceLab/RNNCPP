@@ -475,6 +475,14 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 	Layer* input_layer = getInputLayers()[0];
 	input_layer->setOutputs(x);
 
+	// input layer (ASSUMED to be 0th entry to layer_inputs);
+	//U::print(layer_inputs[0], layer_inputs[0]);
+	U::print(layers[0]->layer_inputs[0], "layer_input[0]");
+	layers[0]->layer_inputs[0] = x;
+	layers[0]->layer_inputs[0].print("layer_input[0]");
+	layers[0]->setOutputs(x);
+	//layers[0]->printSummary("");exit(0);
+
  for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->nb_hit = 0;
@@ -486,14 +494,14 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 		layers[l]->forwardLoops(t-1);           // *****************
 	}
 		
+	printf("**** t= %d **************\n", t);
 	for (int c=0; c < clist.size(); c++) {
 		Connection* conn  = clist[c];
 
 		Layer* to_layer   = conn->to;
 		to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
-	    //U::print(prod, "prod, after process, ");
+		prod.print("prod after processOutputData, ");
 	}
- //exit(0);
  }
 
 

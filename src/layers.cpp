@@ -294,22 +294,27 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 //----------------------------------------------------------------------
 void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int seq_i)
 {
-	printf("enter Layer::processOutputDataFromPreviousLayern\n");
+	printf("enter Layer::processOutputDataFromPreviousLayer, t= %d\n", seq_i);
 	++nb_hit;
 
 	VF2D_F& from_outputs = conn->from->getOutputs();
 	WEIGHT& wght = conn->getWeight();  // what if connection operates differently
 	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 
+	layer_inputs[0].print("layer_input[0]");
+	this->printSummary();
+	//exit(0);
+
 		#if 0
 		conn->printSummary("conn");
 		printf("which_lc= %d\n", conn->which_lc);
 		printf("layer_inputs.size= %d\n",layer_inputs.size());
-		layer_inputs[conn->which_lc].print("layer_inputs, which_lc");  // ===> zero
+		//layer_inputs[conn->which_lc].print("layer_inputs, which_lc");  // ===> zero
 		wght.print("wght");
 		U::print(wght, "wght");
 		U::print(from_outputs, "from_outputs");
 		U::print(prod, "prod");
+		conn->from->printSummary("conn->from");
 		from_outputs.print("from_outputs");
 		#endif
 
@@ -317,8 +322,10 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	//printf("seq_i= %d\n", seq_i);
 		//exit(0);
 	U::matmul(to_inputs, wght, from_outputs, seq_i, seq_i);  // w * x
-	//U::matmul(prod, wght, from_outputs, seq_i, seq_i);  // w * x
+	U::print(to_inputs, "to_inputs");
+	to_inputs.print("to_inputs");
 	//to_inputs = prod;
+	//exit(0);
 
 	//prod.print("enter processData, prod");
 
@@ -326,10 +333,13 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	if (areIncomingLayerConnectionsComplete()) {
 		 // sum up all the inputs + the temporal input if there is one
 		 resetInputs();
+		layer_inputs[conn->which_lc].print("** layer_inputs, which_lc");  // ===> zero
+		//exit(0);
 		 for (int i=0; i < layer_inputs.size(); i++) {
 		 	incrInputs(layer_inputs[i]);
 		 }
 		 // add the self-looping if there. 
+		 loop_input.print("loop input");  // UNINITIALIZED
 		 incrInputs(loop_input);
 		 prod = getActivation()(getInputs());
 		 setOutputs(prod);
