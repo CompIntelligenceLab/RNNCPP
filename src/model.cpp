@@ -545,18 +545,11 @@ void Model::storeGradientsInLayers()
 //----------------------------------------------------------------------
 void Model::storeGradientsInLayersRec(int t)
 {
-	printf("---- enter storeGradientsInLayers ----\n");
+	printf("---- enter storeGradientsInLayersRec ----\n");
 	for (int l=0; l < layers.size(); l++) {
-		//layers[l]->printSummary("storeGradientsInLayers, ");
 		layers[l]->computeGradient();
-		//layers[l]->getOutputs().print("layer outputs, ");
-		//printf("activation name: %s\n", layers[l]->getActivation().getName().c_str());
-		//U::print(layers[l]->getGradient(), "layer gradient");
-		//layers[l]->getGradient().print("layer gradient, ");
-		//U::print(layers[l]->getDelta(), "layer Delta"); // seg fault
-		//layers[l]->getDelta().print("layer Delta, "); // seg fault
 	}
-	printf("---- exit storeGradientsInLayers ----\n");
+	printf("---- exit storeGradientsInLayersRec ----\n");
 }
 //----------------------------------------------------------------------
 void Model::storeDactivationDoutputInLayers()

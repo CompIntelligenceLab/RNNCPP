@@ -156,14 +156,27 @@ void Layer::resetBackprop()
 		delta(b).zeros();
 	}
 }
-
+//----------------------------------------------------------------------
 void Layer::incrOutputs(VF2D_F& x)
 {
 	for (int b=0; b < x.n_rows; b++) {
-		outputs[b] += x[b];
+		outputs(b) += x[b];
 	}
 }
+//----------------------------------------------------------------------
+void Layer::incrOutputs(VF2D_F& x, int t)
+{
+	// I do not know why "this->" is necessary since I do not notice any ambiguity 
 
+	for (int b=0; b < x.n_rows; b++) {
+		this->outputs(b).col(t) += x[b].col(t);
+	}
+	/*   ?????
+	/Users/erlebach/src/RNNCPP/src/layers.cpp:170:14: error: reference to non-static member function must be called
+	outputs[b].col[t] += x[b].col(t);
+	*/
+}
+//----------------------------------------------------------------------
 void Layer::incrInputs(VF2D_F& x)
 {
 	//printf("incrInputs: x.n_rows= %d\n", x.n_rows);

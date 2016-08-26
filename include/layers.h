@@ -133,6 +133,7 @@ public:
 	void setOutputs(VF2D_F& outputs) { this->outputs = outputs; }
 	VF2D_F& getOutputs() { return outputs; }
 	void incrOutputs(VF2D_F& x);
+	void incrOutputs(VF2D_F& x, int t); // for sequences
 	void incrInputs(VF2D_F& x);
 	void resetInputs();
 	void incrDelta(VF2D_F& x);
