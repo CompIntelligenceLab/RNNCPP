@@ -221,7 +221,9 @@ void Layer::incrDelta(VF2D_F& x)
 //----------------------------------------------------------------------
 void Layer::computeGradient()
 {
-	gradient = activation->derivative(outputs);
+	// Error. Derivatives must be evaluated for the input argument!
+	//gradient = activation->derivative(outputs);
+	gradient = activation->derivative(inputs);
 }
 //----------------------------------------------------------------------
 void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)
