@@ -547,7 +547,7 @@ void Model::storeGradientsInLayersRec(int t)
 {
 	printf("---- enter storeGradientsInLayersRec ----\n");
 	for (int l=0; l < layers.size(); l++) {
-		layers[l]->computeGradient();
+		layers[l]->computeGradient(t);
 	}
 	printf("---- exit storeGradientsInLayersRec ----\n");
 }

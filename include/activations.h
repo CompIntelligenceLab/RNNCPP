@@ -22,6 +22,7 @@ public:
 	/** x has dimensionality equal to the previous layer size */
 	/** the return value has the dimensionality of the new layer size */
 	virtual VF2D_F derivative(const VF2D_F& x) = 0; // derivative of activation function evaluated at x
+	virtual VF1D derivative(const VF1D& x) = 0; // derivative of activation function evaluated at x
 	virtual VF2D_F operator()(const VF2D_F& x) = 0;
 	virtual void print(std::string name= "");
 	virtual std::string getName() { return name; }
@@ -45,6 +46,15 @@ public:
 		VF2D_F y(x);
 		for (int b=0; b < x.size(); b++) {
 			y[b].ones();
+		}
+		return y;
+	}
+
+	VF1D derivative(const VF1D& x)
+	{
+		VF1D y(x);
+		for (int b=0; b < x.size(); b++) {
+			y[b] = 1.;
 		}
 		return y;
 	}
@@ -88,6 +98,17 @@ public:
 		return (1.-s*s);
 #endif
 	}
+
+	VF1D derivative(const VF1D& x)
+	{
+		VF1D y(x.n_rows);
+		//x.print("***> input to activation (tanh): x");
+		for (int i=0; i < x.n_rows; i++) {
+			y[i] = tanh(x[i]);
+			y[i] = 1.-y[i]*y[i];
+		}
+		return y;
+	}
 };
 
 
@@ -127,6 +148,15 @@ public:
 		AF s = this->operator()(x);
 		return s%(1-s);
 #endif
+	}
+
+	VF1D derivative(const VF1D& x) 
+	{
+		VF1D y(x.n_rows);
+		for (int i=0; i < x.n_rows; i++) {
+			y[i] = x[i]*(1.-x[i]);
+		}
+		return y;
 	}
 };
 //----------------------------------------------------------------------

@@ -118,6 +118,7 @@ public:
    GRADIENTS getGradient() const {return gradient;}
    // make private?
    void computeGradient();
+   void computeGradient(int t); // for sequences
 
 	int getNbBatch() { return nb_batch; }
    	void setNbBatch(int nb_batch) { this->nb_batch = nb_batch; initVars(nb_batch);  }

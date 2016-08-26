@@ -42,11 +42,13 @@ void Layer::initVars(int nb_batch)
 	inputs.set_size(nb_batch);
 	outputs.set_size(nb_batch);
 	delta.set_size(nb_batch);
+	gradient.set_size(nb_batch);
 	//printf("nb_batch= %d\n", nb_batch); exit(0);
 
 	for (int i=0; i < nb_batch; i++) {
-		inputs[i]  = VF2D(layer_size, seq_len);
-		outputs[i] = VF2D(layer_size, seq_len);
+		inputs[i]    = VF2D(layer_size, seq_len);
+		outputs[i]   = VF2D(layer_size, seq_len);
+		gradient[i] = VF2D(layer_size, seq_len);
 	}
 	nb_hit = 0;
 
@@ -224,6 +226,21 @@ void Layer::computeGradient()
 	// Error. Derivatives must be evaluated for the input argument!
 	//gradient = activation->derivative(outputs);
 	gradient = activation->derivative(inputs);
+}
+//----------------------------------------------------------------------
+void Layer::computeGradient(int t)
+{
+	// Error. Derivatives must be evaluated for the input argument!
+	//gradient = activation->derivative(outputs);
+	U::print(inputs, "inputs");
+	gradient.print("gradient");
+	U::print(gradient, "gradient");
+	printf("t= %d\n", t);
+	// Cannot do lazy assignment if using columns
+
+	for (int b=0; b < inputs.n_rows; b++) {
+		gradient[b].col(t) = activation->derivative(inputs[b].col(t));
+	}
 }
 //----------------------------------------------------------------------
 void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)
