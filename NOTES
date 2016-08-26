@@ -1,0 +1,63 @@
+----------------------------------------------------------------------
+PREDICT: 
+
+dens0 -> dens1 -> loss
+pred = w2*tanh(.0470*w1) = .0047
+w1 = .4587
+w2 = .2190
+----------------------------------------------------------------------
+
+-- layer_list[0], layer (input_layer0) --
+wght, prev connection
+   0.4587
+prod, prev layer
+[field column 0]
+   0.0470
+
+
+wght*prod
+[field column 0]
+   0.0216
+
+
+incrInputs: x.n_rows= 1
+inputs.n_rows= 1
+-- nlayer, layer (dense01) --
+nlayer
+[field column 0]
+   0.0216
+
+
+wght, prev connection
+   0.2190
+prod, prev layer
+[field column 0]
+   0.0216
+
+
+wght*prod
+[field column 0]
+   0.0047
+
+
+incrInputs: x.n_rows= 1
+inputs.n_rows= 1
+-- nlayer, layer (dense12) --
+nlayer
+[field column 0]
+   0.0047
+
+
+return value
+[field column 0]
+   0.0047
+
+Output: 0.004720667755633531  (CORRECT)
+----------------------------------------------------------------------
+input -> dens0 -> dens1
+==> dLdw_exact
+  -0.0634
+
+----------------------------------------------------------------------
+Created branch weight_recursive
+----------------------------------------------------------------------
