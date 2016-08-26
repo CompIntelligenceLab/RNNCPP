@@ -485,17 +485,20 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->forwardLoops(t-1);           // *****************
 	}
- }
 		
 	for (int c=0; c < clist.size(); c++) {
 		Connection* conn  = clist[c];
 
 		Layer* to_layer   = conn->to;
-		to_layer->processOutputDataFromPreviousLayer(conn, prod);
+		to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
+	    //U::print(prod, "prod, after process, ");
 	}
+ //exit(0);
+ }
 
 
 	prod.print("************ EXIT predictViaConnection ***************"); 
+	//U::print(prod, "prod, exit predict, ");
 	return prod;
 }
 //----------------------------------------------------------------------
@@ -669,6 +672,9 @@ void Model::resetDeltas()
 void Model::backPropagationViaConnections(VF2D_F exact, VF2D_F pred)
 {
 	printf("***************** ENTER BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
+	U::print(exact, "exact");
+	U::print(pred, "pred");
+	exit(0);
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 

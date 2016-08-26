@@ -292,19 +292,64 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 		}
 }
 //----------------------------------------------------------------------
+void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int seq_i)
+{
+	printf("enter Layer::processOutputDataFromPreviousLayern\n");
+	++nb_hit;
+
+	VF2D_F& from_outputs = conn->from->getOutputs();
+	WEIGHT& wght = conn->getWeight();  // what if connection operates differently
+	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
+
+		#if 0
+		conn->printSummary("conn");
+		printf("which_lc= %d\n", conn->which_lc);
+		printf("layer_inputs.size= %d\n",layer_inputs.size());
+		layer_inputs[conn->which_lc].print("layer_inputs, which_lc");  // ===> zero
+		wght.print("wght");
+		U::print(wght, "wght");
+		U::print(from_outputs, "from_outputs");
+		U::print(prod, "prod");
+		from_outputs.print("from_outputs");
+		#endif
+
+	//U::matmul(prod, wght, from_outputs);  // w * x
+	//printf("seq_i= %d\n", seq_i);
+		//exit(0);
+	U::matmul(to_inputs, wght, from_outputs, seq_i, seq_i);  // w * x
+	//U::matmul(prod, wght, from_outputs, seq_i, seq_i);  // w * x
+	//to_inputs = prod;
+
+	//prod.print("enter processData, prod");
+
+	// completeness only happens once per layer and per input value into the predicition module
+	if (areIncomingLayerConnectionsComplete()) {
+		 // sum up all the inputs + the temporal input if there is one
+		 resetInputs();
+		 for (int i=0; i < layer_inputs.size(); i++) {
+		 	incrInputs(layer_inputs[i]);
+		 }
+		 // add the self-looping if there. 
+		 incrInputs(loop_input);
+		 prod = getActivation()(getInputs());
+		 setOutputs(prod);
+	}
+	//exit(0);
+}
+//----------------------------------------------------------------------
 void Layer::processData(Connection* conn, VF2D_F& prod)
 {
 		++nb_hit;
 
 		VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 		to_inputs = prod;
-		prod.print("enter processData, prod");
+		//prod.print("enter processData, prod");
 
 		// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
 
 		if (areIncomingLayerConnectionsComplete()) {
 			 prod = getActivation()(prod);
-			 prod.print("processData, set output");
+			 //prod.print("processData, set output");
 			 setOutputs(prod);
 		}
 }

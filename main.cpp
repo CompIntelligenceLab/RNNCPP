@@ -284,8 +284,12 @@ float runModelRecurrent(Model* m)
 	VF2D_F pred;
 
 	for (int i=0; i < 1; i++) {
+		U::print(xf, "xf");
 		pred = m->predictViaConnections(xf);
+		exit(0);
+		U::print(pred, "pred");
 	}
+	exit(0);
 	m->backPropagationViaConnections(exact, pred); // Add sequence effect. 
 	printf("xxx\n");
 	exit(0);
