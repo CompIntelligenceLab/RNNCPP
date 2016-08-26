@@ -170,8 +170,8 @@ void Layer::incrInputs(VF2D_F& x)
 	//printf("inputs.n_rows= %d\n", inputs.n_rows);
 	// inputs has incorrect number of fields.
 
-	U::print(x, "incrInputs x");
-	U::print(inputs, "incrInputs inputs");
+	//U::print(x, "incrInputs x");
+	//U::print(inputs, "incrInputs inputs");
 
 	for (int b=0; b < x.n_rows; b++) {
 		inputs[b] += x[b];
@@ -303,7 +303,6 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 
 	layer_inputs[0].print("layer_input[0]");
 	this->printSummary();
-	//exit(0);
 
 		#if 0
 		conn->printSummary("conn");
@@ -320,9 +319,10 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 
 	//U::matmul(prod, wght, from_outputs);  // w * x
 	//printf("seq_i= %d\n", seq_i);
-		//exit(0);
+
 	U::matmul(to_inputs, wght, from_outputs, seq_i, seq_i);  // w * x
-	U::print(to_inputs, "to_inputs");
+
+	//U::print(to_inputs, "to_inputs");
 	to_inputs.print("to_inputs");
 	//to_inputs = prod;
 	//exit(0);
@@ -333,13 +333,13 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	if (areIncomingLayerConnectionsComplete()) {
 		 // sum up all the inputs + the temporal input if there is one
 		 resetInputs();
-		layer_inputs[conn->which_lc].print("** layer_inputs, which_lc");  // ===> zero
+		//layer_inputs[conn->which_lc].print("** layer_inputs, which_lc");  // ===> zero
 		//exit(0);
 		 for (int i=0; i < layer_inputs.size(); i++) {
 		 	incrInputs(layer_inputs[i]);
 		 }
 		 // add the self-looping if there. 
-		 loop_input.print("loop input");  // UNINITIALIZED
+		 //loop_input.print("loop input");  // UNINITIALIZED
 		 incrInputs(loop_input);
 		 prod = getActivation()(getInputs());
 		 setOutputs(prod);
