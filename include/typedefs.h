@@ -2,6 +2,10 @@
 #define __TYPEDEFS__H_
 
 #include <vector>
+
+// Disable bound checks
+//#define ARMA_NO_DEBUG
+
 #include <armadillo>
 #include <stdio.h>
 

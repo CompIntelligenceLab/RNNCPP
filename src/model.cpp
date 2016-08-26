@@ -137,6 +137,7 @@ void Model::add(Layer* layer_from, Layer* layer_to)
 
   	layers.push_back(layer_to);
 	layer_to->setNbBatch(nb_batch); // check
+	layer_to->setSeqLen(seq_len); // check
 	printf("layers: nb_batch= %d\n", nb_batch);
 
 	int in_dim  = layer_to->getInputDim();
@@ -344,6 +345,7 @@ void Model::connectionOrderClean()
 	// set correct batch size in layers
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->setNbBatch(nb_batch);
+		layers[l]->setSeqLen(seq_len);
 	}
 
 	//printf("order clean: %d\n", layers.size()); 
@@ -552,14 +554,14 @@ void Model::storeGradientsInLayers()
 {
 	printf("---- enter storeGradientsInLayers ----\n");
 	for (int l=0; l < layers.size(); l++) {
-		layers[l]->printSummary("storeGradientsInLayers, ");
+		//layers[l]->printSummary("storeGradientsInLayers, ");
 		layers[l]->computeGradient();
-		layers[l]->getOutputs().print("layer outputs, ");
+		//layers[l]->getOutputs().print("layer outputs, ");
 		//printf("activation name: %s\n", layers[l]->getActivation().getName().c_str());
 		//U::print(layers[l]->getGradient(), "layer gradient");
-		layers[l]->getGradient().print("layer gradient, ");
+		//layers[l]->getGradient().print("layer gradient, ");
 		//U::print(layers[l]->getDelta(), "layer Delta"); // seg fault
-		layers[l]->getDelta().print("layer Delta, "); // seg fault
+		//layers[l]->getDelta().print("layer Delta, "); // seg fault
 	}
 	printf("---- exit storeGradientsInLayers ----\n");
 }
@@ -585,29 +587,30 @@ void Model::storeDactivationDoutputInLayers()
 		Connection* conn = (*it);
 		Layer* layer_from = conn->from;
 		Layer* layer_to   = conn->to;
-		(*it)->printSummary("************ connection");
+		//(*it)->printSummary("************ connection");
 
 		const VF2D_F& grad = layer_to->getGradient();
 		WEIGHT& wght = conn->getWeight();
 		VF2D_F& old_deriv = layer_to->getDelta();
 
-		layer_to->printSummary("layer_to");
-		layer_from->printSummary("layer_from");
-		grad[0].print("grad[0]");
-		old_deriv[0].print("old_deriv[0]");
+		//layer_to->printSummary("layer_to");
+		//layer_from->printSummary("layer_from");
+		//grad[0].print("grad[0]");
+		//old_deriv[0].print("old_deriv[0]");
 
-		wght.print("wght");
-		U::print(grad[0], "grad[b]");
-		U::print(old_deriv[0], "old_deriv[b]");
-		U::print(wght, "wght");
+		//wght.print("wght");
+		//U::print(grad[0], "grad[b]");
+		//U::print(old_deriv[0], "old_deriv[b]");
+		//U::print(wght, "wght");
 
 		for (int b=0; b < nb_batch; b++) {
 			//prod[b] = wght.t() * (grad[b] % old_deriv[b]);
 			prod[b] = wght.t() * (grad[b] % old_deriv[b]);
 		}
-		prod[0].print("prod[0]");
-		printf("nb_batch= %d\n", nb_batch);
-		U::print(prod, "prod");
+		//prod[0].print("prod[0]");
+		//printf("nb_batch= %d\n", nb_batch);
+		//U::print(prod, "prod");
+
 		layer_from->incrDelta(prod);
 	}
 	printf("********* EXIT storeDactivationDoutputInLayers() **************\n");

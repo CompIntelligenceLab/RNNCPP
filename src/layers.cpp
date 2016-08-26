@@ -45,8 +45,8 @@ void Layer::initVars(int nb_batch)
 	//printf("nb_batch= %d\n", nb_batch); exit(0);
 
 	for (int i=0; i < nb_batch; i++) {
-		inputs[i]  = VF2D(layer_size, 1);
-		outputs[i] = VF2D(layer_size, 1);
+		inputs[i]  = VF2D(layer_size, seq_len);
+		outputs[i] = VF2D(layer_size, seq_len);
 	}
 	nb_hit = 0;
 
@@ -169,6 +169,10 @@ void Layer::incrInputs(VF2D_F& x)
 	//printf("incrInputs: x.n_rows= %d\n", x.n_rows);
 	//printf("inputs.n_rows= %d\n", inputs.n_rows);
 	// inputs has incorrect number of fields.
+
+	U::print(x, "incrInputs x");
+	U::print(inputs, "incrInputs inputs");
+
 	for (int b=0; b < x.n_rows; b++) {
 		inputs[b] += x[b];
 	}

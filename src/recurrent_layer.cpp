@@ -82,8 +82,8 @@ void RecurrentLayer::initVars(int nb_batch)
 	loop_delta.set_size(nb_batch);
 
     for (int b=0; b < nb_batch; b++) {
-        loop_input[b] = VF2D(layer_size, 1);   // << NEED proper sequence length, maybe
-        loop_delta[b] = VF2D(layer_size, 1);
+        loop_input[b] = VF2D(layer_size, seq_len);   // << NEED proper sequence length, maybe
+        loop_delta[b] = VF2D(layer_size, seq_len);
     }   
     
     reset();

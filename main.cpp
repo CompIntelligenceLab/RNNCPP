@@ -231,13 +231,14 @@ float runModelRecurrent(Model* m)
 
 	CONNECTIONS connections = m->getConnections();
 
+	//U::print(xf, "xf"); exit(0);
 	for (int b=0; b < m->getBatchSize(); b++) {
-		xf(b) = .3;
-		yf(b) = .4;
-		exact(b) = arma::Mat<float>(output_dim,1);
-		exact(b).ones();
-		exact(b) *= .5;
+		xf(b).fill(.3);
+		yf(b).fill(.4);
+		exact(b) = arma::Mat<float>(output_dim, m->getSeqLen());
+		exact(b).fill(.5);
 	}
+	//U::print(xf, "xf"); exit(0);
 
 	/*** Analytical solution with two time steps (seq_len=2)
 	 Activation: Identity 
@@ -280,7 +281,18 @@ float runModelRecurrent(Model* m)
 	printf("w[1] = %f\n", w);
 	printf("w[1]*xf = %f\n", w*xf(0)(0,0));
 
-	VF2D_F pred = m->predictViaConnections(xf);
+	VF2D_F pred;
+
+	for (int i=0; i < 1; i++) {
+		pred = m->predictViaConnections(xf);
+	}
+	m->backPropagationViaConnections(exact, pred); // Add sequence effect. 
+	printf("xxx\n");
+	exit(0);
+
+
+
+
 	printf("-------------\n");
 	pred.print("first prediction\n");
 	//exit(0);
@@ -429,9 +441,9 @@ void testRecurrentModel1(int nb_batch=1)
 	    input ---------> rdense --> loss    (loss is attached to the output layer)
 ***/
 	printf("\n --- testRecurrentModel1 ---\n");
-	int input_dim = 1;
+	int input_dim = 1; // predict works with input_dim > 1
 	Model* m  = new Model(); // argument is input_dim of model
-	m->setSeqLen(1);
+	m->setSeqLen(2); // runs (but who knows whether correct) with seq_len > 1
 
 	// I am not sure that batchSize and nb_batch are the same thing
 	m->setBatchSize(nb_batch);
