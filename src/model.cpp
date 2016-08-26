@@ -543,7 +543,7 @@ void Model::storeGradientsInLayers()
 	printf("---- exit storeGradientsInLayers ----\n");
 }
 //----------------------------------------------------------------------
-void Model::storeGradientsInLayersRec()
+void Model::storeGradientsInLayersRec(int t)
 {
 	printf("---- enter storeGradientsInLayers ----\n");
 	for (int l=0; l < layers.size(); l++) {
@@ -609,7 +609,7 @@ void Model::storeDactivationDoutputInLayers()
 	printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
 }
 //----------------------------------------------------------------------
-void Model::storeDactivationDoutputInLayersRec()
+void Model::storeDactivationDoutputInLayersRec(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
@@ -693,7 +693,7 @@ void Model::storeDLossDweightInConnections()
 	printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }
 //----------------------------------------------------------------------
-void Model::storeDLossDweightInConnectionsRec()
+void Model::storeDLossDweightInConnectionsRec(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
@@ -801,14 +801,14 @@ void Model::backPropagationViaConnectionsRecursion(VF2D_F& exact, VF2D_F& pred)
 
 	resetDeltas();
 
- 	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
+ 	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
     	objective->computeGradient(exact, pred);
     	VF2D_F& grad = objective->getGradient();
 		getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
 
-		storeGradientsInLayersRec();
-		storeDactivationDoutputInLayersRec();
-		storeDLossDweightInConnectionsRec();
+		storeGradientsInLayersRec(t);
+		storeDactivationDoutputInLayersRec(t);
+		storeDLossDweightInConnectionsRec(t);
 	}
 	printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 }

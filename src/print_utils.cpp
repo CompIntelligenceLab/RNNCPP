@@ -165,10 +165,40 @@ void U::zeros(VF2D_F& mat)
 	}
 }
 //----------------------------------------------------------------------
-void U::zeros(VF1D_F& mat) 
+void U::t(VF2D_F& mat, VF2D_F& transpose)
 {
+	VF2D_F transp(mat.n_rows);
+
 	for (int b=0; b < mat.n_rows; b++) {
-		mat(b).zeros();
+		transpose[b] = mat[b].t();
+	}
+}
+//----------------------------------------------------------------------
+void U::leftTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c)
+{
+	for (int p=0; p < a.n_rows; p++) {
+		prod[p] = (a(p) % b(p)) * c(p);
+	}
+}
+//----------------------------------------------------------------------
+void U::leftTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c, int from, int to)
+{
+	for (int p=0; p < a.n_rows; p++) {
+		prod(p).col(to) = (a(p).col(from) % b(p).col(from)) * c(p).col(from);
+	}
+}
+//----------------------------------------------------------------------
+void U::rightTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c)
+{
+	for (int p=0; p < a.n_rows; p++) {
+		prod[p] = a(p) * (b(p) % c(p));
+	}
+}
+//----------------------------------------------------------------------
+void U::rightTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c, int from, int to)
+{
+	for (int p=0; p < a.n_rows; p++) {
+		prod(p).col(to) = a(p).col(from) * (b(p).col(from) % c(p).col(from));
 	}
 }
 //----------------------------------------------------------------------
