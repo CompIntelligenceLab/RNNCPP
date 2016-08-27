@@ -66,5 +66,15 @@ I am having serious problem dealing with sequences using Armadillo
 
 I did not yet try case with input_dim > 1, which should not work, theoretically. 
 ----------------------------------------------------------------------
+Aug. 25, 2016
+Message to Nathan, Juan, Brian, Mark L. 
+
+Backprop for sequences is implemented and runs for clock delays of 1. Must now find a way to test it. Also, when running multiple sequences, how to make sure the state maintains itself. The network can be generalized further, but after testing the backprop on sequences, it is time to stop, and do some testing and run some real cases (after implementing biases, which is not yet done). We have tanh and sigmoid and identity. Should probably implement ReLU. It is all a matter of computing the derivative. 
+
+Once the code is tested one removes all   print statements and non-essential code. 
+
+Also required: GMM loss function. Derivatives are more complicated. 
+
+You guys will be responsible for weight initialization, writing test code, some documentation. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

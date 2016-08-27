@@ -23,6 +23,7 @@ using namespace std;
 
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F&);
 WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact);
+void testRecurrentModel1();
 WEIGHT dLdw(1,1);
 
 //----------------------------------------------------------------------
@@ -267,7 +268,7 @@ float runModelRecurrent(Model* m)
 	m->getConnections()[1]->getWeight().print("weight1");
 	m->getLayers()[1]->recurrent_conn->getWeight().print("weight_recurrent");
 
-	printf("*** connections.size() = %d\n", connections.size());
+	printf("*** connections.size() = %d\n", m->getConnections().size());
 	for (int c=0; c < connections.size(); c++) {
 		connections[c]->printSummary();
 	}
@@ -297,6 +298,7 @@ float runModelRecurrent(Model* m)
 		connections[c]->printSummary("Connection (backprop)");
 		connections[c]->getDelta().print("delta");
 	}
+	testRecurrentModel1();
 	exit(0);
 
 
@@ -332,6 +334,177 @@ exit(0);
 
 	// Go through connections and print out weight derivatives
 	//printf("gordon\n"); exit(0);
+}
+//----------------------------------------------------------------------
+void testRecurrentModel2()
+{
+	printf("\n --- testRecurrentModel2 ---\n");
+/***
+Check the sequences: prediction and back prop.
+
+1) dimension = 1, identity activation functions
+   seq=2
+
+ l=0    l=1    l=2
+  In --> d1 --> d2 --> loss0    (t=0)
+         |      |
+         |      |
+         v      v
+  In --> d1 --> d2 --> loss1    (t=1)
+
+
+Inputs to nodes: z(l,t), a(l,t-1)
+Output to nodes: a(l,t)
+Weights: In -- d1 : w1
+Weights: d1 -- d2 : w12
+Weights: d1 -- d1 : w11
+Weights: d2 -- d2 : w22
+d1: l=1
+d2: l=2
+exact(t): exact results at time t
+loss0(a(2,0), exact(0))
+loss1(a(2,1), exact(1))
+Input at t=0: x0
+Input at t=1: x1
+
+Loss = L = loss0 + loss1
+Forward: 
+ a(1,-1) = 0, z(1,-1) = w11 * a(1,-1)
+ a(2,-1) = 0, z(1,-1) = w22 * a(2,-1)
+ a(1,0) = z(1,0) = w1*x0     + w12 * z(1,-1)
+ a(2,0) = z(2,0) = w2*z(1,0) + w12 * z(2,-1)
+ -------
+ z(1,0) = w11 * a(1,0)
+ z(2,0) = w22 * a(2,0)
+ a(1,1) = z(2,1) = w1*x1     + w12 * z(1,0)
+ a(2,1) = z(2,1) = w2*z(1,1) + w12 * z(2,0)
+***/
+
+	float w1  = .4;
+	float w12 = .5;
+	float w11 = .6;
+	float w22 = .7;
+	float x0 = .45;
+	float x1 = .75;
+	float ex0  = .75; // exact value
+	float ex1  = .85; // exact value
+	int seq_len   = 2;
+	int input_dim = 1;
+	int nb_layers = 2;  // in addition to input
+	VF2D a(nb_layers+1, seq_len); // assume al dimensions = 1
+	VF2D z(nb_layers+1, seq_len); // assume al dimensions = 1
+
+	z(0,0) = a(0,0) = x0;
+	z(0,1) = a(0,1) = x1;
+	a(1,0) = z(1,0) = w1  * z(0,0);
+	a(2,0) = z(2,0) = w12 * z(1,0);
+
+	z(1,0) = w11 * a(1,0);
+	z(2,0) = w22 * a(2,0);
+	a(1,1) = z(1,1) = w1  * z(0,1) + z(1,0);
+	a(2,1) = z(2,1) = w12 * z(1,1) + z(2,0);
+
+	printf("a(1,1)= %f,  a(2,1)= %f\n", a(1,1), a(2,1));
+
+	float loss0 = (ex0-a(2,0))*(ex0-a(2,0));
+	float loss1 = (ex1-a(2,1))*(ex1-a(2,1));
+	printf("loss0= %f, loss1= %f\n", loss0, loss1);
+
+	//================================
+	Model* m  = new Model(); // argument is input_dim of model
+	m->setSeqLen(2); // runs (but who knows whether correct) with seq_len > 1
+
+	// I am not sure that batchSize and nb_batch are the same thing
+	int nb_batch = 1;
+	m->setBatchSize(nb_batch);
+
+	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
+	// 2 is the dimensionality of the data
+	// the names have a counter value attached to it, so there is no duplication. 
+	Layer* input = new InputLayer(1, "input_layer");
+	Layer* d1 = new RecurrentLayer(1, "rdense");
+	Layer* d2 = new RecurrentLayer(1, "rdense");
+	Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
+	                                       // Automate this at a later time
+
+	m->add(0,     input);
+	m->add(input, d1);
+	m->add(input, d2);
+
+	input->setActivation(new Identity());
+	d1->setActivation(new Identity());
+	d2->setActivation(new Identity());
+
+	m->addInputLayer(input);
+	m->addOutputLayer(d2);
+
+	//===========================================
+	m->printSummary();
+	m->connectionOrderClean(); // no print statements
+
+	VF2D_F xf, yf, exact;
+	testData(*m, xf, yf, exact);
+
+	Layer* outLayer = m->getOutputLayers()[0];
+	int output_dim = outLayer->getOutputDim();
+	printf("output_dim = %d\n", output_dim);
+
+	CONNECTIONS connections = m->getConnections();
+
+	//U::print(xf, "xf"); exit(0);
+	for (int b=0; b < m->getBatchSize(); b++) {
+		xf(b).fill(.3);
+		yf(b).fill(.4);
+		exact(b) = arma::Mat<float>(output_dim, m->getSeqLen());
+		exact(b).fill(.5);
+	}
+
+	//exact.print("exact");
+	#if 0
+	WEIGHT w0(1,1); // w1(1,1);
+	//w0(0,0) = .2;
+	//w1(0,0) = .1315;
+	m->getConnections()[0]->setWeight(w0);
+	m->getConnections()[1]->setWeight(w0);
+	m->getLayers()[1]->recurrent_conn->setWeight(w1);
+
+	m->getConnections()[0]->getWeight().print("weight0");
+	m->getConnections()[1]->getWeight().print("weight1");
+	m->getLayers()[1]->recurrent_conn->getWeight().print("weight_recurrent");
+
+	printf("*** connections.size() = %d\n", m->getConnections().size());
+	for (int c=0; c < connections.size(); c++) {
+		connections[c]->printSummary();
+	}
+	// xf = .3
+	// yf = w * .3;
+	float w;
+	w =  m->getConnections()[0]->getWeight()(0,0);
+	printf("w[0] = %f\n", w);
+	printf("w[0]*xf = %f\n", w*xf(0)(0,0));
+	w =  m->getConnections()[1]->getWeight()(0,0);
+	printf("w[1] = %f\n", w);
+	printf("w[1]*xf = %f\n", w*xf(0)(0,0));
+	#endif
+
+	VF2D_F pred;
+
+	for (int i=0; i < 1; i++) {
+		U::print(xf, "xf");
+		pred = m->predictViaConnections(xf);
+		U::print(pred, "pred");
+	}
+	U::print(pred, "pred");
+	U::print(exact, "exact");
+	pred.print("pred");
+	exact.print("exact");
+	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
+	for (int c=1; c < connections.size(); c++) {
+		connections[c]->printSummary("Connection (backprop)");
+		connections[c]->getDelta().print("delta");
+	}
+	testRecurrentModel1();
+	exit(0);
 }
 //----------------------------------------------------------------------
 void testPredict()

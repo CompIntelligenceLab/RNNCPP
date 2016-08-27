@@ -61,3 +61,44 @@ input -> dens0 -> dens1
 ----------------------------------------------------------------------
 Created branch weight_recursive
 ----------------------------------------------------------------------
+Check the sequences: prediction and back prop. 
+
+1) dimension = 1, identity activation functions
+   seq=2
+
+ l=0    l=1    l=2
+  In --> d1 --> d2 --> loss0    (t=0)
+         |      |
+         |      |
+         v      v
+  In --> d1 --> d2 --> loss1    (t=1)
+
+
+Inputs to nodes: z(l,t), a(l,t-1)
+Output to nodes: a(l,t)
+Weights: In -- d1 : w1
+Weights: d1 -- d2 : w12
+Weights: d1 -- d1 : w11
+Weights: d2 -- d2 : w22
+d1: l=1
+d2: l=2
+exact(t): exact results at time t
+loss0(a(2,0), exact(0))
+loss1(a(2,1), exact(1))
+Input at t=0: x0
+Input at t=1: x1
+
+Loss = L = loss0 + loss1
+Forward: 
+ a(1,-1) = 0, z(1,-1) = w11 * a(1,-1)
+ a(2,-1) = 0, z(1,-1) = w22 * a(2,-1)
+ a(1,0) = z(1,0) = w1*x0     + w12 * z(1,-1)
+ a(2,0) = z(2,0) = w2*z(1,0) + w12 * z(2,-1)
+ -------
+ z(1,0) = w11 * a(1,0)
+ z(2,0) = w21 * a(2,0)
+ a(1,0) = z(2,0) = w1*x1     + w12 * z(1,0)
+ a(2,0) = z(2,1) = w2*z(1,1) + w12 * z(2,0)
+-----------
+*** the model should have a variable called global loss, which the sum of individual loss that are collected. 
+----------------------------------------------------------------------
