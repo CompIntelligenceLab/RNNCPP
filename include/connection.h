@@ -51,7 +51,8 @@ public:
 	const Connection& operator=(const Connection& w);
 	std::string getName() { return name; } // more generally, return a vector of weights
 	void setWeight(WEIGHT w) { weight = w; } // 
-	const WEIGHT& getWeight() { return weight; } // more generally, return a vector of weights
+	const WEIGHT& getWeight() const { return weight; } // more generally, return a vector of weights
+	WEIGHT& getWeight() { return weight; } // more generally, return a vector of weights
 	const WEIGHT& getWeightTranspose() { return weight_t; } // more generally, return a vector of weights
 	void print(std::string name= "");
 	void printSummary(std::string name= "");
