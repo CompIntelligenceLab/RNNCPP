@@ -288,8 +288,15 @@ float runModelRecurrent(Model* m)
 		pred = m->predictViaConnections(xf);
 		U::print(pred, "pred");
 	}
+	U::print(pred, "pred");
+	U::print(exact, "exact");
+	pred.print("pred");
+	exact.print("exact");
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
-	printf("xxx\n");
+	for (int c=1; c < connections.size(); c++) {
+		connections[c]->printSummary("Connection (backprop)");
+		connections[c]->getDelta().print("delta");
+	}
 	exit(0);
 
 

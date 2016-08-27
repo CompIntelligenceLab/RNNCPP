@@ -657,6 +657,7 @@ void Model::storeDLossDweightInConnections()
 	IT it;
 	WEIGHT prod;
 
+
 	printf("********** ENTER storeDLossDweightInConnections ***********\n");
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
@@ -689,7 +690,8 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
-	WEIGHT prod;
+	WEIGHT delta;
+
 
 	printf("********** ENTER storeDLossDweightInConnections ***********\n");
 
@@ -701,20 +703,31 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		const VF2D_F& out       = layer_from->getOutputs();
 		const VF2D_F& grad      = layer_to->getGradient();
 		const VF2D_F& old_deriv = layer_to->getDelta();
+		delta = VF2D(size(conn->getWeight()));
 
+		#if 0
 		//conn->printSummary("Connection, ");
 		//grad.print("layer_to->getGradient, grad, ");
 		//old_deriv.print("layer_to->getDelta, old_deriv, ");
 		//out.print("layer_from_getOutputs()");
+		U::print(grad, "layer_to->getGradient, grad, ");
+		U::print(old_deriv, "layer_to->getDelta, old_deriv, ");
+		U::print(out, "layer_from_getOutputs(), out");
+		U::print(delta, "delta");
+		#endif
 
 		// How to do this for a particular sequence element? 
 		// Currently, only works for sequence length of 1
 		// Could work if sequence were the field index
 
+		printf("store, t= %d\n", t);
 		for (int b=0; b < nb_batch; b++) {
-			prod = (old_deriv[b] % grad[b]) * out(b).t();
+			const VF2D& out_t = out(b).t();
+			//U::print(out_t, "out_t");
+			delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t); //out(b).t();
+			//delta = (old_deriv[b] % grad[b]) * out(b).t();
 			//prod.print("storeDLossDweightInConnections, prod");
-			(*it)->incrDelta(prod);
+			(*it)->incrDelta(delta);
 		}
 	}
 	printf("********** EXIT storeDLossDweightInConnections ***********\n");
