@@ -30,6 +30,9 @@ protected:
 	static int counter;
 	std::string name;
 	WEIGHT weight;
+	WEIGHT weight_t; // transpose of weight matrix: neede for backprop. 
+	                 // Cost is reduced once batch > 1 and using sequences. 
+	                 // Disadvantage: memory use is doubled. 
 	WEIGHT delta;
 	int in_dim, out_dim;
 	bool print_verbose;
@@ -48,7 +51,8 @@ public:
 	const Connection& operator=(const Connection& w);
 	std::string getName() { return name; } // more generally, return a vector of weights
 	void setWeight(WEIGHT w) { weight = w; } // 
-	WEIGHT& getWeight() { return weight; } // more generally, return a vector of weights
+	const WEIGHT& getWeight() { return weight; } // more generally, return a vector of weights
+	const WEIGHT& getWeightTranspose() { return weight_t; } // more generally, return a vector of weights
 	void print(std::string name= "");
 	void printSummary(std::string name= "");
 	int getNRows() { return weight.n_rows; }

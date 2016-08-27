@@ -138,6 +138,7 @@ public:
 	void incrInputs(VF2D_F& x);
 	void resetInputs();
 	void incrDelta(VF2D_F& x);
+	void incrDelta(VF2D_F& x, int t);
 	// reset inputs and ouputs to zero
 	void reset();
 	// reset deltas

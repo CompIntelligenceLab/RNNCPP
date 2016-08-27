@@ -12,7 +12,8 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 	type = "standard";
 	in_dim = in;
 	out_dim = out;
-	weight = WEIGHT(out_dim, in_dim);
+	weight   = WEIGHT(out_dim, in_dim);
+	weight_t = WEIGHT(out_dim, in_dim);
 	delta = WEIGHT(out_dim, in_dim);
 	//printf("weight(%d, %d)\n", out_dim, in_dim);
 	print_verbose = true;
@@ -57,6 +58,7 @@ const Connection& Connection::operator=(const Connection& w)
 		print_verbose = w.print_verbose;
 		temporal = w.temporal;
 		weight   = w.weight; 
+		weight_t = w.weight_t; 
 		clock = w.clock;
 		from = w.from; 
 		to = w.to;
@@ -68,7 +70,7 @@ const Connection& Connection::operator=(const Connection& w)
 
 void Connection::print(std::string msg /* "" */)
 {
-	printf("weight: %s\n", name.c_str());
+	printf("connection: %s\n", name.c_str());
 	printf("in: %d, out: %d\n", in_dim, out_dim);
 	printf("print_verbose= %d\n", print_verbose);
 	if (msg != "") printf("%s\n", msg.c_str());
@@ -145,12 +147,15 @@ void Connection::initialize(std::string initialize_type /*"uniform"*/ )
 		printf("initialize_type: %s not implemented\n", initialize_type.c_str());
 		exit(1);
 	}
+	weight_t = weight.t();
 }
 
 void Connection::weightUpdate(float learning_rate) {  // simplest algorithm
-	for (int b=0; b < delta.n_rows;  b++) {
+	// delta is of type WEIGHT, which is not a field, but a VF2D
+	//for (int b=0; b < delta.n_rows;  b++) {    
 		weight = weight - learning_rate * delta;
-	}
+	//}
+	weight_t = weight.t();
 }
 
 void Connection::incrDelta(WEIGHT& x)

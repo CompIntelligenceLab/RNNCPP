@@ -221,6 +221,13 @@ void Layer::incrDelta(VF2D_F& x)
 	}
 }
 //----------------------------------------------------------------------
+void Layer::incrDelta(VF2D_F& x, int t)
+{
+	for (int b=0; b < x.n_rows; b++) {
+		delta[b].col(t) += x[b].col(t);
+	}
+}
+//----------------------------------------------------------------------
 void Layer::computeGradient()
 {
 	// Error. Derivatives must be evaluated for the input argument!
@@ -247,8 +254,8 @@ void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 {
 	// forward data to spatial connections
 
-	VF2D_F& from_outputs = getOutputs();
-	WEIGHT& wght = conn->getWeight();
+	const VF2D_F& from_outputs = getOutputs();
+	const WEIGHT& wght = conn->getWeight();
 	//U::matmul(prod, wght, from_outputs, 0);  // sequence element zero)
 	U::matmul(prod, wght, from_outputs);
 
@@ -269,8 +276,8 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 	printf("enter Layer::processOutputDataFromPreviousLayern");
 	++nb_hit;
 
-	VF2D_F& from_outputs = conn->from->getOutputs();
-	WEIGHT& wght = conn->getWeight();  // what if connection operates differently
+	const VF2D_F& from_outputs = conn->from->getOutputs();
+	const WEIGHT& wght = conn->getWeight();  // what if connection operates differently
 	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 
 	#if 0
@@ -329,8 +336,8 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	printf("enter Layer::processOutputDataFromPreviousLayer, t= %d\n", seq_i);
 	++nb_hit;
 
-	VF2D_F& from_outputs = conn->from->getOutputs();
-	WEIGHT& wght = conn->getWeight();  // what if connection operates differently
+	const VF2D_F& from_outputs = conn->from->getOutputs();
+	const WEIGHT& wght = conn->getWeight();  // what if connection operates differently
 	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 
 	//layer_inputs[0].print("layer_input[0]");

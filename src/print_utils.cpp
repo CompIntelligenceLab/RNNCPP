@@ -197,8 +197,11 @@ void U::rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c
 //----------------------------------------------------------------------
 void U::rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c, int from, int to)
 {
+	// only called during backpropagation
+	if (to == -1) return;
+
 	for (int p=0; p < a.n_rows; p++) {
-		prod(p).col(to) = a * (b(p).col(from) % c(p).col(from));
+		prod(p).col(to) = a * (b(p).col(from) % c(p).col(from));    // ERROR 
 	}
 }
 //----------------------------------------------------------------------

@@ -576,8 +576,8 @@ void Model::storeDactivationDoutputInLayers()
 		//(*it)->printSummary("************ connection");
 
 		const VF2D_F& grad = layer_to->getGradient();
-		WEIGHT& wght = conn->getWeight();
-		VF2D_F& old_deriv = layer_to->getDelta();
+		const WEIGHT& wght = conn->getWeight();
+		const VF2D_F& old_deriv = layer_to->getDelta();
 
 		//layer_to->printSummary("layer_to");
 		//layer_from->printSummary("layer_from");
@@ -615,18 +615,32 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 
 	VF2D_F& grad = output_layers[0]->getDelta();
 	int nb_batch = grad.n_rows;
+
 	VF2D_F prod(nb_batch);
+	for (int b=0; b < nb_batch; b++) {
+		prod(b) = VF2D(size(grad(b)));
+	}
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* conn = (*it);
 		Layer* layer_to   = conn->to;
 
 		const VF2D_F& grad = layer_to->getGradient();
-		WEIGHT& wght = conn->getWeight();
+		const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
+		const WEIGHT& wght_t = conn->getWeightTranspose();
 		VF2D_F& old_deriv = layer_to->getDelta();
 
-		const WEIGHT wghtt = wght.t(); // inefficient
-		U::rightTriad(prod, wghtt, grad, old_deriv, t+1, t);
+		#if 0
+		//const WEIGHT wghtt = wght.t(); // inefficient
+		U::print(wghtt, "wghtt");
+		U::print(grad, "grad");
+		U::print(old_deriv, "old_deriv");
+		U::print(prod, "prod");
+		printf("t,t-1= %d, %d\n", t,t-1);
+		#endif
+
+		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
+
 		//for (int b=0; b < nb_batch; b++) {
 			//prod[b] = wght.t() * (grad[b] % old_deriv[b]);
 		//}
@@ -684,9 +698,9 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		Layer* layer_from = conn->from;
 		Layer* layer_to   = conn->to;
 
-		VF2D_F& out = layer_from->getOutputs();
-		const VF2D_F& grad = layer_to->getGradient();
-		VF2D_F& old_deriv = layer_to->getDelta();
+		const VF2D_F& out       = layer_from->getOutputs();
+		const VF2D_F& grad      = layer_to->getGradient();
+		const VF2D_F& old_deriv = layer_to->getDelta();
 
 		//conn->printSummary("Connection, ");
 		//grad.print("layer_to->getGradient, grad, ");
@@ -696,6 +710,7 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		// How to do this for a particular sequence element? 
 		// Currently, only works for sequence length of 1
 		// Could work if sequence were the field index
+
 		for (int b=0; b < nb_batch; b++) {
 			prod = (old_deriv[b] % grad[b]) * out(b).t();
 			//prod.print("storeDLossDweightInConnections, prod");
