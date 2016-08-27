@@ -563,7 +563,7 @@ void Model::storeDactivationDoutputInLayers()
 	// Run layers backwards
 	// Run connections backwards
 
-	VF2D_F& grad = output_layers[0]->getDelta();
+	const VF2D_F& grad = output_layers[0]->getDelta();
 	int nb_batch = grad.n_rows;
 	//printf("model nb_batch= %d\n", nb_batch);
 	VF2D_F prod(nb_batch);
@@ -613,7 +613,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	// Run layers backwards
 	// Run connections backwards
 
-	VF2D_F& grad = output_layers[0]->getDelta();
+	const VF2D_F& grad = output_layers[0]->getDelta();
 	int nb_batch = grad.n_rows;
 
 	VF2D_F prod(nb_batch);
@@ -628,7 +628,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		const VF2D_F& grad = layer_to->getGradient();
 		const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
 		const WEIGHT& wght_t = conn->getWeightTranspose();
-		VF2D_F& old_deriv = layer_to->getDelta();
+		const VF2D_F& old_deriv = layer_to->getDelta();
 
 		#if 0
 		//const WEIGHT wghtt = wght.t(); // inefficient
@@ -666,7 +666,7 @@ void Model::storeDLossDweightInConnections()
 
 		VF2D_F& out = layer_from->getOutputs();
 		const VF2D_F& grad = layer_to->getGradient();
-		VF2D_F& old_deriv = layer_to->getDelta();
+		const VF2D_F& old_deriv = layer_to->getDelta();
 
 		//conn->printSummary("Connection, ");
 		//grad.print("layer_to->getGradient, grad, ");
@@ -748,7 +748,7 @@ void Model::resetState()
 	}
 }
 //----------------------------------------------------------------------
-void Model::backPropagationViaConnections(VF2D_F& exact, VF2D_F& pred)
+void Model::backPropagationViaConnections(const VF2D_F& exact, const VF2D_F& pred)
 {
 	printf("***************** ENTER BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 	//U::print(exact, "exact");
@@ -776,7 +776,7 @@ void Model::backPropagationViaConnections(VF2D_F& exact, VF2D_F& pred)
 	printf("***************** EXIT BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 }
 //----------------------------------------------------------------------
-void Model::backPropagationViaConnectionsRecursion(VF2D_F& exact, VF2D_F& pred)
+void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF2D_F& pred)
 {
 	printf("***************** ENTER BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 	//U::print(exact, "exact");

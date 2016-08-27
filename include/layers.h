@@ -147,8 +147,8 @@ public:
 	std::string getName() { return name; }
 	int getClock() { return clock; }
 	void incrClock() { clock += 1; }
-	DELTA& getDelta() { return delta; }
-	DELTA& getDelta(int which_lc) { return layer_deltas[which_lc]; }
+	const DELTA& getDelta() { return delta; }
+	const DELTA& getDelta(int which_lc) { return layer_deltas[which_lc]; }
 	void setDelta(DELTA delta) { this->delta = delta; }
 	void setDelta(DELTA delta, int which_lc) { layer_deltas[which_lc] = delta; } // CHANGE
 	void resetDelta();
