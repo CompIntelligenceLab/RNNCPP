@@ -630,9 +630,9 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		const WEIGHT& wght_t = conn->getWeightTranspose();
 		const VF2D_F& old_deriv = layer_to->getDelta();
 
-		#if 0
+		#if 1
 		//const WEIGHT wghtt = wght.t(); // inefficient
-		U::print(wghtt, "wghtt");
+		U::print(wght_t, "wght_t");
 		U::print(grad, "grad");
 		U::print(old_deriv, "old_deriv");
 		U::print(prod, "prod");
@@ -730,6 +730,29 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 			(*it)->incrDelta(delta);
 		}
 	}
+
+	// Set Deltas of all the connections of temporal layers
+	for (int l=0; l < layers.size(); l++) {
+		Connection* conn = layers[l]->getConnection();
+		if (!conn) continue;
+
+		Layer* layer_from = conn->from;
+		Layer* layer_to   = conn->to;
+
+		const VF2D_F& out       = layer_from->getOutputs();
+		const VF2D_F& grad      = layer_to->getGradient();
+		const VF2D_F& old_deriv = layer_to->getDelta();
+		delta = VF2D(size(conn->getWeight()));
+
+        //printf("store, t= %d\n", t);
+        for (int b=0; b < nb_batch; b++) {
+        	for (int s=0; s < seq_len; s++) {
+            	const VF2D& out_t = out(b).t();
+            	delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t); //out(b).t();
+            	conn->incrDelta(delta);
+        	}
+		}
+	}
 	printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }
 //----------------------------------------------------------------------
@@ -808,6 +831,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	resetDeltas();
 
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
+ 	    printf("....... t= %d/%d\n", t, seq_len);
     	objective->computeGradient(exact, pred);
     	VF2D_F& grad = objective->getGradient();
 		getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
@@ -819,6 +843,21 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 }
 //----------------------------------------------------------------------
+Connection* Model::getConnection(Layer* layer1, Layer* layer2)
+{
+	// Very inefficient, but only done rarely at beginning of simulations, and number of connection is never very large. 
+	// If this were a problem, I would use a dictionary. 
+
+	for (int c=0; c < connections.size(); c++) {
+		Connection* conn = connections[c];
+		if (conn->from == layer1 && conn->to == layer2) {
+			return conn;
+		}
+	}
+	printf("Model:: No connection between layers %s, %s\n", 
+		layer1->getName().c_str(), layer2->getName().c_str());
+	return 0;
+}
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

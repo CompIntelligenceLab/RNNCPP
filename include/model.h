@@ -136,6 +136,7 @@ public:
   void removeFromList(std::list<Layer*>& llist, Layer* cur_layer);
   void resetDeltas();
   void resetState();
+  Connection* getConnection(Layer* layer1, Layer* layer2);
 
 private:
   void checkIntegrity(LAYERS& layer_list);

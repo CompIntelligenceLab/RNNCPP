@@ -23,7 +23,8 @@ using namespace std;
 
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F&);
 WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact);
-void testRecurrentModel1();
+void testRecurrentModel1(int nb_batch);
+void testRecurrentModel2(int nb_batch);
 WEIGHT dLdw(1,1);
 
 //----------------------------------------------------------------------
@@ -298,7 +299,7 @@ float runModelRecurrent(Model* m)
 		connections[c]->printSummary("Connection (backprop)");
 		connections[c]->getDelta().print("delta");
 	}
-	testRecurrentModel1();
+	testRecurrentModel1(1);
 	exit(0);
 
 
@@ -336,9 +337,40 @@ exit(0);
 	//printf("gordon\n"); exit(0);
 }
 //----------------------------------------------------------------------
-void testRecurrentModel2()
+void testRecurrentModel2(int nb_batch=1)
 {
 	printf("\n --- testRecurrentModel2 ---\n");
+
+	//================================
+	Model* m  = new Model(); // argument is input_dim of model
+	m->setSeqLen(2); // runs (but who knows whether correct) with seq_len > 1
+
+	// I am not sure that batchSize and nb_batch are the same thing
+	m->setBatchSize(nb_batch);
+
+	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
+	// 2 is the dimensionality of the data
+	// the names have a counter value attached to it, so there is no duplication. 
+	Layer* input = new InputLayer(1, "input_layer");
+	Layer* d1 = new RecurrentLayer(1, "rdense");
+	Layer* d2 = new RecurrentLayer(1, "rdense");
+	Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
+	                                       // Automate this at a later time
+
+	m->add(0,     input);
+	m->add(input, d1);
+	m->add(d1, d2);
+
+	input->setActivation(new Identity());
+	d1->setActivation(new Identity());
+	d2->setActivation(new Identity());
+
+	m->addInputLayer(input);
+	m->addOutputLayer(d2);
+
+	m->printSummary();
+	m->connectionOrderClean(); // no print statements
+	//===========================================
 /***
 Check the sequences: prediction and back prop.
 
@@ -388,8 +420,8 @@ Forward:
 	float x1 = .75;
 	float ex0  = .75; // exact value
 	float ex1  = .85; // exact value
-	int seq_len   = 2;
-	int input_dim = 1;
+	int seq_len    = 2;
+	int input_dim  = 1;
 	int nb_layers = 2;  // in addition to input
 	VF2D a(nb_layers+1, seq_len); // assume al dimensions = 1
 	VF2D z(nb_layers+1, seq_len); // assume al dimensions = 1
@@ -410,47 +442,59 @@ Forward:
 	float loss1 = (ex1-a(2,1))*(ex1-a(2,1));
 	printf("loss0= %f, loss1= %f\n", loss0, loss1);
 
+	int output_dim = m->getOutputLayers()[0]->getOutputDim();
+
+	VF2D_F xf(nb_batch), exact(nb_batch);
+	for (int b=0; b < nb_batch; b++) {
+		xf(b) = VF2D(input_dim, seq_len);
+		for (int i=0; i < input_dim; i++) {
+			xf(b)(i,0) = x0; 
+			xf(b)(i,1) = x1;
+		}
+		exact(b) = VF2D(output_dim, seq_len);
+		for (int i=0; i < output_dim; i++) {
+			exact(b)(i,0) = ex0; 
+			exact(b)(i,1) = ex1;
+		}
+	}
+
+	Connection* conn;
+	{
+		conn = m->getConnection(input, d1);
+		WEIGHT& w1 = conn->getWeight();
+		w1(0,0) = 0.4;
+	}
+
+	{
+		conn = m->getConnection(d1, d2);
+		WEIGHT& w12 = conn->getWeight();
+		w12(0,0) = .5;
+	}
+	
+	{
+		conn = d1->getConnection();
+		WEIGHT& w11 = conn->getWeight();
+		w11(0,0) = .6;
+	}
+	
+	{
+		conn = d2->getConnection();
+		WEIGHT& w22 = conn->getWeight();
+		w22(0,0) = .6;
+	}
+
+
 	//================================
-	Model* m  = new Model(); // argument is input_dim of model
-	m->setSeqLen(2); // runs (but who knows whether correct) with seq_len > 1
 
-	// I am not sure that batchSize and nb_batch are the same thing
-	int nb_batch = 1;
-	m->setBatchSize(nb_batch);
-
-	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
-	// 2 is the dimensionality of the data
-	// the names have a counter value attached to it, so there is no duplication. 
-	Layer* input = new InputLayer(1, "input_layer");
-	Layer* d1 = new RecurrentLayer(1, "rdense");
-	Layer* d2 = new RecurrentLayer(1, "rdense");
-	Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
-	                                       // Automate this at a later time
-
-	m->add(0,     input);
-	m->add(input, d1);
-	m->add(input, d2);
-
-	input->setActivation(new Identity());
-	d1->setActivation(new Identity());
-	d2->setActivation(new Identity());
-
-	m->addInputLayer(input);
-	m->addOutputLayer(d2);
-
-	//===========================================
-	m->printSummary();
-	m->connectionOrderClean(); // no print statements
-
-	VF2D_F xf, yf, exact;
-	testData(*m, xf, yf, exact);
+	VF2D_F yf;
+	//testData(*m, xf, yf, exact);
 
 	Layer* outLayer = m->getOutputLayers()[0];
-	int output_dim = outLayer->getOutputDim();
 	printf("output_dim = %d\n", output_dim);
 
 	CONNECTIONS connections = m->getConnections();
 
+	#if 0
 	//U::print(xf, "xf"); exit(0);
 	for (int b=0; b < m->getBatchSize(); b++) {
 		xf(b).fill(.3);
@@ -458,6 +502,10 @@ Forward:
 		exact(b) = arma::Mat<float>(output_dim, m->getSeqLen());
 		exact(b).fill(.5);
 	}
+	#endif
+
+	// Set up connection weights. How to get a specific connection. 
+	// Need a function: getConnection(Layer* layer1, Layer* layer2);
 
 	//exact.print("exact");
 	#if 0
@@ -492,18 +540,24 @@ Forward:
 	for (int i=0; i < 1; i++) {
 		U::print(xf, "xf");
 		pred = m->predictViaConnections(xf);
-		U::print(pred, "pred");
+		U::print(pred, "Prediction: pred");
 	}
 	U::print(pred, "pred");
 	U::print(exact, "exact");
 	pred.print("pred");
 	exact.print("exact");
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
+	printf("gg\n");
 	for (int c=1; c < connections.size(); c++) {
 		connections[c]->printSummary("Connection (backprop)");
 		connections[c]->getDelta().print("delta");
 	}
-	testRecurrentModel1();
+	d1->getConnection()->printSummary("Connection d1-d1");
+	d1->getConnection()->getDelta().print("delta(d1,d1)");
+	d2->getConnection()->printSummary("Connection d2-d2");
+	d2->getConnection()->getDelta().print("delta(d2,d2");
+	exit(0);
+	//testRecurrentModel1(1);
 	exit(0);
 }
 //----------------------------------------------------------------------
@@ -1041,7 +1095,8 @@ int main()
 	testFuncModel2();
 	#endif
 
-	testRecurrentModel1(1);
+	//testRecurrentModel1(1);
+	testRecurrentModel2(1);
 	exit(0);
 
 	testFuncModel3();

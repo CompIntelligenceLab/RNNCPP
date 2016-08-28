@@ -160,6 +160,7 @@ public:
 	virtual bool areIncomingLayerConnectionsComplete();
 	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod);
 	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int seq);
+	Connection* getConnection() {return recurrent_conn;}
 
 public:
 	virtual void initVars(int nb_batch);

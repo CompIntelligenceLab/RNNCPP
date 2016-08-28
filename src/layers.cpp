@@ -30,6 +30,7 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	seq_len     =  1; 
 	print_verbose   = true;
 	clock = 0;
+	recurrent_conn = 0;
 
 	initVars(nb_batch);
 
@@ -64,7 +65,8 @@ Layer::~Layer()
 
 Layer::Layer(const Layer& l) : layer_size(l.layer_size), input_dim(l.input_dim),
    print_verbose(l.print_verbose), seq_len(l.seq_len), nb_batch(l.nb_batch),
-   inputs(l.inputs), outputs(l.outputs), clock(l.clock), delta(l.delta)
+   inputs(l.inputs), outputs(l.outputs), clock(l.clock), delta(l.delta), 
+	recurrent_conn(l.recurrent_conn)
 {
 	name    = l.name + 'c';
 	printf("Layer copy constructor (%s)\n", name.c_str());
@@ -93,6 +95,7 @@ const Layer& Layer::operator=(const Layer& l)
 		seq_len = l.seq_len;
 		nb_batch = l.seq_len;
 		clock = l.clock;
+		recurrent_conn = l.recurrent_conn;
 
 		//Weights* w1; // remove class Weights
 		Activation *a1;
@@ -143,7 +146,7 @@ void Layer::execute()
 	outputs = (*activation)(inputs);
 }
 
-void Layer::reset()
+void Layer::reset() // Must I reset recurrent connection? 
 {
 	for (int b=0; b < inputs.size(); b++) {
 		inputs(b).zeros();
