@@ -545,11 +545,11 @@ void Model::storeGradientsInLayers()
 //----------------------------------------------------------------------
 void Model::storeGradientsInLayersRec(int t)
 {
-	printf("---- enter storeGradientsInLayersRec ----\n");
+	//printf("---- enter storeGradientsInLayersRec ----\n");
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->computeGradient(t);
 	}
-	printf("---- exit storeGradientsInLayersRec ----\n");
+	//printf("---- exit storeGradientsInLayersRec ----\n");
 }
 //----------------------------------------------------------------------
 void Model::storeDactivationDoutputInLayers()
@@ -607,7 +607,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 
-	printf("********* ENTER storeDactivationDoutputInLayers() **************\n");
+	//printf("********* ENTER storeDactivationDoutputInLayers() **************\n");
 
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
@@ -630,13 +630,13 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		const WEIGHT& wght_t = conn->getWeightTranspose();
 		const VF2D_F& old_deriv = layer_to->getDelta();
 
-		#if 1
+		#if 0
 		//const WEIGHT wghtt = wght.t(); // inefficient
 		U::print(wght_t, "wght_t");
 		U::print(grad, "grad");
 		U::print(old_deriv, "old_deriv");
-		U::print(prod, "prod");
-		printf("t,t-1= %d, %d\n", t,t-1);
+		//U::print(prod, "prod");
+		//printf("t,t-1= %d, %d\n", t,t-1);
 		#endif
 
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
@@ -648,7 +648,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		Layer* layer_from = conn->from;
 		layer_from->incrDelta(prod);
 	}
-	printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
+	//printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
 }
 //----------------------------------------------------------------------
 void Model::storeDLossDweightInConnections()
@@ -658,7 +658,7 @@ void Model::storeDLossDweightInConnections()
 	WEIGHT prod;
 
 
-	printf("********** ENTER storeDLossDweightInConnections ***********\n");
+	//printf("********** ENTER storeDLossDweightInConnections ***********\n");
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* conn = (*it);
@@ -683,7 +683,7 @@ void Model::storeDLossDweightInConnections()
 			(*it)->incrDelta(prod);
 		}
 	}
-	printf("********** EXIT storeDLossDweightInConnections ***********\n");
+	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }
 //----------------------------------------------------------------------
 void Model::storeDLossDweightInConnectionsRec(int t)
@@ -693,7 +693,7 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 	WEIGHT delta;
 
 
-	printf("********** ENTER storeDLossDweightInConnections ***********\n");
+	//printf("********** ENTER storeDLossDweightInConnections ***********\n");
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* conn = (*it);
@@ -720,7 +720,7 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		// Currently, only works for sequence length of 1
 		// Could work if sequence were the field index
 
-		printf("store, t= %d\n", t);
+		//printf("store, t= %d\n", t);
 		for (int b=0; b < nb_batch; b++) {
 			const VF2D& out_t = out(b).t();
 			//U::print(out_t, "out_t");
@@ -753,7 +753,7 @@ void Model::storeDLossDweightInConnectionsRec(int t)
         	}
 		}
 	}
-	printf("********** EXIT storeDLossDweightInConnections ***********\n");
+	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }
 //----------------------------------------------------------------------
 void Model::resetDeltas()
@@ -814,7 +814,7 @@ void Model::backPropagationViaConnections(const VF2D_F& exact, const VF2D_F& pre
 //----------------------------------------------------------------------
 void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF2D_F& pred)
 {
-	printf("***************** ENTER BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
+	//printf("***************** ENTER BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 	//U::print(exact, "exact");
 	//U::print(pred, "pred");
 	//exit(0);
@@ -831,7 +831,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	resetDeltas();
 
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
- 	    printf("....... t= %d/%d\n", t, seq_len);
+ 	    //printf("....... t= %d/%d\n", t, seq_len);
     	objective->computeGradient(exact, pred);
     	VF2D_F& grad = objective->getGradient();
 		getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
@@ -840,7 +840,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 		storeDactivationDoutputInLayersRec(t);
 		storeDLossDweightInConnectionsRec(t);
 	}
-	printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
+	//printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 }
 //----------------------------------------------------------------------
 Connection* Model::getConnection(Layer* layer1, Layer* layer2)
