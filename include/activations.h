@@ -5,6 +5,7 @@
 //#include <math.h>
 //#include <Eigen/Core>
 #include "typedefs.h"
+#include "print_utils.h"
 
 
 class Activation
@@ -52,10 +53,14 @@ public:
 
 	VF1D derivative(const VF1D& x)
 	{
-		VF1D y(x);
+		//printf("...derivative ...------------------\n");
+		VF1D y(size(x));
+		//U::print(x, "x");
+		//U::print(y, "y");
 		for (int b=0; b < x.size(); b++) {
 			y[b] = 1.;
 		}
+		//y.print("return y");
 		return y;
 	}
 };

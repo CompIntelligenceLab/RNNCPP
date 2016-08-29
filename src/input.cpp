@@ -35,6 +35,7 @@ Input::Input(const Input& in) : name(in.name), print_verbose(in.print_verbose)
 
 const Input& Input::operator=(const Input& in)
 {
+	// MUST FIX THIS. INCORRECT FOR SUBCLASSES
 	if (this != &in) {
 		name = in.name + "=";
 		print_verbose = in.print_verbose;

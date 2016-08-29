@@ -613,6 +613,8 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	// Run layers backwards
 	// Run connections backwards
 
+	printf("t,t-1= %d -> %d\n", t, t-1);
+
 	const VF2D_F& grad = output_layers[0]->getDelta();
 	int nb_batch = grad.n_rows;
 
@@ -630,24 +632,33 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		const WEIGHT& wght_t = conn->getWeightTranspose();
 		const VF2D_F& old_deriv = layer_to->getDelta();
 
-		#if 0
-		//const WEIGHT wghtt = wght.t(); // inefficient
-		U::print(wght_t, "wght_t");
-		U::print(grad, "grad");
-		U::print(old_deriv, "old_deriv");
-		//U::print(prod, "prod");
-		//printf("t,t-1= %d, %d\n", t,t-1);
-		#endif
-
+		// no-op if t-1 < 0
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
-
-		//for (int b=0; b < nb_batch; b++) {
-			//prod[b] = wght.t() * (grad[b] % old_deriv[b]);
-		//}
 
 		Layer* layer_from = conn->from;
 		layer_from->incrDelta(prod);
 	}
+
+	// Question: Must I somehow treat the loop connections of recurrent layers? 
+	// Answer: yes, and I must increment the delta
+
+	for (int l=0; l < layers.size(); l++) {
+		Connection* conn = layers[l]->getConnection();
+		if (!conn) continue;
+		Layer* layer_to   = conn->to;
+		const VF2D_F& grad = layer_to->getGradient();
+		const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
+		const WEIGHT& wght_t = conn->getWeightTranspose();
+		//wght_t.print("weight transpose");
+		const VF2D_F& old_deriv = layer_to->getDelta();
+		//old_deriv.print("old_deriv");
+		grad.print("grad");
+		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
+		Layer* layer_from = conn->from;
+		//prod.print("prod");  // last two at t=0 are 1.e-45, so final answer does not change. Error? 
+		layer_from->incrDelta(prod);
+	}
+
 	//printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
 }
 //----------------------------------------------------------------------
@@ -749,6 +760,7 @@ void Model::storeDLossDweightInConnectionsRec(int t)
         	for (int s=0; s < seq_len; s++) {
             	const VF2D& out_t = out(b).t();
             	delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t); //out(b).t();
+				printf("seq=%d, ", s); delta.print("incrDelta(delta), ");
             	conn->incrDelta(delta);
         	}
 		}

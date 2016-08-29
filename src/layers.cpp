@@ -251,6 +251,10 @@ void Layer::computeGradient(int t)
 	for (int b=0; b < inputs.n_rows; b++) {
 		gradient[b].col(t) = activation->derivative(inputs[b].col(t));
 	}
+	//printf("t= %d, ", t);
+	//this->printSummary();
+	//inputs.print("inputs");
+	//gradient.print("gradient");
 }
 //----------------------------------------------------------------------
 void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)

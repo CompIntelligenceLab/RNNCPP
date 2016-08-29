@@ -101,9 +101,9 @@ void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict
 	int nb_batch = exact.n_rows;
 	gradient.set_size(nb_batch);
 
-	printf("gordon\n");
-	U::print(exact, "exact");
-	U::print(predict, "predict");
+	//printf("gordon\n");
+	//U::print(exact, "exact");
+	//U::print(predict, "predict");
 
 	for (int i=0; i < nb_batch; i++) {
 		gradient[i] = 2.* (exact[i] - predict[i]); // check size compatibility
