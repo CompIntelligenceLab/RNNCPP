@@ -417,10 +417,82 @@ Forward:
 	a(1,0) = z(1,0) = w1  * z(0,0);
 	a(2,0) = z(2,0) = w12 * z(1,0);
 
+
+	//a(1,0) = w1  * a(0,0);
+	//a(2,0) = w12 * a(1,0);
+
 	z(1,0) = w11 * a(1,0);
 	z(2,0) = w22 * a(2,0);
 	a(1,1) = z(1,1) = w1  * z(0,1) + z(1,0);
 	a(2,1) = z(2,1) = w12 * z(1,1) + z(2,0);
+
+	//a(1,1) = w1  * a(0,1) + w11 * a(1,0)
+	//a(2,1) = w12 * a(1,1) + w22 * a(2,0)
+
+	// loss = loss0 + loss1
+	//      = (a(2,0)-ex0)^2 + (a(2,1)-ex1)^2
+	//      = (w12*a(1,0)-ex0)^2 + (w12*a(1,1)+w22*a(2,0)-ex1)^2
+	//      = (w12*w1*a(0,0)-ex0)^2 + (w12*(w1*a(0,1)+w11*a(1,0)) + w22*w12*w1*x0 -ex1)^2
+	//      = (w12*w1*x0-ex0)^2 + (w12*(w1*x1+w11*w1*x0) + w22*w12*w1*x0 -ex1)^2
+	//      = (l1-ex0)^2 + (l2+l3-ex1)^2
+	//
+	// d(loss)/dw1  = 2*(l1-ex0)*w12*x0 + 2*(l2+l3-ex1)*(w12*x1) + 2*(l2+l3-ex1)*w22*w12*x0
+	// d(loss)/dw12 = 2*(l1-ex0)*w1*x0 + 2*(l2+l3-ex1)*(w1*x1+w11*w1*x0) + 2*(l2+l3-ex1)*w22*w1*x0
+	// d(loss)/dw11 = 2*(l2+l3-ex1)*(w12*w1*x0) 
+	// d(loss)/dw22 = 2*(l2+l3-ex1)*(w12*w1*x0) 
+	//
+	float L0 = 2.*(a(2,0)-ex0);
+	float L1 = 2.*(a(2,1)-ex1);
+	float dldw1  = L0*w12*x0 + L1*(w12*x1+w12*w11*x0+w22*w12*x0); // CORRECT
+	float dldw12 = L0*w1*x0 + L1*(w1*x1+w11*w1*x0 + w22*w1*x0); // CORRECT
+	float dldw11 = L1*(w12*w1*x0); // CORRECT
+	float dldw22 = L1*(w12*w1*x0); // CORRECT
+
+	//a11 = w1 *a01 + w11*a10;
+	//a21 = w12*a11 + w22*a20;
+	//a10 = w1*a00
+	//a20 = w1*w11*a10;
+
+	float da11da01 = w1;
+	float da11da10 = w11;
+	float da21da11 = w12;
+	float da21da20 = w22;
+	float da10da00 = w1;
+	float da20da10 = w1*w11;
+
+	printf("dLda20= %f\n", L0);
+	printf("dLda21= %f\n", L1);
+	printf("da11da01= %f\n", w1);
+	printf("da11da10= %f\n", w11);
+	printf("da21da11= %f\n", w12);
+	printf("da21da20= %f\n", w22);
+	printf("da10da00= %f\n", w1);
+	printf("da20da10= %f\n", w1*w11);
+	printf("\n\n");
+
+	float dLda20 = L0;
+	float dLda21 = L1;
+	float dLda11 = L1 * da21da11;
+	float dLda10 = L0*w1*w11;
+	float dLda01 = w1*w12*L1;
+	float dLda00 = w1*(L1*w11*w12 + L0*w1*w11);
+	//float dLda00 = da10da00*(L1*da11da10*da21d11 + L0*da20da10) = w1*(L1*w11*w12 + L0*w1*w11);
+
+	printf("Calculation of weight derivatives by hand\n");
+	printf("dldw1= %f\n", dldw1);
+	printf("dldw12= %f\n", dldw12);
+	printf("dldw11= %f\n", dldw11);
+	printf("dldw22= %f\n", dldw22);
+	printf("\n");
+
+	printf("dLda by hand\n");
+	printf("dLda20= %f\n", L0);
+	printf("dLda21= %f\n", L1);
+	printf("dLda11= %f\n", dLda11);
+	printf("dLda10= %f\n", dLda10);
+	printf("dLda01= %f\n", dLda01);
+	printf("dLda00= %f\n", dLda00);
+
 
 	printf("a(1,1)= %f,  a(2,1)= %f\n", a(1,1), a(2,1));
 

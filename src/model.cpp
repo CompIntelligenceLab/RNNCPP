@@ -652,11 +652,19 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		//wght_t.print("weight transpose");
 		const VF2D_F& old_deriv = layer_to->getDelta();
 		//old_deriv.print("old_deriv");
-		grad.print("grad");
+		//grad.print("grad");
+
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
 		Layer* layer_from = conn->from;
 		//prod.print("prod");  // last two at t=0 are 1.e-45, so final answer does not change. Error? 
 		layer_from->incrDelta(prod);
+	}
+
+
+	printf("********* storeDactivationDoutputInLayers() t= %d **************\n", t);
+	for (int l=0; l < layers.size(); l++) {
+		const DELTA& delta = layers[l]->getDelta();
+		printf("layer %d, ", l); delta.print("delta");
 	}
 
 	//printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
@@ -760,7 +768,7 @@ void Model::storeDLossDweightInConnectionsRec(int t)
         	for (int s=0; s < seq_len; s++) {
             	const VF2D& out_t = out(b).t();
             	delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t); //out(b).t();
-				printf("seq=%d, ", s); delta.print("incrDelta(delta), ");
+				//printf("seq=%d, ", s); delta.print("incrDelta(delta), ");
             	conn->incrDelta(delta);
         	}
 		}
@@ -779,6 +787,9 @@ void Model::resetDeltas()
 
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->resetDelta();
+		Connection* conn = layers[l]->getConnection();
+		if (!conn) continue;
+		conn->resetDelta();
 	}
 }
 //----------------------------------------------------------------------
@@ -842,12 +853,13 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 
 	resetDeltas();
 
+    objective->computeGradient(exact, pred);
+    VF2D_F& grad = objective->getGradient();
+	grad.print("\ngradient of objective function, ");
+	getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
+
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
  	    //printf("....... t= %d/%d\n", t, seq_len);
-    	objective->computeGradient(exact, pred);
-    	VF2D_F& grad = objective->getGradient();
-		getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
-
 		storeGradientsInLayersRec(t);
 		storeDactivationDoutputInLayersRec(t);
 		storeDLossDweightInConnectionsRec(t);
