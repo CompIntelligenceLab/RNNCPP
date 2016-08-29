@@ -165,8 +165,8 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 
 		U::print(exact, "exact");
 		U::print(pred_p, "pred_p");
-		VF1D_F loss_p = (*mse)(exact, pred_p);
-		VF1D_F loss_n = (*mse)(exact, pred_n);
+		LOSS loss_p = (*mse)(exact, pred_p);
+		LOSS loss_n = (*mse)(exact, pred_n);
 		//U::print(loss_p, "loss_p"); exit(0);
 		//U::print(loss_n, "loss_n");
 		//loss_n.print("loss_n");
@@ -221,6 +221,7 @@ void testCube()
 //----------------------------------------------------------------------
 float runModelRecurrent(Model* m)
 {
+#if 0
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
 
@@ -335,6 +336,7 @@ exit(0);
 
 	// Go through connections and print out weight derivatives
 	//printf("gordon\n"); exit(0);
+#endif
 }
 //----------------------------------------------------------------------
 void testRecurrentModel2(int nb_batch=1)
@@ -542,6 +544,11 @@ Forward:
 		pred = m->predictViaConnections(xf);
 		U::print(pred, "Prediction: pred");
 	}
+	Objective* obj = m->getObjective();
+	LOSS loss = (*obj)(exact, pred);
+	loss.print("loss");
+	exit(0);   // PREDICTIONS ARE WRONG
+
 	U::print(pred, "pred");
 	U::print(exact, "exact");
 	pred.print("pred");
@@ -555,8 +562,25 @@ Forward:
 	d1->getConnection()->printSummary("Connection d1-d1");
 	d1->getConnection()->getDelta().print("delta(d1,d1)");
 	d2->getConnection()->printSummary("Connection d2-d2");
-	d2->getConnection()->getDelta().print("delta(d2,d2");
-	exit(0);
+	d2->getConnection()->getDelta().print("delta(d2,d2)");
+
+	//============================================
+	// Finite-Difference weights
+	float inc = .0001;
+	WEIGHT fd_dLdw;
+	// First connection is between 0 and input (does not count)
+	for (int c=1; c < connections.size(); c++) {
+		connections[c]->printSummary();
+		fd_dLdw = weightDerivative(m, *connections[c], inc, xf, exact);
+	}
+
+	// Exact dL/dw
+	//U::print(exact, "exact");
+	//U::print(pred, "pred");
+	//U::print(xf, "xf");
+	VF2D dLdw_analytical = 2.*(exact(0) - pred(0)) % xf(0);
+	printf("Analytical dLdw: = %f\n", dLdw(0));
+	printf("F-D  derivative: = %f\n", fd_dLdw(0));
 	//testRecurrentModel1(1);
 	exit(0);
 }

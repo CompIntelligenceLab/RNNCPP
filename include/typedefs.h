@@ -44,6 +44,7 @@ class Connection;
 	typedef arma::Col<float> AF;
 	typedef arma::Col<float> VF;
 	typedef arma::Col<float> VF1D;
+	typedef arma::field<arma::Row<float> > LOSS;
 	typedef arma::Mat<float> VF2D;
 	typedef arma::field<arma::Col<float> > VF1D_F;  // [batch](seq_len) 
 	typedef arma::field<arma::Mat<float> > VF2D_F;  // [batch](dimension, seq_len) 

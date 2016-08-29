@@ -84,16 +84,16 @@ MeanSquareError::MeanSquareError(const MeanSquareError& mse) : Objective(mse)
 void MeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 {
 	int nb_batch = exact.n_rows;
-	loss.set_size(nb_batch);
+	loss.set_size(nb_batch); // needed
 
 	for (int i=0; i < nb_batch; i++) {
 		loss[i] = exact[i] - predict[i]; // check size compatibility
 		loss[i] = arma::square(loss[i]);  // sum of output dimensions
-		loss[i] = arma::sum(loss[i], 0);  // sum over 1st index
-		//loss[i].print("computeLoss::loss[i]");
-		//exact[i].print("computeLoss::exact[i]");
-		//predict[i].print("computeLoss::predict[i]");
+		loss[i] = arma::sum(loss[i], 0);  // sum over 1st index (dimension)
+		//loss[i].print("loss[i]");
+		//exit(0);
 	}
+	//exit(0);
 }
 
 void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict)

@@ -523,7 +523,7 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 
 	VF2D_F pred = predictViaConnections(x);
 	objective->computeLoss(y, pred);
-	VF1D_F loss = objective->getLoss();
+	const LOSS& loss = objective->getLoss();
 	loss.print("loss");
 }
 //----------------------------------------------------------------------
