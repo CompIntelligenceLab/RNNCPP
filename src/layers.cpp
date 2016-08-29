@@ -276,7 +276,7 @@ bool Layer::areIncomingLayerConnectionsComplete()
 // Perhaps break this up into processing by Connection then by output layer
 void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 {
-	printf("enter Layer::processOutputDataFromPreviousLayern");
+	//printf("enter Layer::processOutputDataFromPreviousLayern");
 	++nb_hit;
 
 	const VF2D_F& from_outputs = conn->from->getOutputs();
@@ -336,7 +336,7 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 //----------------------------------------------------------------------
 void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int seq_i)
 {
-	printf("enter Layer::processOutputDataFromPreviousLayer, t= %d\n", seq_i);
+	//printf("enter Layer::processOutputDataFromPreviousLayer, t= %d\n", seq_i);
 	++nb_hit;
 
 	const VF2D_F& from_outputs = conn->from->getOutputs();

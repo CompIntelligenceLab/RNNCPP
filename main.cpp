@@ -137,48 +137,32 @@ storeDLossDweightInConnections, prod 0.0995
 //----------------------------------------------------------------------
 WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
 {
-	printf("************** ENTER weightDerivative ********************\n");
 	// I'd expect the code to work with nb_batch=1 
 
 	WEIGHT w0 = con.getWeight();
 	int rrows = w0.n_rows;
 	int ccols = w0.n_cols;
-	//float dLdw = 0;
-	//WEIGHT dLdw(size(w0));
 	dLdw = arma::Mat<float>(size(w0));
 	dLdw.zeros();
 	Objective* mse = new MeanSquareError();
-	printf("rrows/cols= %d, %d\n", rrows, ccols);
 
 	for (int rr=0; rr < rrows; rr++) {
 	for (int cc=0; cc < ccols; cc++) {
 
 		WEIGHT& wp = con.getWeight(); 
 		wp(rr,cc) += inc;
-		//VF2D_F pred_n = m->predictComplex(xf);
 		VF2D_F pred_n = m->predictViaConnections(xf);
 
 		WEIGHT& wm = con.getWeight(); 
 		wm(rr,cc) -= (2.*inc);
-		//VF2D_F pred_p = m->predictComplex(xf);
 		VF2D_F pred_p = m->predictViaConnections(xf);
 
-		U::print(exact, "exact");
-		U::print(pred_p, "pred_p");
 		LOSS loss_p = (*mse)(exact, pred_p);
 		LOSS loss_n = (*mse)(exact, pred_n);
-		//U::print(loss_p, "loss_p"); exit(0);
-		//U::print(loss_n, "loss_n");
-		//loss_n.print("loss_n");
-		//loss_p.print("loss_p");
 
-		//loss_n(0).print("loss_n(0)");
-		//U::print(loss_n(0), "loss_n(0)");
-		dLdw(rr, cc) = (loss_n(0)(0) - loss_p(0)(0)) / (2.*inc);
-		//printf("...> Finite-Difference, dLdw(%d, %d)= %f\n", rr, cc, dLdw);
+		// take the derivative of batch 0, of the loss (summed over the sequences)
+		dLdw(rr, cc) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*inc);
 	}}
-	dLdw.print("dLdw");
-	printf("************** EXIT weightDerivative ********************\n");
 	return dLdw;
 }
 //----------------------------------------------------------------------
@@ -497,47 +481,6 @@ Forward:
 
 	CONNECTIONS connections = m->getConnections();
 
-	#if 0
-	//U::print(xf, "xf"); exit(0);
-	for (int b=0; b < m->getBatchSize(); b++) {
-		xf(b).fill(.3);
-		yf(b).fill(.4);
-		exact(b) = arma::Mat<float>(output_dim, m->getSeqLen());
-		exact(b).fill(.5);
-	}
-	#endif
-
-	// Set up connection weights. How to get a specific connection. 
-	// Need a function: getConnection(Layer* layer1, Layer* layer2);
-
-	//exact.print("exact");
-	#if 0
-	WEIGHT w0(1,1); // w1(1,1);
-	//w0(0,0) = .2;
-	//w1(0,0) = .1315;
-	m->getConnections()[0]->setWeight(w0);
-	m->getConnections()[1]->setWeight(w0);
-	m->getLayers()[1]->recurrent_conn->setWeight(w1);
-
-	m->getConnections()[0]->getWeight().print("weight0");
-	m->getConnections()[1]->getWeight().print("weight1");
-	m->getLayers()[1]->recurrent_conn->getWeight().print("weight_recurrent");
-
-	printf("*** connections.size() = %d\n", m->getConnections().size());
-	for (int c=0; c < connections.size(); c++) {
-		connections[c]->printSummary();
-	}
-	// xf = .3
-	// yf = w * .3;
-	float w;
-	w =  m->getConnections()[0]->getWeight()(0,0);
-	printf("w[0] = %f\n", w);
-	printf("w[0]*xf = %f\n", w*xf(0)(0,0));
-	w =  m->getConnections()[1]->getWeight()(0,0);
-	printf("w[1] = %f\n", w);
-	printf("w[1]*xf = %f\n", w*xf(0)(0,0));
-	#endif
-
 	VF2D_F pred;
 
 	for (int i=0; i < 1; i++) {
@@ -548,14 +491,17 @@ Forward:
 	Objective* obj = m->getObjective();
 	LOSS loss = (*obj)(exact, pred);
 	loss.print("loss");
-	exit(0);   // PREDICTIONS ARE WRONG
+	//exit(0);   // PREDICTIONS ARE WRONG
 
+	#if 0
 	U::print(pred, "pred");
 	U::print(exact, "exact");
 	pred.print("pred");
 	exact.print("exact");
+	#endif
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
-	printf("gg\n");
+	
+	printf("\n*** deltas from back propagation ***\n");
 	for (int c=1; c < connections.size(); c++) {
 		connections[c]->printSummary("Connection (backprop)");
 		connections[c]->getDelta().print("delta");
@@ -568,12 +514,19 @@ Forward:
 	//============================================
 	// Finite-Difference weights
 	float inc = .0001;
+	printf("\n*** deltas from finite-difference weight derivative ***\n");
 	WEIGHT fd_dLdw;
 	// First connection is between 0 and input (does not count)
 	for (int c=1; c < connections.size(); c++) {
 		connections[c]->printSummary();
 		fd_dLdw = weightDerivative(m, *connections[c], inc, xf, exact);
+		fd_dLdw.print("weight derivative, spatial connections");
 	}
+	fd_dLdw = weightDerivative(m, *d1->getConnection(), inc, xf, exact);
+	fd_dLdw.print("weight derivative, temporal d1");
+	fd_dLdw = weightDerivative(m, *d2->getConnection(), inc, xf, exact);
+	fd_dLdw.print("weight derivative, temporal d2");
+	exit(0);
 
 	// Exact dL/dw
 	//U::print(exact, "exact");

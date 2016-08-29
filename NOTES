@@ -101,4 +101,7 @@ Forward:
  a(2,0) = z(2,1) = w2*z(1,1) + w12 * z(2,0)
 -----------
 *** the model should have a variable called global loss, which the sum of individual loss that are collected. 
+
+One takes the derivative of the sum of losses over the sequences with respect to the weights. Is that correct? 
 ----------------------------------------------------------------------
+

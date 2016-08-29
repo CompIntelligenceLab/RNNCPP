@@ -67,6 +67,11 @@ void U::print(VF2D x, int val1, std::string msg)
 	cout << buf << ", shape: (" << x.n_rows << ", " << x.n_cols << ")" << endl;
 }
 //----------------------------------------------------------------------
+void U::print(LOSS x, std::string msg /*""*/)
+{
+	cout << msg << ", shape: " << x.n_rows << endl;
+} 
+//----------------------------------------------------------------------
 void U::print(VF1D x, std::string msg /*""*/)
 {
 	cout << msg << ", shape: " << x.n_rows << endl;

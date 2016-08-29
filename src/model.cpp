@@ -469,7 +469,7 @@ void Model::printSummary()
 VF2D_F Model::predictViaConnections(VF2D_F x)
 {
 	VF2D_F prod(x.size());
-	printf("****************** ENTER predictViaConnections ***************\n");
+	//printf("****************** ENTER predictViaConnections ***************\n");
 
 	Layer* input_layer = getInputLayers()[0];
 	input_layer->setOutputs(x);
@@ -505,7 +505,7 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 		}
  	}
 
-	prod.print("************ EXIT predictViaConnection ***************"); 
+	//prod.print("************ EXIT predictViaConnection ***************"); 
 	//U::print(prod, "prod, exit predict, ");
 	return prod;
 }
