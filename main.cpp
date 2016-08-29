@@ -414,17 +414,17 @@ Forward:
  a(2,1) = z(2,1) = w2*z(1,1) + w12 * z(2,0)
 ***/
 
-	float w1  = .4;
-	float w12 = .5;
-	float w11 = .6;
-	float w22 = .7;
-	float x0 = .45;
-	float x1 = .75;
-	float ex0  = .75; // exact value
-	float ex1  = .85; // exact value
+	float w1       = .4;
+	float w12      = .5;
+	float w11      = .6;
+	float w22      = .7;
+	float x0       = .45;
+	float x1       = .75;
+	float ex0      = .75; // exact value
+	float ex1      = .85; // exact value
 	int seq_len    = 2;
 	int input_dim  = 1;
-	int nb_layers = 2;  // in addition to input
+	int nb_layers  = 2;  // in addition to input
 	VF2D a(nb_layers+1, seq_len); // assume al dimensions = 1
 	VF2D z(nb_layers+1, seq_len); // assume al dimensions = 1
 
@@ -440,8 +440,9 @@ Forward:
 
 	printf("a(1,1)= %f,  a(2,1)= %f\n", a(1,1), a(2,1));
 
-	float loss0 = (ex0-a(2,0))*(ex0-a(2,0));
-	float loss1 = (ex1-a(2,1))*(ex1-a(2,1));
+	float loss0 = (ex0-a(2,0))*(ex0-a(2,0));  // same as predict routine
+	float loss1 = (ex1-a(2,1))*(ex1-a(2,1));  // DIFFERENT FROM PREDICT ROUTINE
+	// Is error hand-solution or in predict? 
 	printf("loss0= %f, loss1= %f\n", loss0, loss1);
 
 	int output_dim = m->getOutputLayers()[0]->getOutputDim();
@@ -482,7 +483,7 @@ Forward:
 	{
 		conn = d2->getConnection();
 		WEIGHT& w22 = conn->getWeight();
-		w22(0,0) = .6;
+		w22(0,0) = .7;
 	}
 
 
