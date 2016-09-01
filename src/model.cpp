@@ -557,7 +557,7 @@ void Model::storeDactivationDoutputInLayers()
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 
-	printf("********* ENTER storeDactivationDoutputInLayers() **************\n");
+	printf("************** ENTER storeDactivationDoutputInLayers() **************\n");
 
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
@@ -599,7 +599,7 @@ void Model::storeDactivationDoutputInLayers()
 
 		layer_from->incrDelta(prod);
 	}
-	printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
+	printf("**************** EXIT storeDactivationDoutputInLayers() **************\n");
 }
 //----------------------------------------------------------------------
 void Model::storeDactivationDoutputInLayersRec(int t)
@@ -607,7 +607,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 
-	//printf("********* ENTER storeDactivationDoutputInLayers() **************\n");
+	printf("********* ENTER storeDactivationDoutputInLayers() **************\n");
 
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
@@ -631,8 +631,12 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
 		const WEIGHT& wght_t = conn->getWeightTranspose();
 		const VF2D_F& old_deriv = layer_to->getDelta();
+		//layer_to->printSummary();
+		//grad.print("grad");
+		//exit(0);
 
 		// no-op if t-1 < 0
+		// prod[t-1] = wght_t * (grad[t] % old_deriv[t])
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
 
 		Layer* layer_from = conn->from;
@@ -641,6 +645,8 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
 	// Answer: yes, and I must increment the delta
+
+	#if 0
 
 	for (int l=0; l < layers.size(); l++) {
 		Connection* conn = layers[l]->getConnection();
@@ -659,15 +665,12 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		//prod.print("prod");  // last two at t=0 are 1.e-45, so final answer does not change. Error? 
 		layer_from->incrDelta(prod);
 	}
+	#endif
 
 
-	printf("********* storeDactivationDoutputInLayers() t= %d **************\n", t);
-	for (int l=0; l < layers.size(); l++) {
-		const DELTA& delta = layers[l]->getDelta();
-		printf("layer %d, ", l); delta.print("delta");
-	}
+	//printf("********* storeDactivationDoutputInLayers() t= %d **************\n", t);
 
-	//printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
+	printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
 }
 //----------------------------------------------------------------------
 void Model::storeDLossDweightInConnections()
@@ -750,6 +753,10 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		}
 	}
 
+	return;
+
+	// Needed when there are recurrent layers
+
 	// Set Deltas of all the connections of temporal layers
 	for (int l=0; l < layers.size(); l++) {
 		Connection* conn = layers[l]->getConnection();
@@ -830,6 +837,7 @@ void Model::backPropagationViaConnections(const VF2D_F& exact, const VF2D_F& pre
 	getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
 
 	storeGradientsInLayers();
+
 	storeDactivationDoutputInLayers();
 	storeDLossDweightInConnections();
 	printf("***************** EXIT BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
@@ -865,6 +873,34 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 		storeDLossDweightInConnectionsRec(t);
 	}
 	//printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
+
+	#if 0
+	// Correct
+	for (int l=0; l < layers.size(); l++) {
+		const VF2D_F& grad = layers[l]->getGradient();
+		layers[l]->printSummary();
+		grad.print("grad");
+	}
+	#endif
+
+	#if 0
+	// Correct
+	for (int l=0; l < layers.size(); l++) {
+		const DELTA& delta = layers[l]->getDelta();
+		layers[l]->printSummary();
+		printf("layer %d, ", l); delta.print("layer delta");
+		printf("layer %d, getOutputs(), ", l);layers[l]->getOutputs().print();
+
+	}
+	#endif
+
+	for (int c=0; c < clist.size(); c++) {
+		Connection* conn = clist[c];
+		printf("conn %d, ", c); conn->getDelta().print("delta, ");
+	}
+
+	//exit(0);
+
 }
 //----------------------------------------------------------------------
 Connection* Model::getConnection(Layer* layer1, Layer* layer2)
