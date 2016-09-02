@@ -675,8 +675,12 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
 		Layer* layer_from = conn->from;
-		//prod.print("prod");  // last two at t=0 are 1.e-45, so final answer does not change. Error? 
-		layer_from->incrDelta(prod);
+		//prod.print("prod");  // last two at t=0 are 1.e-45, so final answer does not change. Error? // should be zero 
+		//printf("t= %d\n", t); // t=1 during first pass
+		layer_from->getDelta().print("layer delta"); // should be zero at first
+		layer_from->incrDelta(prod, t-1);
+		layer_from->getDelta().print("layer delta"); // should be zero at first
+		//exit(0);
 	}
 	#endif
 
@@ -895,7 +899,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	}
 	#endif
 
-	#if 1
+	#if 0
 	// Correct
 	for (int l=0; l < layers.size(); l++) {
 		const DELTA& delta = layers[l]->getDelta();
@@ -906,10 +910,18 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	}
 	#endif
 
+	#if 0
 	for (int c=0; c < clist.size(); c++) {
-		Connection* conn = clist[c];
-		printf("conn %d, ", c); conn->getDelta().print("delta, ");
+		Connection* con = clist[c];
+		con->printSummary("spatial con, "); con->getDelta().print("delta, ");
 	}
+	for (int l=0; l < layers.size(); l++) {
+		Connection* con = layers[l]->getConnection();
+		if (!con) continue;
+		con->printSummary("temporal con, "); con->getDelta().print("delta, ");
+		
+	}
+	#endif
 
 	//exit(0);
 

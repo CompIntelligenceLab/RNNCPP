@@ -229,6 +229,8 @@ void Layer::incrDelta(VF2D_F& x)
 //----------------------------------------------------------------------
 void Layer::incrDelta(VF2D_F& x, int t)
 {
+	if (t < 0) return;
+
 	for (int b=0; b < x.n_rows; b++) {
 		delta[b].col(t) += x[b].col(t);
 	}
@@ -422,16 +424,19 @@ void Layer::resetState()
 {
 	U::zeros(inputs);
 	U::zeros(outputs);
+	U::zeros(delta);
 
 	for (int i=0; i < layer_inputs.size(); i++) {
 		U::zeros(layer_inputs[i]);
+		U::zeros(layer_deltas[i]);
 	}
 }
 //----------------------------------------------------------------------
 void Layer::resetDelta()
 {
-	for (int b=0; b < delta.n_rows; b++) {
-		delta[b].zeros();
-	}
+	U::zeros(delta);
+	//for (int b=0; b < delta.n_rows; b++) {
+		//delta[b].zeros();
+	//}
 }
 //----------------------------------------------------------------------

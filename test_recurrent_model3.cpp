@@ -146,6 +146,7 @@ Forward:
 	float dldw12 = dlda20*a(1,0) + dlda21*a(1,1);
 
 	printf(".... Calculation of weight derivatives by hand\n");
+	printf("loss0= %f, loss1= %f\n", loss0, loss1);
 	printf("total loss: %f\n", loss_tot);
 	printf("dldw01= %f\n", dldw01);
 	printf("dldw12= %f\n", dldw12);
@@ -155,8 +156,6 @@ Forward:
 	printf(" ================== END dL/da's =========================\n\n");
 
 
-	// Is error hand-solution or in predict? 
-	printf("loss0= %f, loss1= %f\n", loss0, loss1);
 
 	//============================================
 
