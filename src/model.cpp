@@ -792,12 +792,10 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 
         //printf("store, t= %d\n", t);
         for (int b=0; b < nb_batch; b++) {
-        	for (int s=0; s < seq_len; s++) {
-            	const VF2D& out_t = out(b).t();
-            	delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t); //out(b).t();
-				//printf("seq=%d, ", s); delta.print("incrDelta(delta), ");
-            	con->incrDelta(delta);
-        	}
+           	const VF2D& out_t = out(b).t();
+			if (t > 0) continue;
+           	delta = (old_deriv[b].col(t+1) % grad[b].col(t)) * out_t.row(t); //out(b).t();
+           	con->incrDelta(delta);
 		}
 	}
 	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
