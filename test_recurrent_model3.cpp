@@ -71,8 +71,8 @@ Forward:
 ***/
 
 	// set weights to 1 for testing
-	float w01      = 1.; //   = .4;
-	float w12      = 1.; //   = .5;
+	float w01      = .4;
+	float w12      = .5;
 	float x0       = .45;
 	float x1       = .75;
 	float ex0      = .75; // exact value
