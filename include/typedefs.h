@@ -53,6 +53,7 @@ class Connection;
 	typedef arma::Row<int> VI; // not possible to allocate a row of size 3;
 	//typedef arma::Mat<int> VI;
 	typedef arma::Mat<float> WEIGHT;  // (layer(j-1), layer(j))
+	typedef arma::Col<float> BIAS;  // (layer(j-1), layer(j))
 	typedef VF2D_F DELTA;  // (layer(j-1), layer(j))
     typedef VF2D_F GRADIENTS; // Remove this if we use the Gradients class
 	// Do not forget () around arguments in macro definition

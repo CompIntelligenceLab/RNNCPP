@@ -350,6 +350,8 @@ exit(0);
 #include "test_recurrent_model3.cpp"
 #include "test_recurrent_model4.cpp"
 #include "test_recurrent_model5.cpp"
+#include "test_recurrent_model_bias5.cpp"
+#include "test_recurrent_model_bias1.cpp"
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -845,6 +847,8 @@ int main()
 	#endif
 
 	//testRecurrentModel1(1);
+	testRecurrentModelBias5(1);
+	exit(0);
 	//testRecurrentModel2(1);
 
 	// works with batch=1, seq=2, layer_size=1 for all layers, input_dim=1, identity activation

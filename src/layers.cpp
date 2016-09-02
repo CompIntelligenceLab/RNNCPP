@@ -31,6 +31,7 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	print_verbose   = true;
 	clock = 0;
 	recurrent_conn = 0;
+	bias.set_size(layer_size);
 
 	initVars(nb_batch);
 
@@ -52,6 +53,7 @@ void Layer::initVars(int nb_batch)
 		gradient[i] = VF2D(layer_size, seq_len);
 		delta[i]    = VF2D(layer_size, seq_len);
 	}
+	bias.zeros();
 	nb_hit = 0;
 
 	reset();
@@ -94,7 +96,7 @@ const Layer& Layer::operator=(const Layer& l)
 		inputs = l.inputs;
 		outputs = l.outputs;
 		seq_len = l.seq_len;
-		nb_batch = l.seq_len;
+		nb_batch = l.nb_batch;
 		clock = l.clock;
 		recurrent_conn = l.recurrent_conn;
 
@@ -337,6 +339,7 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 		 // add the self-looping if there. 
 		 incrInputs(loop_input);
 		 //loop_input.print("add loop_input, ");
+
 		 prod = getActivation()(getInputs());
 		 //prod.print("processData, output, ");
 		 setOutputs(prod);
@@ -391,7 +394,10 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 		 }
 		 // add the self-looping if there. 
 		 //loop_input.print("loop input");  // UNINITIALIZED
-		 incrInputs(loop_input);
+		 incrInputs(loop_input); 
+		 // Add layer biases. must loop over batch and over sequence size. 
+		 addBiasToInput(seq_i);
+
 		 prod = getActivation()(getInputs());
 		 setOutputs(prod);
 	}
@@ -438,5 +444,12 @@ void Layer::resetDelta()
 	//for (int b=0; b < delta.n_rows; b++) {
 		//delta[b].zeros();
 	//}
+}
+//----------------------------------------------------------------------
+void Layer::addBiasToInput(int t)
+{
+	for (int b=0; b < nb_batch; b++) {
+		inputs(b).col(t) += bias;
+	}
 }
 //----------------------------------------------------------------------

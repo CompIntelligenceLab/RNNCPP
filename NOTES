@@ -112,3 +112,43 @@ Sept. 2, 2016
 The gradient of the objective function appears to have the wrong sign. 
 Fixed in objective.cpp, method gradient in MSE subclass. 
 ----------------------------------------------------------------------
+Sept. 2, 2016, 4 pm
+Backpropagation works with recurrent nets!
+Next: biases. Then GMM! Then LSTM!
+
+One bias per node. Consider a single layer. 
+----------------------------------------------------------------------
+a20, a21= 0.088806, 0.249670
+Prediction: pred
+[field column 0]
+   0.0890   0.2552 
+
+
+a20, a21= 0.088806, 0.249670
+Prediction: pred
+[field column 0]
+   0.0900   0.2670
+
+Input layer: 3
+Output layer: 5
+Weight: 5 x 3
+Number biases: 5
+Add another column to w
+Now Weight: 5 x 4
+So add unit component to the "a" layer output and 1 column to the weights:  
+  z* = w* * a*   (w* has additional column, a* has a unit component). z* has the 
+  same number of rows as before. 
+
+The disadvantage of storing weights the way we do, via pointers (if biases are incorporated into the weights), 
+is that one MUST share weights+biases at the same time. One cannot just share the weights and keep the biases individual. 
+That is a RESTRICTION OF OUR APPROACH. 
+
+Better though: the bias is a property of the layer. If a layer L1 has 128 nodes, 
+and two layers L2 and L3, of size 512 impinge on L1, there are are still only 128 biases in L1, 
+512 biases in L2 and another 512 biases in L3. 
+So we'll store the biases with the layers. 
+
+I will want to consider the biases to be on or off. Not clear how to do this. 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+

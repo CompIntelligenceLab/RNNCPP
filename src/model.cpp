@@ -466,6 +466,39 @@ void Model::printSummary()
 	printf("=============================================================\n");
 }
 //----------------------------------------------------------------------
+VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
+{
+	VF2D_F prod(x.size());
+	//printf("****************** ENTER predictViaConnections ***************\n");
+
+	Layer* input_layer = getInputLayers()[0];
+	input_layer->setOutputs(x);
+
+	layers[0]->layer_inputs[0] = x;
+	layers[0]->setOutputs(x);
+
+ 	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
+		for (int l=0; l < layers.size(); l++) {
+			layers[l]->nb_hit = 0;
+		}
+
+		// go through all the layers and update the temporal connections
+		// On the first pass, connections are empty
+		for (int l=0; l < layers.size(); l++) {
+			layers[l]->forwardLoops(t-1);    // does not change withb iases
+		}
+		
+		for (int c=0; c < clist.size(); c++) {
+			Connection* conn  = clist[c];
+	
+			Layer* to_layer   = conn->to;
+			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
+		}
+ 	}
+
+	return prod;
+}
+//----------------------------------------------------------------------
 VF2D_F Model::predictViaConnections(VF2D_F x)
 {
 	VF2D_F prod(x.size());

@@ -42,6 +42,7 @@ protected:
 	VF2D_F inputs;  // inputs to activation function (batch_sz, seq_len)  // change to input later
 	VF2D_F outputs; // outputs from activation function
 	DELTA delta; // d(loss) / d(layer output)
+	BIAS bias;
 
 	//WEIGHTS weights; // between this layer and the previous one. Breaks down 
 	                // if layers form graphs (recurrent or not)
@@ -116,6 +117,7 @@ public:
 
    // gradient of loss function with respect to weights
    GRADIENTS getGradient() const {return gradient;}
+   BIAS getBias() {return bias;}  // return  reference or const ref? 
    // make private?
    void computeGradient();
    void computeGradient(int t); // for sequences
@@ -161,6 +163,7 @@ public:
 	virtual bool areIncomingLayerConnectionsComplete();
 	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod);
 	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int seq);
+	virtual void addBiasToInput(int t);
 	Connection* getConnection() {return recurrent_conn;}
 
 public:

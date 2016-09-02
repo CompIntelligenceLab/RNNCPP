@@ -1,3 +1,4 @@
+#include <math.h>
 
 void testRecurrentModel2(int nb_batch=1)
 {
@@ -14,8 +15,8 @@ void testRecurrentModel2(int nb_batch=1)
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(1, "input_layer");
-	Layer* d1 = new RecurrentLayer(1, "rdense");
-	Layer* d2 = new RecurrentLayer(1, "rdense");
+	Layer* d1    = new RecurrentLayer(1, "rdense");
+	Layer* d2    = new RecurrentLayer(1, "rdense");
 	Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
 	                                       // Automate this at a later time
 
@@ -24,8 +25,8 @@ void testRecurrentModel2(int nb_batch=1)
 	m->add(d1, d2);
 
 	input->setActivation(new Identity());
-	d1->setActivation(new Identity());
-	d2->setActivation(new Identity());
+	d1->setActivation(   new Identity());
+	d2->setActivation(   new Identity());
 
 	m->addInputLayer(input);
 	m->addOutputLayer(d2);
@@ -108,17 +109,17 @@ Forward:
 	a(0,0) = z(0,0);
 	//a(1,-1) is retrieved via  layer->getConnection()->from->getOutputs();
 	z(1,0) = w01  * a(0,0); // + w11 * a(1,-1); // a(1,-1) is initially zero
-	a(1,0) = z(1,0);
+	a(1,0) = (z(1,0));
 	z(2,0) = w12 * a(1,0);
-	a(2,0) = z(2,0);
+	a(2,0) = (z(2,0));
 
 	// t=1
 	z(0,1) = x1;
 	a(0,1) = z(0,1);
 	z(1,1) = w01 * a(0,1) + w11 * a(1,0); 
-	a(1,1) = z(1,1);
+	a(1,1) = (z(1,1));
 	z(2,1) = w12 * a(1,1) + w22 * a(2,0);
-	a(2,1) = z(2,1);
+	a(2,1) = (z(2,1));
 
 	// loss = loss0 + loss1
 	//      = (a(2,0)-ex0)^2 + (a(2,1)-ex1)^2
@@ -145,7 +146,9 @@ Forward:
 
 	printf("\n ============== Layer Outputs =======================\n");
 	printf("a00, a01= %f, %f\n", a(0,0), a(0,1));
+	printf("z10, z11= %f, %f\n", z(1,0), z(1,1));
 	printf("a10, a11= %f, %f\n", a(1,0), a(1,1));
+	printf("z20, z21= %f, %f\n", z(2,0), z(2,1));
 	printf("a20, a21= %f, %f\n", a(2,0), a(2,1));
 
 	//a11 = w01 *a01 + w11*a10;
@@ -258,6 +261,7 @@ Forward:
 		U::print(pred, "Prediction: pred");
 		pred.print("Prediction: pred");
 	}
+	//exit(0);
 
 	Objective* obj = m->getObjective();
 	LOSS loss = (*obj)(exact, pred);
@@ -297,16 +301,5 @@ Forward:
 	fd_dLdw.print("weight derivative, temporal d1");
 	fd_dLdw = weightDerivative(m, *d2->getConnection(), inc, xf, exact);
 	fd_dLdw.print("weight derivative, temporal d2");
-	exit(0);
-
-	// Exact dL/dw
-	//U::print(exact, "exact");
-	//U::print(pred, "pred");
-	//U::print(xf, "xf");
-	VF2D dLdw_analytical = 2.*(exact(0) - pred(0)) % xf(0);
-	printf("Analytical dLdw: = %f\n", dLdw(0));
-	printf("F-D  derivative: = %f\n", fd_dLdw(0));
-	//testRecurrentModel1(1);
-	exit(0);
 }
 //----------------------------------------------------------------------

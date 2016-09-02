@@ -106,6 +106,8 @@ public:
   //VF2D_F predictComplexMaybeWorks(VF2D_F x);  // for testing while Nathan works with predict
   //VF2D_F predictComplex(VF2D_F x);  // for testing while Nathan works with predict
   VF2D_F predictViaConnections(VF2D_F x); 
+  // Same as predictviaConnections, but take bias into account
+  VF2D_F predictViaConnectionsBias(VF2D_F x);
   void   storeGradientsInLayers();
   void   storeDactivationDoutputInLayers();
   void 	storeDLossDweightInConnections();
