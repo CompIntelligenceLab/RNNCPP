@@ -74,7 +74,7 @@ Forward:
 	// set weights to 1 for testing
 	float w01      = .4;
 	float w12      = .5;
-	w01      = 1.;
+	//w01      = 1.;
 	//w12      = 1.;
 	float x0       = .45;
 	float x1       = .75;
@@ -106,17 +106,17 @@ Forward:
 	// loss = loss0 + loss1
 	//      = (a(2,0)-ex0)^2 + (a(2,1)-ex1)^2
 	//      = (w12*a(1,0)-ex0)^2 + (w12*a(1,1)-ex1)^2
-	//      = (w12*w1*x0-ex0)^2 + (w12*w1*x1-ex1)^2
+	//      = (w12*w1*x0 -ex0)^2 + (w12*w1*x1 -ex1)^2
 	//      = (l0-ex0)^2 + (l1-ex1)^2
 	//
-	// d(loss)/dw1  = 2*(l0-ex0)*w12*x0 + 2*(l1-ex1)*(w12*x1) 
-	// d(loss)/dw12 = 2*(l0-ex0)*w1*x0  + 2*(l1-ex1)*(w1*x1) 
+	// d(loss)/dw01 = 2*(l0-ex0)*w12*x0 + 2*(l1-ex1)*(w12*x1) 
+	// d(loss)/dw12 = 2*(l0-ex0)*w01*x0 + 2*(l1-ex1)*(w01*x1) 
 
 	float     L0 = 2.*(a(2,0)-ex0);
 	float     L1 = 2.*(a(2,1)-ex1);
 	float      L = L0 + L1;   // total loss for a sequence of length 2
-	float dlda20 = L0*w12;
-	float dlda21 = L1*w12;
+	float dlda20 = L0;
+	float dlda21 = L1;
 	float dlda10 = dlda20 * w12;
 	float dlda11 = dlda21 * w12;
 	float dlda00 = dlda10 * w01;
@@ -140,10 +140,10 @@ Forward:
 	//         = dlda10  * a00 + dlda11  * a01
 	// dL/dw12 = sum_t dL/da2t * da2t/dw12  = sum_t dL/da2t * (f'=1) * a1t
 	//         = dL/da20 * a10 + dL/da21 * a11
-	//         = dlda20  * a10 + dlda11  * a11
+	//         = dlda20  * a10 + dlda21  * a11
     
 	float dldw01 = dlda10*a(0,0) + dlda11*a(0,1);
-	float dldw12 = dlda20*a(1,0) + dlda11*a(1,1);
+	float dldw12 = dlda20*a(1,0) + dlda21*a(1,1);
 
 	printf(".... Calculation of weight derivatives by hand\n");
 	printf("dldw01= %f\n", dldw01);
