@@ -619,6 +619,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	int nb_batch = grad.n_rows;
 
 	VF2D_F prod(nb_batch);
+
 	for (int b=0; b < nb_batch; b++) {
 		prod(b) = VF2D(size(grad(b)));
 	}
@@ -626,6 +627,8 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* conn = (*it);
 		Layer* layer_to   = conn->to;
+		Layer* layer_from = conn->from;
+		//VF2D_F& prod = layer_from->getDelta();
 
 		const VF2D_F& grad = layer_to->getGradient();
 		const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
@@ -636,12 +639,23 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		//exit(0);
 
 		// no-op if t-1 < 0
+		// THERE SHOULD BE no prod[t-1] if there is no recurrence or time unrolling!
 		// prod[t-1] = wght_t * (grad[t] % old_deriv[t])
-		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
+		
+		// I am not sure this is valid if there are no recurrences!
+		//U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
+		U::rightTriad(prod, wght_t, grad, old_deriv, t, t);  // Not sure whether this is correct. Rederive by hand. 
 
-		Layer* layer_from = conn->from;
-		layer_from->incrDelta(prod);
+		layer_from->incrDelta(prod, t);
+		printf("prod.col(t) = wght_t * (grad.col(t) %% old_deriv.col(t))\n\n");
+		printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("prod");
+		printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); old_deriv.print("old_deriv");
+		U::print(old_deriv, "old_deriv");
+		printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); grad.print("grad");
+		printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); wght.print("wght");
+	//exit(0);
 	}
+
 
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
 	// Answer: yes, and I must increment the delta
@@ -883,7 +897,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	}
 	#endif
 
-	#if 0
+	#if 1
 	// Correct
 	for (int l=0; l < layers.size(); l++) {
 		const DELTA& delta = layers[l]->getDelta();

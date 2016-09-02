@@ -47,9 +47,10 @@ void Layer::initVars(int nb_batch)
 	//printf("nb_batch= %d\n", nb_batch); exit(0);
 
 	for (int i=0; i < nb_batch; i++) {
-		inputs[i]    = VF2D(layer_size, seq_len);
-		outputs[i]   = VF2D(layer_size, seq_len);
+		inputs[i]   = VF2D(layer_size, seq_len);
+		outputs[i]  = VF2D(layer_size, seq_len);
 		gradient[i] = VF2D(layer_size, seq_len);
+		delta[i]    = VF2D(layer_size, seq_len);
 	}
 	nb_hit = 0;
 
@@ -151,6 +152,8 @@ void Layer::reset() // Must I reset recurrent connection?
 	for (int b=0; b < inputs.size(); b++) {
 		inputs(b).zeros();
 		outputs(b).zeros();
+		delta(b).zeros();
+		gradient(b).zeros();
 		clock = 0;
 	}
 }

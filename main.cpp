@@ -75,9 +75,10 @@ float runModel(Model* m)
 
 	VF2D_F pred = m->predictViaConnections(xf);
 
-	#if 0
 	pred.print("predicted value");
-	exact_prediction.print("exact predicted");
+	printf("+++++++++++\n");
+	//exact_prediction.print("exact predicted");
+	#if 0
 	VF2D err = (pred(0) - exact_prediction); 
 	err.print("absolute error on prediction");
 	err = err / exact_prediction;
@@ -140,6 +141,7 @@ storeDLossDweightInConnections, prod 0.0995
 WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
 {
 	// I'd expect the code to work with nb_batch=1 
+	printf("********** ENTER weightDerivative *************, ");
 
 	WEIGHT w0 = con.getWeight();
 	int rrows = w0.n_rows;
@@ -159,12 +161,27 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 		wm(rr,cc) -= (2.*inc);
 		VF2D_F pred_p = m->predictViaConnections(xf);
 
-		LOSS loss_p = (*mse)(exact, pred_p);
+		// Sum the loss over the sequences
+		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of floats
+		//U::print(pred_p, "pred_p"); 
+		//U::print(loss_p, "loss_p"); 
+		//loss_p.print("loss_p");
+		//exit(0);
 		LOSS loss_n = (*mse)(exact, pred_n);
+
+		//loss_n(0) = arma::sum(loss_n(0), 1);
+		//loss_p(0) = arma::sum(loss_p(0), 1);
+		//U::print(loss_n, "loss_n");
+		//loss_n.print("loss_n");
+		//loss_n(0).print("loss_n(0)");
+		//exit(0);
 
 		// take the derivative of batch 0, of the loss (summed over the sequences)
 		dLdw(rr, cc) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*inc);
 	}}
+	con.printSummary("weightDerivative");
+	dLdw.print("dLdw");
+	printf("********** EXIT weightDerivative *************, ");
 	return dLdw;
 }
 //----------------------------------------------------------------------

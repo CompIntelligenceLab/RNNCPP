@@ -195,7 +195,7 @@ void U::leftTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c, int from, int t
 //----------------------------------------------------------------------
 void U::rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c)
 {
-	for (int p=0; p < a.n_rows; p++) {
+	for (int p=0; p < b.n_rows; p++) {
 		prod[p] = a * (b(p) % c(p));
 	}
 }
@@ -203,10 +203,23 @@ void U::rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c
 void U::rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c, int from, int to)
 {
 	// only called during backpropagation
-	if (to == -1) return;
+	if (to <  0) return;
 
-	for (int p=0; p < a.n_rows; p++) {
+	for (int p=0; p < b.n_rows; p++) {
 		prod(p).col(to) = a * (b(p).col(from) % c(p).col(from));    // ERROR 
 	}
+
+	#if 0
+	printf("\nrightTriad, from, to= %d, %d\n", from, to);
+	print(a, "a");
+	print(b, "b");
+	print(c, "c");
+	print(prod, "prod");
+	a.print("a");
+	b.print("b");
+	c.print("c");
+	prod.print("prod");
+	//exit(0);
+	#endif
 }
 //----------------------------------------------------------------------

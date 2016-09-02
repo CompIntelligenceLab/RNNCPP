@@ -166,3 +166,8 @@ void Connection::incrDelta(WEIGHT& x)
 		delta += x;
 	}
 }
+
+void Connection::computeWeightTranspose()
+{
+	weight_t = weight.t();
+}

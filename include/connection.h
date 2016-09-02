@@ -54,6 +54,7 @@ public:
 	const WEIGHT& getWeight() const { return weight; } // more generally, return a vector of weights
 	WEIGHT& getWeight() { return weight; } // more generally, return a vector of weights
 	const WEIGHT& getWeightTranspose() { return weight_t; } // more generally, return a vector of weights
+	void computeWeightTranspose();
 	void print(std::string name= "");
 	void printSummary(std::string name= "");
 	int getNRows() { return weight.n_rows; }

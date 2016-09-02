@@ -86,10 +86,11 @@ void MeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 	int nb_batch = exact.n_rows;
 	loss.set_size(nb_batch); // needed
 
-	for (int i=0; i < nb_batch; i++) {
-		loss[i] = exact[i] - predict[i]; // check size compatibility
-		loss[i] = arma::square(loss[i]);  // sum of output dimensions
-		loss[i] = arma::sum(loss[i], 0);  // sum over 1st index (dimension)
+	for (int b=0; b < nb_batch; b++) {
+		loss[b] = exact[b] - predict[b];  // check size compatibility
+		loss[b] = arma::square(loss[b]);  // sum of output dimensions
+		loss[b] = arma::sum(loss[b], 0);  // sum over 1st index (dimension)
+		//loss[b] = arma::sum(loss[b]);     // sum over sequences
 		//loss[i].print("loss[i]");
 		//exit(0);
 	}
@@ -105,8 +106,11 @@ void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict
 	//U::print(exact, "exact");
 	//U::print(predict, "predict");
 
-	for (int i=0; i < nb_batch; i++) {
-		gradient[i] = 2.* (exact[i] - predict[i]); // check size compatibility
+	for (int b=0; b < nb_batch; b++) {
+		gradient[b] = 2.* (exact[b] - predict[b]); // check size compatibility
+		// this creates a problem in rightTriad since sequence components are not differentiated
+		//gradient[b] = arma::sum(gradient[b], 1); // summed over sequence axis
+		gradient[b].print("gradient");
 	}
 }
 

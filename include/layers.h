@@ -147,7 +147,8 @@ public:
 	std::string getName() { return name; }
 	int getClock() { return clock; }
 	void incrClock() { clock += 1; }
-	const DELTA& getDelta() { return delta; }
+	const DELTA& getDelta() const { return delta; } // both this and the above function are required
+	DELTA& getDelta() { return delta; }   // I might with to retrieve a pointer to delta and modify it directly (SECURITY RISK)
 	const DELTA& getDelta(int which_lc) { return layer_deltas[which_lc]; }
 	void setDelta(DELTA delta) { this->delta = delta; }
 	void setDelta(DELTA delta, int which_lc) { layer_deltas[which_lc] = delta; } // CHANGE

@@ -71,8 +71,8 @@ Forward:
 ***/
 
 	// set weights to 1 for testing
-	float w1    =1.; //   = .4;
-	float w12   =1.; //   = .5;
+	float w01      = 1.; //   = .4;
+	float w12      = 1.; //   = .5;
 	float x0       = .45;
 	float x1       = .75;
 	float ex0      = .75; // exact value
@@ -85,17 +85,18 @@ Forward:
 
 	a(0,0) = x0;
 	a(0,1) = x1;
+	z(0,0) = a(0,0);
+	z(0,1) = a(0,1);
 
-	z(1,0) = w1  * a(0,0);
+	z(1,0) = w01  * a(0,0);
+	z(1,1) = w01  * a(0,1);
 	a(1,0) = z(1,0);
-	z(2,0) = w12 * a(1,0);
-	a(2,0) = z(2,0);
-
-	z(1,1) = w1  * a(0,1);
 	a(1,1) = z(1,1);
-	z(2,1) = w12 * a(1,1);
-	a(2,1) = z(2,1);
 
+	z(2,0) = w12  * a(1,0);
+	z(2,1) = w12  * a(1,1);
+	a(2,0) = z(2,0);
+	a(2,1) = z(2,1);
 
 	// loss = loss0 + loss1
 	//      = (a(2,0)-ex0)^2 + (a(2,1)-ex1)^2
@@ -105,16 +106,15 @@ Forward:
 	//
 	// d(loss)/dw1  = 2*(l0-ex0)*w12*x0 + 2*(l1-ex1)*(w12*x1) 
 	// d(loss)/dw12 = 2*(l0-ex0)*w1*x0  + 2*(l1-ex1)*(w1*x1) 
-	//
+
 	float L0 = 2.*(a(2,0)-ex0);
 	float L1 = 2.*(a(2,1)-ex1);
-	float dldw1  = L0*(w12*x0) + L1*(w12*x1); 
-	float dldw12 = L0*(w1 *x0) + L1*(w1 *x1); 
-
-	float da10da00 = w1;
-	float da20da10 = w12;
-	float da11da01 = w1;
-	float da21da11 = w12;
+	float dlda20 = L0*w12;
+	float dlda21 = L1*w12;
+	float dlda10 = dlda20 * w12;
+	float dlda11 = dlda21 * w12;
+	float dlda00 = dlda10 * w01;
+	float dlda01 = dlda11 * w01;
 
 	printf("\n ============== Layer Outputs =======================\n");
 	printf("a00= %f\n", a(0,0));
@@ -124,9 +124,13 @@ Forward:
 	printf("a11= %f\n", a(1,1));
 	printf("a21= %f\n", a(2,1));
 
-	printf("Calculation of weight derivatives by hand\n");
-	printf("dldw1= %f\n", dldw1);
-	printf("dldw12= %f\n", dldw12);
+	//printf("Calculation of weight derivatives by hand\n");
+	//printf("dldw1= %f\n", dldw1);
+	//printf("dldw12= %f\n", dldw12);
+
+	printf("dlda20= %f, dlda21= %f\n", dlda20, dlda21);
+	printf("dlda10= %f, dlda11= %f\n", dlda10, dlda11);
+	printf("dlda00= %f, dlda01= %f\n", dlda00, dlda01);
 
 	printf(" ================== END dL/da's =========================\n\n");
 
@@ -157,14 +161,16 @@ Forward:
 	Connection* conn;
 	{
 		conn = m->getConnection(input, d1);
-		WEIGHT& w_1 = conn->getWeight();
-		w_1(0,0) = w1;
+		WEIGHT& w_01 = conn->getWeight();
+		w_01(0,0) = w01;
+		conn->computeWeightTranspose();
 	}
 
 	{
 		conn = m->getConnection(d1, d2);
 		WEIGHT& w_12 = conn->getWeight();
 		w_12(0,0) = w12;
+		conn->computeWeightTranspose();
 	}
 
 	// ================  BEGIN F-D weight derivatives ======================
@@ -196,7 +202,10 @@ Forward:
 	for (int i=0; i < 1; i++) {
 		U::print(xf, "xf");
 		pred = m->predictViaConnections(xf);
-		U::print(pred, "Prediction: pred");
+		U::print(xf, "+++++++++++++ Prediction: xf");
+		U::print(pred, "+++++++++++++ Prediction: pred");
+		xf.print("xf");
+		pred.print("pred");
 	}
 	Objective* obj = m->getObjective();
 	LOSS loss = (*obj)(exact, pred);
@@ -206,10 +215,12 @@ Forward:
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	
 	printf("\n*** deltas from back propagation ***\n");
+
 	for (int c=1; c < connections.size(); c++) {
-		connections[c]->printSummary("Connection (backprop)");
+		connections[c]->printSummary("Connection (backprop), ");
 		connections[c]->getDelta().print("delta");
 	}
+exit(0);
 
 	VF2D dLdw_analytical = 2.*(exact(0) - pred(0)) % xf(0);
 	printf("Analytical dLdw: = %f\n", dLdw(0));
