@@ -89,10 +89,10 @@ Forward:
 	float w12 = .5;
 	float w11 = .6;
 	float w22 = .7;
-	w01       = 1.;
-	w12       = 1.;
-	w11       = 1.;
-	w22       = 1.;
+	//w01       = 1.;
+	//w12       = 1.;
+	//w11       = 1.;
+	//w22       = 1.;
 	float x0       = .45;
 	float x1       = .75;
 	float ex0      = .75; // exact value
@@ -284,7 +284,7 @@ Forward:
 
 	//============================================
 	// Finite-Difference weights
-	float inc = .0001;
+	float inc = .001;
 	printf("\n*** deltas from finite-difference weight derivative ***\n");
 	WEIGHT fd_dLdw;
 	// First connection is between 0 and input (does not count)
