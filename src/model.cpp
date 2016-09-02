@@ -656,11 +656,10 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	//exit(0);
 	}
 
-
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
 	// Answer: yes, and I must increment the delta
 
-	#if 0
+	#if 1
 
 	for (int l=0; l < layers.size(); l++) {
 		Connection* conn = layers[l]->getConnection();
@@ -692,7 +691,6 @@ void Model::storeDLossDweightInConnections()
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 	WEIGHT prod;
-
 
 	//printf("********** ENTER storeDLossDweightInConnections ***********\n");
 
@@ -767,7 +765,7 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		}
 	}
 
-	return;
+	//return;
 
 	// Needed when there are recurrent layers
 
