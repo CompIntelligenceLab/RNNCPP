@@ -835,6 +835,11 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }
 //----------------------------------------------------------------------
+void Model::storeDLossDbiasInLayersRec(int t)
+{
+	;
+}
+//----------------------------------------------------------------------
 void Model::resetDeltas()
 {
 	typedef CONNECTIONS::reverse_iterator IT;
@@ -922,6 +927,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 		storeGradientsInLayersRec(t);
 		storeDactivationDoutputInLayersRec(t);
 		storeDLossDweightInConnectionsRec(t);
+		storeDLossDbiasInLayersRec(t);
 	}
 	//printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 
