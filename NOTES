@@ -104,4 +104,7 @@ Forward:
 
 One takes the derivative of the sum of losses over the sequences with respect to the weights. Is that correct? 
 ----------------------------------------------------------------------
-
+Sept. 2, 2016
+test_recurrent5.cpp: prediction works, but only accurate to 4 digits compared to analytical in single precision. 
+Indicates that double precision might be necessary on larger networks unless algorithms are stable. 
+----------------------------------------------------------------------

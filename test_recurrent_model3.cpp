@@ -109,9 +109,12 @@ Forward:
 	// d(loss)/dw01 = 2*(l0-ex0)*w12*x0 + 2*(l1-ex1)*(w12*x1) 
 	// d(loss)/dw12 = 2*(l0-ex0)*w01*x0 + 2*(l1-ex1)*(w01*x1) 
 
+	float loss0 = (ex0-a(2,0))*(ex0-a(2,0));  // same as predict routine
+	float loss1 = (ex1-a(2,1))*(ex1-a(2,1));  // DIFFERENT FROM PREDICT ROUTINE
+	float loss_tot  = loss0 + loss1;   // total loss for a sequence of length 2
+
 	float     L0 = 2.*(a(2,0)-ex0);
 	float     L1 = 2.*(a(2,1)-ex1);
-	float      L = L0 + L1;   // total loss for a sequence of length 2
 	float dlda20 = L0;
 	float dlda21 = L1;
 	float dlda10 = dlda20 * w12;
@@ -143,6 +146,7 @@ Forward:
 	float dldw12 = dlda20*a(1,0) + dlda21*a(1,1);
 
 	printf(".... Calculation of weight derivatives by hand\n");
+	printf("total loss: %f\n", loss_tot);
 	printf("dldw01= %f\n", dldw01);
 	printf("dldw12= %f\n", dldw12);
 	printf("\n");
@@ -151,8 +155,6 @@ Forward:
 	printf(" ================== END dL/da's =========================\n\n");
 
 
-	float loss0 = (ex0-a(2,0))*(ex0-a(2,0));  // same as predict routine
-	float loss1 = (ex1-a(2,1))*(ex1-a(2,1));  // DIFFERENT FROM PREDICT ROUTINE
 	// Is error hand-solution or in predict? 
 	printf("loss0= %f, loss1= %f\n", loss0, loss1);
 
@@ -220,8 +222,8 @@ Forward:
 		pred.print("pred");
 	}
 	Objective* obj = m->getObjective();
-	LOSS loss = (*obj)(exact, pred);
-	loss.print("loss");
+	const LOSS& loss = (*obj)(exact, pred);
+	loss.print("prediction loss, ");
 
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	
