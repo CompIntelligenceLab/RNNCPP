@@ -107,7 +107,7 @@ void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict
 	//U::print(predict, "predict");
 
 	for (int b=0; b < nb_batch; b++) {
-		gradient[b] = 2.* (exact[b] - predict[b]); // check size compatibility
+		gradient[b] = 2.* (predict[b] - exact[b]); // check size compatibility
 		// this creates a problem in rightTriad since sequence components are not differentiated
 		//gradient[b] = arma::sum(gradient[b], 1); // summed over sequence axis
 		gradient[b].print("gradient");

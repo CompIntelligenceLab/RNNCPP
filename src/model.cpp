@@ -618,8 +618,8 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	const VF2D_F& grad = output_layers[0]->getDelta();
 	int nb_batch = grad.n_rows;
 
+	// not efficient. Should work directly in Layer instance
 	VF2D_F prod(nb_batch);
-
 	for (int b=0; b < nb_batch; b++) {
 		prod(b) = VF2D(size(grad(b)));
 	}
@@ -646,13 +646,14 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		//U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t);  // Not sure whether this is correct. Rederive by hand. 
 
-		layer_from->incrDelta(prod, t);
 		printf("prod.col(t) = wght_t * (grad.col(t) %% old_deriv.col(t))\n\n");
-		printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("prod");
-		printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); old_deriv.print("old_deriv");
-		U::print(old_deriv, "old_deriv");
-		printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); grad.print("grad");
-		printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); wght.print("wght");
+		printf("t= %d, layer_from (before)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
+		layer_from->incrDelta(prod, t);
+		printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
+		//printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); old_deriv.print("old_deriv");
+		//U::print(old_deriv, "old_deriv");
+		//printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); grad.print("grad");
+		//printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); wght.print("wght");
 	//exit(0);
 	}
 
@@ -660,7 +661,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	// Answer: yes, and I must increment the delta
 
 	#if 1
-
+	printf("+++++ treat temporal connections\n");
 	for (int l=0; l < layers.size(); l++) {
 		Connection* conn = layers[l]->getConnection();
 		if (!conn) continue;
@@ -675,14 +676,17 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
 		Layer* layer_from = conn->from;
+		layer_from->printSummary("layer_from, temporal");
 		//prod.print("prod");  // last two at t=0 are 1.e-45, so final answer does not change. Error? // should be zero 
 		//printf("t= %d\n", t); // t=1 during first pass
-		layer_from->getDelta().print("layer delta"); // should be zero at first
+		printf("t= %d, layer_from (before)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
 		layer_from->incrDelta(prod, t-1);
-		layer_from->getDelta().print("layer delta"); // should be zero at first
+		printf("(temporal) modify prod[t=%d]\n", t-1);
+		printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
 		//exit(0);
 	}
 	#endif
+	//exit(0);
 
 
 	//printf("********* storeDactivationDoutputInLayers() t= %d **************\n", t);
@@ -734,17 +738,17 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 	//printf("********** ENTER storeDLossDweightInConnections ***********\n");
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
-		Connection* conn = (*it);
-		Layer* layer_from = conn->from;
-		Layer* layer_to   = conn->to;
+		Connection* con = (*it);
+		Layer* layer_from = con->from;
+		Layer* layer_to   = con->to;
 
 		const VF2D_F& out       = layer_from->getOutputs();
 		const VF2D_F& grad      = layer_to->getGradient();
 		const VF2D_F& old_deriv = layer_to->getDelta();
-		delta = VF2D(size(conn->getWeight()));
+		delta = VF2D(size(con->getWeight()));
 
 		#if 0
-		//conn->printSummary("Connection, ");
+		//con->printSummary("Connection, ");
 		//grad.print("layer_to->getGradient, grad, ");
 		//old_deriv.print("layer_to->getDelta, old_deriv, ");
 		//out.print("layer_from_getOutputs()");
@@ -775,16 +779,16 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 
 	// Set Deltas of all the connections of temporal layers
 	for (int l=0; l < layers.size(); l++) {
-		Connection* conn = layers[l]->getConnection();
-		if (!conn) continue;
+		Connection* con = layers[l]->getConnection();
+		if (!con) continue;
 
-		Layer* layer_from = conn->from;
-		Layer* layer_to   = conn->to;
+		Layer* layer_from = con->from;
+		Layer* layer_to   = con->to;
 
 		const VF2D_F& out       = layer_from->getOutputs();
 		const VF2D_F& grad      = layer_to->getGradient();
 		const VF2D_F& old_deriv = layer_to->getDelta();
-		delta = VF2D(size(conn->getWeight()));
+		delta = VF2D(size(con->getWeight()));
 
         //printf("store, t= %d\n", t);
         for (int b=0; b < nb_batch; b++) {
@@ -792,7 +796,7 @@ void Model::storeDLossDweightInConnectionsRec(int t)
             	const VF2D& out_t = out(b).t();
             	delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t); //out(b).t();
 				//printf("seq=%d, ", s); delta.print("incrDelta(delta), ");
-            	conn->incrDelta(delta);
+            	con->incrDelta(delta);
         	}
 		}
 	}
@@ -810,9 +814,8 @@ void Model::resetDeltas()
 
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->resetDelta();
-		Connection* conn = layers[l]->getConnection();
-		if (!conn) continue;
-		conn->resetDelta();
+		Connection* con = layers[l]->getConnection();
+		if (con) con->resetDelta();
 	}
 }
 //----------------------------------------------------------------------

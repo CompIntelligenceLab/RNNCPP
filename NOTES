@@ -108,3 +108,7 @@ Sept. 2, 2016
 test_recurrent5.cpp: prediction works, but only accurate to 4 digits compared to analytical in single precision. 
 Indicates that double precision might be necessary on larger networks unless algorithms are stable. 
 ----------------------------------------------------------------------
+Sept. 2, 2016
+The gradient of the objective function appears to have the wrong sign. 
+Fixed in objective.cpp, method gradient in MSE subclass. 
+----------------------------------------------------------------------

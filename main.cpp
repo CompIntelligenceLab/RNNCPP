@@ -848,9 +848,8 @@ int main()
 	//testRecurrentModel2(1);
 
 	// works with batch=1, seq=2, layer_size=1 for all layers, input_dim=1, identity activation
-	//testRecurrentModel3(1); 
-	testRecurrentModel5(1);
-	exit(0);
+	//testRecurrentModel3(1); exit(0);
+	testRecurrentModel5(1); exit(0);
 
 	testFuncModel3();
 	exit(0);
