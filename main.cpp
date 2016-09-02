@@ -349,6 +349,7 @@ exit(0);
 #include "test_recurrent_model2.cpp"
 #include "test_recurrent_model3.cpp"
 #include "test_recurrent_model4.cpp"
+#include "test_recurrent_model5.cpp"
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -845,7 +846,10 @@ int main()
 
 	//testRecurrentModel1(1);
 	//testRecurrentModel2(1);
-	testRecurrentModel3(1);
+
+	// works with batch=1, seq=2, layer_size=1 for all layers, input_dim=1, identity activation
+	//testRecurrentModel3(1); 
+	testRecurrentModel5(1);
 	exit(0);
 
 	testFuncModel3();

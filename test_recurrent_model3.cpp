@@ -43,10 +43,9 @@ Check the sequences: prediction and back prop.
    (no links between times)
   In --> d1 --> d2 --> loss1    (t=1)
 
-
 Inputs to nodes: z(l,t), a(l,t-1)
 Output to nodes: a(l,t)
-Weights: In -- d1 : w1
+Weights: In -- d1 : w01
 Weights: d1 -- d2 : w12
 d1: l=1 (layer 1)
 d2: l=2
@@ -58,12 +57,12 @@ Input at t=1: x1
 
 Loss = L = loss0 + loss1
 Forward: 
- z(1,0) = w1*x0   
+ z(1,0) = w01*x0   
  z(2,0) = w12*a(1,0)
  a(1,0) = z(1,0)
  a(2,0) = z(2,0)
  -------
- z(1,1) = w1*x1    (2nd arg is time; 1st argument is layer)
+ z(1,1) = w01*x1    (2nd arg is time; 1st argument is layer)
  z(2,1) = w12*a(1,1) 
  a(1,1) = z(1,1)
  a(1,2) = z(1,2)
@@ -74,8 +73,6 @@ Forward:
 	// set weights to 1 for testing
 	float w01      = .4;
 	float w12      = .5;
-	//w01      = 1.;
-	//w12      = 1.;
 	float x0       = .45;
 	float x1       = .75;
 	float ex0      = .75; // exact value
@@ -106,7 +103,7 @@ Forward:
 	// loss = loss0 + loss1
 	//      = (a(2,0)-ex0)^2 + (a(2,1)-ex1)^2
 	//      = (w12*a(1,0)-ex0)^2 + (w12*a(1,1)-ex1)^2
-	//      = (w12*w1*x0 -ex0)^2 + (w12*w1*x1 -ex1)^2
+	//      = (w12*w01*x0 -ex0)^2 + (w12*w01*x1 -ex1)^2
 	//      = (l0-ex0)^2 + (l1-ex1)^2
 	//
 	// d(loss)/dw01 = 2*(l0-ex0)*w12*x0 + 2*(l1-ex1)*(w12*x1) 
@@ -153,17 +150,17 @@ Forward:
 
 	printf(" ================== END dL/da's =========================\n\n");
 
-	//============================================
-
 
 	float loss0 = (ex0-a(2,0))*(ex0-a(2,0));  // same as predict routine
 	float loss1 = (ex1-a(2,1))*(ex1-a(2,1));  // DIFFERENT FROM PREDICT ROUTINE
 	// Is error hand-solution or in predict? 
 	printf("loss0= %f, loss1= %f\n", loss0, loss1);
 
-	int output_dim = m->getOutputLayers()[0]->getOutputDim();
+	//============================================
 
+	int output_dim = m->getOutputLayers()[0]->getOutputDim();
 	VF2D_F xf(nb_batch), exact(nb_batch);
+
 	for (int b=0; b < nb_batch; b++) {
 		xf(b) = VF2D(input_dim, seq_len);
 		for (int i=0; i < input_dim; i++) {
@@ -209,12 +206,8 @@ Forward:
 	//================================
 
 	VF2D_F yf;
-	//testData(*m, xf, yf, exact);
-
 	Layer* outLayer = m->getOutputLayers()[0];
 	printf("output_dim = %d\n", output_dim);
-
-	//CONNECTIONS connections = m->getConnections();
 
 	VF2D_F pred;
 
@@ -229,12 +222,11 @@ Forward:
 	Objective* obj = m->getObjective();
 	LOSS loss = (*obj)(exact, pred);
 	loss.print("loss");
-	//exit(0);   // PREDICTIONS ARE WRONG
 
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	
-	printf("\n*** deltas from back propagation ***\n");
 
+	printf("\n*** deltas from back propagation ***\n");
 	for (int c=1; c < connections.size(); c++) {
 		connections[c]->printSummary("Connection (backprop), ");
 		connections[c]->getDelta().print("delta");
@@ -246,7 +238,7 @@ Forward:
 	exit(0);
 
 	// Three checks: 
-	// 1) analytical calculation
+	// 1) analytical calculation (using recursion to compute derivatives of loss wrt layer output. 
 	// 2) Finite-Difference derivative
 	// 3) Actual back-propagation
 	// If all three give the same answer to within some tolerance, it is pretty certain that the results are correct (although not a proof)
