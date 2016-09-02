@@ -18,7 +18,6 @@ void testRecurrentModel3(int nb_batch=1)
 	Layer* d2 = new DenseLayer(1, "rdense");
 	Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
 	                                       // Automate this at a later time
-
 	m->add(0,     input);
 	m->add(input, d1);
 	m->add(d1,    d2);
@@ -70,9 +69,13 @@ Forward:
  a(1,2) = z(1,2)
 ***/
 
+// ANALYTICAL DERIVATION when activation functions are the identity
+
 	// set weights to 1 for testing
 	float w01      = .4;
 	float w12      = .5;
+	w01      = 1.;
+	//w12      = 1.;
 	float x0       = .45;
 	float x1       = .75;
 	float ex0      = .75; // exact value
@@ -80,8 +83,10 @@ Forward:
 	int seq_len    = 2;
 	int input_dim  = 1;
 	int nb_layers  = 2;  // in addition to input
-	VF2D a(nb_layers+1, seq_len); // assume al dimensions = 1
-	VF2D z(nb_layers+1, seq_len); // assume al dimensions = 1
+
+	// nb_layers+1 accommodates nb_layers hidden layers and an input layer
+	VF2D a(nb_layers+1, seq_len); // assume all dimensions = 1
+	VF2D z(nb_layers+1, seq_len); // assume all dimensions = 1
 
 	a(0,0) = x0;
 	a(0,1) = x1;
@@ -107,8 +112,9 @@ Forward:
 	// d(loss)/dw1  = 2*(l0-ex0)*w12*x0 + 2*(l1-ex1)*(w12*x1) 
 	// d(loss)/dw12 = 2*(l0-ex0)*w1*x0  + 2*(l1-ex1)*(w1*x1) 
 
-	float L0 = 2.*(a(2,0)-ex0);
-	float L1 = 2.*(a(2,1)-ex1);
+	float     L0 = 2.*(a(2,0)-ex0);
+	float     L1 = 2.*(a(2,1)-ex1);
+	float      L = L0 + L1;   // total loss for a sequence of length 2
 	float dlda20 = L0*w12;
 	float dlda21 = L1*w12;
 	float dlda10 = dlda20 * w12;
@@ -124,13 +130,26 @@ Forward:
 	printf("a11= %f\n", a(1,1));
 	printf("a21= %f\n", a(2,1));
 
-	//printf("Calculation of weight derivatives by hand\n");
-	//printf("dldw1= %f\n", dldw1);
-	//printf("dldw12= %f\n", dldw12);
-
 	printf("dlda20= %f, dlda21= %f\n", dlda20, dlda21);
 	printf("dlda10= %f, dlda11= %f\n", dlda10, dlda11);
 	printf("dlda00= %f, dlda01= %f\n", dlda00, dlda01);
+
+	// Derivative of loss with respect to weights
+	// dL/dw01 = sum_t dL/da1t * da1t/dw01  = sum_t dL/da1t * (f'=1) * a0t
+	//         = dL/da10 * a00 + dL/da11 * a01
+	//         = dlda10  * a00 + dlda11  * a01
+	// dL/dw12 = sum_t dL/da2t * da2t/dw12  = sum_t dL/da2t * (f'=1) * a1t
+	//         = dL/da20 * a10 + dL/da21 * a11
+	//         = dlda20  * a10 + dlda11  * a11
+    
+	float dldw01 = dlda10*a(0,0) + dlda11*a(0,1);
+	float dldw12 = dlda20*a(1,0) + dlda11*a(1,1);
+
+	printf(".... Calculation of weight derivatives by hand\n");
+	printf("dldw01= %f\n", dldw01);
+	printf("dldw12= %f\n", dldw12);
+	printf("\n");
+
 
 	printf(" ================== END dL/da's =========================\n\n");
 
@@ -220,11 +239,16 @@ Forward:
 		connections[c]->printSummary("Connection (backprop), ");
 		connections[c]->getDelta().print("delta");
 	}
-exit(0);
 
 	VF2D dLdw_analytical = 2.*(exact(0) - pred(0)) % xf(0);
 	printf("Analytical dLdw: = %f\n", dLdw(0));
 	printf("F-D  derivative: = %f\n", fd_dLdw(0));
 	exit(0);
+
+	// Three checks: 
+	// 1) analytical calculation
+	// 2) Finite-Difference derivative
+	// 3) Actual back-propagation
+	// If all three give the same answer to within some tolerance, it is pretty certain that the results are correct (although not a proof)
 }
 //----------------------------------------------------------------------
