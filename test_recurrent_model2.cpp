@@ -258,7 +258,7 @@ Forward:
 		U::print(pred, "Prediction: pred");
 		pred.print("Prediction: pred");
 	}
-	exit(0);
+
 	Objective* obj = m->getObjective();
 	LOSS loss = (*obj)(exact, pred);
 	loss.print("loss");
