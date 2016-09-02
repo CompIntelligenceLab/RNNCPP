@@ -200,15 +200,28 @@ void Layer::incrInputs(VF2D_F& x)
 		inputs[b] += x[b];
 	}
 }
-
+//----------------------------------------------------------------------
+void Layer::incrInputs(VF2D_F& x, int t)
+{
+	for (int b=0; b < x.n_rows; b++) {
+		inputs[b].col(t) += x[b].col(t);
+	}
+}
+//----------------------------------------------------------------------
 void Layer::resetInputs()
 {
 	for (int b=0; b < inputs.n_rows; b++) {
 		inputs[b].zeros();
 	}
 }
-
-
+//----------------------------------------------------------------------
+void Layer::resetInputs(int t)
+{
+	for (int b=0; b < inputs.n_rows; b++) {
+		inputs[b].col(t).zeros();
+	}
+}
+//----------------------------------------------------------------------
 void Layer::incrDelta(VF2D_F& x)
 {
 	//printf("delta.rows: %d\n", delta.n_rows);
@@ -346,9 +359,9 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 	}
 }
 //----------------------------------------------------------------------
-void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int seq_i)
+void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int t)
 {
-	//printf("enter Layer::processOutputDataFromPreviousLayer, t= %d\n", seq_i);
+	//printf("enter Layer::processOutputDataFromPreviousLayer, t= %d\n", t);
 	++nb_hit;
 
 	const VF2D_F& from_outputs = conn->from->getOutputs();
@@ -374,7 +387,7 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	//U::matmul(prod, wght, from_outputs);  // w * x
 	//printf("seq_i= %d\n", seq_i);
 
-	U::matmul(to_inputs, wght, from_outputs, seq_i, seq_i);  // w * x
+	U::matmul(to_inputs, wght, from_outputs, t, t);  // w * x
 
 	//U::print(to_inputs, "to_inputs");
 	//to_inputs.print("to_inputs");
@@ -386,17 +399,26 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	// completeness only happens once per layer and per input value into the predicition module
 	if (areIncomingLayerConnectionsComplete()) {
 		 // sum up all the inputs + the temporal input if there is one
-		 resetInputs();
+		 resetInputs(t);   // incorrect answer for a10, correct for a00
+		 //resetInputs();  // correct answer (STRANGE)
 		//layer_inputs[conn->which_lc].print("** layer_inputs, which_lc");  // ===> zero
 		//exit(0);
 		 for (int i=0; i < layer_inputs.size(); i++) {
-		 	incrInputs(layer_inputs[i]);
+		 	incrInputs(layer_inputs[i], t);
 		 }
 		 // add the self-looping if there. 
 		 //loop_input.print("loop input");  // UNINITIALIZED
 		 incrInputs(loop_input); 
 		 // Add layer biases. must loop over batch and over sequence size. 
-		 addBiasToInput(seq_i);
+		 //inputs.print("before, inputs, ");
+		 printf("t= %d\n", t);
+		 inputs.print("before bias, layer inputs, ");
+		 addBiasToInput(t);
+		 inputs.print("after bias, layer inputs, ");
+		 //bias.print("bias");
+		 //inputs.print("after, inputs, ");
+		 //printf("gordon\n");
+		 //exit(0);
 
 		 prod = getActivation()(getInputs());
 		 setOutputs(prod);

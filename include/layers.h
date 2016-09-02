@@ -117,7 +117,8 @@ public:
 
    // gradient of loss function with respect to weights
    GRADIENTS getGradient() const {return gradient;}
-   BIAS getBias() {return bias;}  // return  reference or const ref? 
+   BIAS& getBias() {return bias;}  // return  reference or const ref? 
+   const BIAS& getBias() const {return bias;}  // return  reference or const ref? 
    // make private?
    void computeGradient();
    void computeGradient(int t); // for sequences
@@ -138,7 +139,9 @@ public:
 	void incrOutputs(VF2D_F& x);
 	void incrOutputs(VF2D_F& x, int t); // for sequences
 	void incrInputs(VF2D_F& x);
+	void incrInputs(VF2D_F& x, int t);
 	void resetInputs();
+	void resetInputs(int t);
 	void incrDelta(VF2D_F& x);
 	void incrDelta(VF2D_F& x, int t);
 	// reset inputs and ouputs to zero

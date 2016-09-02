@@ -492,6 +492,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 			Connection* conn  = clist[c];
 	
 			Layer* to_layer   = conn->to;
+			printf("ADD DATA FROM PREVIOUS LAYER\n");
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
 		}
  	}

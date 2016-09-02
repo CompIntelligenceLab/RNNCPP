@@ -85,7 +85,7 @@ void RecurrentLayer::forwardLoops()
 	//U::print(loop_wght, "loop_wght");
 	//U::print(outputs, "outputs");
 
-	U::matmul(loop_input, loop_wght, outputs); // out of bounds
+	//U::matmul(loop_input, loop_wght, outputs); // out of bounds
 	// calculate for sequence 0, store in sequence 1
 	U::matmul(loop_input, loop_wght, outputs, 0, 1); // out of bounds
 

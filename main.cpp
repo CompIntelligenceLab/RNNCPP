@@ -141,7 +141,7 @@ storeDLossDweightInConnections, prod 0.0995
 WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
 {
 	// I'd expect the code to work with nb_batch=1 
-	printf("********** ENTER weightDerivative *************, ");
+	printf("********** ENTER weightDerivative *************, \n");
 
 	WEIGHT w0 = con.getWeight();
 	int rrows = w0.n_rows;
@@ -179,9 +179,9 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 		// take the derivative of batch 0, of the loss (summed over the sequences)
 		dLdw(rr, cc) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*inc);
 	}}
-	con.printSummary("weightDerivative");
-	dLdw.print("dLdw");
-	printf("********** EXIT weightDerivative *************, ");
+	//con.printSummary("weightDerivative");
+	//dLdw.print("dLdw");
+	printf("********** EXIT weightDerivative *************, \n");
 	return dLdw;
 }
 //----------------------------------------------------------------------
@@ -847,6 +847,7 @@ int main()
 	#endif
 
 	//testRecurrentModel1(1);
+	testRecurrentModel5(1); exit(0);
 	testRecurrentModelBias5(1);
 	exit(0);
 	//testRecurrentModel2(1);

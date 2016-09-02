@@ -5,7 +5,7 @@ Built based on a working version of test_current_model3.cpp
 //----------------------------------------------------------------------
 void testRecurrentModel5(int nb_batch=1)
 {
-	printf("\n --- testRecurrentModel2 ---\n");
+	printf("\n --- testRecurrentModel5 ---\n");
 
 	//================================
 	Model* m  = new Model(); // argument is input_dim of model
@@ -240,7 +240,8 @@ Forward:
 		xf.print("xf");
 		pred.print("pred");
 	}
-	//exit(0);
+	exit(0);
+
 	Objective* obj = m->getObjective();
 	const LOSS& loss = (*obj)(exact, pred);
 	loss.print("loss");
