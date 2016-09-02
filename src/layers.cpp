@@ -32,6 +32,7 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	clock = 0;
 	recurrent_conn = 0;
 	bias.set_size(layer_size);
+	bias_delta.set_size(layer_size);
 
 	initVars(nb_batch);
 
@@ -54,6 +55,7 @@ void Layer::initVars(int nb_batch)
 		delta[i]    = VF2D(layer_size, seq_len);
 	}
 	bias.zeros();
+	bias_delta.zeros();
 	nb_hit = 0;
 
 	reset();
@@ -412,9 +414,9 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 		 // Add layer biases. must loop over batch and over sequence size. 
 		 //inputs.print("before, inputs, ");
 		 printf("t= %d\n", t);
-		 inputs.print("before bias, layer inputs, ");
+		 //inputs.print("before bias, layer inputs, ");
 		 addBiasToInput(t);
-		 inputs.print("after bias, layer inputs, ");
+		 //inputs.print("after bias, layer inputs, ");
 		 //bias.print("bias");
 		 //inputs.print("after, inputs, ");
 		 //printf("gordon\n");

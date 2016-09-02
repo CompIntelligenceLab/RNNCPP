@@ -847,7 +847,7 @@ int main()
 	#endif
 
 	//testRecurrentModel1(1);
-	testRecurrentModel5(1); exit(0);
+	//testRecurrentModel5(1); exit(0);
 	testRecurrentModelBias5(1);
 	exit(0);
 	//testRecurrentModel2(1);

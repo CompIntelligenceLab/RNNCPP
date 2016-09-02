@@ -43,6 +43,7 @@ protected:
 	VF2D_F outputs; // outputs from activation function
 	DELTA delta; // d(loss) / d(layer output)
 	BIAS bias;
+	VF1D bias_delta; // arma::Col, d(loss) / d(bias)
 
 	//WEIGHTS weights; // between this layer and the previous one. Breaks down 
 	                // if layers form graphs (recurrent or not)
