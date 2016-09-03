@@ -253,6 +253,11 @@ void Layer::incrDelta(VF2D_F& x, int t)
 	}
 }
 //----------------------------------------------------------------------
+void Layer::incrBiasDelta(VF1D& x)
+{
+	bias_delta += x;
+}
+//----------------------------------------------------------------------
 void Layer::computeGradient()
 {
 	// Error. Derivatives must be evaluated for the input argument!

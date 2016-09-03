@@ -846,6 +846,8 @@ void Model::storeDLossDbiasInLayersRec(int t)
         	delta = (old_deriv[b].col(t) % grad[b].col(t)); //out(b).t();
 		}
 
+		layer->incrBiasDelta(delta);
+
 		// I have my doubts about this formula above
 	}
 }
