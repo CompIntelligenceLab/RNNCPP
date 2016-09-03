@@ -472,10 +472,8 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	//printf("****************** ENTER predictViaConnections ***************\n");
 
 	Layer* input_layer = getInputLayers()[0];
-	input_layer->setOutputs(x);
-
-	layers[0]->layer_inputs[0] = x;
-	layers[0]->setOutputs(x);
+	input_layer->layer_inputs[0] = x;
+	input_layer->setOutputs(x);  // although input layer "could" have a nonlinear activation function (maybe)
 
  	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
 		for (int l=0; l < layers.size(); l++) {
@@ -490,9 +488,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
-	
 			Layer* to_layer   = conn->to;
-			printf("ADD DATA FROM PREVIOUS LAYER\n");
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
 		}
  	}
@@ -506,17 +502,13 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 	//printf("****************** ENTER predictViaConnections ***************\n");
 
 	Layer* input_layer = getInputLayers()[0];
+	input_layer->layer_inputs[0] = x; // there are no layers upstream to the input
 	input_layer->setOutputs(x);
 
 	// input layer (ASSUMED to be 0th entry to layer_inputs);
-	//U::print(layer_inputs[0], layer_inputs[0]);
-	//U::print(layers[0]->layer_inputs[0], "layer_input[0]");
 
-	layers[0]->layer_inputs[0] = x;
+	getInputLayers()[0]->layer_inputs[0] = x;
 	layers[0]->setOutputs(x);
-
-	//layers[0]->layer_inputs[0].print("layer_input[0]");
-	//layers[0]->printSummary("");exit(0);
 
  	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
 		for (int l=0; l < layers.size(); l++) {
@@ -532,10 +524,8 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 		//printf("**** t= %d **************\n", t);
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
-	
 			Layer* to_layer   = conn->to;
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
-			//prod.print("prod after processOutputData, ");
 		}
  	}
 
@@ -546,19 +536,25 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 //----------------------------------------------------------------------
 // This was hastily decided on primarily as a means to construct feed forward
 // results to begin implementing the backprop. Should be reevaluated
-void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*/) 
+void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /*=1*/) 
 {
 	if (batch_size == 0) { // Means no value for batch_size was passed into this function
     	batch_size = this->batch_size; // Use the current value stored in model
     	printf("model batch size: %d\n", batch_size);
-		// resize x and y to handle different batch size
-		assert(x.n_rows == batch_size && y.n_rows == batch_size);
+		// resize x and exact to handle different batch size
+		assert(x.n_rows == batch_size && exact.n_rows == batch_size);
 	}
 
-	VF2D_F pred = predictViaConnections(x);
-	objective->computeLoss(y, pred);
-	const LOSS& loss = objective->getLoss();
-	loss.print("loss");
+	for (int i=0; i < nb_epochs; i++) {
+		printf("**** epoch %d ****\n");
+		VF2D_F pred = predictViaConnectionsBias(x);
+		objective->computeLoss(exact, pred);
+		const LOSS& loss = objective->getLoss();
+		loss.print("loss");
+		backPropagationViaConnectionsRecursion(exact, pred);
+		//backPropagationViaConnectionsRecursion(exact, const VF2D_F& pred)
+		parameterUpdate();
+	}
 }
 //----------------------------------------------------------------------
 void Model::storeGradientsInLayers()
@@ -996,14 +992,42 @@ Connection* Model::getConnection(Layer* layer1, Layer* layer2)
 	return 0;
 }
 //----------------------------------------------------------------------
-void Model::WeightUpdate()
+void Model::weightUpdate()
+{
+	// Assume that all connections in clist are spatial
+	// spatial connections
+	for (int c=0; c < clist.size(); c++) {
+		Connection* con = clist[c];
+		WEIGHT& wght = con->getWeight();
+		wght = wght - learning_rate * con->getDelta();
+	}
+
+	// temporal connections (loops)
+	for (int l=0; l < layers.size(); l++) {
+		Connection* con = layers[l]->getConnection();
+		if (!con) continue;
+		WEIGHT& wght = con->getWeight();
+		wght = wght - learning_rate * con->getDelta();
+	}
+}
+//----------------------------------------------------------------------
+void Model::biasUpdate()
+{
+	// temporal connections (loops)
+	for (int l=0; l < layers.size(); l++) {
+		BIAS& bias = layers[l]->getBias();
+		bias = bias - learning_rate * layers[l]->getBiasDelta();
+	}
+}
+//----------------------------------------------------------------------
+void Model::activationUpdate()
 {
 }
 //----------------------------------------------------------------------
-void Model::BiasUpdate()
+void Model::parameterUpdate()
 {
+	weightUpdate();
+	biasUpdate();
+    activationUpdate();
 }
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
 //----------------------------------------------------------------------

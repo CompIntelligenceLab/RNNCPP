@@ -117,6 +117,7 @@ public:
   void storeDLossDweightInConnectionsRec(int t);
   void storeDLossDbiasInLayersRec(int t);
 
+  // x are predicted values, y are exact labels
   void train(VF2D_F x, VF2D_F y, int batch_size=0, int nb_epochs=1);
   void backPropagation(VF2D_F y, VF2D_F prep);
   // networks that have multiple layers leaving a layer arriving at a layer
@@ -141,8 +142,11 @@ public:
   void resetState();
   Connection* getConnection(Layer* layer1, Layer* layer2);
 
-  void WeightUpdate();
-  void BiasUpdate();
+  // Ultimately, this should probably go into another polymorphic clas sequence
+  void weightUpdate();
+  void biasUpdate();
+  void activationUpdate();
+  void parameterUpdate();
 
 private:
   void checkIntegrity(LAYERS& layer_list);
