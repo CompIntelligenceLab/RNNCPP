@@ -384,8 +384,9 @@ exit(0);
 #include "test_recurrent_model3.cpp"
 #include "test_recurrent_model4.cpp"
 #include "test_recurrent_model5.cpp"
-#include "test_recurrent_model_bias5.cpp"
 #include "test_recurrent_model_bias1.cpp"
+#include "test_recurrent_model_bias2.cpp"
+#include "test_recurrent_model_bias5.cpp"
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -882,7 +883,8 @@ int main()
 
 	//testRecurrentModel1(1);
 	//testRecurrentModel5(1); exit(0);
-	testRecurrentModelBias5(1);
+	//testRecurrentModelBias5(1);
+	testRecurrentModelBias2(1);
 	exit(0);
 	//testRecurrentModel2(1);
 
