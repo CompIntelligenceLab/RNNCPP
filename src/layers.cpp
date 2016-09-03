@@ -413,7 +413,6 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 		 incrInputs(loop_input); 
 		 // Add layer biases. must loop over batch and over sequence size. 
 		 //inputs.print("before, inputs, ");
-		 printf("t= %d\n", t);
 		 //inputs.print("before bias, layer inputs, ");
 		 addBiasToInput(t);
 		 //inputs.print("after bias, layer inputs, ");

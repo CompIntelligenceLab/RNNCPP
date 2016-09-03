@@ -807,8 +807,6 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		}
 	}
 
-	//return;
-
 	// Needed when there are recurrent layers
 
 	// Set Deltas of all the connections of temporal layers
@@ -837,7 +835,19 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 //----------------------------------------------------------------------
 void Model::storeDLossDbiasInLayersRec(int t)
 {
-	;
+	VF1D delta;
+
+	for (int l=0; l < layers.size(); l++) {
+		Layer* layer = layers[l];
+		const VF2D_F& grad      = layer->getGradient();
+		const VF2D_F& old_deriv = layer->getDelta();
+
+		for (int b=0; b < nb_batch; b++) {
+        	delta = (old_deriv[b].col(t) % grad[b].col(t)); //out(b).t();
+		}
+
+		// I have my doubts about this formula above
+	}
 }
 //----------------------------------------------------------------------
 void Model::resetDeltas()

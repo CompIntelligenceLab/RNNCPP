@@ -120,6 +120,8 @@ public:
    GRADIENTS getGradient() const {return gradient;}
    BIAS& getBias() {return bias;}  // return  reference or const ref? 
    const BIAS& getBias() const {return bias;}  // return  reference or const ref? 
+   BIAS& getBiasDelta() { return bias_delta; }
+   const BIAS& getBiasDelta() const { return bias_delta; }
    // make private?
    void computeGradient();
    void computeGradient(int t); // for sequences

@@ -23,11 +23,13 @@ using namespace std;
 
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F&);
 WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact);
+BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact);
 void testRecurrentModel1(int nb_batch);
 void testRecurrentModel2(int nb_batch);
 void testRecurrentModel3(int nb_batch); // testRecurrentModel2 with no recurrence
 void testRecurrentModel4(int nb_batch); // testRecurrentModel2 with single recurrent node
 WEIGHT dLdw(1,1);
+BIAS dLdb(1);
 
 //----------------------------------------------------------------------
 float runModel(Model* m)
@@ -183,6 +185,38 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 	//dLdw.print("dLdw");
 	printf("********** EXIT weightDerivative *************, \n");
 	return dLdw;
+}
+//----------------------------------------------------------------------
+BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact)
+{
+	// I'd expect the code to work with nb_batch=1 
+	printf("********** ENTER biasDerivative *************, \n");
+
+	BIAS bias = layer.getBias();
+	int layer_size = layer.getLayerSize();
+	dLdb = BIAS(size(bias));
+	dLdb.zeros();
+	Objective* mse = new MeanSquareError();
+
+	for (int rr=0; rr < layer_size; rr++) {
+
+		BIAS& biasp = layer.getBias();
+		biasp(rr) += inc;
+		VF2D_F pred_n = m->predictViaConnections(xf);
+
+		BIAS& biasm = layer.getBias(); 
+		biasm(rr) -= (2.*inc);
+		VF2D_F pred_p = m->predictViaConnections(xf);
+
+		// Sum the loss over the sequences
+		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of floats
+		LOSS loss_n = (*mse)(exact, pred_n);
+
+		// take the derivative of batch 0, of the loss (summed over the sequences)
+		dLdb(rr) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*inc);
+	}
+	printf("********** EXIT biasDerivative *************, \n");
+	return dLdb;
 }
 //----------------------------------------------------------------------
 void testCube()
