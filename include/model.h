@@ -141,6 +141,9 @@ public:
   void resetState();
   Connection* getConnection(Layer* layer1, Layer* layer2);
 
+  void WeightUpdate();
+  void BiasUpdate();
+
 private:
   void checkIntegrity(LAYERS& layer_list);
   bool isLayerComplete(Layer* layer);

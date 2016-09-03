@@ -123,7 +123,6 @@ Prediction: pred
 [field column 0]
    0.0890   0.2552 
 
-
 a20, a21= 0.088806, 0.249670
 Prediction: pred
 [field column 0]
@@ -150,5 +149,5 @@ So we'll store the biases with the layers.
 
 I will want to consider the biases to be on or off. Not clear how to do this. 
 ----------------------------------------------------------------------
+Bias derivatives work for test_recurrent_model_bias2.cpp (2 recurrent nodes). 
 ----------------------------------------------------------------------
-
