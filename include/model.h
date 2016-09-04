@@ -59,7 +59,7 @@ public:
   /** update layer list. check for layer compatibility with previous layer */
 
   //void add(Layer* layer);
-  void add(Layer* layer_from, Layer* layer);
+  void add(Layer* layer_from, Layer* layer, std::string conn_type="all-all");
   void addInputLayer(Layer* layer);
   // Specify output layer and activation function to Identity()
   void addOutputLayer(Layer* layer);

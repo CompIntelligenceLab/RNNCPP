@@ -123,7 +123,7 @@ void Model::addProbeLayer(Layer* layer)
 	probe_layers.push_back(layer);
 }
 //----------------------------------------------------------------------
-void Model::add(Layer* layer_from, Layer* layer_to)
+void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all-all"*/)
 {
 	printf("add(layer_from, layer)\n");
 	// Layers should only require layer_size 
@@ -146,7 +146,7 @@ void Model::add(Layer* layer_from, Layer* layer_to)
 	// Create weights
 	// Later on, we might create different kinds of connection. This would require a rework of 
 	// the interface. 
-	Connection* connection = new Connection(in_dim, out_dim);
+	Connection* connection = Connection::ConnectionFactory(in_dim, out_dim, conn_type);
 	connection->initialize();
 	connections.push_back(connection);
 	connection->from = layer_from;

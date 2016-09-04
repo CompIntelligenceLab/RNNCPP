@@ -157,3 +157,6 @@ So, TODO:
 - remove unused methods
 - keep only the most general routines for recursion + weight updates with bias. 
 ----------------------------------------------------------------------
+Sept. 4, 2016
+- implemented ReLU
+----------------------------------------------------------------------

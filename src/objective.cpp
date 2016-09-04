@@ -90,11 +90,7 @@ void MeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 		loss[b] = exact[b] - predict[b];  // check size compatibility
 		loss[b] = arma::square(loss[b]);  // sum of output dimensions
 		loss[b] = arma::sum(loss[b], 0);  // sum over 1st index (dimension)
-		//loss[b] = arma::sum(loss[b]);     // sum over sequences
-		//loss[i].print("loss[i]");
-		//exit(0);
 	}
-	//exit(0);
 }
 
 void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
@@ -102,15 +98,8 @@ void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict
 	int nb_batch = exact.n_rows;
 	gradient.set_size(nb_batch);
 
-	//printf("gordon\n");
-	//U::print(exact, "exact");
-	//U::print(predict, "predict");
-
 	for (int b=0; b < nb_batch; b++) {
 		gradient[b] = 2.* (predict[b] - exact[b]); // check size compatibility
-		// this creates a problem in rightTriad since sequence components are not differentiated
-		//gradient[b] = arma::sum(gradient[b], 1); // summed over sequence axis
-		gradient[b].print("gradient");
 	}
 }
 

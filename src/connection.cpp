@@ -7,6 +7,13 @@ using namespace std;
 
 int Connection::counter = 0;
 
+Connection* Connection::ConnectionFactory(int in_dim, int out_dim, std::string conn_type)
+{
+	if (conn_type == "all-all") {
+		return new Connection(in_dim, out_dim);
+	}
+}
+//----------------------------------------------------------------------
 Connection::Connection(int in, int out, std::string name /* "weight" */)
 {
 	type = "standard";
@@ -21,6 +28,8 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 	clock = 0;
 	from = to = 0;
 	hit = 0;
+	freeze = false;
+	type = "all-all";
 
 	char cname[80];
 
@@ -40,7 +49,7 @@ Connection::~Connection()
 }
 
 Connection::Connection(const Connection& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbose(w.print_verbose),
-     temporal(w.temporal), clock(w.clock), to(w.to), from(w.from)
+     temporal(w.temporal), clock(w.clock), to(w.to), from(w.from), freeze(w.freeze), type(w.type)
 {
 	name = w.name + "c";
 	weight = WEIGHT(out_dim, in_dim);
@@ -62,6 +71,8 @@ const Connection& Connection::operator=(const Connection& w)
 		clock = w.clock;
 		from = w.from; 
 		to = w.to;
+		freeze = w.freeze;
+		type = w.type;
 		printf("Connection::operator= (%s)\n", name.c_str());
 	}
 
@@ -73,6 +84,7 @@ void Connection::print(std::string msg /* "" */)
 	printf("connection: %s\n", name.c_str());
 	printf("in: %d, out: %d\n", in_dim, out_dim);
 	printf("print_verbose= %d\n", print_verbose);
+	printf("freeze= %d\n", freeze);
 	if (msg != "") printf("%s\n", msg.c_str());
 
 	if (print_verbose == false) return;

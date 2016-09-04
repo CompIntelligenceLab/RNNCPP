@@ -25,6 +25,7 @@ public:
 	Layer* to;    // useful for some algorithms
 	int hit;      // track whether a connection was hit (make private later perhaps)
 	int which_lc; // which index into layer_connections
+	bool freeze;  // do not update connections (NOT IMPLEMENTED). False by default
 
 protected:
 	static int counter;
@@ -39,12 +40,16 @@ protected:
 	bool temporal; // false: spatial link, true: temporal link
 	int clock; // 0: weight has not been used. 1 otherwise. Potential problem if a weight is used twice, 
 	           // which is possible if they are shared. Step 1: change Connection class to Connections class. . 
-	std::string type; // standard, 
-	             // passthrough (from/to layers have same layer_size, pass through information)
-				 //         weights not used. 
+				 
+    // passthrough (from/to layers have same layer_size, pass through information), weights not used. Not used. 
+    // all-all, one-one,  [ DEFAULT ],  mxn weight
+    // one-one: between two layers of equal size, with no weights. Requires the two layers to have the same size
+	//          Weights can be frozen or not.
+	std::string type; 
 
 public:
 	// input and output dimensions 
+	static Connection* ConnectionFactory(int in_dim, int out_dim, std::string conn_type);
 	Connection(int in, int out, std::string name="weight");
 	~Connection();
 	Connection(const Connection&);

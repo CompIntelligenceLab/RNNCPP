@@ -129,7 +129,7 @@ public:
 	VF2D_F operator()(const VF2D_F& x) {
 #ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
-		for (int i=0; i < x.n_rows; i++) {
+		for (int i=0; i < x.n_rows; i++) { // loop over field elements
 			y[i] = 1. / (1. + exp(-x[i]));
 		}
 		return y;
@@ -160,6 +160,45 @@ public:
 		VF1D y(x.n_rows);
 		for (int i=0; i < x.n_rows; i++) {
 			y[i] = x[i]*(1.-x[i]);
+		}
+		return y;
+	}
+};
+//----------------------------------------------------------------------
+class ReLU : public Activation
+{
+public:
+	ReLU(std::string name="relu") : Activation(name) {;}
+	~ReLU();
+    ReLU(const ReLU&);
+    const ReLU& operator=(const ReLU&);
+
+	VF2D_F operator()(const VF2D_F& x) {
+		VF2D_F y(x.n_rows);
+		for (int i=0; i < x.n_rows; i++) {
+			y[i] = arma::clamp(x[i], 0., x[i].max()); 
+		}
+		return y;
+	}
+
+	//f = 1 / (1 + exp(-x)) = 1/D
+	//f' = -1/D^2 * (-exp(-x)-1 + 1) = -1/D^2 * (-D + 1) = 1/D - 1/D^2 = f (1-f)
+	VF2D_F derivative(const VF2D_F& x)
+	{
+		VF2D_F y(x.n_rows);
+		for (int i=0; i < x.n_rows; i++) {
+			y[i] = arma::zeros<VF2D>(arma::size(x[i]));
+			y[i].elem(find(x[i] > 0.)).ones(); 
+		}
+		return y;
+	}
+
+	VF1D derivative(const VF1D& x) 
+	{
+		VF1D y(x.n_rows);
+		for (int i=0; i < x.n_rows; i++) {
+			// Use >= or > 
+			y[i] = x[i] >= 0. ? 1.0 : 0.0;
 		}
 		return y;
 	}
