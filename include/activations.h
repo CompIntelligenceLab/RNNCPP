@@ -23,6 +23,9 @@ public:
 	/** x has dimensionality equal to the previous layer size */
 	/** the return value has the dimensionality of the new layer size */
 	virtual VF2D_F derivative(const VF2D_F& x) = 0; // derivative of activation function evaluated at x
+	//virtual VF2D_F jacobian(const VF1D_F& x) { ; // difrent variables are coupled, Jacobian
+	//	return VF2D_F(1);
+	//}
 	virtual VF1D derivative(const VF1D& x) = 0; // derivative of activation function evaluated at x
 	virtual VF2D_F operator()(const VF2D_F& x) = 0;
 	virtual void print(std::string name= "");
@@ -204,5 +207,55 @@ public:
 	}
 };
 //----------------------------------------------------------------------
+class Softmax : public Activation
+{
+// softmax has n inputs, and n outputs: 
+// softmax(x,y) = exp(x)/(exp(x)+exp(y)) ,   exp(y)/(exp(x)+exp(y))
+public:
+	Softmax(std::string name="softmax") : Activation(name) {;}
+	~Softmax();
+    Softmax(const Softmax&);
+    const Softmax& operator=(const Softmax&);
+
+
+	VF2D_F operator()(const VF2D_F& x) {
+		VF2D_F y(x);
+		// softmax over the dimension index of VF2D (first index)
+		for (int b=0; b < x.n_rows; b++) {
+			float mx = arma::max(arma::max(x[b]));
+		    for (int s=0; s < x[b].n_cols; s++) {
+			    y(b).col(s) = arma::exp(y(b).col(s)-mx);
+				// trick to avoid overflows
+				float ssum = 1. / arma::sum(x[b].col(s)); // = arma::exp(y[b]);
+				y[b].col(s) = x[b].col(s) * ssum;  // % is elementwise multiplication (arma)
+			}
+		}
+		return y;
+	}
+
+	//f = 1 / (1 + exp(-x)) = 1/D
+	//f' = -1/D^2 * (-exp(-x)-1 + 1) = -1/D^2 * (-D + 1) = 1/D - 1/D^2 = f (1-f)
+	VF2D_F derivative(const VF2D_F& x)
+	{
+		VF2D_F y(x.n_rows);
+		for (int b=0; b < x.n_rows; b++) {
+			y[b] = arma::zeros<VF2D>(arma::size(x[b]));
+			y[b].elem(find(x[b] > 0.)).ones(); 
+		}
+		return y;
+	}
+
+	VF1D derivative(const VF1D& x) 
+	{
+		VF1D y(x.n_rows);
+		for (int i=0; i < x.n_rows; i++) {
+			// Use >= or > 
+			y[i] = x[i] >= 0. ? 1.0 : 0.0;
+		}
+		return y;
+	}
+};
+//----------------------------------------------------------------------
+
 
 #endif

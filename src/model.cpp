@@ -710,6 +710,14 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		//old_deriv.print("old_deriv");
 		//grad.print("grad");
 
+		// Question: where should this operation occur. Given that an activation function can be scalar or vector, 
+		// the operation should be split between the activation function and the model (or layer or connection)
+		// For example: 
+		// prod = grad % old_deriv   (or)
+		// prod = grad * old_deriv   (or) (or  old_deriv * grad)
+		// prod = wght_t * prod
+
+
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
 		Layer* layer_from = conn->from;
 		layer_from->printSummary("layer_from, temporal");

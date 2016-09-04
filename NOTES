@@ -167,3 +167,35 @@ using WEIGHT.
 If the I did not have a special typedef for weights, it would much hard to identify all the locations where change was required in the code. 
 This little tidbit is for Nathan who complained one day about all the different typedefs to remember. 
 --------------------------------------------------------------------------------------------------------------------------------------------
+Sept. 4, 2016
+Storing of data in Armadillo is columnwise. So I am storing weight as w(seq, dim), so matrix products w*x are efficient. However, 
+w(2,5), follows w(1,5) in memory, like Fortran. Therefore, w(dim, seq) would be more efficient, and the matrix product should be x*w
+instead of w*x, with x a row vector. TODO IN THE FUTURE. softmax would be cheaper as well since one must sum over dimensions to 
+compute the denominator. However, ignore until total cost of program is diagnosed. 
+
+VF2D_F variables are stored as x[batch](dimension, seq). So summing over dimensions is equivalent to summing over one column, as it should
+be for efficiency. 
+
+Now consider the derivatives. 
+a = f(z) where a and z have dimension "layer_size". For scalar activation functions, one computes the gradient da/dz = f'
+But for vector functions (such as the softmax), da/dz = J = jacobian of the transformation, which is a (layer_size X layer_size) matrix. 
+Thus, the deltas dL/da(l) (l is the layer), is written as wght * (J * dL/da(l))
+----------------------------------------------------------------------
+Sep. 4, 2016
+Consider: 
+dL/da(l) = dL/da(l+1) * da(l+1)/dz(l+1) * dz(l+1)/da(l+1)
+dL/da(l)(k) = dL/da(l+1)(p) * da(l+1)(p)/dz(l+1)(q) * dz(l+1)(q)/da(l)(k)
+Given that: 
+z(l+1)(q) = w(q,j) * a(l)(j), 
+dz(l+1)(q)/da(l)(k) = w(q,j) * delta(k,j)  (Kronecker delta)
+                      w(q,k) (Kronecker delta) (ignore layer indices)
+We also have: 
+da(l+1)(p)/dz(l+1)(q) = J(l+1)(p,q) = Jacobian of activation function 
+
+Collecting and combining the above relations: 
+dL/da(l)(k) = dL/da(l+1)(p) * J(l+1)(p,q) * w(q,k)
+Need Jacobian of activation function
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
