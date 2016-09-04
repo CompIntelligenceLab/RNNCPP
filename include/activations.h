@@ -23,9 +23,9 @@ public:
 	/** x has dimensionality equal to the previous layer size */
 	/** the return value has the dimensionality of the new layer size */
 	virtual VF2D_F derivative(const VF2D_F& x) = 0; // derivative of activation function evaluated at x
-	//virtual VF2D_F jacobian(const VF1D_F& x) { ; // difrent variables are coupled, Jacobian
-	//	return VF2D_F(1);
-	//}
+	virtual VF2D jacobian(const VF1D& x) { ; // different variables are coupled, Jacobian
+		return VF2D(1,1);  // not really used, but a placeholder 
+	}
 	virtual VF1D derivative(const VF1D& x) = 0; // derivative of activation function evaluated at x
 	virtual VF2D_F operator()(const VF2D_F& x) = 0;
 	virtual void print(std::string name= "");
@@ -130,32 +130,23 @@ public:
     const Sigmoid& operator=(const Sigmoid&);
 
 	VF2D_F operator()(const VF2D_F& x) {
-#ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
 		for (int i=0; i < x.n_rows; i++) { // loop over field elements
 			y[i] = 1. / (1. + exp(-x[i]));
 		}
 		return y;
-#else
-		AF ex = x;
-		return 1. / (1. + (-ex).exp());
-#endif
 	}
 
 	//f = 1 / (1 + exp(-x)) = 1/D
 	//f' = -1/D^2 * (-exp(-x)-1 + 1) = -1/D^2 * (-D + 1) = 1/D - 1/D^2 = f (1-f)
 	VF2D_F derivative(const VF2D_F& x) 
 	{
-#ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
 		for (int i=0; i < x.n_rows; i++) {
-			y[i] = x[i]%(1.-x[i]);
+			y[i] = 1. / (1. + exp(-y[i]));   // y[i] is VF2D(dim, batches)
+			y[i] = y[i]%(1.-y[i]);
 		}
 		return y;
-#else
-		AF s = this->operator()(x);
-		return s%(1-s);
-#endif
 	}
 
 	VF1D derivative(const VF1D& x) 
@@ -252,7 +243,29 @@ public:
 			// Use >= or > 
 			y[i] = x[i] >= 0. ? 1.0 : 0.0;
 		}
-		return y;
+		printf("Activation.h::derivative of Softmax is not applicable. Use Jacobian\n");
+		exit(1);
+		return x;
+	}
+
+	// arguments are x and y=softmax(x) (already computed)
+	VF2D Jacobian(const VF1D& x, const VF1D& y)
+	//VF2D Jacobian(const VF1D& x)
+	{
+		VF2D jac(x.n_rows, x.n_rows);
+		// jac(i,j) = dsoft[i]/dx[j]
+
+		//VF1D soft = (*this)(x);
+
+		for (int i=0; i < jac.n_rows; i++) {
+		for (int j=0; j < jac.n_cols; j++) {
+			if (i == j) {
+				jac(i,j) = y[i] * (1. - y[j]);
+			} else {
+				jac(i,j) = -y[i] * y[j];
+			}
+		return jac;
+		}}
 	}
 };
 //----------------------------------------------------------------------

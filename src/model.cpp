@@ -233,13 +233,11 @@ void Model::checkIntegrity(LAYERS& layer_list)
 			Connection* nconnection = cur_layer->next[l].second;
 			nlayer->printSummary("nlayer");
 
-			//if (nlayer->getClock() > 0) {
 			if (nconnection->getClock() > 0) {
 				nconnection->setTemporal(true);
 				nconnection->printSummary("checkIntegrity, setTemporal\n");
 			}
 
-		    //nlayer->incrClock();
 			nconnection->incrClock();
 
 			if (nlayer->getClock() == 1) { // only add a layer once to the list of layers to process
@@ -258,17 +256,6 @@ bool Model::areIncomingLayerConnectionsComplete(Layer* layer)
 
 	int nb_arrivals = layer->prev.size();
 	int nb_hits = layer->nb_hit;
-	//printf("areIncoming: nb_arrivals, nb_hits= %d, %d\n", nb_arrivals, nb_hits);
-
-	#if 0
-	printf("  - nb_hits/prevsize= %d/%d\n", nb_hits, nb_arrivals);
-	if (nb_hits == nb_arrivals) {
-		layer->printSummary("  - INCOMING CONNECTIONS COMPLETE, ");
-	} else {
-		layer->printSummary("  - INCOMING CONNECTIONS NOT COMPLETE, ");
-	}
-	printf("exit areIncomingLayerConnectionsComplete, ");
-	#endif
 
 	return (nb_hits == nb_arrivals);
 }
@@ -289,14 +276,6 @@ bool Model::isLayerComplete(Layer* layer)
 		all_hits += layer->next[i].second->hit;
 	}
 
-	#if 0
-	if (all_hits < layer->next.size()) {
-		printf("  - OUTGOING CONNECTIONS NOT COMPLETE, %d/%d\n", all_hits, layer->next.size());
-	} else {
-		printf("  - OUTGOING CONNECTIONS COMPLETE, %d/%d\n", all_hits, layer->next.size());
-	}
-	#endif
-
 	//if (areIncomingLayerConnectionsComplete(layer)) printf("  LAYER COMPLETE");
 
 	return areIncomingLayerConnectionsComplete(layer);
@@ -313,7 +292,6 @@ Layer* Model::checkPrevconnections(std::list<Layer*> llist)
 	typedef std::list<Layer*>::iterator IT;
 	IT it;
 
-	//for (int i=0; i < llist.size(); i++) {
 	for (it=llist.begin(); it != llist.end(); ++it){ 
 		Layer* cur_layer = *it;
 		int count = 0;
@@ -323,8 +301,6 @@ Layer* Model::checkPrevconnections(std::list<Layer*> llist)
 		}
 		if (count == cur_layer->prev.size()) {
 		}
-		//Connection* pc = cur_layer->prev[c].second;
-		//Connection* nc = next[n].second;
 	}
 }
 //----------------------------------------------------------------------
@@ -346,9 +322,6 @@ void Model::connectionOrderClean()
 		layers[l]->setNbBatch(nb_batch);
 		layers[l]->setSeqLen(seq_len);
 	}
-
-	//printf("order clean: %d\n", layers.size()); 
-	//exit(0);
 
 	int xcount = 0;
 
@@ -383,7 +356,6 @@ void Model::connectionOrderClean()
 		llist.unique();
 
 		// remove all layers that are "complete"
-	    //printf("before remove all complete layers, llist size: %d\n", llist.size());
 		for (int i=0; i < completed_layers.size(); i++) {
 			completed_layers[i]->printSummary("completed_layers");
 			llist.remove(completed_layers[i]);
@@ -406,29 +378,22 @@ void Model::connectionOrderClean()
 
 	// Assign memory
 	for (int l=0; l < layers.size(); l++) {
-		//printf("*** layer %d\n", l);
-		//layers[l]->printSummary();
 		layers[l]->layer_inputs.resize(layers[l]->prev.size());
 		layers[l]->layer_deltas.resize(layers[l]->prev.size());
-		//printf("prev.size= %d\n", layers[l]->prev.size());
 
 		for (int i=0; i < layers[l]->layer_inputs.size(); i++) {
 			layers[l]->layer_inputs[i] = VF2D_F(nb_batch);
 			int input_dim = layers[l]->getLayerSize();
 			int seq_len   = layers[l]->getSeqLen();
-			printf("input_dim, seq_len= %d, %d\n", input_dim, seq_len);
+
 			for (int b=0; b < nb_batch; b++) {
 				layers[l]->layer_inputs[i](b) = VF2D(input_dim, seq_len);
 				U::print(layers[l]->layer_inputs[i](b), "layer_inputs");
 			}
-			//printf("nb_batch= %d\n", nb_batch); 
-			//exit(0);
 		}
-		//printf(".. layer %d\n", l);
 
 		// layer_deltas are unsused at this time
 	}
-	//exit(0);
 	printf("============== EXIT connectionOrderClean =================\n");
 }
 //----------------------------------------------------------------------
@@ -496,46 +461,6 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	return prod;
 }
 //----------------------------------------------------------------------
-#if 0
-VF2D_F Model::predictViaConnections(VF2D_F x)
-{
-	VF2D_F prod(x.size());
-	//printf("****************** ENTER predictViaConnections ***************\n");
-
-	Layer* input_layer = getInputLayers()[0];
-	input_layer->layer_inputs[0] = x; // there are no layers upstream to the input
-	input_layer->setOutputs(x);
-
-	// input layer (ASSUMED to be 0th entry to layer_inputs);
-
-	getInputLayers()[0]->layer_inputs[0] = x;
-	layers[0]->setOutputs(x);
-
- 	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
-		for (int l=0; l < layers.size(); l++) {
-			layers[l]->nb_hit = 0;
-		}
-
-		// go through all the layers and update the temporal connections
-		// On the first pass, connections are empty
-		for (int l=0; l < layers.size(); l++) {
-			layers[l]->forwardLoops(t-1);           // *****************
-		}
-		
-		//printf("**** t= %d **************\n", t);
-		for (int c=0; c < clist.size(); c++) {
-			Connection* conn  = clist[c];
-			Layer* to_layer   = conn->to;
-			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
-		}
- 	}
-
-	//prod.print("************ EXIT predictViaConnection ***************"); 
-	//U::print(prod, "prod, exit predict, ");
-	return prod;
-}
-#endif
-//----------------------------------------------------------------------
 // This was hastily decided on primarily as a means to construct feed forward
 // results to begin implementing the backprop. Should be reevaluated
 void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /*=1*/) 
@@ -554,28 +479,9 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 		const LOSS& loss = objective->getLoss();
 		loss.print("loss");
 		backPropagationViaConnectionsRecursion(exact, pred);
-		//backPropagationViaConnectionsRecursion(exact, const VF2D_F& pred)
 		parameterUpdate();
 	}
 }
-//----------------------------------------------------------------------
-#if 0
-void Model::storeGradientsInLayers()
-{
-	printf("---- enter storeGradientsInLayers ----\n");
-	for (int l=0; l < layers.size(); l++) {
-		//layers[l]->printSummary("storeGradientsInLayers, ");
-		layers[l]->computeGradient();
-		//layers[l]->getOutputs().print("layer outputs, ");
-		//printf("activation name: %s\n", layers[l]->getActivation().getName().c_str());
-		//U::print(layers[l]->getGradient(), "layer gradient");
-		//layers[l]->getGradient().print("layer gradient, ");
-		//U::print(layers[l]->getDelta(), "layer Delta"); // seg fault
-		//layers[l]->getDelta().print("layer Delta, "); // seg fault
-	}
-	printf("---- exit storeGradientsInLayers ----\n");
-}
-#endif
 //----------------------------------------------------------------------
 void Model::storeGradientsInLayersRec(int t)
 {
@@ -585,58 +491,6 @@ void Model::storeGradientsInLayersRec(int t)
 	}
 	//printf("---- exit storeGradientsInLayersRec ----\n");
 }
-//----------------------------------------------------------------------
-#if 0
-void Model::storeDactivationDoutputInLayers()
-{
-	typedef CONNECTIONS::reverse_iterator IT;
-	IT it;
-
-	printf("************** ENTER storeDactivationDoutputInLayers() **************\n");
-
-	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
-	// Run layers backwards
-	// Run connections backwards
-
-	const VF2D_F& grad = output_layers[0]->getDelta();
-	int nb_batch = grad.n_rows;
-	//printf("model nb_batch= %d\n", nb_batch);
-	VF2D_F prod(nb_batch);
-	//exit(0);
-
-	for (it=clist.rbegin(); it != clist.rend(); ++it) {
-		Connection* conn = (*it);
-		Layer* layer_from = conn->from;
-		Layer* layer_to   = conn->to;
-		//(*it)->printSummary("************ connection");
-
-		const VF2D_F& grad = layer_to->getGradient();
-		const WEIGHT& wght = conn->getWeight();
-		const VF2D_F& old_deriv = layer_to->getDelta();
-
-		//layer_to->printSummary("layer_to");
-		//layer_from->printSummary("layer_from");
-		//grad[0].print("grad[0]");
-		//old_deriv[0].print("old_deriv[0]");
-
-		//wght.print("wght");
-		//U::print(grad[0], "grad[b]");
-		//U::print(old_deriv[0], "old_deriv[b]");
-		//U::print(wght, "wght");
-
-		for (int b=0; b < nb_batch; b++) {
-			//prod[b] = wght.t() * (grad[b] % old_deriv[b]);
-			prod[b] = wght.t() * (grad[b] % old_deriv[b]);
-		}
-		//prod[0].print("prod[0]");
-		//printf("nb_batch= %d\n", nb_batch);
-		//U::print(prod, "prod");
-
-		layer_from->incrDelta(prod);
-	}
-	printf("**************** EXIT storeDactivationDoutputInLayers() **************\n");
-}
-#endif
 //----------------------------------------------------------------------
 void Model::storeDactivationDoutputInLayersRec(int t)
 {
@@ -649,7 +503,6 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	// Run layers backwards
 	// Run connections backwards
 
-	//printf("t,t-1= %d -> %d\n", t, t-1);
 
 	const VF2D_F& grad = output_layers[0]->getDelta();
 	int nb_batch = grad.n_rows;
@@ -664,40 +517,25 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		Connection* conn = (*it);
 		Layer* layer_to   = conn->to;
 		Layer* layer_from = conn->from;
-		//VF2D_F& prod = layer_from->getDelta();
 
 		const VF2D_F& grad = layer_to->getGradient();
 		const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
 		const WEIGHT& wght_t = conn->getWeightTranspose();
 		const VF2D_F& old_deriv = layer_to->getDelta();
-		//layer_to->printSummary();
-		//grad.print("grad");
-		//exit(0);
 
 		// no-op if t-1 < 0
 		// THERE SHOULD BE no prod[t-1] if there is no recurrence or time unrolling!
 		// prod[t-1] = wght_t * (grad[t] % old_deriv[t])
 		
-		// I am not sure this is valid if there are no recurrences!
-		//U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t);  // Not sure whether this is correct. Rederive by hand. 
 
-		//printf("prod.col(t) = wght_t * (grad.col(t) %% old_deriv.col(t))\n\n");
-		//printf("t= %d, layer_from (before)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
 		layer_from->incrDelta(prod, t);
 		printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
-		//printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); old_deriv.print("old_deriv");
-		//U::print(old_deriv, "old_deriv");
-		//printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); grad.print("grad");
-		//printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); wght.print("wght");
-	//exit(0);
 	}
 
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
 	// Answer: yes, and I must increment the delta
 
-	#if 1
-	//printf("+++++ treat temporal connections\n");
 	for (int l=0; l < layers.size(); l++) {
 		Connection* conn = layers[l]->getConnection();
 		if (!conn) continue;
@@ -705,10 +543,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		const VF2D_F& grad = layer_to->getGradient();
 		const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
 		const WEIGHT& wght_t = conn->getWeightTranspose();
-		//wght_t.print("weight transpose");
 		const VF2D_F& old_deriv = layer_to->getDelta();
-		//old_deriv.print("old_deriv");
-		//grad.print("grad");
 
 		// Question: where should this operation occur. Given that an activation function can be scalar or vector, 
 		// the operation should be split between the activation function and the model (or layer or connection)
@@ -721,65 +556,17 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
 		Layer* layer_from = conn->from;
 		layer_from->printSummary("layer_from, temporal");
-		//prod.print("prod");  // last two at t=0 are 1.e-45, so final answer does not change. Error? // should be zero 
-		//printf("t= %d\n", t); // t=1 during first pass
-		//printf("t= %d, layer_from (before)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
 		layer_from->incrDelta(prod, t-1);
-		//printf("(temporal) modify prod[t=%d]\n", t-1);
-		//printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
-		//exit(0);
 	}
-	#endif
-	//exit(0);
-
-
-	//printf("********* storeDactivationDoutputInLayers() t= %d **************\n", t);
 
 	//printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
 }
-//----------------------------------------------------------------------
-#if 0
-void Model::storeDLossDweightInConnections()
-{
-	typedef CONNECTIONS::reverse_iterator IT;
-	IT it;
-	WEIGHT prod;
-
-	//printf("********** ENTER storeDLossDweightInConnections ***********\n");
-
-	for (it=clist.rbegin(); it != clist.rend(); ++it) {
-		Connection* conn = (*it);
-		Layer* layer_from = conn->from;
-		Layer* layer_to   = conn->to;
-
-		VF2D_F& out = layer_from->getOutputs();
-		const VF2D_F& grad = layer_to->getGradient();
-		const VF2D_F& old_deriv = layer_to->getDelta();
-
-		//conn->printSummary("Connection, ");
-		//grad.print("layer_to->getGradient, grad, ");
-		//old_deriv.print("layer_to->getDelta, old_deriv, ");
-		//out.print("layer_from_getOutputs()");
-
-		// How to do this for a particular sequence element? 
-		// Currently, only works for sequence length of 1
-		// Could work if sequence were the field index
-		for (int b=0; b < nb_batch; b++) {
-			prod = (old_deriv[b] % grad[b]) * out(b).t();
-			//prod.print("storeDLossDweightInConnections, prod");
-			(*it)->incrDelta(prod);
-		}
-	}
-	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
-}
-#endif
 //----------------------------------------------------------------------
 void Model::storeDLossDweightInConnectionsRec(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 	WEIGHT delta;
-
 
 	//printf("********** ENTER storeDLossDweightInConnections ***********\n");
 
@@ -793,28 +580,13 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		const VF2D_F& old_deriv = layer_to->getDelta();
 		delta = VF2D(size(con->getWeight()));
 
-		#if 0
-		//con->printSummary("Connection, ");
-		//grad.print("layer_to->getGradient, grad, ");
-		//old_deriv.print("layer_to->getDelta, old_deriv, ");
-		//out.print("layer_from_getOutputs()");
-		U::print(grad, "layer_to->getGradient, grad, ");
-		U::print(old_deriv, "layer_to->getDelta, old_deriv, ");
-		U::print(out, "layer_from_getOutputs(), out");
-		U::print(delta, "delta");
-		#endif
-
 		// How to do this for a particular sequence element? 
 		// Currently, only works for sequence length of 1
 		// Could work if sequence were the field index
 
-		//printf("store, t= %d\n", t);
 		for (int b=0; b < nb_batch; b++) {
 			const VF2D& out_t = out(b).t();
-			//U::print(out_t, "out_t");
 			delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t); //out(b).t();
-			//delta = (old_deriv[b] % grad[b]) * out(b).t();
-			//prod.print("storeDLossDweightInConnections, prod");
 			(*it)->incrDelta(delta);
 		}
 	}
@@ -834,7 +606,6 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		const VF2D_F& old_deriv = layer_to->getDelta();
 		delta = VF2D(size(con->getWeight()));
 
-        //printf("store, t= %d\n", t);
         for (int b=0; b < nb_batch; b++) {
            	const VF2D& out_t = out(b).t();
 			if (t > 0) continue;
@@ -882,58 +653,13 @@ void Model::resetDeltas()
 //----------------------------------------------------------------------
 void Model::resetState()
 {
-	//typedef CONNECTIONS::reverse_iterator IT;
-	//IT it;
-
-	//for (it=clist.rbegin(); it != clist.rend(); ++it) {
-		//(*it)->resetDelta();
-	//}
-
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->resetState();
 	}
 }
 //----------------------------------------------------------------------
-#if 0
-void Model::backPropagationViaConnections(const VF2D_F& exact, const VF2D_F& pred)
-{
-	printf("***************** ENTER BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
-	//U::print(exact, "exact");
-	//U::print(pred, "pred");
-	//exit(0);
-	//typedef CONNECTIONS::reverse_iterator IT;
-	//IT it;
-
-	nb_batch = pred.n_rows;
-
-	if (nb_batch == 0) {
-		printf("backPropagationViaConnections, nb_batch must be > 0\n");
-		exit(0);
-	}
-
-	resetDeltas();
-
-    objective->computeGradient(exact, pred);
-    VF2D_F& grad = objective->getGradient();
-	getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
-
-	storeGradientsInLayers();
-
-	storeDactivationDoutputInLayers();
-	storeDLossDweightInConnections();
-	printf("***************** EXIT BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
-}
-#endif
-//----------------------------------------------------------------------
 void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF2D_F& pred)
 {
-	//printf("***************** ENTER BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
-	//U::print(exact, "exact");
-	//U::print(pred, "pred");
-	//exit(0);
-	//typedef CONNECTIONS::reverse_iterator IT;
-	//IT it;
-
 	nb_batch = pred.n_rows;
 
 	if (nb_batch == 0) {
@@ -945,11 +671,9 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 
     objective->computeGradient(exact, pred);
     VF2D_F& grad = objective->getGradient();
-	//grad.print("\ngradient of objective function, ");
 	getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
 
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
- 	    //printf("....... t= %d/%d\n", t, seq_len);
 		storeGradientsInLayersRec(t);
 		storeDactivationDoutputInLayersRec(t);
 		storeDLossDweightInConnectionsRec(t);
