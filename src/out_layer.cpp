@@ -8,6 +8,7 @@ OutLayer::OutLayer(int layer_size, std::string name /* "dense" */)
 
 	// output connection will join last layer with layer_size nodes with the out layer with 1 node. 
 	assert("layer_size == 1");
+	type = "output";
 }
 //----------------------------------------------------------------------
 OutLayer::~OutLayer()

@@ -4,6 +4,7 @@ LSTMLayer::LSTMLayer(int layer_size, std::string name /* lstm */)
     : Layer(layer_size, name)
 {
 	//this->name = name;
+	type = "lstm";
 }
 //----------------------------------------------------------------------
 LSTMLayer::~LSTMLayer()

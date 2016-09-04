@@ -9,6 +9,7 @@ InputLayer::InputLayer(int layer_size, std::string name /* "input" */)
 		activation = new Identity("identity");
 	}
 	this->input_dim = layer_size;
+	type = "input";
 }
 //----------------------------------------------------------------------
 InputLayer::~InputLayer()

@@ -24,6 +24,7 @@ public:
 	virtual void forwardLoops();
 	virtual void forwardLoops(int seq_index);
 	virtual void initVars(int nb_batch);
+	virtual void noop() {;}
 };
 
 //----------------------------------------------------------------------

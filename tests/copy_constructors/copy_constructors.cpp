@@ -5,6 +5,7 @@
 #include "optimizer.h"
 #include "connection.h"
 #include "layers.h"
+#include "dense_layer.h"
 
 int main() 
 {
@@ -28,13 +29,13 @@ int main()
 
 	printf("=================================\n");
 	int layer_size = 5;
-	Layer* layer = new Layer(layer_size, "layerGE");
+	Layer* layer = new DenseLayer(layer_size, "layerGE");
 
 	// Both these statements lead to to identical objects being deleted. Only one of these
 	// statements leads to correct code. 
-	Layer layer3(layer_size, "layer3GE");
-	Layer layer2;
-	layer2 = layer3;
+	DenseLayer layer3(layer_size, "layer3GE");
+	DenseLayer layer2;
+	DenseLayer layer4 = layer3;
 
 	//Layer layer1(*layer);
 	#if 0

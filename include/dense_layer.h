@@ -10,9 +10,10 @@ protected:
 	std::string name;
 
 public:
-	DenseLayer(int layer_size, std::string name="dense");
+	DenseLayer(int layer_size=1, std::string name="dense");
 	~DenseLayer();
 	DenseLayer(DenseLayer&);
+	void noop() {;} 
 };
 
 #endif

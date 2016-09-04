@@ -10,9 +10,10 @@ protected:
 	std::string name;
 
 public:
-	OutLayer(int layer_size, std::string name="out");
+	OutLayer(int layer_size=1, std::string name="out");
 	~OutLayer();
 	OutLayer(OutLayer&);
+	void noop() {;}
 };
 
 #endif

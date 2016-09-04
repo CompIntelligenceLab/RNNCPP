@@ -9,9 +9,10 @@ protected:
 	std::string name;
 
 public:
-	LSTMLayer(int layer_size, std::string name="lstm");
+	LSTMLayer(int layer_size=1, std::string name="lstm");
 	~LSTMLayer();
 	LSTMLayer(LSTMLayer&);
+	void noop() {;}
 };
 
 #endif

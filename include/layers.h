@@ -18,6 +18,7 @@ public:
 	// list of layers this layer is sending information to
 	PAIRS_L prev;
 	PAIRS_L next;
+	std::string type;
 	// main inputs to activation in a list to better handle backpropagation when 
 	// more than one layer hits a downstream layer
 	std::vector<VF2D_F> layer_inputs;
@@ -96,6 +97,7 @@ public:
    ~Layer();
    Layer(const Layer&);
    const Layer& operator=(const Layer&);
+   virtual void noop() = 0;  // To make sure that the Layer class is not instantiated
    virtual void print(std::string msg="");
    virtual void printSummary(std::string msg="");
    virtual void printName(std::string msg="");

@@ -13,6 +13,7 @@ RecurrentLayer::RecurrentLayer(int layer_size /*1*/, std::string name /*rec_laye
 	recurrent_conn->to = this;
 	recurrent_conn->setTemporal(true);
 	loop_input.set_size(nb_batch);
+	type = "recurrent";
 }
 //----------------------------------------------------------------------
 RecurrentLayer::~RecurrentLayer()
