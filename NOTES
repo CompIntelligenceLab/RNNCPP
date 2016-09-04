@@ -160,3 +160,10 @@ So, TODO:
 Sept. 4, 2016
 - implemented ReLU
 ----------------------------------------------------------------------
+Sept. 4, 2016
+At this time, the Connection class has "WEIGHT weight" member variable, making it difficult to share weights between pointers. 
+To do so (share weights), it would be be better if this member were a WEIGHT* weight; I must now change all locations in the code
+using WEIGHT. 
+If the I did not have a special typedef for weights, it would much hard to identify all the locations where change was required in the code. 
+This little tidbit is for Nathan who complained one day about all the different typedefs to remember. 
+--------------------------------------------------------------------------------------------------------------------------------------------
