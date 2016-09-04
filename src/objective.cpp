@@ -103,3 +103,63 @@ void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict
 	}
 }
 
+//----------------------------------------------------------------------
+BinaryCrossEntropy::BinaryCrossEntropy(std::string name /* bce */) 
+{
+	char cname[80];
+	if (strlen(cname) > 80) {
+		printf("MeanSquare::MeanSquare : cname array too small\n");
+		exit(1);
+	}
+	sprintf(cname, "%s%d", name.c_str(), counter);
+	this->name = cname;
+	//printf("BinaryCrossEntropy constructor (%s)\n", this->name.c_str());
+	counter++;
+}
+
+BinaryCrossEntropy::~BinaryCrossEntropy()
+{
+	printf("BinaryCrossEntropy destructor (%s)\n", name.c_str());
+}
+
+BinaryCrossEntropy::BinaryCrossEntropy(const BinaryCrossEntropy& bce) : Objective(bce)
+{
+}
+
+//BinaryCrossEntropy::BinaryCrossEntropy=(const BinaryCrossEntropy& bce)
+//{
+	//if (this != &bce) {
+		//name = o.getName() + "=";
+	//}
+	//return *this;
+//}
+
+void BinaryCrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
+{
+	int nb_batch = exact.n_rows;
+	loss.set_size(nb_batch); // needed
+	VF2D output(size(predict[0]));
+	float EPS = 1.e-4; // too low if we are in double precision (then use 1.e-8)
+
+	for (int b=0; b < nb_batch; b++) {
+		// if predict is 0 or 1, loss goes to infinity. So clip. 
+		output = arma::clamp(predict[b], EPS, 1.-EPS); 
+		loss[b] = exact[b]*arma::log(output) + (1.-exact[b]) * arma::log(1.-output); // check size compatibility
+		loss[b] = arma::sum(loss[b], 0);  // sum over 1st index (dimension)
+	}
+}
+
+
+void BinaryCrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
+{
+	int nb_batch = exact.n_rows;
+	gradient.set_size(nb_batch);
+	VF2D output(size(predict[0]));
+	float EPS = 1.e-4;
+
+	for (int b=0; b < nb_batch; b++) {
+		output = arma::clamp(predict[b], EPS, 1.-EPS);  // prevent next line from going to infinity
+		gradient[b] = exact[b] / output + (1-exact[b]) /(1-output);
+	}
+}
+
