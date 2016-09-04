@@ -1,3 +1,4 @@
+#include "../common.h"
 
 void testRecurrentModelBias1(int nb_batch=1)
 {
@@ -41,6 +42,10 @@ void testRecurrentModelBias1(int nb_batch=1)
 
 	m->addInputLayer(input);
 	m->addOutputLayer(dense);
-	runModelRecurrent(m);
+	//runModelRecurrent(m);
 }
 //----------------------------------------------------------------------
+int main()
+{
+	testRecurrentModelBias1(1);
+}

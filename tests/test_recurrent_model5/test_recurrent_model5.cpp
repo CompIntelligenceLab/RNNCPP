@@ -1,14 +1,13 @@
 #include "../common.h"
 
-
 /***
 Single recurrent node. Test back-propagation. 
 Built based on a working version of test_current_model3.cpp
 ***/
 //----------------------------------------------------------------------
-void testRecurrentModelBias5(int nb_batch=1)
+void testRecurrentModel5(int nb_batch=1)
 {
-	printf("\n --- testRecurrentModelBias5 ---\n");
+	printf("\n --- testRecurrentModel5 ---\n");
 
 	//================================
 	Model* m  = new Model(); // argument is input_dim of model
@@ -77,7 +76,6 @@ Forward:
 	// set weights to 1 for testing
 	float w01      = .4;
 	float w11      = .6;  // recurrence weights for layer 1
-	float bias     = -.7; // single layer of size 1 ==> single bias
 	//w01      = 1.;
 	//w11      = 1.;  // recurrence weights for layer 1
 	float x0       = .45;
@@ -95,12 +93,12 @@ Forward:
 	z(0,0) = x0;
 	a(0,0) = z(0,0);
 	//a(1,-1) is retrieved via  layer->getConnection()->from->getOutputs();
-	z(1,0) = w01  * a(0,0) + bias; // + w11 * a(1,-1); // a(1,-1) is initially zero
+	z(1,0) = w01  * a(0,0); // + w11 * a(1,-1); // a(1,-1) is initially zero
 	a(1,0) = z(1,0);
 
 	z(0,1) = x1;
 	a(0,1) = z(0,1); // input <-- output  (set input to output)
-	z(1,1) = w01  * a(0,1) + w11 * a(1,0) + bias;   // for delay of 2, the 2nd term would be: w11 * a(1,-1)
+	z(1,1) = w01  * a(0,1) + w11 * a(1,0);   // for delay of 2, the 2nd term would be: w11 * a(1,-1)
 	a(1,1) = z(1,1);
 
 	// loss = loss0 + loss1
@@ -170,7 +168,9 @@ Forward:
 	printf("\n");
 	#endif
 
+
 	printf(" ================== END dL/da's =========================\n\n");
+
 
 	//============================================
 
@@ -205,11 +205,6 @@ Forward:
 		conn->computeWeightTranspose();
 	}
 
-	{
-		BIAS& bias_ = d1->getBias();
-		bias_(0) = bias;
-	}
-
 	// ================  BEGIN F-D weight derivatives ======================
 	float inc = .0001;
 	printf("\n*** deltas from finite-difference weight derivative ***\n");
@@ -232,15 +227,6 @@ Forward:
 		}
 	}
 	// ================  END F-D weight derivatives ======================
-
-	// ================  BEGIN F-D bias derivatives ======================
-	BIAS fd_dLdb;
-	for (int l=0; l < layers.size(); l++) {
-		fd_dLdb = biasDerivative(m, *layers[l], inc, xf, exact);
-		layers[l]->printSummary();
-		fd_dLdb.print("bias derivatives"); 
-	}
-	// ================  END F-D bias derivatives ======================
 	
 	VF2D_F yf;
 	Layer* outLayer = m->getOutputLayers()[0];
@@ -256,7 +242,8 @@ Forward:
 		xf.print("xf");
 		pred.print("pred");
 	}
-	//exit(0);
+	exit(0);
+
 	Objective* obj = m->getObjective();
 	const LOSS& loss = (*obj)(exact, pred);
 	loss.print("loss");
@@ -274,10 +261,7 @@ Forward:
 			conn->getDelta().print("Temporal Connection delta, ");
 		}
 	}
-	for (int l=0; l < layers.size(); l++) {
-		layers[l]->printSummary();
-		layers[l]->getBiasDelta().print("bias delta");
-	}
+exit(0);
 
 	VF2D dLdw_analytical = 2.*(exact(0) - pred(0)) % xf(0);
 	printf("Analytical dLdw: = %f\n", dLdw(0));
@@ -293,5 +277,5 @@ Forward:
 //----------------------------------------------------------------------
 int main()
 {
-	testRecurrentModelBias5(1);
+	testRecurrentModel5(1);
 }

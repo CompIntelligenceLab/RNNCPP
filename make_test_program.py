@@ -26,4 +26,4 @@ EOF
 print cmake
 print cmd
 
-os.system(cmd)
+#os.system(cmd)

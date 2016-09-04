@@ -1,4 +1,5 @@
 #include <math.h>
+#include "../common.h"
 
 void testRecurrentModel2(int nb_batch=1)
 {
@@ -303,3 +304,7 @@ Forward:
 	fd_dLdw.print("weight derivative, temporal d2");
 }
 //----------------------------------------------------------------------
+int main()
+{
+	testRecurrentModel2(1);
+}
