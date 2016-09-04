@@ -75,7 +75,7 @@ float runModel(Model* m)
 	//VF2D exact_prediction = wght % xf(0);
 	// WRONG RESULT for Model1a
 
-	VF2D_F pred = m->predictViaConnections(xf);
+	VF2D_F pred = m->predictViaConnectionsBias(xf);
 
 	pred.print("predicted value");
 	printf("+++++++++++\n");
@@ -143,7 +143,7 @@ storeDLossDweightInConnections, prod 0.0995
 WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
 {
 	// I'd expect the code to work with nb_batch=1 
-	printf("********** ENTER weightDerivative *************, \n");
+	//printf("********** ENTER weightDerivative *************, \n");
 
 	WEIGHT w0 = con.getWeight();
 	int rrows = w0.n_rows;
@@ -157,11 +157,11 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 
 		WEIGHT& wp = con.getWeight(); 
 		wp(rr,cc) += inc;
-		VF2D_F pred_n = m->predictViaConnections(xf);
+		VF2D_F pred_n = m->predictViaConnectionsBias(xf);
 
 		WEIGHT& wm = con.getWeight(); 
 		wm(rr,cc) -= (2.*inc);
-		VF2D_F pred_p = m->predictViaConnections(xf);
+		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
 
 		// Sum the loss over the sequences
 		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of floats
@@ -183,14 +183,14 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 	}}
 	//con.printSummary("weightDerivative");
 	//dLdw.print("dLdw");
-	printf("********** EXIT weightDerivative *************, \n");
+	//printf("********** EXIT weightDerivative *************, \n");
 	return dLdw;
 }
 //----------------------------------------------------------------------
 BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact)
 {
 	// I'd expect the code to work with nb_batch=1 
-	printf("********** ENTER biasDerivative *************, \n");
+	//printf("********** ENTER biasDerivative *************, \n");
 
 	BIAS bias = layer.getBias();
 	int layer_size = layer.getLayerSize();
@@ -202,11 +202,11 @@ BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact
 
 		BIAS& biasp = layer.getBias();
 		biasp(rr) += inc;
-		VF2D_F pred_n = m->predictViaConnections(xf);
+		VF2D_F pred_n = m->predictViaConnectionsBias(xf);
 
 		BIAS& biasm = layer.getBias(); 
 		biasm(rr) -= (2.*inc);
-		VF2D_F pred_p = m->predictViaConnections(xf);
+		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
 
 		// Sum the loss over the sequences
 		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of floats
@@ -215,7 +215,7 @@ BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact
 		// take the derivative of batch 0, of the loss (summed over the sequences)
 		dLdb(rr) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*inc);
 	}
-	printf("********** EXIT biasDerivative *************, \n");
+	//printf("********** EXIT biasDerivative *************, \n");
 	return dLdb;
 }
 //----------------------------------------------------------------------

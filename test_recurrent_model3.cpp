@@ -214,7 +214,7 @@ Forward:
 
 	for (int i=0; i < 1; i++) {
 		U::print(xf, "xf");
-		pred = m->predictViaConnections(xf);
+		pred = m->predictViaConnectionsBias(xf);
 		U::print(xf, "+++++++++++++ Prediction: xf");
 		U::print(pred, "+++++++++++++ Prediction: pred");
 		xf.print("xf");

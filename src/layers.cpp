@@ -293,7 +293,7 @@ void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 	//U::matmul(prod, wght, from_outputs, 0);  // sequence element zero)
 	U::matmul(prod, wght, from_outputs);
 
-	prod.print("prod, forwardData");
+	//prod.print("prod, forwardData");
 
 	// Data is not actually forwarded. It should be forwarded to the input 
 	// of the following layer. 

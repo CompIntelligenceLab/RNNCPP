@@ -496,6 +496,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	return prod;
 }
 //----------------------------------------------------------------------
+#if 0
 VF2D_F Model::predictViaConnections(VF2D_F x)
 {
 	VF2D_F prod(x.size());
@@ -533,6 +534,7 @@ VF2D_F Model::predictViaConnections(VF2D_F x)
 	//U::print(prod, "prod, exit predict, ");
 	return prod;
 }
+#endif
 //----------------------------------------------------------------------
 // This was hastily decided on primarily as a means to construct feed forward
 // results to begin implementing the backprop. Should be reevaluated
@@ -557,6 +559,7 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 	}
 }
 //----------------------------------------------------------------------
+#if 0
 void Model::storeGradientsInLayers()
 {
 	printf("---- enter storeGradientsInLayers ----\n");
@@ -572,6 +575,7 @@ void Model::storeGradientsInLayers()
 	}
 	printf("---- exit storeGradientsInLayers ----\n");
 }
+#endif
 //----------------------------------------------------------------------
 void Model::storeGradientsInLayersRec(int t)
 {
@@ -582,6 +586,7 @@ void Model::storeGradientsInLayersRec(int t)
 	//printf("---- exit storeGradientsInLayersRec ----\n");
 }
 //----------------------------------------------------------------------
+#if 0
 void Model::storeDactivationDoutputInLayers()
 {
 	typedef CONNECTIONS::reverse_iterator IT;
@@ -631,19 +636,20 @@ void Model::storeDactivationDoutputInLayers()
 	}
 	printf("**************** EXIT storeDactivationDoutputInLayers() **************\n");
 }
+#endif
 //----------------------------------------------------------------------
 void Model::storeDactivationDoutputInLayersRec(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 
-	printf("********* ENTER storeDactivationDoutputInLayers() **************\n");
+	//printf("********* ENTER storeDactivationDoutputInLayers() **************\n");
 
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
 	// Run connections backwards
 
-	printf("t,t-1= %d -> %d\n", t, t-1);
+	//printf("t,t-1= %d -> %d\n", t, t-1);
 
 	const VF2D_F& grad = output_layers[0]->getDelta();
 	int nb_batch = grad.n_rows;
@@ -676,8 +682,8 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		//U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t);  // Not sure whether this is correct. Rederive by hand. 
 
-		printf("prod.col(t) = wght_t * (grad.col(t) %% old_deriv.col(t))\n\n");
-		printf("t= %d, layer_from (before)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
+		//printf("prod.col(t) = wght_t * (grad.col(t) %% old_deriv.col(t))\n\n");
+		//printf("t= %d, layer_from (before)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
 		layer_from->incrDelta(prod, t);
 		printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
 		//printf("t= %d, layer_from= %s, ", t, layer_from->getName().c_str()); old_deriv.print("old_deriv");
@@ -691,7 +697,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	// Answer: yes, and I must increment the delta
 
 	#if 1
-	printf("+++++ treat temporal connections\n");
+	//printf("+++++ treat temporal connections\n");
 	for (int l=0; l < layers.size(); l++) {
 		Connection* conn = layers[l]->getConnection();
 		if (!conn) continue;
@@ -709,10 +715,10 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		layer_from->printSummary("layer_from, temporal");
 		//prod.print("prod");  // last two at t=0 are 1.e-45, so final answer does not change. Error? // should be zero 
 		//printf("t= %d\n", t); // t=1 during first pass
-		printf("t= %d, layer_from (before)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
+		//printf("t= %d, layer_from (before)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
 		layer_from->incrDelta(prod, t-1);
-		printf("(temporal) modify prod[t=%d]\n", t-1);
-		printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
+		//printf("(temporal) modify prod[t=%d]\n", t-1);
+		//printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
 		//exit(0);
 	}
 	#endif
@@ -721,9 +727,10 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 
 	//printf("********* storeDactivationDoutputInLayers() t= %d **************\n", t);
 
-	printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
+	//printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
 }
 //----------------------------------------------------------------------
+#if 0
 void Model::storeDLossDweightInConnections()
 {
 	typedef CONNECTIONS::reverse_iterator IT;
@@ -757,6 +764,7 @@ void Model::storeDLossDweightInConnections()
 	}
 	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }
+#endif
 //----------------------------------------------------------------------
 void Model::storeDLossDweightInConnectionsRec(int t)
 {
@@ -878,6 +886,7 @@ void Model::resetState()
 	}
 }
 //----------------------------------------------------------------------
+#if 0
 void Model::backPropagationViaConnections(const VF2D_F& exact, const VF2D_F& pred)
 {
 	printf("***************** ENTER BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
@@ -906,6 +915,7 @@ void Model::backPropagationViaConnections(const VF2D_F& exact, const VF2D_F& pre
 	storeDLossDweightInConnections();
 	printf("***************** EXIT BACKPROPVIACONNECTIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 }
+#endif
 //----------------------------------------------------------------------
 void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF2D_F& pred)
 {
@@ -927,7 +937,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 
     objective->computeGradient(exact, pred);
     VF2D_F& grad = objective->getGradient();
-	grad.print("\ngradient of objective function, ");
+	//grad.print("\ngradient of objective function, ");
 	getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
 
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT

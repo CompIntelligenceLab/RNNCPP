@@ -61,10 +61,9 @@ void testRecurrentModel1(int nb_batch=1)
 
 	m->addInputLayer(input);
 	m->addOutputLayer(dense);
-	runModelRecurrent(m);
 }
 //----------------------------------------------------------------------
-#if 0
+#if 1
 int main()
 {
 	testRecurrentModel1(1);
