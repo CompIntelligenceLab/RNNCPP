@@ -527,6 +527,12 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		// THERE SHOULD BE no prod[t-1] if there is no recurrence or time unrolling!
 		// prod[t-1] = wght_t * (grad[t] % old_deriv[t])
 		
+		// grad * old_deriv (if componentwise gradient, as for Tanh)
+		// grad * old_deriv (if gradient if a Jacobian, as for Softmax)
+		// The layer will figure out how to do this. Could also be passed to the activation function, since it is the
+		// activation function that determines how this multiplication is done. But the Layer is responsible for 
+		// passing the operation to the activation function
+		layer_to->gradMulDLda();
 		U::rightTriad(prod, wght_t, grad, old_deriv, t, t);  // Not sure whether this is correct. Rederive by hand. 
 
 		layer_from->incrDelta(prod, t);

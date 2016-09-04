@@ -171,6 +171,7 @@ public:
 	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod);
 	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int seq);
 	virtual void addBiasToInput(int t);
+	virtual VF2D_F gradMulDLda(); // for now, do not store anything (at least until we know what is needed)
 	Connection* getConnection() {return recurrent_conn;}
 
 public:
