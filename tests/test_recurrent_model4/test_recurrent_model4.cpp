@@ -199,99 +199,36 @@ Forward:
 	Connection* conn;
 	{
 		conn = m->getConnection(input, d1);
-		WEIGHT& w1 = conn->getWeight();
-		w1(0,0) = 0.4;
+		WEIGHT& w_1 = conn->getWeight();
+		w_1(0,0) = w1;
+		conn->computeWeightTranspose();
 	}
 
 	{
 		conn = m->getConnection(d1, d2);
-		WEIGHT& w12 = conn->getWeight();
-		w12(0,0) = .5;
+		WEIGHT& w_12 = conn->getWeight();
+		w_12(0,0) = w12;
+		conn->computeWeightTranspose();
 	}
 	
 	{
 		conn = d1->getConnection();
-		WEIGHT& w11 = conn->getWeight();
-		w11(0,0) = .6;
+		WEIGHT& w_11 = conn->getWeight();
+		w_11(0,0) = w11;
+		conn->computeWeightTranspose();
 	}
 	
 	{
 		conn = d2->getConnection();
-		WEIGHT& w22 = conn->getWeight();
-		w22(0,0) = .7;
+		WEIGHT& w_22 = conn->getWeight();
+		w_22(0,0) = w22;
+		conn->computeWeightTranspose();
 	}
 
 
 	//================================
 	float inc = .001;
 	runTest(m, inc, xf, exact);
-	exit(0);
-
-
-
-
-	VF2D_F yf;
-	//testData(*m, xf, yf, exact);
-
-	Layer* outLayer = m->getOutputLayers()[0];
-	printf("output_dim = %d\n", output_dim);
-
-	CONNECTIONS connections = m->getConnections();
-
-	VF2D_F pred;
-
-	for (int i=0; i < 1; i++) {
-		U::print(xf, "xf");
-		pred = m->predictViaConnectionsBias(xf);
-		U::print(pred, "Prediction: pred");
-	}
-	Objective* obj = m->getObjective();
-	LOSS loss = (*obj)(exact, pred);
-	loss.print("loss");
-	//exit(0);   // PREDICTIONS ARE WRONG
-
-	#if 0
-	U::print(pred, "pred");
-	U::print(exact, "exact");
-	pred.print("pred");
-	exact.print("exact");
-	#endif
-	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
-	
-	printf("\n*** deltas from back propagation ***\n");
-	for (int c=1; c < connections.size(); c++) {
-		connections[c]->printSummary("Connection (backprop)");
-		connections[c]->getDelta().print("delta");
-	}
-	d1->getConnection()->printSummary("Connection d1-d1");
-	d1->getConnection()->getDelta().print("delta(d1,d1)");
-	d2->getConnection()->printSummary("Connection d2-d2");
-	d2->getConnection()->getDelta().print("delta(d2,d2)");
-
-	//============================================
-	// Finite-Difference weights
-	printf("\n*** deltas from finite-difference weight derivative ***\n");
-	WEIGHT fd_dLdw;
-	// First connection is between 0 and input (does not count)
-	for (int c=1; c < connections.size(); c++) {
-		connections[c]->printSummary();
-		fd_dLdw = weightDerivative(m, *connections[c], inc, xf, exact);
-		fd_dLdw.print("weight derivative, spatial connections");
-	}
-	fd_dLdw = weightDerivative(m, *d1->getConnection(), inc, xf, exact);
-	fd_dLdw.print("weight derivative, temporal d1");
-	fd_dLdw = weightDerivative(m, *d2->getConnection(), inc, xf, exact);
-	fd_dLdw.print("weight derivative, temporal d2");
-	exit(0);
-
-	// Exact dL/dw
-	//U::print(exact, "exact");
-	//U::print(pred, "pred");
-	//U::print(xf, "xf");
-	VF2D dLdw_analytical = 2.*(exact(0) - pred(0)) % xf(0);
-	printf("Analytical dLdw: = %f\n", dLdw(0));
-	printf("F-D  derivative: = %f\n", fd_dLdw(0));
-	//testRecurrentModel1(1);
 	exit(0);
 }
 //----------------------------------------------------------------------
