@@ -148,12 +148,14 @@ Forward:
 	float dldw22 = L1*(w12*w01*x0); // CORRECT
 
 
+	#if 0
 	printf("\n ============== Layer Outputs =======================\n");
 	printf("a00, a01= %f, %f\n", a(0,0), a(0,1));
 	printf("z10, z11= %f, %f\n", z(1,0), z(1,1));
 	printf("a10, a11= %f, %f\n", a(1,0), a(1,1));
 	printf("z20, z21= %f, %f\n", z(2,0), z(2,1));
 	printf("a20, a21= %f, %f\n", a(2,0), a(2,1));
+	#endif
 
 	//a11 = w01 *a01 + w11*a10;
 	//a21 = w12*a11 + w22*a20;
@@ -167,6 +169,7 @@ Forward:
 	float da10da00 = w01;
 	float da20da10 = w01*w11;
 
+	#if 0
 	printf("dLda20= %f\n", L0);
 	printf("dLda21= %f\n", L1);
 	printf("da11da01= %f\n", w01);
@@ -176,6 +179,7 @@ Forward:
 	printf("da10da00= %f\n", w01);
 	printf("da20da10= %f\n", w01*w11);
 	printf("\n\n");
+	#endif
 
 	float dLda20 = L0;
 	float dLda21 = L1;
@@ -185,6 +189,7 @@ Forward:
 	float dLda00 = w01*(L1*w11*w12 + L0*w01*w11);
 	//float dLda00 = da10da00*(L1*da11da10*da21d11 + L0*da20da10) = w01*(L1*w11*w12 + L0*w01*w11);
 
+	#if 0
 	printf("Calculation of weight derivatives by hand\n");
 	printf("loss0= %f, loss1= %f\n", loss0, loss1);
 	printf("dldw1= %f\n", dldw1);
@@ -200,6 +205,7 @@ Forward:
 	printf("dLda10= %f\n", dLda10);
 	printf("dLda01= %f\n", dLda01);
 	printf("dLda00= %f\n", dLda00);
+	#endif
 
 	int output_dim = m->getOutputLayers()[0]->getOutputDim();
 
@@ -263,23 +269,23 @@ Forward:
 	//testData(*m, xf, yf, exact);
 
 	Layer* outLayer = m->getOutputLayers()[0];
-	printf("output_dim = %d\n", output_dim);
+	//printf("output_dim = %d\n", output_dim);
 
 	CONNECTIONS connections = m->getConnections();
 
 	VF2D_F pred;
 
 	for (int i=0; i < 1; i++) {
-		U::print(xf, "xf");
+		//U::print(xf, "xf");
 		pred = m->predictViaConnectionsBias(xf);
-		U::print(pred, "Prediction: pred");
-		pred.print("Prediction: pred");
+		//U::print(pred, "Prediction: pred");
+		//pred.print("Prediction: pred");
 	}
 	//exit(0);
 
 	Objective* obj = m->getObjective();
 	LOSS loss = (*obj)(exact, pred);
-	loss.print("loss");
+	//loss.print("loss");
 	//exit(0);   // PREDICTIONS ARE WRONG
 
 	#if 0
@@ -291,7 +297,8 @@ Forward:
 
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	
-	printf("WEIGHT DERIVATIVES\n");
+	#if 0
+	//printf("WEIGHT DERIVATIVES\n");
 	for (int c=1; c < connections.size(); c++) {
 		connections[c]->printSummary("Connection (backprop)");
 		connections[c]->getDelta().print("delta");
@@ -308,8 +315,11 @@ Forward:
 		layers[l]->printSummary();
 		layers[l]->getBiasDelta().print("bias delta");
 	}
+	#endif
 
+	float inc = 0.001;
 	//============================================
+	#if 0
 	// Finite-Difference weights
 	float inc = .001;
 	printf("\n*** deltas from finite-difference weight derivative ***\n");
@@ -324,16 +334,55 @@ Forward:
 	fd_dLdw.print("weight derivative, temporal d1");
 	fd_dLdw = weightDerivative(m, *d2->getConnection(), inc, xf, exact);
 	fd_dLdw.print("weight derivative, temporal d2");
+	#endif
 
 	// ================  BEGIN F-D bias derivatives ======================
 	BIAS fd_dLdb;
+	const LAYERS& layers = m->getLayers();
 
+	#if 0
+	printf("layers size: %d\n", layers.size());
 	for (int l=0; l < layers.size(); l++) {
 		fd_dLdb = biasDerivative(m, *layers[l], inc, xf, exact);
 		layers[l]->printSummary();
 		fd_dLdb.print("bias derivatives"); 
 	}
+	#endif
 	// ================  END F-D bias derivatives ======================
+
+	WEIGHT& delta_bp_1 = connections[1]->getDelta();
+	WEIGHT& delta_bp_2 = connections[2]->getDelta();
+	WEIGHT& delta_bp_3 = d1->getConnection()->getDelta();
+	WEIGHT& delta_bp_4 = d2->getConnection()->getDelta();
+
+	WEIGHT delta_fd_1 = weightDerivative(m, *connections[1], inc, xf, exact);
+	WEIGHT delta_fd_2 = weightDerivative(m, *connections[2], inc, xf, exact);
+	WEIGHT delta_fd_3 = weightDerivative(m, *d1->getConnection(), inc, xf, exact);
+	WEIGHT delta_fd_4 = weightDerivative(m, *d2->getConnection(), inc, xf, exact);
+
+	WEIGHT weight_err_1 = (delta_fd_1 - delta_bp_1) / delta_bp_1;
+	WEIGHT weight_err_2 = (delta_fd_2 - delta_bp_2) / delta_bp_2;
+	WEIGHT weight_err_3 = (delta_fd_3 - delta_bp_3) / delta_bp_3;
+	WEIGHT weight_err_4 = (delta_fd_4 - delta_bp_4) / delta_bp_4;
+
+	BIAS bias_fd_1 = biasDerivative(m, *layers[1], inc, xf, exact);
+	BIAS bias_fd_2 = biasDerivative(m, *layers[2], inc, xf, exact); 
+
+    BIAS bias_bp_1 = layers[1]->getBiasDelta();
+    BIAS bias_bp_2 = layers[2]->getBiasDelta();
+
+	BIAS bias_err_1 = (bias_fd_1 - bias_bp_1) / bias_bp_1;
+	BIAS bias_err_2 = (bias_fd_2 - bias_bp_2) / bias_bp_2;
+
+
+	printf("Relative ERRORS for weight derivatives for batch 0: \n");
+	printf("input-d1: "); weight_err_1.print();
+	printf("   d1-d2: "); weight_err_2.print();
+	printf("   d1-d1: "); weight_err_3.print();
+
+	printf("\nRelative ERRORS for bias derivatives for batch 0: \n");
+	printf("layer d1: "); bias_err_1.print();
+	printf("layer d2: "); bias_err_2.print();
 }
 //----------------------------------------------------------------------
 int main()

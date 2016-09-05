@@ -257,7 +257,7 @@ Forward:
 	//testData(*m, xf, yf, exact);
 
 	Layer* outLayer = m->getOutputLayers()[0];
-	printf("output_dim = %d\n", output_dim);
+	//printf("output_dim = %d\n", output_dim);
 
 	CONNECTIONS connections = m->getConnections();
 
