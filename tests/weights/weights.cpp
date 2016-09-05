@@ -10,11 +10,16 @@
 
 int main() 
 {
-	Connection w1(5,6);
-	Connection w2(5,6);
+	printf("\n\n\n");
+	printf("=============== BEGIN weights  =======================\n");
+	Connection w1(5,6); // arguments: inputs, outputs, weight(output, input)
+	Connection w2(5,6); // WEIGHT 6,5
 
-	for (int i=0; i < 5; i++) {
-	for (int j=0; j < 6; j++) {
+	WEIGHT& ww = w1.getWeight();
+	U::print(ww, "ww");
+
+	for (int j=0; j < 5; j++) {  // inputs, 2nd arg
+	for (int i=0; i < 6; i++) {
 		printf("i,j= %d, %d\n", i,j);
 		w1(i,j) = i+j;
 		w2(i,j) = i-j;

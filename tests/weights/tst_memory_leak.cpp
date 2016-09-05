@@ -38,6 +38,8 @@ public:
 
 int main() 
 {	
+	printf("\n\n\n");
+	printf("=============== BEGIN test_memory_leak  =======================\n");
 	Array* a1 = new Array();
 	Array* a2 = new Array();
 

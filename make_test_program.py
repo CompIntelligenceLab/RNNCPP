@@ -7,12 +7,13 @@ parser.add_argument('--src', type=str, action="store", dest="src")
 args = parser.parse_args()
 
 name = args.src
+gox = name
 src = name + ".cpp"
 
 cmake = """
 include_directories(${RNNCPP_SOURCE_DIR}/include)
-add_executable(%(name)s %(src)s)
-target_link_libraries(%(name)s core ${ARMADILLO_LIBRARIES}) 
+add_executable(%(gox)s %(src)s)
+target_link_libraries(%(gox)s core ${ARMADILLO_LIBRARIES}) 
 """   % locals()
 
 cmd = """

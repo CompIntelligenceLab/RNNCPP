@@ -3,7 +3,8 @@
 
 void testRecurrentModel2(int nb_batch=1)
 {
-	printf("\n --- testRecurrentModel2 ---\n");
+	printf("\n\n\n");
+	printf("=============== BEGIN test_recurrent_model2  =======================\n");
 
 	//================================
 	Model* m  = new Model(); // argument is input_dim of model
@@ -145,12 +146,14 @@ Forward:
 	float dldw22 = L1*(w12*w01*x0); // CORRECT
 
 
+	#if 0
 	printf("\n ============== Layer Outputs =======================\n");
 	printf("a00, a01= %f, %f\n", a(0,0), a(0,1));
 	printf("z10, z11= %f, %f\n", z(1,0), z(1,1));
 	printf("a10, a11= %f, %f\n", a(1,0), a(1,1));
 	printf("z20, z21= %f, %f\n", z(2,0), z(2,1));
 	printf("a20, a21= %f, %f\n", a(2,0), a(2,1));
+	#endif
 
 	//a11 = w01 *a01 + w11*a10;
 	//a21 = w12*a11 + w22*a20;
@@ -164,6 +167,7 @@ Forward:
 	float da10da00 = w01;
 	float da20da10 = w01*w11;
 
+	#if 0
 	printf("dLda20= %f\n", L0);
 	printf("dLda21= %f\n", L1);
 	printf("da11da01= %f\n", w01);
@@ -173,6 +177,7 @@ Forward:
 	printf("da10da00= %f\n", w01);
 	printf("da20da10= %f\n", w01*w11);
 	printf("\n\n");
+	#endif
 
 	float dLda20 = L0;
 	float dLda21 = L1;
@@ -182,6 +187,7 @@ Forward:
 	float dLda00 = w01*(L1*w11*w12 + L0*w01*w11);
 	//float dLda00 = da10da00*(L1*da11da10*da21d11 + L0*da20da10) = w01*(L1*w11*w12 + L0*w01*w11);
 
+	#if 0
 	printf("Calculation of weight derivatives by hand\n");
 	printf("loss0= %f, loss1= %f\n", loss0, loss1);
 	printf("dldw1= %f\n", dldw1);
@@ -197,6 +203,7 @@ Forward:
 	printf("dLda10= %f\n", dLda10);
 	printf("dLda01= %f\n", dLda01);
 	printf("dLda00= %f\n", dLda00);
+	#endif
 
 	int output_dim = m->getOutputLayers()[0]->getOutputDim();
 
@@ -267,7 +274,6 @@ Forward:
 	Objective* obj = m->getObjective();
 	LOSS loss = (*obj)(exact, pred);
 	loss.print("loss");
-	//exit(0);   // PREDICTIONS ARE WRONG
 
 	#if 0
 	U::print(pred, "pred");
@@ -275,9 +281,12 @@ Forward:
 	pred.print("pred");
 	exact.print("exact");
 	#endif
+
+	printf(" ==================== BackPropagation =============================\n");
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	
 	printf("\n*** deltas from back propagation ***\n");
+	#if 0
 	for (int c=1; c < connections.size(); c++) {
 		connections[c]->printSummary("Connection (backprop)");
 		connections[c]->getDelta().print("delta");
@@ -286,7 +295,13 @@ Forward:
 	d1->getConnection()->getDelta().print("delta(d1,d1)");
 	d2->getConnection()->printSummary("Connection d2-d2");
 	d2->getConnection()->getDelta().print("delta(d2,d2)");
+	#endif
 
+	//printf("connections.size= %d\n", connections.size());exit(0);
+	WEIGHT& delta_bp_1 = connections[1]->getDelta();
+	WEIGHT& delta_bp_2 = connections[2]->getDelta();
+	WEIGHT& delta_bp_3 = d1->getConnection()->getDelta();
+	WEIGHT& delta_bp_4 = d2->getConnection()->getDelta();
 	//============================================
 	// Finite-Difference weights
 	float inc = .001;
@@ -302,6 +317,29 @@ Forward:
 	fd_dLdw.print("weight derivative, temporal d1");
 	fd_dLdw = weightDerivative(m, *d2->getConnection(), inc, xf, exact);
 	fd_dLdw.print("weight derivative, temporal d2");
+
+	WEIGHT delta_fd_1 = weightDerivative(m, *connections[1], inc, xf, exact);
+	WEIGHT delta_fd_2 = weightDerivative(m, *connections[2], inc, xf, exact);
+	WEIGHT delta_fd_3 = weightDerivative(m, *d1->getConnection(), inc, xf, exact);
+	WEIGHT delta_fd_4 = weightDerivative(m, *d2->getConnection(), inc, xf, exact);
+
+	WEIGHT err_1 = (delta_fd_1 - delta_bp_1) / delta_bp_1;
+	WEIGHT err_2 = (delta_fd_2 - delta_bp_2) / delta_bp_2;
+	WEIGHT err_3 = (delta_fd_3 - delta_bp_3) / delta_bp_3;
+	WEIGHT err_4 = (delta_fd_4 - delta_bp_4) / delta_bp_4;
+
+	#if 0
+	delta_bp_1.print("delta_bp_1");
+	delta_bp_2.print("delta_bp_2");
+	delta_bp_3.print("delta_bp_3");
+	delta_bp_4.print("delta_bp_4");
+	#endif
+
+	printf("Relative ERRORS in derivatives: \n");
+	printf("input-d1: "); err_1.print();
+	printf("   d1-d2: "); err_2.print();
+	printf("   d1-d1: "); err_3.print();
+	printf("   d2-d2: "); err_4.print();
 }
 //----------------------------------------------------------------------
 int main()

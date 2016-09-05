@@ -9,7 +9,8 @@
 
 int main() 
 {
-	printf("=================================\n");
+	printf("\n\n\n");
+	printf("=============== BEGIN copy_constructorssss  =======================\n");
 	Optimizer* opt = new Optimizer("optGE");
 	Optimizer opt1(*opt);
 	Optimizer opt2 = *opt;

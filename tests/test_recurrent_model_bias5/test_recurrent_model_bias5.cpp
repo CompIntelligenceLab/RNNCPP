@@ -8,7 +8,8 @@ Built based on a working version of test_current_model3.cpp
 //----------------------------------------------------------------------
 void testRecurrentModelBias5(int nb_batch=1)
 {
-	printf("\n --- testRecurrentModelBias5 ---\n");
+	printf("\n\n\n");
+	printf("=============== BEGIN test_recurrent_model_bias5  =======================\n");
 
 	//================================
 	Model* m  = new Model(); // argument is input_dim of model

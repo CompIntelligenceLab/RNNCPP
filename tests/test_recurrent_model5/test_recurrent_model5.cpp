@@ -7,7 +7,8 @@ Built based on a working version of test_current_model3.cpp
 //----------------------------------------------------------------------
 void testRecurrentModel5(int nb_batch=1)
 {
-	printf("\n --- testRecurrentModel5 ---\n");
+	printf("\n\n\n");
+	printf("=============== BEGIN test_recurrent_model5  =======================\n");
 
 	//================================
 	Model* m  = new Model(); // argument is input_dim of model

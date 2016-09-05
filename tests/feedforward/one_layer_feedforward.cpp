@@ -10,6 +10,8 @@
 
 int main()
 {
+	printf("\n\n\n");
+	printf("=============== BEGIN one_layer_feedforward  =======================\n");
 #if 0
 	Model* m  = new Model(1, "feedforward");
 	Layer* l1 = new DenseLayer(5, "dense");

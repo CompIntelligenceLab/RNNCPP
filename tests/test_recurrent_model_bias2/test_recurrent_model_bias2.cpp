@@ -3,7 +3,8 @@
 
 void testRecurrentModelBias2(int nb_batch=1)
 {
-	printf("\n --- testRecurrentModel2 ---\n");
+	printf("\n\n\n");
+	printf("=============== BEGIN test_recurrent_model_bias2  =======================\n");
 
 	//================================
 	Model* m  = new Model(); // argument is input_dim of model

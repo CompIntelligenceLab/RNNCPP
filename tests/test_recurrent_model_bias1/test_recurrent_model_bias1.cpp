@@ -2,6 +2,8 @@
 
 void testRecurrentModelBias1(int nb_batch=1)
 {
+	printf("\n\n\n");
+	printf("=============== BEGIN test_recurrent_model_bias1  =======================\n");
 /***
 	Simplest possible network: two nodes with the identity activation. 
 	seq_len = 2
@@ -11,7 +13,6 @@ void testRecurrentModelBias1(int nb_batch=1)
                  w1
 	    input ---------> rdense --> loss    (loss is attached to the output layer)
 ***/
-	printf("\n --- testRecurrentModel1 ---\n");
 	int input_dim = 1; // predict works with input_dim > 1
 	Model* m  = new Model(); // argument is input_dim of model
 	m->setSeqLen(2); // runs (but who knows whether correct) with seq_len > 1

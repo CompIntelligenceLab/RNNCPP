@@ -485,7 +485,7 @@ void Layer::gradMulDLda(VF2D_F& prod, const WEIGHT& wght_t, int t_from, int t_to
 {
 	const VF2D_F& old_deriv = this->getDelta();
 
-	printf("act type: %s\n", getActivation().getDerivType().c_str());
+	//printf("act type: %s\n", getActivation().getDerivType().c_str());
 	Activation& activation = getActivation();
 
 	if (getActivation().getDerivType() == "decoupled") {

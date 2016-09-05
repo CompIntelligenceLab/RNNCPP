@@ -4,6 +4,8 @@
 #include "activations.h"
 
 int main() {
+	printf("\n\n\n");
+	printf("=============== BEGIN Activations =======================\n");
 	Tanh* ttanh = new Tanh();
 	Sigmoid* ssigmoid = new Sigmoid();
 
