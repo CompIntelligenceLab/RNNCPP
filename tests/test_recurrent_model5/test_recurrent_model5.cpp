@@ -7,8 +7,8 @@ Built based on a working version of test_current_model3.cpp
 //----------------------------------------------------------------------
 void testRecurrentModel5(int nb_batch=1)
 {
-	printf("\n\n\n");
-	printf("=============== BEGIN test_recurrent_model5  =======================\n");
+	//printf("\n\n\n");
+	//printf("=============== BEGIN test_recurrent_model5  =======================\n");
 
 	//================================
 	Model* m  = new Model(); // argument is input_dim of model
@@ -33,7 +33,7 @@ void testRecurrentModel5(int nb_batch=1)
 	m->addInputLayer(input);
 	m->addOutputLayer(d1);
 
-	m->printSummary();
+	//m->printSummary();
 	m->connectionOrderClean(); // no print statements
 	//===========================================
 /***
@@ -135,6 +135,7 @@ Forward:
 	float dlda00 = L0 * w01  +  L1 * w11 * w01;
 	float dlda01 = L1 * w11 * w01;
 
+	#if 0
 	printf("\n ============== Layer Outputs =======================\n");
 	printf("a00= %f\n", a(0,0));
 	printf("a10= %f\n", a(1,0));
@@ -150,6 +151,7 @@ Forward:
 	printf("\n");
 	printf("dlda00, dlda01= %f, %f\n", dlda00, dlda01);
 	printf("dlda10, dlda11= %f, %f\n", dlda10, dlda11);
+	#endif
 
 	// Derivative of loss with respect to weights
 	// dL/dw01 = sum_t dL/da1t * da1t/dw01  = sum_t dL/da1t * (f'=1) * a0t
@@ -208,49 +210,50 @@ Forward:
 
 	// ================  BEGIN F-D weight derivatives ======================
 	float inc = .0001;
-	printf("\n*** deltas from finite-difference weight derivative ***\n");
+	//printf("\n*** deltas from finite-difference weight derivative ***\n");
 	WEIGHT fd_dLdw;
 	// First connection is between 0 and input (does not count)
 	CONNECTIONS connections = m->getConnections();
 	for (int c=1; c < connections.size(); c++) {
-		connections[c]->printSummary();
+		//connections[c]->printSummary();
 		fd_dLdw = weightDerivative(m, *connections[c], inc, xf, exact);
-		fd_dLdw.print("weight derivative, spatial connections, recurrent5, ");
+		//fd_dLdw.print("weight derivative, spatial connections, recurrent5, ");
 	}
 	const LAYERS& layers = m->getLayers();
 	for (int l=0; l < layers.size(); l++) {
 		Connection* conn = layers[l]->getConnection();
 		if (conn) {
 			fd_dLdw = weightDerivative(m, *conn, inc, xf, exact);
-			layers[l]->printSummary();
-			conn->printSummary("loop connection\n");
-			fd_dLdw.print("weight derivative, temporal connections, recurrent5, ");
+			//layers[l]->printSummary();
+			//conn->printSummary("loop connection\n");
+			//fd_dLdw.print("weight derivative, temporal connections, recurrent5, ");
 		}
 	}
 	// ================  END F-D weight derivatives ======================
 	
 	VF2D_F yf;
 	Layer* outLayer = m->getOutputLayers()[0];
-	printf("output_dim = %d\n", output_dim);
+	//printf("output_dim = %d\n", output_dim);
 
 	VF2D_F pred;
 
 	for (int i=0; i < 1; i++) {
 		U::print(xf, "xf");
 		pred = m->predictViaConnectionsBias(xf);
-		U::print(xf,   "+++++++++++++ Prediction: xf");
-		U::print(pred, "+++++++++++++ Prediction: pred");
-		xf.print("xf");
-		pred.print("pred");
+		//U::print(xf,   "+++++++++++++ Prediction: xf");
+		//U::print(pred, "+++++++++++++ Prediction: pred");
+		//xf.print("xf");
+		//pred.print("pred");
 	}
-	exit(0);
+	//exit(0);
 
 	Objective* obj = m->getObjective();
 	const LOSS& loss = (*obj)(exact, pred);
-	loss.print("loss");
+	//loss.print("loss");
 
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	
+	#if 0
 	printf("\n*** deltas from back propagation ***\n");
 	for (int c=1; c < connections.size(); c++) {
 		connections[c]->printSummary("Connection (backprop), ");
@@ -262,6 +265,19 @@ Forward:
 			conn->getDelta().print("Temporal Connection delta, ");
 		}
 	}
+	#endif
+
+	WEIGHT& delta_bp_1 = connections[1]->getDelta();
+
+	WEIGHT delta_fd_1 = weightDerivative(m, *connections[1], inc, xf, exact);
+
+	WEIGHT err_1 = (delta_fd_1 - delta_bp_1) / delta_bp_1;
+
+	printf("Relative ERRORS for weight derivatives for batch 0: \n");
+	printf("input-d1: "); delta_bp_1.print("delta_bp_1");
+	printf("input-d1: "); err_1.print();
+
+	exit(0);
 exit(0);
 
 	VF2D dLdw_analytical = 2.*(exact(0) - pred(0)) % xf(0);

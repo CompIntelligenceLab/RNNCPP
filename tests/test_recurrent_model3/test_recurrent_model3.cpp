@@ -125,6 +125,7 @@ Forward:
 	float dlda00 = dlda10 * w01;
 	float dlda01 = dlda11 * w01;
 
+	#if 0
 	printf("\n ============== Layer Outputs =======================\n");
 	printf("a00= %f\n", a(0,0));
 	printf("a10= %f\n", a(1,0));
@@ -136,6 +137,7 @@ Forward:
 	printf("dlda20= %f, dlda21= %f\n", dlda20, dlda21);
 	printf("dlda10= %f, dlda11= %f\n", dlda10, dlda11);
 	printf("dlda00= %f, dlda01= %f\n", dlda00, dlda01);
+	#endif
 
 	// Derivative of loss with respect to weights
 	// dL/dw01 = sum_t dL/da1t * da1t/dw01  = sum_t dL/da1t * (f'=1) * a0t
@@ -148,15 +150,17 @@ Forward:
 	float dldw01 = dlda10*a(0,0) + dlda11*a(0,1);
 	float dldw12 = dlda20*a(1,0) + dlda21*a(1,1);
 
+	#if 0
 	printf(".... Calculation of weight derivatives by hand\n");
 	printf("loss0= %f, loss1= %f\n", loss0, loss1);
 	printf("total loss: %f\n", loss_tot);
 	printf("dldw01= %f\n", dldw01);
 	printf("dldw12= %f\n", dldw12);
 	printf("\n");
+	#endif
 
 
-	printf(" ================== END dL/da's =========================\n\n");
+	//printf(" ================== END dL/da's =========================\n\n");
 
 
 
@@ -195,14 +199,14 @@ Forward:
 
 	// ================  BEGIN F-D weight derivatives ======================
 	float inc = .0001;
-	printf("\n*** deltas from finite-difference weight derivative ***\n");
+	//printf("\n*** deltas from finite-difference weight derivative ***\n");
 	WEIGHT fd_dLdw;
 	// First connection is between 0 and input (does not count)
 	CONNECTIONS connections = m->getConnections();
 	for (int c=1; c < connections.size(); c++) {
-		connections[c]->printSummary();
+		//connections[c]->printSummary();
 		fd_dLdw = weightDerivative(m, *connections[c], inc, xf, exact);
-		fd_dLdw.print("weight derivative, spatial connections, recurrent3");
+		//fd_dLdw.print("weight derivative, spatial connections, recurrent3");
 	}
 	// ================  END F-D weight derivatives ======================
 	
@@ -216,30 +220,49 @@ Forward:
 	VF2D_F pred;
 
 	for (int i=0; i < 1; i++) {
-		U::print(xf, "xf");
+		//U::print(xf, "xf");
 		pred = m->predictViaConnectionsBias(xf);
-		U::print(xf, "+++++++++++++ Prediction: xf");
-		U::print(pred, "+++++++++++++ Prediction: pred");
-		xf.print("xf");
-		pred.print("pred");
+		//U::print(xf, "+++++++++++++ Prediction: xf");
+		//U::print(pred, "+++++++++++++ Prediction: pred");
+		//xf.print("xf");
+		//pred.print("pred");
 	}
 	Objective* obj = m->getObjective();
 	const LOSS& loss = (*obj)(exact, pred);
-	loss.print("prediction loss, ");
+	//loss.print("prediction loss, ");
 
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	
 
+	#if 0
 	printf("\n*** deltas from back propagation ***\n");
 	for (int c=1; c < connections.size(); c++) {
 		connections[c]->printSummary("Connection (backprop), ");
 		connections[c]->getDelta().print("delta");
 	}
+	#endif
 
+	WEIGHT& delta_bp_1 = connections[1]->getDelta();
+	WEIGHT& delta_bp_2 = connections[2]->getDelta();
+
+	WEIGHT delta_fd_1 = weightDerivative(m, *connections[1], inc, xf, exact);
+	WEIGHT delta_fd_2 = weightDerivative(m, *connections[2], inc, xf, exact);
+
+	WEIGHT err_1 = (delta_fd_1 - delta_bp_1) / delta_bp_1;
+	WEIGHT err_2 = (delta_fd_2 - delta_bp_2) / delta_bp_2;
+
+	printf("Relative ERRORS for weight derivatives for batch 0: \n");
+	printf("input-d1: "); err_1.print();
+	printf("   d1-d2: "); err_2.print();
+
+	exit(0);
+
+	#if 0
 	VF2D dLdw_analytical = 2.*(exact(0) - pred(0)) % xf(0);
 	printf("Analytical dLdw: = %f\n", dLdw(0));
 	printf("F-D  derivative: = %f\n", fd_dLdw(0));
 	exit(0);
+	#endif
 
 	// Three checks: 
 	// 1) analytical calculation (using recursion to compute derivatives of loss wrt layer output. 
@@ -250,5 +273,6 @@ Forward:
 //----------------------------------------------------------------------
 int main()
 {
+	// DOES NOT WORK WITH nb_batch > 1
 	testRecurrentModel3(1);
 }

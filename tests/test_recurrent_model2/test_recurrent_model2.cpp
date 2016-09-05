@@ -264,16 +264,16 @@ Forward:
 	VF2D_F pred;
 
 	for (int i=0; i < 1; i++) {
-		U::print(xf, "xf");
+		//U::print(xf, "xf");
 		pred = m->predictViaConnectionsBias(xf);
-		U::print(pred, "Prediction: pred");
-		pred.print("Prediction: pred");
+		//U::print(pred, "Prediction: pred");
+		//pred.print("Prediction: pred");
 	}
 	//exit(0);
 
 	Objective* obj = m->getObjective();
 	LOSS loss = (*obj)(exact, pred);
-	loss.print("loss");
+	//loss.print("loss");
 
 	#if 0
 	U::print(pred, "pred");
@@ -282,10 +282,10 @@ Forward:
 	exact.print("exact");
 	#endif
 
-	printf(" ==================== BackPropagation =============================\n");
+	//printf(" ==================== BackPropagation =============================\n");
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	
-	printf("\n*** deltas from back propagation ***\n");
+	//printf("\n*** deltas from back propagation ***\n");
 	#if 0
 	for (int c=1; c < connections.size(); c++) {
 		connections[c]->printSummary("Connection (backprop)");
@@ -305,6 +305,8 @@ Forward:
 	//============================================
 	// Finite-Difference weights
 	float inc = .001;
+
+	#if 0
 	printf("\n*** deltas from finite-difference weight derivative ***\n");
 	WEIGHT fd_dLdw;
 	// First connection is between 0 and input (does not count)
@@ -317,6 +319,7 @@ Forward:
 	fd_dLdw.print("weight derivative, temporal d1");
 	fd_dLdw = weightDerivative(m, *d2->getConnection(), inc, xf, exact);
 	fd_dLdw.print("weight derivative, temporal d2");
+	#endif
 
 	WEIGHT delta_fd_1 = weightDerivative(m, *connections[1], inc, xf, exact);
 	WEIGHT delta_fd_2 = weightDerivative(m, *connections[2], inc, xf, exact);
@@ -328,14 +331,14 @@ Forward:
 	WEIGHT err_3 = (delta_fd_3 - delta_bp_3) / delta_bp_3;
 	WEIGHT err_4 = (delta_fd_4 - delta_bp_4) / delta_bp_4;
 
-	#if 0
+	#if 1
 	delta_bp_1.print("delta_bp_1");
 	delta_bp_2.print("delta_bp_2");
 	delta_bp_3.print("delta_bp_3");
 	delta_bp_4.print("delta_bp_4");
 	#endif
 
-	printf("Relative ERRORS in derivatives: \n");
+	printf("Relative ERRORS for weight derivatives for batch 0: \n");
 	printf("input-d1: "); err_1.print();
 	printf("   d1-d2: "); err_2.print();
 	printf("   d1-d1: "); err_3.print();
@@ -344,5 +347,6 @@ Forward:
 //----------------------------------------------------------------------
 int main()
 {
+	// DOES NOT WORK FOR nb_batch > 1 (CHECK)
 	testRecurrentModel2(1);
 }

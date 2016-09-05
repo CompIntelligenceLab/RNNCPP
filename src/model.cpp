@@ -264,12 +264,12 @@ bool Model::isLayerComplete(Layer* layer)
 // Is the number of active connections = to the number of incoming connections
 // Assume all connections are spatial
 {
-	layer->printSummary("enter isLayerComplete, ");
+	//layer->printSummary("enter isLayerComplete, ");
 
 	// Check that all outgoing connections are "hit"
 
 	int nb_departures = layer->next.size();
-	printf(" - nb_departures= %d\n", nb_departures);
+	//printf(" - nb_departures= %d\n", nb_departures);
 
 	int all_hits = 0;
 	for (int i=0; i < nb_departures; i++) {
@@ -357,7 +357,7 @@ void Model::connectionOrderClean()
 
 		// remove all layers that are "complete"
 		for (int i=0; i < completed_layers.size(); i++) {
-			completed_layers[i]->printSummary("completed_layers");
+			//completed_layers[i]->printSummary("completed_layers");
 			llist.remove(completed_layers[i]);
 		}
 		completed_layers.clear();
@@ -388,13 +388,13 @@ void Model::connectionOrderClean()
 
 			for (int b=0; b < nb_batch; b++) {
 				layers[l]->layer_inputs[i](b) = VF2D(input_dim, seq_len);
-				U::print(layers[l]->layer_inputs[i](b), "layer_inputs");
+				//U::print(layers[l]->layer_inputs[i](b), "layer_inputs");
 			}
 		}
 
 		// layer_deltas are unsused at this time
 	}
-	printf("============== EXIT connectionOrderClean =================\n");
+	//printf("============== EXIT connectionOrderClean =================\n");
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
