@@ -173,7 +173,11 @@ public:
 	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod);
 	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int seq);
 	virtual void addBiasToInput(int t);
-	virtual VF2D_F gradMulDLda(); // for now, do not store anything (at least until we know what is needed)
+
+	// Doing this in layers since the approach to matrix multiplication will depend on whether the activation function
+	// gradient is done componentwise or via a Jacobian matrix
+	virtual void gradMulDLda(VF2D_F& prod, const WEIGHT& wght_t, int t_from, int t_to); // for now, do not store anything (at least until we know what is needed)
+	virtual void dLdaMulGrad(Connection* con, const VF2D_F& out, int t);
 	Connection* getConnection() {return recurrent_conn;}
 
 public:

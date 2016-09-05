@@ -481,7 +481,55 @@ void Layer::addBiasToInput(int t)
 	}
 }
 //----------------------------------------------------------------------
-VF2D_F Layer::gradMulDLda()
+void Layer::gradMulDLda(VF2D_F& prod, const WEIGHT& wght_t, int t_from, int t_to)
 {
+	const VF2D_F& old_deriv = this->getDelta();
+
+	printf("act type: %s\n", getActivation().getDerivType().c_str());
+	Activation& activation = getActivation();
+
+	if (getActivation().getDerivType() == "decoupled") {
+		const VF2D_F& grad 		= this->getGradient();
+		U::rightTriad(prod, wght_t, grad, old_deriv, t_from, t_to);
+	} else { // "coupled"
+		for (int b=0; b < nb_batch; b++) {
+			const VF1D& x =  inputs(b).col(t_from);
+			const VF1D& y = outputs(b).col(t_from);
+			const VF2D grad = activation.jacobian(x, y); // not stored
+			prod(b).col(t_to) = wght_t * (grad * old_deriv[b].col(t_from));
+		}
+	}
 }
+//----------------------------------------------------------------------
+void Layer::dLdaMulGrad(Connection* con, const VF2D_F& out, int t)
+{
+	const VF2D_F& old_deriv = getDelta();
+	printf("act type: %s\n", getActivation().getDerivType().c_str());
+	Activation& activation = getActivation();
+	WEIGHT delta = VF2D(size(con->getWeight()));
+
+	if (getActivation().getDerivType() == "decoupled") {
+		const VF2D_F& grad      = getGradient();
+
+		for (int b=0; b < nb_batch; b++) {
+			const VF2D& out_t = out(b).t();
+			delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
+			con->incrDelta(delta);
+		}
+	} else { // "coupled derivatives"
+		for (int b=0; b < nb_batch; b++) {
+			const VF1D& x =  inputs(b).col(t);
+			const VF1D& y = outputs(b).col(t);
+			const VF2D grad = activation.jacobian(x, y); // not stored
+			const VF2D& out_t = out(b).t();
+           	// Must generalize for when times are not separated by 1, TODO (Need different arguments)
+           	delta = (old_deriv[b].col(t+1) * grad) * out_t.row(t); //out(b).t();
+           	con->incrDelta(delta);
+		}
+	}
+}
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 //----------------------------------------------------------------------

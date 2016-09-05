@@ -13,6 +13,10 @@ class Activation
 protected:
 	std::string name;
 	static int counter;
+	
+	// "coupled": Compute a 2D Jacobian. Use "jacobian()" method
+	// "decoupled": Compute a 1D componentwise derivative
+	std::string deriv_type;  // "coupled" or "decoupled"
 
 public:
 	Activation(std::string name="activation");
@@ -23,13 +27,14 @@ public:
 	/** x has dimensionality equal to the previous layer size */
 	/** the return value has the dimensionality of the new layer size */
 	virtual VF2D_F derivative(const VF2D_F& x) = 0; // derivative of activation function evaluated at x
-	virtual VF2D jacobian(const VF1D& x) { ; // different variables are coupled, Jacobian
+	virtual VF2D jacobian(const VF1D& x, const VF1D& y) { ; // different variables are coupled, Jacobian
 		return VF2D(1,1);  // not really used, but a placeholder 
 	}
 	virtual VF1D derivative(const VF1D& x) = 0; // derivative of activation function evaluated at x
 	virtual VF2D_F operator()(const VF2D_F& x) = 0;
 	virtual void print(std::string name= "");
 	virtual std::string getName() { return name; }
+	virtual std::string getDerivType() { return deriv_type; }
 };
 
 //----------------------------------------------------------------------
@@ -203,7 +208,10 @@ class Softmax : public Activation
 // softmax has n inputs, and n outputs: 
 // softmax(x,y) = exp(x)/(exp(x)+exp(y)) ,   exp(y)/(exp(x)+exp(y))
 public:
-	Softmax(std::string name="softmax") : Activation(name) {;}
+	Softmax(std::string name="softmax") : Activation(name) 
+	{ 
+		deriv_type = "coupled";
+	}
 	~Softmax();
     Softmax(const Softmax&);
     const Softmax& operator=(const Softmax&);
@@ -249,8 +257,8 @@ public:
 	}
 
 	// arguments are x and y=softmax(x) (already computed)
-	VF2D Jacobian(const VF1D& x, const VF1D& y)
-	//VF2D Jacobian(const VF1D& x)
+	// The second argument is used for efficiency
+	VF2D jacobian(const VF1D& x, const VF1D& y)
 	{
 		VF2D jac(x.n_rows, x.n_rows);
 		// jac(i,j) = dsoft[i]/dx[j]

@@ -509,6 +509,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 
 	// not efficient. Should work directly in Layer instance
 	VF2D_F prod(nb_batch);
+
 	for (int b=0; b < nb_batch; b++) {
 		prod(b) = VF2D(size(grad(b)));
 	}
@@ -518,10 +519,8 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		Layer* layer_to   = conn->to;
 		Layer* layer_from = conn->from;
 
-		const VF2D_F& grad = layer_to->getGradient();
-		const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
+		const WEIGHT& wght   = conn->getWeight(); // invokes copy constructor, or what? 
 		const WEIGHT& wght_t = conn->getWeightTranspose();
-		const VF2D_F& old_deriv = layer_to->getDelta();
 
 		// no-op if t-1 < 0
 		// THERE SHOULD BE no prod[t-1] if there is no recurrence or time unrolling!
@@ -532,11 +531,10 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		// The layer will figure out how to do this. Could also be passed to the activation function, since it is the
 		// activation function that determines how this multiplication is done. But the Layer is responsible for 
 		// passing the operation to the activation function
-		layer_to->gradMulDLda();
-		U::rightTriad(prod, wght_t, grad, old_deriv, t, t);  // Not sure whether this is correct. Rederive by hand. 
+		layer_to->gradMulDLda(prod, wght_t, t, t);
 
 		layer_from->incrDelta(prod, t);
-		printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
+		//printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
 	}
 
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
@@ -546,10 +544,8 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		Connection* conn = layers[l]->getConnection();
 		if (!conn) continue;
 		Layer* layer_to   = conn->to;
-		const VF2D_F& grad = layer_to->getGradient();
 		const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
 		const WEIGHT& wght_t = conn->getWeightTranspose();
-		const VF2D_F& old_deriv = layer_to->getDelta();
 
 		// Question: where should this operation occur. Given that an activation function can be scalar or vector, 
 		// the operation should be split between the activation function and the model (or layer or connection)
@@ -558,10 +554,9 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		// prod = grad * old_deriv   (or) (or  old_deriv * grad)
 		// prod = wght_t * prod
 
-
-		U::rightTriad(prod, wght_t, grad, old_deriv, t, t-1);  // ERROR  MUST DEBUG!!!
+		layer_to->gradMulDLda(prod, wght_t, t, t-1);
 		Layer* layer_from = conn->from;
-		layer_from->printSummary("layer_from, temporal");
+		//layer_from->printSummary("layer_from, temporal");
 		layer_from->incrDelta(prod, t-1);
 	}
 
@@ -590,9 +585,11 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		// Currently, only works for sequence length of 1
 		// Could work if sequence were the field index
 
+		//layer_to->dLdaMulGrad(*it, out, t);
+
 		for (int b=0; b < nb_batch; b++) {
 			const VF2D& out_t = out(b).t();
-			delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t); //out(b).t();
+			delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
 			(*it)->incrDelta(delta);
 		}
 	}
@@ -632,7 +629,7 @@ void Model::storeDLossDbiasInLayersRec(int t)
 		const VF2D_F& old_deriv = layer->getDelta();
 
 		for (int b=0; b < nb_batch; b++) {
-        	delta = (old_deriv[b].col(t) % grad[b].col(t)); //out(b).t();
+        	delta = (old_deriv[b].col(t) % grad[b].col(t));
 		}
 
 		layer->incrBiasDelta(delta);
