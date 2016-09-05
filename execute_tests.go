@@ -1,11 +1,11 @@
 #!/bin/bash
 
 export H=../build/tests
-${H}/activations/activations 
-$H/copy_constructors/copy_constructors 
-$H/weights/weights 
-$H/feedforward/feed_forward
-$H/input/input
+#${H}/activations/activations 
+#$H/copy_constructors/copy_constructors 
+#$H/weights/weights 
+#$H/feedforward/feed_forward
+#$H/input/input
 $H/test_recurrent_model1/test_recurrent_model1
 $H/test_recurrent_model2/test_recurrent_model2
 $H/test_recurrent_model3/test_recurrent_model3

@@ -78,3 +78,53 @@ BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact
 	return dLdb;
 }
 //----------------------------------------------------------------------
+void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
+{
+	VF2D_F pred;
+
+	CONNECTIONS connections = m->getConnections();
+	const LAYERS& layers = m->getLayers();
+
+	// How to compute the less function
+	pred = m->predictViaConnectionsBias(xf);
+
+	Objective* obj = m->getObjective();
+	const LOSS& loss = (*obj)(exact, pred);
+
+	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
+	
+	WEIGHT& delta_bp_1 = connections[1]->getDelta();
+	Layer* d1 = layers[1];
+	Connection* c1 = d1->getConnection();
+	WEIGHT& delta_bp_3 = c1->getDelta();
+
+	WEIGHT delta_fd_1 = weightDerivative(m, *connections[1], inc, xf, exact);
+
+	if (!d1) {
+		printf("common.cpp: d1 should be nonzero!\n");
+		exit(1);
+	}
+
+	//std::vector<BIAS> bias_fd;
+	//std::vector<BIAS> bias_bp;
+	//std::vector<WEIGHT> weight_fd;
+	//std::vector<WEIGHT> weight_bp;
+
+	WEIGHT delta_fd_3 = weightDerivative(m, *d1->getConnection(), inc, xf, exact);
+
+	WEIGHT weight_err_1 = (delta_fd_1 - delta_bp_1) / delta_bp_1;
+	WEIGHT weight_err_3 = (delta_fd_3 - delta_bp_3) / delta_bp_3;
+
+	BIAS bias_fd_1 = biasDerivative(m, *layers[1], inc, xf, exact);
+    BIAS bias_bp_1 = layers[1]->getBiasDelta();
+	BIAS bias_err_1 = (bias_fd_1 - bias_bp_1) / bias_bp_1;
+
+
+	printf("Relative ERRORS for weight derivatives for batch 0: \n");
+	printf("input-d1: "); weight_err_1.print();
+	printf("   d1-d1: "); weight_err_3.print();
+
+	printf("\nRelative ERRORS for bias derivatives for batch 0: \n");
+	printf("layer d1: "); bias_err_1.print();
+
+}

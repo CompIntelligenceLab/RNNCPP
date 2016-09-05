@@ -400,8 +400,8 @@ void Model::connectionOrderClean()
 //----------------------------------------------------------------------
 void Model::printSummary()
 {
-	printf("=============================================================\n");
-	printf("------ MODEL SUMMARY ------\n");
+	printf("\n-------------------------------------------------------------\n");
+	printf("------ MODEL SUMMARY ----------------------------------------\n");
 	std::string conn_type;
 	char buf[80];
 
@@ -428,7 +428,7 @@ void Model::printSummary()
 			nc->printSummary(buf);
 		}
 	}
-	printf("=============================================================\n");
+	printf("\n------ END MODEL SUMMARY ------------------------------------\n\n");
 }
 //----------------------------------------------------------------------
 VF2D_F Model::predictViaConnectionsBias(VF2D_F x)

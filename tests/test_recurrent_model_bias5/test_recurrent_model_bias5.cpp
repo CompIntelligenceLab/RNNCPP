@@ -137,6 +137,7 @@ Forward:
 	float dlda00 = L0 * w01  +  L1 * w11 * w01;
 	float dlda01 = L1 * w11 * w01;
 
+	#if 0
 	printf("\n ============== Layer Outputs =======================\n");
 	printf("a00= %f\n", a(0,0));
 	printf("a10= %f\n", a(1,0));
@@ -152,6 +153,7 @@ Forward:
 	printf("\n");
 	printf("dlda00, dlda01= %f, %f\n", dlda00, dlda01);
 	printf("dlda10, dlda11= %f, %f\n", dlda10, dlda11);
+	#endif
 
 	// Derivative of loss with respect to weights
 	// dL/dw01 = sum_t dL/da1t * da1t/dw01  = sum_t dL/da1t * (f'=1) * a0t
@@ -171,7 +173,7 @@ Forward:
 	printf("\n");
 	#endif
 
-	printf(" ================== END dL/da's =========================\n\n");
+	//printf(" ================== END dL/da's =========================\n\n");
 
 	//============================================
 
@@ -213,76 +215,60 @@ Forward:
 
 	// ================  BEGIN F-D weight derivatives ======================
 	float inc = .0001;
-	printf("\n*** deltas from finite-difference weight derivative ***\n");
-	WEIGHT fd_dLdw;
+	runTest(m, inc, xf, exact);
+
+	//printf("\n*** deltas from finite-difference weight derivative ***\n");
+	//WEIGHT fd_dLdw;
 	// First connection is between 0 and input (does not count)
-	CONNECTIONS connections = m->getConnections();
+	//CONNECTIONS connections = m->getConnections();
+
+	#if 0
 	for (int c=1; c < connections.size(); c++) {
 		//connections[c]->printSummary();
 		fd_dLdw = weightDerivative(m, *connections[c], inc, xf, exact);
 		//fd_dLdw.print("weight derivative, spatial connections, recurrent5, ");
 	}
-	const LAYERS& layers = m->getLayers();
+	#endif
+
+	//const LAYERS& layers = m->getLayers();
+
+	#if 0
 	for (int l=0; l < layers.size(); l++) {
 		Connection* conn = layers[l]->getConnection();
 		if (conn) {
 			fd_dLdw = weightDerivative(m, *conn, inc, xf, exact);
-			//layers[l]->printSummary();
-			//conn->printSummary("loop connection\n");
-			//fd_dLdw.print("weight derivative, temporal connections, recurrent5, ");
+			layers[l]->printSummary();
+			conn->printSummary("loop connection\n");
+			fd_dLdw.print("weight derivative, temporal connections, recurrent5, ");
 		}
 	}
+	#endif
 	// ================  END F-D weight derivatives ======================
 
+	#if 0
 	// ================  BEGIN F-D bias derivatives ======================
 	BIAS fd_dLdb;
 	for (int l=0; l < layers.size(); l++) {
 		fd_dLdb = biasDerivative(m, *layers[l], inc, xf, exact);
-		//layers[l]->printSummary();
-		//fd_dLdb.print("bias derivatives"); 
 	}
 	// ================  END F-D bias derivatives ======================
 	
 	VF2D_F yf;
 	Layer* outLayer = m->getOutputLayers()[0];
 	//printf("output_dim = %d\n", output_dim);
+	#endif
 
+#if 0
 	VF2D_F pred;
 
-	for (int i=0; i < 1; i++) {
-		//U::print(xf, "xf");
-		pred = m->predictViaConnectionsBias(xf);
-		//U::print(xf,   "+++++++++++++ Prediction: xf");
-		//U::print(pred, "+++++++++++++ Prediction: pred");
-		//xf.print("xf");
-		//pred.print("pred");
-	}
-	//exit(0);
+	// How to compute the less function
+	pred = m->predictViaConnectionsBias(xf);
+
 	Objective* obj = m->getObjective();
 	const LOSS& loss = (*obj)(exact, pred);
-	//loss.print("loss");
 
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	
-	#if 0
-	printf("\n*** deltas from back propagation ***\n");
-	for (int c=1; c < connections.size(); c++) {
-		connections[c]->printSummary("Connection (backprop), ");
-		connections[c]->getDelta().print("delta");
-	}
-	for (int l=0; l < layers.size(); l++) {
-		Connection* conn = layers[l]->getConnection();
-		if (conn) {
-			conn->getDelta().print("Temporal Connection delta, ");
-		}
-	}
-	
-	for (int l=0; l < layers.size(); l++) {
-		layers[l]->printSummary();
-		layers[l]->getBiasDelta().print("bias delta");
-	}
-	#endif
-
 	WEIGHT& delta_bp_1 = connections[1]->getDelta();
 	WEIGHT& delta_bp_3 = d1->getConnection()->getDelta();
 
@@ -293,9 +279,7 @@ Forward:
 	WEIGHT weight_err_3 = (delta_fd_3 - delta_bp_3) / delta_bp_3;
 
 	BIAS bias_fd_1 = biasDerivative(m, *layers[1], inc, xf, exact);
-
     BIAS bias_bp_1 = layers[1]->getBiasDelta();
-
 	BIAS bias_err_1 = (bias_fd_1 - bias_bp_1) / bias_bp_1;
 
 
@@ -313,6 +297,7 @@ Forward:
 	// 2) Finite-Difference derivative
 	// 3) Actual back-propagation
 	// If all three give the same answer to within some tolerance, it is pretty certain that the results are correct (although not a proof)
+#endif
 }
 //----------------------------------------------------------------------
 int main()
