@@ -252,6 +252,9 @@ Forward:
 
 
 	//================================
+	float inc = .001;
+	runTest(m, inc, xf, exact);
+	exit(0);
 
 	VF2D_F yf;
 	//testData(*m, xf, yf, exact);
@@ -304,7 +307,6 @@ Forward:
 	WEIGHT& delta_bp_4 = d2->getConnection()->getDelta();
 	//============================================
 	// Finite-Difference weights
-	float inc = .001;
 
 	#if 0
 	printf("\n*** deltas from finite-difference weight derivative ***\n");

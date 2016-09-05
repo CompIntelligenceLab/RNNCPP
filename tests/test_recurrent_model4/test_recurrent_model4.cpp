@@ -223,6 +223,12 @@ Forward:
 
 
 	//================================
+	float inc = .001;
+	runTest(m, inc, xf, exact);
+	exit(0);
+
+
+
 
 	VF2D_F yf;
 	//testData(*m, xf, yf, exact);
@@ -264,7 +270,6 @@ Forward:
 
 	//============================================
 	// Finite-Difference weights
-	float inc = .0001;
 	printf("\n*** deltas from finite-difference weight derivative ***\n");
 	WEIGHT fd_dLdw;
 	// First connection is between 0 and input (does not count)

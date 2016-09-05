@@ -23,7 +23,9 @@ void testRecurrentModelBias5(int nb_batch=1)
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(1, "input_layer");
 	Layer* d1 = new RecurrentLayer(1, "recurrent");
-	Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
+
+	// no need for explicity output layers
+	//Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
 	                                       // Automate this at a later time
 	m->add(0,     input);
 	m->add(input, d1);

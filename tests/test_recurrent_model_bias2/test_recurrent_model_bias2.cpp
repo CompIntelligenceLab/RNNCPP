@@ -264,7 +264,11 @@ Forward:
 
 
 	//================================
+	float inc = 0.001;
+	runTest(m, inc, xf, exact);
 
+
+#if 0
 	VF2D_F yf;
 	//testData(*m, xf, yf, exact);
 
@@ -285,6 +289,8 @@ Forward:
 
 	Objective* obj = m->getObjective();
 	LOSS loss = (*obj)(exact, pred);
+#endif
+
 	//loss.print("loss");
 	//exit(0);   // PREDICTIONS ARE WRONG
 
@@ -295,7 +301,7 @@ Forward:
 	exact.print("exact");
 	#endif
 
-	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
+	//m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	
 	#if 0
 	//printf("WEIGHT DERIVATIVES\n");
@@ -317,7 +323,6 @@ Forward:
 	}
 	#endif
 
-	float inc = 0.001;
 	//============================================
 	#if 0
 	// Finite-Difference weights
@@ -337,8 +342,10 @@ Forward:
 	#endif
 
 	// ================  BEGIN F-D bias derivatives ======================
+#if 0
 	BIAS fd_dLdb;
 	const LAYERS& layers = m->getLayers();
+#endif
 
 	#if 0
 	printf("layers size: %d\n", layers.size());
@@ -350,6 +357,7 @@ Forward:
 	#endif
 	// ================  END F-D bias derivatives ======================
 
+#if 0
 	WEIGHT& delta_bp_1 = connections[1]->getDelta();
 	WEIGHT& delta_bp_2 = connections[2]->getDelta();
 	WEIGHT& delta_bp_3 = d1->getConnection()->getDelta();
@@ -383,6 +391,7 @@ Forward:
 	printf("\nRelative ERRORS for bias derivatives for batch 0: \n");
 	printf("layer d1: "); bias_err_1.print();
 	printf("layer d2: "); bias_err_2.print();
+#endif
 }
 //----------------------------------------------------------------------
 int main()

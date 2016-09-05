@@ -199,6 +199,12 @@ Forward:
 
 	// ================  BEGIN F-D weight derivatives ======================
 	float inc = .0001;
+	runTest(m, inc, xf, exact);
+	exit(0);
+
+
+
+
 	//printf("\n*** deltas from finite-difference weight derivative ***\n");
 	WEIGHT fd_dLdw;
 	// First connection is between 0 and input (does not count)

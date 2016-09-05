@@ -196,6 +196,25 @@ Collecting and combining the above relations:
 dL/da(l)(k) = dL/da(l+1)(p) * J(l+1)(p,q) * w(q,k)
 Need Jacobian of activation function
 ----------------------------------------------------------------------
+Sept. 5, 2016
+Question: Consider a connection from a layer to itself. should the layers contain the connection information, 
+or should be considered a connection like any other connection? 
+- Any other connection:  more consistent with the rest of the program
+- Keeping the connection with the layer: the layer, if recurrent contains this connection and can treat it polymorphically. 
+  However, the general code becomes more complex. What is the difference between a connection going from layers L1 to L1 with a 
+  delay of 2 and a onnection going from layer L1 to layer L2 with a connection of 2? Shouldn't their treatment be identical? 
+- Also, how do LSTM's work? They have internal connections that are a part of the LSTM (they form in a sense a "complex" nodes. 
+  In fact, these complex nodes can be thought of as a model in themselves. either the single LSTM could be a Model, or a layer of 
+  LSTMs could be a model (probably better, especially if the weihgts of different LSTMs within a layer are connected (as they are, in 
+  Keras, for example.)
+----------------------------------------------------------------------
+Sept. 5, 2016
+Demonstrate making a change in common.cpp and recompiling as an example of why implementations should not be included in a file. 
+Rather they should be in a class. Compilation takes too long. if only the .h file is included, long compilations only occur when the .h
+file is changed, which happens less often than changes in the implementation cpp file. 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

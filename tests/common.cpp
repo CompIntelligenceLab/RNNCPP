@@ -92,39 +92,51 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 	const LOSS& loss = (*obj)(exact, pred);
 
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
-	
-	WEIGHT& delta_bp_1 = connections[1]->getDelta();
-	Layer* d1 = layers[1];
-	Connection* c1 = d1->getConnection();
-	WEIGHT& delta_bp_3 = c1->getDelta();
 
-	WEIGHT delta_fd_1 = weightDerivative(m, *connections[1], inc, xf, exact);
+	std::vector<BIAS> bias_fd, bias_bp;
+	std::vector<WEIGHT> weight_fd, weight_bp;
 
-	if (!d1) {
-		printf("common.cpp: d1 should be nonzero!\n");
-		exit(1);
+	for (int c=0; c < connections.size(); c++) {
+		Connection* con = connections[c];
+		if (con->from == 0) continue;
+		WEIGHT weight_fd_ = weightDerivative(m, *con, inc, xf, exact);
+		weight_fd.push_back(weight_fd_);
+	 	WEIGHT weight_bp_ = con->getDelta();
+		weight_bp.push_back(weight_bp_);
+		connections[c]->printSummary();
 	}
 
-	//std::vector<BIAS> bias_fd;
-	//std::vector<BIAS> bias_bp;
-	//std::vector<WEIGHT> weight_fd;
-	//std::vector<WEIGHT> weight_bp;
+	for (int l=0; l < layers.size(); l++) {
+		if (layers[l]->type == "input") continue;
+		BIAS bias_fd_ = biasDerivative(m, *layers[l], inc, xf, exact);
+		bias_fd_.print("bias_fd_");
+		bias_fd.push_back(bias_fd_);
+    	BIAS bias_bp_ = layers[l]->getBiasDelta();
+		bias_bp_.print("bias_bp_");
+		bias_bp.push_back(bias_bp_);
+		//layers[l]->printSummary();
 
-	WEIGHT delta_fd_3 = weightDerivative(m, *d1->getConnection(), inc, xf, exact);
-
-	WEIGHT weight_err_1 = (delta_fd_1 - delta_bp_1) / delta_bp_1;
-	WEIGHT weight_err_3 = (delta_fd_3 - delta_bp_3) / delta_bp_3;
-
-	BIAS bias_fd_1 = biasDerivative(m, *layers[1], inc, xf, exact);
-    BIAS bias_bp_1 = layers[1]->getBiasDelta();
-	BIAS bias_err_1 = (bias_fd_1 - bias_bp_1) / bias_bp_1;
-
+		Connection* con = layers[l]->getConnection();
+		if (con) {
+		 	WEIGHT weight_fd_ = weightDerivative(m, *con, inc, xf, exact);
+			weight_fd.push_back(weight_fd_);
+		 	WEIGHT weight_bp_ = con->getDelta();
+			weight_bp.push_back(weight_bp_);
+			//layers[l]->getConnection()->printSummary();
+		}
+	}
 
 	printf("Relative ERRORS for weight derivatives for batch 0: \n");
-	printf("input-d1: "); weight_err_1.print();
-	printf("   d1-d1: "); weight_err_3.print();
 
-	printf("\nRelative ERRORS for bias derivatives for batch 0: \n");
-	printf("layer d1: "); bias_err_1.print();
+	for (int i=0; i < weight_fd.size(); i++) {
+		WEIGHT err = (weight_fd[i] - weight_bp[i]) / weight_bp[i];
+		printf("   d1-d1: "); err.print();
+	}
 
+	printf("Relative ERRORS for bias derivatives for batch 0: \n");
+
+	for (int i=0; i < bias_fd.size(); i++) {
+		BIAS err = (bias_fd[i] - bias_bp[i]) / bias_bp[i];
+		printf("   d1-d1: "); err.print();
+	}
 }
