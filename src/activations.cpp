@@ -104,7 +104,9 @@ const Identity& Identity::operator=(const Identity& s)
 }
 
 //----------------------------------------------------------------------
-VF2D_F Softmax::operator()(const VF2D_F& x) {
+
+VF2D_F Softmax::operator()(const VF2D_F& x) 
+{
 	VF2D_F y(x);
 	// softmax over the dimension index of VF2D (first index)
 	for (int b=0; b < x.n_rows; b++) {
@@ -112,11 +114,11 @@ VF2D_F Softmax::operator()(const VF2D_F& x) {
 	    for (int s=0; s < x[b].n_cols; s++) {
 		    y(b).col(s) = arma::exp(y(b).col(s)-mx);
 			// trick to avoid overflows
-			float ssum = 1. / arma::sum(x[b].col(s)); // = arma::exp(y[b]);
-			y[b].col(s) = x[b].col(s) * ssum;  // % is elementwise multiplication (arma)
+			float ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
+			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
 		}
+		return y;
 	}
-	return y;
 }
 
 //f = 1 / (1 + exp(-x)) = 1/D
@@ -138,7 +140,7 @@ VF1D Softmax::derivative(const VF1D& x)
 		// Use >= or > 
 		y[i] = x[i] >= 0. ? 1.0 : 0.0;
 	}
-	printf("Activation.h::derivative of Softmax is not applicable. Use Jacobian\n");
+	printf("Activation.cpp::derivative of Softmax is not applicable. Use Jacobian\n");
 	exit(1);
 	return x;
 }
