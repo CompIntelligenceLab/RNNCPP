@@ -87,12 +87,37 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 
 	// How to compute the less function
 	pred = m->predictViaConnectionsBias(xf);
+	layers[0]->getInputs().print("layer 0 inputs");
+	layers[1]->getInputs().print("layer 1 inputs");
+	layers[0]->getOutputs().print("layer 0 outputs");
+	layers[1]->getOutputs().print("layer 1 outputs");
+	printf("XXXXXXXXXXXXXX\n"); 
 
 	Objective* obj = m->getObjective();
 	const LOSS& loss = (*obj)(exact, pred);
 
 	printf("before back\n");
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
+	layers[0]->printSummary(); layers[0]->getDelta().print();
+	layers[1]->printSummary(); layers[1]->getDelta().print();
+	layers[1]->printSummary(); layers[1]->getBiasDelta().print();
+	const VF2D_F& inputs = layers[0]->getInputs();
+	const VF2D_F& outputs = layers[0]->getOutputs();
+	//inputs.print("inputs");
+	//outputs.print("outputs");
+
+	layers[0]->getInputs().print("layer 0 inputs");
+	layers[1]->getInputs().print("layer 1 inputs");
+	layers[0]->getOutputs().print("layer 0 outputs");
+	layers[1]->getOutputs().print("layer 1 outputs");
+	inputs[0].col(0).print("in.col(0)");
+	outputs[0].col(0).print("in.col(0)");
+
+	layers[1]->getActivation().jacobian(inputs[0].col(0), outputs[0].col(0)).print("jacobian");
+	connections[0]->printSummary(); connections[0]->getDelta().print();
+	connections[1]->printSummary(); connections[1]->getDelta().print();
+	printf("XXXXXXXXXXXXXX\n"); exit(0);
+	exit(0);
 
 	std::vector<BIAS> bias_fd, bias_bp;
 	std::vector<WEIGHT> weight_fd, weight_bp;

@@ -320,6 +320,7 @@ bool Layer::areIncomingLayerConnectionsComplete()
 	return (nb_hit == prev.size());
 }
 //----------------------------------------------------------------------
+#if 1
 // Perhaps break this up into processing by Connection then by output layer
 void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 {
@@ -381,6 +382,7 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 		 setOutputs(prod);
 	}
 }
+#endif
 //----------------------------------------------------------------------
 void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int t)
 {
@@ -392,7 +394,7 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 
 	//layer_inputs[0].print("layer_input[0]");
-	//this->printSummary();
+	this->printSummary();
 
 		#if 0
 		conn->printSummary("conn");
@@ -448,6 +450,8 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 
 		 prod = getActivation()(getInputs());
 		 setOutputs(prod);
+		 //this->printSummary();
+		 //getOutputs().print("outputs");
 	}
 	//exit(0);
 }

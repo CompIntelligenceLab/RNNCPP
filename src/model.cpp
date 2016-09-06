@@ -437,7 +437,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	//printf("****************** ENTER predictViaConnections ***************\n");
 
 	Layer* input_layer = getInputLayers()[0];
-	input_layer->layer_inputs[0] = x;
+	input_layer->layer_inputs[0] = x; 
 	input_layer->setOutputs(x);  // although input layer "could" have a nonlinear activation function (maybe)
 
  	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
