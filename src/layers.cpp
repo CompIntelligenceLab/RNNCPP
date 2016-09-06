@@ -410,7 +410,11 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	//U::matmul(prod, wght, from_outputs);  // w * x
 	//printf("seq_i= %d\n", seq_i);
 
+
+
 	U::matmul(to_inputs, wght, from_outputs, t, t);  // w * x
+
+
 
 	//U::print(to_inputs, "to_inputs");
 	//to_inputs.print("to_inputs");
