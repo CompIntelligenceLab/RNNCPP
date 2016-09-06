@@ -91,6 +91,7 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 	Objective* obj = m->getObjective();
 	const LOSS& loss = (*obj)(exact, pred);
 
+	printf("before back\n");
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 
 	std::vector<BIAS> bias_fd, bias_bp;
