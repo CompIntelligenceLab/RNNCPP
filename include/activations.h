@@ -212,7 +212,7 @@ public:
 	{ 
 		deriv_type = "coupled";
 	}
-	~Softmax();
+	~Softmax() {;}
     Softmax(const Softmax&);
     const Softmax& operator=(const Softmax&);
 

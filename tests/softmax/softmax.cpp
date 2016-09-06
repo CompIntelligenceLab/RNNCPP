@@ -27,8 +27,8 @@ void testSoftmax(int nb_batch=1)
 	m->add(input, d1);
 
 	input->setActivation(new Identity());
-	//d1->setActivation(new Softmax("softmax"));
-	d1->setActivation(new Identity()); 
+	d1->setActivation(new Softmax("softmax"));
+	//d1->setActivation(new Identity()); 
 
 	m->addInputLayer(input);
 	m->addOutputLayer(d1);
