@@ -262,7 +262,14 @@ void Layer::computeGradient()
 {
 	// Error. Derivatives must be evaluated for the input argument!
 	//gradient = activation->derivative(outputs);
-	gradient = activation->derivative(inputs);
+
+	//gradient = activation->derivative(inputs);
+
+	if (getActivation().getDerivType() == "decoupled") {
+		gradient = activation->derivative(inputs);
+	} else {
+		;  // Do not compute the gradient. Compute the Jacobian on the fly
+	}
 }
 //----------------------------------------------------------------------
 void Layer::computeGradient(int t)
@@ -275,9 +282,18 @@ void Layer::computeGradient(int t)
 	// gradient[b].col(t) = activation->derivative(gradient, inputs, k); 
 	//     to avoid a copy. 
 
-	for (int b=0; b < inputs.n_rows; b++) {
-		gradient[b].col(t) = activation->derivative(inputs[b].col(t));
+	//for (int b=0; b < inputs.n_rows; b++) {
+		//gradient[b].col(t) = activation->derivative(inputs[b].col(t));
+	//}
+	if (getActivation().getDerivType() == "decoupled") {
+		for (int b=0; b < inputs.n_rows; b++) {
+			gradient[b].col(t) = activation->derivative(inputs[b].col(t));
+		}
+	} else {
+		; // Do not compute the gradient. Compute Jacobian when required
 	}
+
+
 	//printf("t= %d, ", t);
 	//this->printSummary();
 	//inputs.print("inputs");

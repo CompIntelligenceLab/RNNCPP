@@ -110,7 +110,7 @@ void Model::addInputLayer(Layer* layer)
 void Model::addOutputLayer(Layer* layer)
 {
 	output_layers.push_back(layer);
-	layer->setActivation(new Identity());
+	//layer->setActivation(new Identity());
 }
 //----------------------------------------------------------------------
 void Model::addLossLayer(Layer* layer)
