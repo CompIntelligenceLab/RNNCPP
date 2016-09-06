@@ -3,6 +3,7 @@
 #include <string.h>
 #include "print_utils.h"
 #include "objective.h"
+#include "typedefs.h"
 
 int Objective::counter = 0;
 
@@ -139,11 +140,10 @@ void BinaryCrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 	int nb_batch = exact.n_rows;
 	loss.set_size(nb_batch); // needed
 	VF2D output(size(predict[0]));
-	float EPS = 1.e-4; // too low if we are in double precision (then use 1.e-8)
 
 	for (int b=0; b < nb_batch; b++) {
 		// if predict is 0 or 1, loss goes to infinity. So clip. 
-		output = arma::clamp(predict[b], EPS, 1.-EPS); 
+		output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO); 
 		loss[b] = exact[b]*arma::log(output) + (1.-exact[b]) * arma::log(1.-output); // check size compatibility
 		loss[b] = arma::sum(loss[b], 0);  // sum over 1st index (dimension)
 	}
@@ -155,10 +155,9 @@ void BinaryCrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& pred
 	int nb_batch = exact.n_rows;
 	gradient.set_size(nb_batch);
 	VF2D output(size(predict[0]));
-	float EPS = 1.e-4;
 
 	for (int b=0; b < nb_batch; b++) {
-		output = arma::clamp(predict[b], EPS, 1.-EPS);  // prevent next line from going to infinity
+		output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO);  // prevent next line from going to infinity
 		gradient[b] = exact[b] / output + (1-exact[b]) /(1-output);
 	}
 }

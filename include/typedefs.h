@@ -71,6 +71,8 @@ class Connection;
 //#define DELTA   	VF1D
 //#define GRADIENTS   VF2D
 
+#define NEAR_ZERO 1.e-4
+
 
 // assumes sequential model (for now)
 

@@ -213,6 +213,8 @@ Demonstrate making a change in common.cpp and recompiling as an example of why i
 Rather they should be in a class. Compilation takes too long. if only the .h file is included, long compilations only occur when the .h
 file is changed, which happens less often than changes in the implementation cpp file. 
 ----------------------------------------------------------------------
+Sept. 6, 2016
+Check Softmax and derivatives. Create a network with input, a single layer of 4 elements. Check that Softmax works. Use mse objective function.
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
