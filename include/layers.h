@@ -42,7 +42,7 @@ protected:
 	int input_dim; // size of previous layer
 	VF2D_F inputs;  // inputs to activation function (batch_sz, seq_len)  // change to input later
 	VF2D_F outputs; // outputs from activation function
-	DELTA delta; // d(loss) / d(layer output)
+	DELTA delta; // d(loss) / d(layer output)  (transform to row vector)
 	BIAS bias;
 	VF1D bias_delta; // arma::Col, d(loss) / d(bias)
 

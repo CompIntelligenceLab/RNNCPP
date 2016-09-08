@@ -505,20 +505,27 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 
 
 	const VF2D_F& grad = output_layers[0]->getDelta();
-	U::print(grad, "layer->getDelta");
+	output_layers[0]->printSummary("output_layers[0]");
+	U::print(grad, "output_layers[0]->getDelta");
 	int nb_batch = grad.n_rows;
 
 	// not efficient. Should work directly in Layer instance
 	VF2D_F prod(nb_batch);
 
-	for (int b=0; b < nb_batch; b++) {
-		prod(b) = VF2D(size(grad(b)));
-	}
+	//for (int b=0; b < nb_batch; b++) {
+		//prod(b) = VF2D(size(grad(b)));
+	//}
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* conn = (*it);
 		Layer* layer_to   = conn->to;
 		Layer* layer_from = conn->from;
+
+		layer_from->printSummary("layer_from");
+		U::print(layer_from->getDelta(), "layer_from, delta");
+		layer_to->printSummary("layer_to");
+		U::print(layer_to->getDelta(), "layer_to, delta");
+		//exit(0);
 
 		const WEIGHT& wght   = conn->getWeight(); // invokes copy constructor, or what? 
 		const WEIGHT& wght_t = conn->getWeightTranspose();
@@ -534,6 +541,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		// passing the operation to the activation function
 		//layer_to->gradMulDLda(prod, wght_t, t, t);
 		layer_to->gradMulDLda(prod, *conn, t, t);
+		//exit(0);
 
 		layer_from->incrDelta(prod, t);
 		//printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
