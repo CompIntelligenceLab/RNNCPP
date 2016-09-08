@@ -21,7 +21,7 @@ void testSoftmax(int nb_batch=1)
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(4, "input_layer");
-	Layer* d1 = new DenseLayer(4, "softmax");
+	Layer* d1 = new DenseLayer(3, "softmax");
 
 	m->add(0,     input);
 	m->add(input, d1);

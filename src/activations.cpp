@@ -151,6 +151,10 @@ VF2D Softmax::jacobian(const VF1D& x, const VF1D& y)
 {
 	VF2D jac(x.n_rows, x.n_rows);
 	// jac(i,j) = dsoft[i]/dx[j]
+	//printf("IN JACOBIAN\n");
+	//x.print("x");
+	//y.print("y");
+	//printf("nr, nc= %d, %d\n", jac.n_rows, jac.n_cols);
 
 	//VF1D soft = (*this)(x);
 
@@ -161,8 +165,9 @@ VF2D Softmax::jacobian(const VF1D& x, const VF1D& y)
 		} else {
 			jac(i,j) = -y[i] * y[j];
 		}
-	return jac;
+		//printf("i,j= %d, %d, jac(i,j)= %f\n", i, j, jac(i,j));
 	}}
+	return jac;
 }
 //----------------------------------------------------------------------
 

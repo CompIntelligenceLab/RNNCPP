@@ -262,7 +262,6 @@ void Layer::computeGradient()
 {
 	// Error. Derivatives must be evaluated for the input argument!
 	//gradient = activation->derivative(outputs);
-
 	//gradient = activation->derivative(inputs);
 
 	if (getActivation().getDerivType() == "decoupled") {
@@ -512,15 +511,75 @@ void Layer::gradMulDLda(VF2D_F& prod, const WEIGHT& wght_t, int t_from, int t_to
 	//printf("act type: %s\n", getActivation().getDerivType().c_str());
 	Activation& activation = getActivation();
 
-	if (getActivation().getDerivType() == "decoupled") {
+	if (getActivation().getDerivType() == "decoupled") {   // ** called
+		printf("gradMulDLda, decoupled\n");
 		const VF2D_F& grad 		= this->getGradient();
 		U::rightTriad(prod, wght_t, grad, old_deriv, t_from, t_to);
 	} else { // "coupled"
+		printf("gradMulDLda, coupled\n");
 		for (int b=0; b < nb_batch; b++) {
 			const VF1D& x =  inputs(b).col(t_from);
 			const VF1D& y = outputs(b).col(t_from);
-			const VF2D grad = activation.jacobian(x, y); // not stored
-			prod(b).col(t_to) = wght_t * (grad * old_deriv[b].col(t_from));
+			const VF2D grad = activation.jacobian(x, y); // not stored (3,3)
+			printf("prod(b).col(t_to) = wght_t * (grad * old_deriv[b].col(t_from);)\n");
+			U::print(prod, "prod"); // (3,2)
+			U::print(wght_t, "wght_t");  // (4,3)
+			U::print(grad, "grad");  // (3,3)
+			U::print(old_deriv[b], "old_deriv[b]"); //   3,2
+			// wght: 3, 4
+			// prod: 
+			//VF2D gg = grad * old_deriv[b].col(t_from); // orig
+			//VF2D gg = old_deriv[b].col(t_from) * grad;
+			//VF2D hh = grad.t() * wght_t.t();
+			//VF2D ii = old_deriv[b].col(t_from) * wght_t();
+			//U::print(gg, "gg");
+			//U::print(hh, "hh");
+			//U::print(ii, "ii");
+			//exit(0);
+			U::print(prod(b), "prod(b)");
+			//prod(b).col(t_to) = hh;
+			//prod(b).col(t_to) = wght_t * (grad * old_deriv[b].col(t_from));
+		}
+	}
+}
+//----------------------------------------------------------------------
+void Layer::gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_to)
+{
+	const VF2D_F& old_deriv = this->getDelta();
+	const WEIGHT& wght   = conn.getWeight(); // invokes copy constructor, or what? 
+	const WEIGHT& wght_t = conn.getWeightTranspose();
+
+	//printf("act type: %s\n", getActivation().getDerivType().c_str());
+	Activation& activation = getActivation();
+
+	if (getActivation().getDerivType() == "decoupled") {   // ** called
+		printf("gradMulDLda, decoupled\n");
+		const VF2D_F& grad 		= this->getGradient();
+		U::rightTriad(prod, wght_t, grad, old_deriv, t_from, t_to);
+	} else { // "coupled"
+		printf("gradMulDLda, coupled\n");
+		for (int b=0; b < nb_batch; b++) {
+			const VF1D& x =  inputs(b).col(t_from);
+			const VF1D& y = outputs(b).col(t_from);
+			const VF2D grad = activation.jacobian(x, y); // not stored (3,3)
+			printf("prod(b).col(t_to) = wght_t * (grad * old_deriv[b].col(t_from);)\n");
+			U::print(prod, "prod"); // (3,2)
+			U::print(wght_t, "wght_t");  // (4,3)
+			U::print(grad, "grad");  // (3,3)
+			U::print(old_deriv[b], "old_deriv[b]"); //   3,2
+			// wght: 3, 4
+			// prod: 
+			//VF2D gg = grad * old_deriv[b].col(t_from); // orig
+			//VF2D gg = old_deriv[b].col(t_from) * grad;
+			//VF2D hh = grad.t() * wght_t.t();
+			//VF2D ii = old_deriv[b].col(t_from) * wght_t();
+			//U::print(gg, "gg");
+			//U::print(hh, "hh");
+			//U::print(ii, "ii");
+			//exit(0);
+			U::print(prod(b), "prod(b)");
+			//prod(b).col(t_to) = hh;
+			//prod(b).col(t_to) = wght_t * (grad * old_deriv[b].col(t_from));
 		}
 	}
 }
@@ -533,6 +592,7 @@ void Layer::dLdaMulGrad(Connection* con, const VF2D_F& out, int t)
 	WEIGHT delta = VF2D(size(con->getWeight()));
 
 	if (getActivation().getDerivType() == "decoupled") {
+		printf("dLdaMulGrad, decoupled\n");
 		const VF2D_F& grad      = getGradient();
 
 		for (int b=0; b < nb_batch; b++) {
@@ -541,16 +601,25 @@ void Layer::dLdaMulGrad(Connection* con, const VF2D_F& out, int t)
 			con->incrDelta(delta);
 		}
 	} else { // "coupled derivatives"
+		printf("dLdaMulGrad, coupled\n");
+		printf("------------------\n");
 		for (int b=0; b < nb_batch; b++) {
 			const VF1D& x =  inputs(b).col(t);
 			const VF1D& y = outputs(b).col(t);
 			const VF2D grad = activation.jacobian(x, y); // not stored
 			const VF2D& out_t = out(b).t();
            	// Must generalize for when times are not separated by 1, TODO (Need different arguments)
-           	delta = (old_deriv[b].col(t+1) * grad) * out_t.row(t); //out(b).t();
+			U::print(old_deriv[b], "old_deriv[b]");
+			printf("delta = (old_deriv[b].col(t) * grad) * out_t.row(t);\n");
+			printf("t= %d\n", t);
+			old_deriv[b].col(t).print("old_deriv[b].col(t)");
+			grad.print("grad");
+			out_t.row(t).print("out_r.row(t)");
+           	delta = (old_deriv[b].col(t) * grad) * out_t.row(t); //out(b).t();    // ERROR
            	con->incrDelta(delta);
 		}
 	}
+	//printf("Layer::dLdaMulGrad\n"); exit(0);
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

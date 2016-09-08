@@ -505,6 +505,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 
 
 	const VF2D_F& grad = output_layers[0]->getDelta();
+	U::print(grad, "layer->getDelta");
 	int nb_batch = grad.n_rows;
 
 	// not efficient. Should work directly in Layer instance
@@ -531,7 +532,8 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		// The layer will figure out how to do this. Could also be passed to the activation function, since it is the
 		// activation function that determines how this multiplication is done. But the Layer is responsible for 
 		// passing the operation to the activation function
-		layer_to->gradMulDLda(prod, wght_t, t, t);
+		//layer_to->gradMulDLda(prod, wght_t, t, t);
+		layer_to->gradMulDLda(prod, *conn, t, t);
 
 		layer_from->incrDelta(prod, t);
 		//printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
@@ -585,13 +587,15 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		// Currently, only works for sequence length of 1
 		// Could work if sequence were the field index
 
-		//layer_to->dLdaMulGrad(*it, out, t);
+		layer_to->dLdaMulGrad(*it, out, t);
 
+		#if 0
 		for (int b=0; b < nb_batch; b++) {
 			const VF2D& out_t = out(b).t();
 			delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
 			(*it)->incrDelta(delta);
 		}
+		#endif
 	}
 
 	// Needed when there are recurrent layers
@@ -608,6 +612,8 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		const VF2D_F& grad      = layer_to->getGradient();
 		const VF2D_F& old_deriv = layer_to->getDelta();
 		delta = VF2D(size(con->getWeight()));
+
+		// WILL NEED dLdaMulGrad again
 
         for (int b=0; b < nb_batch; b++) {
            	const VF2D& out_t = out(b).t();

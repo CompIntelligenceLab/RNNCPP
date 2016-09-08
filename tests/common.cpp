@@ -84,13 +84,28 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 
 	CONNECTIONS connections = m->getConnections();
 	const LAYERS& layers = m->getLayers();
+	const VF2D_F& inputs = layers[1]->getInputs();
+	const VF2D_F& outputs = layers[0]->getOutputs();
 
 	// How to compute the less function
 	pred = m->predictViaConnectionsBias(xf);
+
+
+	#if 0
 	layers[0]->getInputs().print("layer 0 inputs");
 	layers[1]->getInputs().print("layer 1 inputs");
+	layers[1]->getInputs()(0).print("layer 1 inputs(0)");
+	layers[1]->getInputs()(0).col(0).print("layer 1 inputs(0).col(0)");
+	inputs[0].col(0).print("in.col(0)");
+	#endif
+
+	printf("......\n");
 	layers[0]->getOutputs().print("layer 0 outputs");
 	layers[1]->getOutputs().print("layer 1 outputs");
+	outputs[0].col(0).print("layer 0, out.col(0)");
+	outputs[0].col(1).print("layer 0, out.col(1)");
+	inputs[0].col(0).print("layer 1, in.col(0)");
+	inputs[0].col(1).print("layer 1, in.col(1)");
 	printf("XXXXXXXXXXXXXX\n"); 
 
 	Objective* obj = m->getObjective();
@@ -98,26 +113,38 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 
 	printf("before back\n");
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
-	layers[0]->printSummary(); layers[0]->getDelta().print();
-	layers[1]->printSummary(); layers[1]->getDelta().print();
-	layers[1]->printSummary(); layers[1]->getBiasDelta().print();
-	const VF2D_F& inputs = layers[0]->getInputs();
-	const VF2D_F& outputs = layers[0]->getOutputs();
-	//inputs.print("inputs");
-	//outputs.print("outputs");
 
+	#if 0
 	layers[0]->getInputs().print("layer 0 inputs");
 	layers[1]->getInputs().print("layer 1 inputs");
+	layers[1]->getInputs()(0).print("layer 1 inputs(0)");
+	layers[1]->getInputs()(0).col(0).print("layer 1 inputs(0).col(0)");
+	inputs[0].col(0).print("in.col(0)");
+	#endif
+
+	printf("......\n");
 	layers[0]->getOutputs().print("layer 0 outputs");
 	layers[1]->getOutputs().print("layer 1 outputs");
-	inputs[0].col(0).print("in.col(0)");
-	outputs[0].col(0).print("in.col(0)");
+	outputs[0].col(0).print("layer 0, out.col(0)");
+	outputs[0].col(1).print("layer 0, out.col(1)");
+	inputs[0].col(0).print("layer 1, in.col(0)");
+	inputs[0].col(1).print("layer 1, in.col(1)");
+	printf("XXXXXXXXXXXXXX\n"); 
 
-	layers[1]->getActivation().jacobian(inputs[0].col(0), outputs[0].col(0)).print("jacobian");
+
+	printf("YYYYYYYYYYYYYYYYYYYYYYYYYYYY\n");
+	const VF2D_F& inputs1 = layers[1]->getInputs();
+	const VF2D_F& outputs1 = layers[1]->getOutputs();
+	inputs1[0].col(0).print("(x) in.col(0)");
+	outputs1[0].col(0).print("(y) out.col(0)");
+	//inputs1[0].col(1).print("in.col(1)");
+	//outputs1[0].col(1).print("out.col(1)");
+
+	layers[1]->getActivation().jacobian(inputs1[0].col(0), outputs[0].col(0)).print("jacobian");
 	connections[0]->printSummary(); connections[0]->getDelta().print();
 	connections[1]->printSummary(); connections[1]->getDelta().print();
-	printf("XXXXXXXXXXXXXX\n"); exit(0);
-	exit(0);
+	//printf("XXXXXXXXXXXXXX\n"); exit(0);
+	//exit(0);
 
 	std::vector<BIAS> bias_fd, bias_bp;
 	std::vector<WEIGHT> weight_fd, weight_bp;
@@ -156,7 +183,8 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 
 	for (int i=0; i < weight_fd.size(); i++) {
 		WEIGHT err = (weight_fd[i] - weight_bp[i]) / weight_bp[i];
-		printf("   d1-d1: "); err.print();
+		printf("   wght: ");  weight_bp[i].print("weight_bp");
+		printf("   d1-d1: "); err.print("weight rel err");
 	}
 
 	printf("Relative ERRORS for bias derivatives for batch 0: \n");

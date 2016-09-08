@@ -26,9 +26,9 @@ void testRecurrentModel1(int nb_batch=1)
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
-	Layer* input = new InputLayer(1, "input_layer");
+	Layer* input = new InputLayer(input_dim, "input_layer");
 	Layer* dense = new RecurrentLayer(1, "rdense");
-	Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
+	//Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
 	                                       // Automate this at a later time
 
 	m->add(0,     input);
