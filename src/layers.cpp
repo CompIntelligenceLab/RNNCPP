@@ -603,8 +603,6 @@ void Layer::dLdaMulGrad(Connection* con, const VF2D_F& out_, int t)
 			con->incrDelta(delta);
 		}
 	} else { // "coupled derivatives"
-
-
 		printf("dLdaMulGrad, coupled\n");
 		printf("------------------\n");
 		for (int b=0; b < nb_batch; b++) {

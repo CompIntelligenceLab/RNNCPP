@@ -90,7 +90,6 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 	// How to compute the less function
 	pred = m->predictViaConnectionsBias(xf);
 
-
 	#if 0
 	layers[0]->getInputs().print("layer 0 inputs");
 	layers[1]->getInputs().print("layer 1 inputs");
@@ -131,7 +130,6 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 	inputs[0].col(1).print("layer 1, in.col(1)");
 	printf("XXXXXXXXXXXXXX\n"); 
 
-
 	printf("YYYYYYYYYYYYYYYYYYYYYYYYYYYY\n");
 	const VF2D_F& inputs1 = layers[1]->getInputs();
 	const VF2D_F& outputs1 = layers[1]->getOutputs();
@@ -148,10 +146,12 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 
 	std::vector<BIAS> bias_fd, bias_bp;
 	std::vector<WEIGHT> weight_fd, weight_bp;
+	std::vector<Connection*> conn;
 
 	for (int c=0; c < connections.size(); c++) {
 		Connection* con = connections[c];
 		if (con->from == 0) continue;
+		conn.push_back(con);
 		WEIGHT weight_fd_ = weightDerivative(m, *con, inc, xf, exact);
 		weight_fd.push_back(weight_fd_);
 	 	WEIGHT weight_bp_ = con->getDelta();
@@ -171,6 +171,7 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 
 		Connection* con = layers[l]->getConnection();
 		if (con) {
+			conn.push_back(con);
 		 	WEIGHT weight_fd_ = weightDerivative(m, *con, inc, xf, exact);
 			weight_fd.push_back(weight_fd_);
 		 	WEIGHT weight_bp_ = con->getDelta();
@@ -179,12 +180,14 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		}
 	}
 
+	printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 	printf("Relative ERRORS for weight derivatives for batch 0: \n");
 
 	for (int i=0; i < weight_fd.size(); i++) {
 		WEIGHT err = (weight_fd[i] - weight_bp[i]) / weight_bp[i];
-		printf("   wght: ");  weight_bp[i].print("weight_bp");
-		printf("   d1-d1: "); err.print("weight rel err");
+		conn[i]->printSummary();
+		printf("   d1-d1: ");  weight_bp[i].print("weight_bp");
+		printf("   d1-d1: ");  err.print("weight rel err");
 	}
 
 	printf("Relative ERRORS for bias derivatives for batch 0: \n");

@@ -504,47 +504,27 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 	// Run connections backwards
 
 
-	const VF2D_F& grad = output_layers[0]->getDelta();
-	//output_layers[0]->printSummary("output_layers[0]");
-	U::print(grad, "output_layers[0]->getDelta");
-	int nb_batch = grad.n_rows;
-
-	// not efficient. Should work directly in Layer instance
+	// Memory allocated in gradMulDLda)(
 	VF2D_F prod(nb_batch);
-
-	//for (int b=0; b < nb_batch; b++) {
-		//prod(b) = VF2D(size(grad(b)));
-	//}
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* conn = (*it);
-		Layer* layer_to   = conn->to;
-		Layer* layer_from = conn->from;
-
-		//layer_from->printSummary("layer_from");
-		//U::print(layer_from->getDelta(), "layer_from, delta");
-		//layer_to->printSummary("layer_to");
-		//U::print(layer_to->getDelta(), "layer_to, delta");
-		//exit(0);
-
-		const WEIGHT& wght   = conn->getWeight(); // invokes copy constructor, or what? 
-		const WEIGHT& wght_t = conn->getWeightTranspose();
 
 		// no-op if t-1 < 0
 		// THERE SHOULD BE no prod[t-1] if there is no recurrence or time unrolling!
 		// prod[t-1] = wght_t * (grad[t] % old_deriv[t])
 		
-		// grad * old_deriv (if componentwise gradient, as for Tanh)
+		// grad % old_deriv (if componentwise gradient, as for Tanh)
 		// grad * old_deriv (if gradient if a Jacobian, as for Softmax)
 		// The layer will figure out how to do this. Could also be passed to the activation function, since it is the
 		// activation function that determines how this multiplication is done. But the Layer is responsible for 
 		// passing the operation to the activation function
 		//layer_to->gradMulDLda(prod, wght_t, t, t);
-		layer_to->gradMulDLda(prod, *conn, t, t);
-		//exit(0);
 
+		Layer* layer_to   = conn->to;
+		Layer* layer_from = conn->from;
+		layer_to->gradMulDLda(prod, *conn, t, t);
 		layer_from->incrDelta(prod, t);
-		//printf("t= %d, layer_from (after)= %s, ", t, layer_from->getName().c_str()); layer_from->getDelta().print("delta");
 	}
 
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
@@ -552,10 +532,11 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 
 	for (int l=0; l < layers.size(); l++) {
 		Connection* conn = layers[l]->getConnection();
+
 		if (!conn) continue;
 		Layer* layer_to   = conn->to;
-		const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
-		const WEIGHT& wght_t = conn->getWeightTranspose();
+		//const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
+		//const WEIGHT& wght_t = conn->getWeightTranspose();
 
 		// Question: where should this operation occur. Given that an activation function can be scalar or vector, 
 		// the operation should be split between the activation function and the model (or layer or connection)
@@ -570,7 +551,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		layer_to->gradMulDLda(prod, *conn, t, t-1);   // ERROR
 		Layer* layer_from = conn->from;
 		//layer_from->printSummary("layer_from, temporal");
-		if (t > -1) layer_from->incrDelta(prod, t-1);  // I do not like this conditional
+		if (t > 0) layer_from->incrDelta(prod, t-1);  // I do not like this conditional
 	}
 
 	//printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
@@ -599,15 +580,6 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		// Could work if sequence were the field index
 
 		layer_to->dLdaMulGrad(*it, out, t);
-		//(*it)->getDelta().print("getDelta()\n");
-
-		#if 0
-		for (int b=0; b < nb_batch; b++) {
-			const VF2D& out_t = out(b).t();
-			delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
-			(*it)->incrDelta(delta);
-		}
-		#endif
 	}
 
 	// Needed when there are recurrent layers
@@ -620,21 +592,25 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		Layer* layer_from = con->from;
 		Layer* layer_to   = con->to;
 
-		const VF2D_F& out       = layer_from->getOutputs();
-		const VF2D_F& grad      = layer_to->getGradient();
-		const VF2D_F& old_deriv = layer_to->getDelta();
-		delta = VF2D(size(con->getWeight()));
+		const VF2D_F& out         = layer_from->getOutputs();
+		//const VF2D_F& grad      = layer_to->getGradient();
+		//const VF2D_F& old_deriv = layer_to->getDelta();
+		//delta = VF2D(size(con->getWeight()));
+
+		layer_to->dLdaMulGrad(con, out, t);
 
 		//layers[l]->dLdaMulGrad(con, t);   // DO THIS LATER
 
 		// WILL NEED dLdaMulGrad again
 
+		#if 0
         for (int b=0; b < nb_batch; b++) {
            	const VF2D& out_t = out(b).t();
 			if (t > 0) continue;
            	delta = (old_deriv[b].col(t+1) % grad[b].col(t)) * out_t.row(t); //out(b).t();
            	con->incrDelta(delta);
 		}
+		#endif
 	}
 	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }
