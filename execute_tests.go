@@ -14,3 +14,4 @@ $H/test_recurrent_model5/test_recurrent_model5
 #$H/test_recurrent_model_bias1/test_recurrent_model_bias1 # same as model1
 $H/test_recurrent_model_bias2/test_recurrent_model_bias2
 $H/test_recurrent_model_bias5/test_recurrent_model_bias5
+$H/softmax/softmax
