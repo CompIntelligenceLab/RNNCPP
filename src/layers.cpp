@@ -583,10 +583,13 @@ void Layer::gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_
 	}
 }
 //----------------------------------------------------------------------
-void Layer::dLdaMulGrad(Connection* con, const VF2D_F& out, int t)
+void Layer::dLdaMulGrad(Connection* con, const VF2D_F& out_, int t)
 {
+	Layer* layer_from = con->from;
+	Layer* layer_to   = con->to;
 	const VF2D_F& old_deriv = getDelta();
-	printf("act type: %s\n", getActivation().getDerivType().c_str());
+	const VF2D_F& out = layer_from->getOutputs();
+	//printf("act type: %s\n", getActivation().getDerivType().c_str());
 	Activation& activation = getActivation();
 	WEIGHT delta = VF2D(size(con->getWeight()));
 
@@ -600,6 +603,8 @@ void Layer::dLdaMulGrad(Connection* con, const VF2D_F& out, int t)
 			con->incrDelta(delta);
 		}
 	} else { // "coupled derivatives"
+
+
 		printf("dLdaMulGrad, coupled\n");
 		printf("------------------\n");
 		for (int b=0; b < nb_batch; b++) {
@@ -607,6 +612,10 @@ void Layer::dLdaMulGrad(Connection* con, const VF2D_F& out, int t)
 			const VF1D& y = outputs(b).col(t);
 			const VF2D grad = activation.jacobian(x, y); // not stored
 			const VF2D& out_t = out(b).t();
+			const VF2D& hh = (old_deriv[b].col(t).t() * grad);
+			U::print(hh, "hh");
+			U::print(out(b), "out(b)");
+			const VF2D& gg = out(b).col(t) * (old_deriv[b].col(t).t() * grad);
            	// Must generalize for when times are not separated by 1, TODO (Need different arguments)
 			U::print(old_deriv[b], "old_deriv[b]");
 			printf("delta = (old_deriv[b].col(t) * grad) * out_t.row(t);\n");
@@ -614,9 +623,13 @@ void Layer::dLdaMulGrad(Connection* con, const VF2D_F& out, int t)
 			old_deriv[b].col(t).print("old_deriv[b].col(t)");
 			grad.print("grad");
 			out_t.row(t).print("out_r.row(t)");
-           	delta = (old_deriv[b].col(t) * grad) * out_t.row(t); //out(b).t();    // ERROR
+           	//delta = (old_deriv[b].col(t) * grad) * out_t.row(t); //out(b).t();    // ERROR
+           	delta = gg.t();
+			delta.print("delta");
            	con->incrDelta(delta);
 		}
+		con->getDelta().print("con->getDelta()");
+		//exit(0);
 	}
 	//printf("Layer::dLdaMulGrad\n"); exit(0);
 }

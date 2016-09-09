@@ -206,7 +206,7 @@ Forward:
 	}
 
 	// ================  BEGIN F-D weight derivatives ======================
-	float inc = .0001;
+	float inc = .001;
 	xf.print("xf");
 	printf("inc= %f\n",inc);
 	VF2D_F xx = d1->getActivation()(xf);

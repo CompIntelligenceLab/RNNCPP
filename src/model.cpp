@@ -596,6 +596,7 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		// Could work if sequence were the field index
 
 		layer_to->dLdaMulGrad(*it, out, t);
+		(*it)->getDelta().print("getDelta()\n");
 
 		#if 0
 		for (int b=0; b < nb_batch; b++) {
