@@ -570,19 +570,20 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		Layer* layer_from = con->from;
 		Layer* layer_to   = con->to;
 
-		const VF2D_F& out       = layer_from->getOutputs();
-		const VF2D_F& grad      = layer_to->getGradient();
-		const VF2D_F& old_deriv = layer_to->getDelta();
-		delta = VF2D(size(con->getWeight()));
+		//const VF2D_F& out       = layer_from->getOutputs();
 
 		// How to do this for a particular sequence element? 
 		// Currently, only works for sequence length of 1
 		// Could work if sequence were the field index
 
-		layer_to->dLdaMulGrad(*it, out, t);
+		//layer_to->dLdaMulGrad(*it, out, t);
+		layer_to->dLdaMulGrad(*it, t);
 	}
 
 	// Needed when there are recurrent layers
+
+	// Perhaps one should store the delay itself with the connection? 
+	// So a delay of zero is spatial, a delay of 1 or greater is temporal. 
 
 	// Set Deltas of all the connections of temporal layers
 	for (int l=0; l < layers.size(); l++) {
@@ -592,12 +593,18 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		Layer* layer_from = con->from;
 		Layer* layer_to   = con->to;
 
-		const VF2D_F& out         = layer_from->getOutputs();
+		//const VF2D_F& out         = layer_from->getOutputs();
+
 		//const VF2D_F& grad      = layer_to->getGradient();
 		//const VF2D_F& old_deriv = layer_to->getDelta();
 		//delta = VF2D(size(con->getWeight()));
 
-		layer_to->dLdaMulGrad(con, out, t);
+		#if 1
+		//layer_to->dLdaMulGrad(con, out, t);
+		layer_to->dLdaMulGrad(con, t);
+		#endif
+
+		// QUESTION: why isn't dLdaMulGrad equivalent to the #ifdef below for test*bias5? 
 
 		//layers[l]->dLdaMulGrad(con, t);   // DO THIS LATER
 
@@ -607,8 +614,15 @@ void Model::storeDLossDweightInConnectionsRec(int t)
         for (int b=0; b < nb_batch; b++) {
            	const VF2D& out_t = out(b).t();
 			if (t > 0) continue;
-           	delta = (old_deriv[b].col(t+1) % grad[b].col(t)) * out_t.row(t); //out(b).t();
+			printf(".t= %d\n", t);
+			old_deriv[b].col(t+1).print("old deriv");
+			grad[b].col(t+1).print("grad.col");
+			grad.print("grad");
+			out_t.row(t).print("out_t");
+           	delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t); //out(b).t();
+           	delta.print("**********");
            	con->incrDelta(delta);
+			//exit(0);
 		}
 		#endif
 	}

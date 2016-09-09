@@ -192,13 +192,6 @@ void Layer::incrOutputs(VF2D_F& x, int t)
 //----------------------------------------------------------------------
 void Layer::incrInputs(VF2D_F& x)
 {
-	//printf("incrInputs: x.n_rows= %d\n", x.n_rows);
-	//printf("inputs.n_rows= %d\n", inputs.n_rows);
-	// inputs has incorrect number of fields.
-
-	//U::print(x, "incrInputs x");
-	//U::print(inputs, "incrInputs inputs");
-
 	for (int b=0; b < x.n_rows; b++) {
 		inputs[b] += x[b];
 	}
@@ -227,17 +220,10 @@ void Layer::resetInputs(int t)
 //----------------------------------------------------------------------
 void Layer::incrDelta(VF2D_F& x)
 {
-	//printf("delta.rows: %d\n", delta.n_rows);
-	//U::print(delta, "delta");
-	//U::print(x, "incrDelta");
-	//printf("x.n_rows = %d\n", x.n_rows);
-	//printf("deltax.n_rows = %d\n", delta.n_rows);
-
 	if (delta[0].n_rows == 0) {
 		for (int b=0; b < x.n_rows; b++) {
 			delta[b] = x[b];
 		}
-		//printf("deltax.n_rows = %d\n", delta.n_rows);
 	} else {
 		for (int b=0; b < x.n_rows; b++) {
 			delta[b] += x[b];
@@ -331,36 +317,8 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 	const WEIGHT& wght = conn->getWeight();  // what if connection operates differently
 	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 
-	#if 0
-	conn->printSummary("conn");
-	printf("which_lc= %d\n", conn->which_lc);
-	printf("layer_inputs.size= %d\n",layer_inputs.size());
-	layer_inputs[conn->which_lc].print("layer_inputs, which_lc");  // ===> zero
-	wght.print("wght");
-	from_outputs.print("from_outputs");
-	#endif
-
-
-	// TEMPORARY LOOP
-	#if 0
-	for (int i=0; i < layer_inputs.size(); i++) {
-		//layer_inputs[i] = VF2D_F(nb_batch);
-		int input_dim = getLayerSize();
-		int seq_len   = getSeqLen();
-		printf("input_dim, seq_len= %d, %d\n", input_dim, seq_len);
-		for (int b=0; b < nb_batch; b++) {
-			//layer_inputs[i](b) = VF2D(input_dim, seq_len);
-			U::print(layer_inputs[i](b), "U:: layer_inputs (tmp)");
-		}
-	}
-	#endif
-
-	//U::matmul(to_inputs, wght, from_outputs);  // w * x
 	U::matmul(prod, wght, from_outputs);  // w * x
 	to_inputs = prod;
-
-
-	//prod.print("enter processData, prod");
 
 	// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
 
@@ -370,15 +328,11 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
 		 resetInputs();
 		 for (int i=0; i < layer_inputs.size(); i++) {
 		 	incrInputs(layer_inputs[i]);
-			//layer_inputs[i].print("layer_inputs incr");
-			//printf("incrInputs, input: %d\n", i);
 		 }
 		 // add the self-looping if there. 
 		 incrInputs(loop_input);
-		 //loop_input.print("add loop_input, ");
 
 		 prod = getActivation()(getInputs());
-		 //prod.print("processData, output, ");
 		 setOutputs(prod);
 	}
 }
@@ -393,67 +347,22 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	const WEIGHT& wght = conn->getWeight();  // what if connection operates differently
 	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 
-	//layer_inputs[0].print("layer_input[0]");
-	//this->printSummary();
-
-		#if 0
-		conn->printSummary("conn");
-		printf("which_lc= %d\n", conn->which_lc);
-		printf("layer_inputs.size= %d\n",layer_inputs.size());
-		//layer_inputs[conn->which_lc].print("layer_inputs, which_lc");  // ===> zero
-		wght.print("wght");
-		U::print(wght, "wght");
-		U::print(from_outputs, "from_outputs");
-		U::print(prod, "prod");
-		conn->from->printSummary("conn->from");
-		from_outputs.print("from_outputs");
-		#endif
-
-	//U::matmul(prod, wght, from_outputs);  // w * x
-	//printf("seq_i= %d\n", seq_i);
-
-
-
 	U::matmul(to_inputs, wght, from_outputs, t, t);  // w * x
-
-
-
-	//U::print(to_inputs, "to_inputs");
-	//to_inputs.print("to_inputs");
-	//to_inputs = prod;
-	//exit(0);
-
-	//prod.print("enter processData, prod");
 
 	// completeness only happens once per layer and per input value into the predicition module
 	if (areIncomingLayerConnectionsComplete()) {
 		 // sum up all the inputs + the temporal input if there is one
 		 resetInputs(t);   // incorrect answer for a10, correct for a00
-		 //resetInputs();  // correct answer (STRANGE)
-		//layer_inputs[conn->which_lc].print("** layer_inputs, which_lc");  // ===> zero
-		//exit(0);
 		 for (int i=0; i < layer_inputs.size(); i++) {
 		 	incrInputs(layer_inputs[i], t);
 		 }
 		 // add the self-looping if there. 
-		 //loop_input.print("loop input");  // UNINITIALIZED
 		 incrInputs(loop_input); 
 		 // Add layer biases. must loop over batch and over sequence size. 
-		 //inputs.print("before, inputs, ");
-		 //inputs.print("before bias, layer inputs, ");
 		 addBiasToInput(t);
-		 //inputs.print("after bias, layer inputs, ");
-		 //bias.print("bias");
-		 //inputs.print("after, inputs, ");
-		 //printf("gordon\n");
-		 //exit(0);
-
 		 prod = getActivation()(getInputs());
 		 setOutputs(prod);
-		 //this->printSummary();
-		 //getOutputs().print("outputs");
 	}
-	//exit(0);
 }
 //----------------------------------------------------------------------
 void Layer::processData(Connection* conn, VF2D_F& prod)
@@ -505,51 +414,6 @@ void Layer::addBiasToInput(int t)
 	}
 }
 //----------------------------------------------------------------------
-#if 1
-void Layer::gradMulDLda(VF2D_F& prod, const WEIGHT& wght_t, int t_from, int t_to)
-{
-	if (t_to < 0) return;
-
-	const VF2D_F& old_deriv = this->getDelta();
-
-	//printf("act type: %s\n", getActivation().getDerivType().c_str());
-	Activation& activation = getActivation();
-
-	if (getActivation().getDerivType() == "decoupled") {   // ** called
-		printf("gradMulDLda, decoupled\n");
-		const VF2D_F& grad 		= this->getGradient();
-		U::rightTriad(prod, wght_t, grad, old_deriv, t_from, t_to);
-	} else { // "coupled"
-		printf("gradMulDLda, coupled\n");
-		for (int b=0; b < nb_batch; b++) {
-			const VF1D& x =  inputs(b).col(t_from);
-			const VF1D& y = outputs(b).col(t_from);
-			const VF2D grad = activation.jacobian(x, y); // not stored (3,3)
-			printf("prod(b).col(t_to) = wght_t * (grad * old_deriv[b].col(t_from);)\n");
-			U::print(prod, "prod"); // (3,2)
-			U::print(wght_t, "wght_t");  // (4,3)
-			U::print(grad, "grad");  // (3,3)
-			U::print(old_deriv[b], "old_deriv[b]"); //   3,2
-			//VF2D gg = grad * old_deriv[b].col(t_from); // orig
-			VF2D gg = old_deriv[b].col(t_from).t(); // orig
-			//VF2D gg = old_deriv[b].col(t_from) * grad;
-			//VF2D hh = grad.t() * wght_t.t();
-			VF2D hh = gg * grad;
-			VF2D ii = hh * wght_t;
-			//VF2D ii = old_deriv[b].col(t_from) * wght_t();
-			//U::print(gg, "gg");
-			//U::print(hh, "hh");
-			U::print(ii, "ii");
-			//exit(0);
-			U::print(prod(b), "prod(b)");
-			prod(b).col(t_to) = ii.t();
-			//prod(b).col(t_to) = wght_t * (grad * old_deriv[b].col(t_from));
-		}
-	}
-	//printf("XXX exit\n"); exit(0);
-}
-#endif
-//----------------------------------------------------------------------
 void Layer::gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_to)
 {
 	assert(this == conn.to);
@@ -583,13 +447,14 @@ void Layer::gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_
 	}
 }
 //----------------------------------------------------------------------
-void Layer::dLdaMulGrad(Connection* con, const VF2D_F& out_, int t)
+void Layer::dLdaMulGrad(Connection* con, int t)
 {
 	Layer* layer_from = con->from;
 	Layer* layer_to   = con->to;
+	assert(this == layer_to); 
+
 	const VF2D_F& old_deriv = getDelta();
 	const VF2D_F& out = layer_from->getOutputs();
-	//printf("act type: %s\n", getActivation().getDerivType().c_str());
 	Activation& activation = getActivation();
 	WEIGHT delta = VF2D(size(con->getWeight()));
 
@@ -599,37 +464,39 @@ void Layer::dLdaMulGrad(Connection* con, const VF2D_F& out_, int t)
 
 		for (int b=0; b < nb_batch; b++) {
 			const VF2D& out_t = out(b).t();
-			delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
+			if (!con->getTemporal()) {
+				delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
+			} else {
+				if (t+1 == seq_len) continue;    // ONLY FOR seq_len == 2
+				delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t);
+			}
 			con->incrDelta(delta);
 		}
 	} else { // "coupled derivatives"
 		printf("dLdaMulGrad, coupled\n");
-		printf("------------------\n");
 		for (int b=0; b < nb_batch; b++) {
-			const VF1D& x =  inputs(b).col(t);
-			const VF1D& y = outputs(b).col(t);
-			const VF2D grad = activation.jacobian(x, y); // not stored
 			const VF2D& out_t = out(b).t();
-			const VF2D& hh = (old_deriv[b].col(t).t() * grad);
-			U::print(hh, "hh");
-			U::print(out(b), "out(b)");
-			const VF2D& gg = out(b).col(t) * (old_deriv[b].col(t).t() * grad);
-           	// Must generalize for when times are not separated by 1, TODO (Need different arguments)
-			U::print(old_deriv[b], "old_deriv[b]");
-			printf("delta = (old_deriv[b].col(t) * grad) * out_t.row(t);\n");
-			printf("t= %d\n", t);
-			old_deriv[b].col(t).print("old_deriv[b].col(t)");
-			grad.print("grad");
-			out_t.row(t).print("out_r.row(t)");
-           	//delta = (old_deriv[b].col(t) * grad) * out_t.row(t); //out(b).t();    // ERROR
-           	delta = gg.t();
-			delta.print("delta");
+
+			if (!con->getTemporal()) {
+				const VF1D& x =  inputs(b).col(t);
+				const VF1D& y = outputs(b).col(t);
+				const VF2D grad = activation.jacobian(x, y); // not stored
+	
+				const VF2D& gg = out(b).col(t) * (old_deriv[b].col(t).t() * grad);
+				// Must generalize for when times are not separated by 1, TODO (Need different arguments)
+           		delta = gg.t();
+			} else {
+				if (t+1 == seq_len) continue;  // ONLY FOR seq_len == 2
+				const VF1D& x =  inputs(b).col(t+1);
+				const VF1D& y = outputs(b).col(t+1);
+				const VF2D grad = activation.jacobian(x, y); // not stored
+				const VF2D& gg = out(b).col(t) * (old_deriv[b].col(t+1).t() * grad);
+           		delta = gg.t();
+			}
+
            	con->incrDelta(delta);
 		}
-		con->getDelta().print("con->getDelta()");
-		//exit(0);
 	}
-	//printf("Layer::dLdaMulGrad\n"); exit(0);
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

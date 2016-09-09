@@ -184,9 +184,11 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 	printf("Relative ERRORS for weight derivatives for batch 0: \n");
 
 	for (int i=0; i < weight_fd.size(); i++) {
+		WEIGHT abs_err = (weight_fd[i] - weight_bp[i]);
 		WEIGHT err = (weight_fd[i] - weight_bp[i]) / weight_bp[i];
 		conn[i]->printSummary();
 		printf("   d1-d1: ");  weight_bp[i].print("weight_bp");
+		printf("   d1-d1: ");  abs_err.print("weight abs err");
 		printf("   d1-d1: ");  err.print("weight rel err");
 	}
 

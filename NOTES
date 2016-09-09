@@ -216,6 +216,14 @@ file is changed, which happens less often than changes in the implementation cpp
 Sept. 6, 2016
 Check Softmax and derivatives. Create a network with input, a single layer of 4 elements. Check that Softmax works. Use mse objective function.
 ----------------------------------------------------------------------
+Sept. 9, 2016
+To handle arbitrary delays, put all this in the connections. Add two variables: 
+t_from = 0
+t_to = delay
+t_ : initially set to t_from, incremented every iteration. When t_ == t_to, 
+send data from input to the output via the weights. More generally, one could solve
+differential equations. 
+SEEMS RATHER ELEGANT. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
