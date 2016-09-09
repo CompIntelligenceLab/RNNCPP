@@ -394,7 +394,7 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 
 	//layer_inputs[0].print("layer_input[0]");
-	this->printSummary();
+	//this->printSummary();
 
 		#if 0
 		conn->printSummary("conn");

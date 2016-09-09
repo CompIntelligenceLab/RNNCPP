@@ -157,9 +157,9 @@ void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all
 		layer_from->next.push_back(std::pair<Layer*, Connection*>(layer_to, connection));
 		layer_to->prev.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
 		connection->which_lc = layer_to->prev.size()-1;
-		connection->printSummary(" -> Model::add, connection, ");
-		layer_from->printSummary(" -> Model::add, layer_from, ");
-		layer_to->printSummary(" -> Model::add, layer_to, ");
+		//connection->printSummary(" -> Model::add, connection, ");
+		//layer_from->printSummary(" -> Model::add, layer_from, ");
+		//layer_to->printSummary(" -> Model::add, layer_to, ");
 		printf("    connection->which_lc= %d\n", connection->which_lc);
 	}
 }
@@ -231,7 +231,7 @@ void Model::checkIntegrity(LAYERS& layer_list)
 		for (int l=0; l < sz; l++) {
 			Layer* nlayer = cur_layer->next[l].first;
 			Connection* nconnection = cur_layer->next[l].second;
-			nlayer->printSummary("nlayer");
+			//nlayer->printSummary("nlayer");
 
 			if (nconnection->getClock() > 0) {
 				nconnection->setTemporal(true);
@@ -448,7 +448,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		// go through all the layers and update the temporal connections
 		// On the first pass, connections are empty
 		for (int l=0; l < layers.size(); l++) {
-			layers[l]->forwardLoops(t-1);    // does not change withb iases
+			layers[l]->forwardLoops(t-1);    // does not change with biases (empty functions it seems)
 		}
 		
 		for (int c=0; c < clist.size(); c++) {
@@ -505,7 +505,7 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 
 
 	const VF2D_F& grad = output_layers[0]->getDelta();
-	output_layers[0]->printSummary("output_layers[0]");
+	//output_layers[0]->printSummary("output_layers[0]");
 	U::print(grad, "output_layers[0]->getDelta");
 	int nb_batch = grad.n_rows;
 
@@ -521,10 +521,10 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		Layer* layer_to   = conn->to;
 		Layer* layer_from = conn->from;
 
-		layer_from->printSummary("layer_from");
-		U::print(layer_from->getDelta(), "layer_from, delta");
-		layer_to->printSummary("layer_to");
-		U::print(layer_to->getDelta(), "layer_to, delta");
+		//layer_from->printSummary("layer_from");
+		//U::print(layer_from->getDelta(), "layer_from, delta");
+		//layer_to->printSummary("layer_to");
+		//U::print(layer_to->getDelta(), "layer_to, delta");
 		//exit(0);
 
 		const WEIGHT& wght   = conn->getWeight(); // invokes copy constructor, or what? 
@@ -660,7 +660,7 @@ void Model::storeDLossDbiasInLayersRec(int t)
 				const VF2D_F& old_deriv = layer->getDelta();
 
 				const VF2D& gg = old_deriv[b].col(t).t() * grad; // (1,3)
-				U::print(gg, "gg");
+				//U::print(gg, "gg");
 				delta = gg.t();
 			}
 			//exit(0);
