@@ -26,6 +26,14 @@ public:
 	int hit;      // track whether a connection was hit (make private later perhaps)
 	int which_lc; // which index into layer_connections
 	bool freeze;  // do not update connections (NOT IMPLEMENTED). False by default
+	// used to handle connections with delays
+	// t_from: will be zero, but perhaps will acquire non-zero value in the future
+	// t_to: the connection delay. A "signal" takes (t_to-t_from) units to reach Layer "from"
+	// t_clock: set to t_from when a signal arrives at the "from" layer, incremented by one unit 
+	// every clock cycle. When t_clock == t_to, the signal is transferred to "from" inputs. 
+	// At the moment, time passes at the same rate in all connections. That might change in the future. 
+	int t_from, t_to;
+	int t_clock;
 
 protected:
 	static int counter;
@@ -74,6 +82,11 @@ public:
 	WEIGHT& getDelta() { return this->delta; }
 	void setDelta(WEIGHT delta) { this->delta = delta; }
 	void resetDelta() { delta.zeros(); }
+	virtual void incrTClock() {t_clock++;}
+	virtual void setTTo(int to) {t_to = to;}
+	virtual int getTTo() { return t_to; }
+	virtual void gradMulDLda(int ti_from, int ti_to);
+	//virtual void gradMulDLda(VF2D_F& prod, int ti_from, int ti_to);
 
 
 	Connection(Connection&& w); // C++11

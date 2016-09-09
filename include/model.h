@@ -113,7 +113,7 @@ public:
   void 	storeDLossDweightInConnections();
 
   void storeGradientsInLayersRec(int t);
-  void storeDactivationDoutputInLayersRec(int t);
+  void storeDactivationDoutputInLayersRecCon(int t);
   void storeDLossDweightInConnectionsRec(int t);
   void storeDLossDbiasInLayersRec(int t);
 

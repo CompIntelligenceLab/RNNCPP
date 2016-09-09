@@ -25,7 +25,6 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	// How to access connection to previous layer if this is the first layer? 
 
 	this->layer_size = layer_size;
-	//output_dim   = layer_size;  // no such member
 	input_dim   = -1; // no assignment yet. 
 	nb_batch    =  1;   // HOW TO SET BATCH FOR LAYERS? 
 	seq_len     =  1; 
@@ -103,7 +102,6 @@ const Layer& Layer::operator=(const Layer& l)
 		clock = l.clock;
 		recurrent_conn = l.recurrent_conn;
 
-		//Weights* w1; // remove class Weights
 		Activation *a1;
 
 		// remove class Weights (Nathan)
@@ -184,10 +182,6 @@ void Layer::incrOutputs(VF2D_F& x, int t)
 	for (int b=0; b < x.n_rows; b++) {
 		this->outputs(b).col(t) += x[b].col(t);
 	}
-	/*   ?????
-	/Users/erlebach/src/RNNCPP/src/layers.cpp:170:14: error: reference to non-static member function must be called
-	outputs[b].col[t] += x[b].col(t);
-	*/
 }
 //----------------------------------------------------------------------
 void Layer::incrInputs(VF2D_F& x)
@@ -247,7 +241,7 @@ void Layer::incrBiasDelta(VF1D& x)
 //----------------------------------------------------------------------
 void Layer::computeGradient()
 {
-	// Error. Derivatives must be evaluated for the input argument!
+	//Error. Derivatives must be evaluated for the input argument!
 	//gradient = activation->derivative(outputs);
 	//gradient = activation->derivative(inputs);
 
@@ -278,12 +272,6 @@ void Layer::computeGradient(int t)
 	} else {
 		; // Do not compute the gradient. Compute Jacobian when required
 	}
-
-
-	//printf("t= %d, ", t);
-	//this->printSummary();
-	//inputs.print("inputs");
-	//gradient.print("gradient");
 }
 //----------------------------------------------------------------------
 void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)
@@ -292,13 +280,7 @@ void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 
 	const VF2D_F& from_outputs = getOutputs();
 	const WEIGHT& wght = conn->getWeight();
-	//U::matmul(prod, wght, from_outputs, 0);  // sequence element zero)
 	U::matmul(prod, wght, from_outputs);
-
-	//prod.print("prod, forwardData");
-
-	// Data is not actually forwarded. It should be forwarded to the input 
-	// of the following layer. 
 }
 //----------------------------------------------------------------------
 bool Layer::areIncomingLayerConnectionsComplete()
@@ -371,13 +353,11 @@ void Layer::processData(Connection* conn, VF2D_F& prod)
 
 		VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 		to_inputs = prod;
-		//prod.print("enter processData, prod");
 
 		// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
 
 		if (areIncomingLayerConnectionsComplete()) {
 			 prod = getActivation()(prod);
-			 //prod.print("processData, set output");
 			 setOutputs(prod);
 		}
 }
@@ -402,9 +382,6 @@ void Layer::resetState()
 void Layer::resetDelta()
 {
 	U::zeros(delta);
-	//for (int b=0; b < delta.n_rows; b++) {
-		//delta[b].zeros();
-	//}
 }
 //----------------------------------------------------------------------
 void Layer::addBiasToInput(int t)

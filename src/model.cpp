@@ -492,39 +492,21 @@ void Model::storeGradientsInLayersRec(int t)
 	//printf("---- exit storeGradientsInLayersRec ----\n");
 }
 //----------------------------------------------------------------------
-void Model::storeDactivationDoutputInLayersRec(int t)
+void Model::storeDactivationDoutputInLayersRecCon(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
-
-	//printf("********* ENTER storeDactivationDoutputInLayers() **************\n");
 
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
 	// Run connections backwards
 
-
 	// Memory allocated in gradMulDLda)(
-	VF2D_F prod(nb_batch);
+	//VF2D_F prod(nb_batch);
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* conn = (*it);
-
-		// no-op if t-1 < 0
-		// THERE SHOULD BE no prod[t-1] if there is no recurrence or time unrolling!
-		// prod[t-1] = wght_t * (grad[t] % old_deriv[t])
-		
-		// grad % old_deriv (if componentwise gradient, as for Tanh)
-		// grad * old_deriv (if gradient if a Jacobian, as for Softmax)
-		// The layer will figure out how to do this. Could also be passed to the activation function, since it is the
-		// activation function that determines how this multiplication is done. But the Layer is responsible for 
-		// passing the operation to the activation function
-		//layer_to->gradMulDLda(prod, wght_t, t, t);
-
-		Layer* layer_to   = conn->to;
-		Layer* layer_from = conn->from;
-		layer_to->gradMulDLda(prod, *conn, t, t);
-		layer_from->incrDelta(prod, t);
+		conn->gradMulDLda(t, t);
 	}
 
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
@@ -534,9 +516,6 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		Connection* conn = layers[l]->getConnection();
 
 		if (!conn) continue;
-		Layer* layer_to   = conn->to;
-		//const WEIGHT& wght = conn->getWeight(); // invokes copy constructor, or what? 
-		//const WEIGHT& wght_t = conn->getWeightTranspose();
 
 		// Question: where should this operation occur. Given that an activation function can be scalar or vector, 
 		// the operation should be split between the activation function and the model (or layer or connection)
@@ -545,17 +524,11 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		// prod = grad * old_deriv   (or) (or  old_deriv * grad)
 		// prod = wght_t * prod
 
-		printf(".. t= %d\n", t);
 		if (t == 0) continue;
-		//layer_to->gradMulDLda(prod, wght_t, t, t-1);   
-		layer_to->gradMulDLda(prod, *conn, t, t-1);   // ERROR
-		Layer* layer_from = conn->from;
-		//layer_from->printSummary("layer_from, temporal");
-		if (t > 0) layer_from->incrDelta(prod, t-1);  // I do not like this conditional
+		conn->gradMulDLda(t, t-1);  
 	}
-
-	//printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
 }
+//----------------------------------------------------------------------
 //----------------------------------------------------------------------
 void Model::storeDLossDweightInConnectionsRec(int t)
 {
@@ -701,7 +674,8 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeGradientsInLayersRec(t);
-		storeDactivationDoutputInLayersRec(t);
+		//storeDactivationDoutputInLayersRec(t);
+		storeDactivationDoutputInLayersRecCon(t);
 		storeDLossDweightInConnectionsRec(t);
 		storeDLossDbiasInLayersRec(t);
 	}

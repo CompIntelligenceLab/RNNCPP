@@ -12,6 +12,7 @@ RecurrentLayer::RecurrentLayer(int layer_size /*1*/, std::string name /*rec_laye
 	recurrent_conn->from = this;
 	recurrent_conn->to = this;
 	recurrent_conn->setTemporal(true);
+	recurrent_conn->setTTo(1);    // by default, recurrent connections have delay of 1
 	loop_input.set_size(nb_batch);
 	type = "recurrent";
 }
@@ -26,6 +27,8 @@ RecurrentLayer::RecurrentLayer(const RecurrentLayer& l) //: Layer(RecurrentLayer
 {
 	name    = l.name + 'c';
 	printf("RecurrentLayer (%s): copy constructor\n", this->name.c_str());
+	printf("RecurrentLayer copy constructor not complete\n");
+	exit(1);
 
 	// what to do with RecurrentConnection?  MUST FIX
 }
@@ -35,6 +38,8 @@ const RecurrentLayer& RecurrentLayer::operator=(const RecurrentLayer& l)
 {
 	name    = l.name + '=';
 	printf("RecurrentLayer (%s): operator=\n", this->name.c_str());
+	printf("RecurrentLayer operator= not complete\n");
+	exit(1);
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -44,16 +49,6 @@ void RecurrentLayer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 	// forward data to spatial connections
 	Layer::forwardData(conn, prod, seq);
 }
-//----------------------------------------------------------------------
-#if 0
-bool RecurrentLayer::areIncomingLayerConnectionsComplete()
-{
-	int nb_arrivals = prev.size();
-
-	// +1 to account for the self-loop of the recurrent node. 
-	return ((nb_hit+1) == nb_arrivals);
-}
-#endif
 //----------------------------------------------------------------------
 void RecurrentLayer::processData(Connection* conn, VF2D_F& prod)
 {
@@ -81,16 +76,7 @@ void RecurrentLayer::forwardLoops()
 	// handle self loop
 	printf("inside RecurrentLayer::forwardLoops\n");
 	const WEIGHT& loop_wght = recurrent_conn->getWeight();
-
-	//U::print(loop_input, "loop_input");
-	//U::print(loop_wght, "loop_wght");
-	//U::print(outputs, "outputs");
-
-	//U::matmul(loop_input, loop_wght, outputs); // out of bounds
-	// calculate for sequence 0, store in sequence 1
 	U::matmul(loop_input, loop_wght, outputs, 0, 1); // out of bounds
-
-	//loop_input.print("loop input");
 }
 //----------------------------------------------------------------------
 void RecurrentLayer::initVars(int nb_batch)

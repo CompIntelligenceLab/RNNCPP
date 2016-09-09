@@ -22,7 +22,7 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 	weight   = WEIGHT(out_dim, in_dim);
 	weight_t = WEIGHT(out_dim, in_dim);
 	delta = WEIGHT(out_dim, in_dim);
-	//printf("weight(%d, %d)\n", out_dim, in_dim);
+	t_from = t_to = t_clock = 0;
 	print_verbose = true;
 	temporal = false; // all connections false for feedforward networks
 	clock = 0;
@@ -49,7 +49,8 @@ Connection::~Connection()
 }
 
 Connection::Connection(const Connection& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbose(w.print_verbose),
-     temporal(w.temporal), clock(w.clock), to(w.to), from(w.from), freeze(w.freeze), type(w.type)
+     temporal(w.temporal), clock(w.clock), to(w.to), from(w.from), freeze(w.freeze), type(w.type), t_from(w.t_from),
+	 t_to(w.t_to), t_clock(w.t_clock)
 {
 	name = w.name + "c";
 	weight = WEIGHT(out_dim, in_dim);
@@ -73,6 +74,9 @@ const Connection& Connection::operator=(const Connection& w)
 		to = w.to;
 		freeze = w.freeze;
 		type = w.type;
+		t_from = w.t_from;
+		t_to = w.t_to;
+		t_clock = w.t_clock;
 		printf("Connection::operator= (%s)\n", name.c_str());
 	}
 
@@ -183,3 +187,48 @@ void Connection::computeWeightTranspose()
 {
 	weight_t = weight.t();
 }
+//----------------------------------------------------------------------
+//void Connection::gradMulDLda(VF2D_F& prod, int ti_from, int ti_to)
+void Connection::gradMulDLda(int ti_from, int ti_to)
+{
+	//assert(this == conn.to);
+	Layer* layer_to   = to;
+	Layer* layer_from = from;
+	int nb_batch = layer_from->getNbBatch(); 
+	VF2D_F prod(nb_batch);
+	//layer_from->incrDelta(prod, ti_from);
+
+	const VF2D_F& old_deriv = layer_to->getDelta();  // 3
+	const WEIGHT& wght   = getWeight(); // invokes copy constructor, or what?  3 x 4
+
+	Activation& activation = layer_to->getActivation();
+
+	if (activation.getDerivType() == "decoupled") {   
+		//printf("gradMulDLda, decoupled\n");
+		const VF2D_F& grad 		= layer_to->getGradient();
+		for (int b=0; b < nb_batch; b++) {
+			prod(b) = VF2D(size(layer_from->getDelta()(0)));
+		}
+		const WEIGHT& wght_t = getWeightTranspose();
+		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to); 
+	} else { // "coupled"
+		//printf("gradMulDLda, coupled\n");
+		for (int b=0; b < nb_batch; b++) {
+			const VF1D& x   =  layer_to->getInputs()(b).col(ti_from);
+			const VF1D& y   = layer_to->getOutputs()(b).col(ti_from);
+			const VF2D grad = activation.jacobian(x, y); // not stored (3,3)
+			// parentheses required to ensure that left hand multiplication occurs first
+			// since old_deriv is a vector and grad/wght are matrices
+			const VF2D& gg = (old_deriv[b].col(ti_from).t() * grad) * wght; 
+			prod(b) = VF2D(size(layer_from->getDelta()(0)));
+			prod(b).col(ti_to) = gg.t();
+		}
+	}
+
+	if (ti_from == ti_to) {
+		layer_from->incrDelta(prod, ti_from);
+	} else {
+		if (ti_to >= 0) layer_from->incrDelta(prod, ti_to);  // I do not like this conditional
+	}
+}
+//----------------------------------------------------------------------
