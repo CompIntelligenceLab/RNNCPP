@@ -564,10 +564,13 @@ void Model::storeDactivationDoutputInLayersRec(int t)
 		// prod = grad * old_deriv   (or) (or  old_deriv * grad)
 		// prod = wght_t * prod
 
-		layer_to->gradMulDLda(prod, wght_t, t, t-1);
+		printf(".. t= %d\n", t);
+		if (t == 0) continue;
+		//layer_to->gradMulDLda(prod, wght_t, t, t-1);   
+		layer_to->gradMulDLda(prod, *conn, t, t-1);   // ERROR
 		Layer* layer_from = conn->from;
 		//layer_from->printSummary("layer_from, temporal");
-		layer_from->incrDelta(prod, t-1);
+		if (t > -1) layer_from->incrDelta(prod, t-1);  // I do not like this conditional
 	}
 
 	//printf("********* EXIT storeDactivationDoutputInLayers() **************\n");
@@ -654,21 +657,17 @@ void Model::storeDLossDbiasInLayersRec(int t)
 			layer->incrBiasDelta(delta);
 		} else {
 			for (int b=0; b < nb_batch; b++) {
-				const VF1D& x =  layer->getInputs()(b).col(t);
+				const VF1D& x =  layer->getInputs()(b).col(t);   // ERROR
 				const VF1D& y = layer->getOutputs()(b).col(t);
 				const VF2D grad = layer->getActivation().jacobian(x, y); // not stored (3,3)
 				const VF2D_F& old_deriv = layer->getDelta();
 
 				const VF2D& gg = old_deriv[b].col(t).t() * grad; // (1,3)
-				//U::print(gg, "gg");
 				delta = gg.t();
 			}
-			//exit(0);
 
 			layer->incrBiasDelta(delta);
 		}
-
-		// I have my doubts about this formula above
 	}
 }
 //----------------------------------------------------------------------

@@ -194,11 +194,18 @@ Forward:
 		}
 	}
 
-	Connection* conn;
 	{
+		Connection* conn;
 		conn = m->getConnection(input, d1);
 		WEIGHT& w_01 = conn->getWeight();
 		w_01(0,0) = w01;
+		conn->computeWeightTranspose();
+	}
+	{
+		Connection* conn;
+		conn = m->getConnection(input, d1);
+		WEIGHT& w_11 = conn->getWeight();
+		w_11(0,0) = w11;
 		conn->computeWeightTranspose();
 	}
 
