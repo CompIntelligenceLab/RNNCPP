@@ -596,7 +596,7 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		// Could work if sequence were the field index
 
 		layer_to->dLdaMulGrad(*it, out, t);
-		(*it)->getDelta().print("getDelta()\n");
+		//(*it)->getDelta().print("getDelta()\n");
 
 		#if 0
 		for (int b=0; b < nb_batch; b++) {
@@ -622,6 +622,8 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 		const VF2D_F& old_deriv = layer_to->getDelta();
 		delta = VF2D(size(con->getWeight()));
 
+		//layers[l]->dLdaMulGrad(con, t);   // DO THIS LATER
+
 		// WILL NEED dLdaMulGrad again
 
         for (int b=0; b < nb_batch; b++) {
@@ -640,14 +642,31 @@ void Model::storeDLossDbiasInLayersRec(int t)
 
 	for (int l=0; l < layers.size(); l++) {
 		Layer* layer = layers[l];
-		const VF2D_F& grad      = layer->getGradient();
-		const VF2D_F& old_deriv = layer->getDelta();
 
-		for (int b=0; b < nb_batch; b++) {
-        	delta = (old_deriv[b].col(t) % grad[b].col(t));
+		if (layer->getActivation().getDerivType() == "decoupled") {
+			const VF2D_F& grad      = layer->getGradient();
+			const VF2D_F& old_deriv = layer->getDelta();
+
+			for (int b=0; b < nb_batch; b++) {
+				delta = (old_deriv[b].col(t) % grad[b].col(t));
+			}
+
+			layer->incrBiasDelta(delta);
+		} else {
+			for (int b=0; b < nb_batch; b++) {
+				const VF1D& x =  layer->getInputs()(b).col(t);
+				const VF1D& y = layer->getOutputs()(b).col(t);
+				const VF2D grad = layer->getActivation().jacobian(x, y); // not stored (3,3)
+				const VF2D_F& old_deriv = layer->getDelta();
+
+				const VF2D& gg = old_deriv[b].col(t).t() * grad; // (1,3)
+				U::print(gg, "gg");
+				delta = gg.t();
+			}
+			//exit(0);
+
+			layer->incrBiasDelta(delta);
 		}
-
-		layer->incrBiasDelta(delta);
 
 		// I have my doubts about this formula above
 	}

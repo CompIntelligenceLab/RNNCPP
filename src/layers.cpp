@@ -528,8 +528,6 @@ void Layer::gradMulDLda(VF2D_F& prod, const WEIGHT& wght_t, int t_from, int t_to
 			U::print(wght_t, "wght_t");  // (4,3)
 			U::print(grad, "grad");  // (3,3)
 			U::print(old_deriv[b], "old_deriv[b]"); //   3,2
-			// wght: 3, 4
-			// prod: 
 			//VF2D gg = grad * old_deriv[b].col(t_from); // orig
 			VF2D gg = old_deriv[b].col(t_from).t(); // orig
 			//VF2D gg = old_deriv[b].col(t_from) * grad;
