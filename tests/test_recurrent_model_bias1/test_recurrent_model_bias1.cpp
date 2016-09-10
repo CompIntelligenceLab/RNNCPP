@@ -3,7 +3,7 @@
 #include <string>
 #include <cstdlib>
 
-void testRecurrentModelBias1(int nb_batch, int seq_len, int layer_size, int is_recurrent)
+void testRecurrentModelBias1(int nb_batch, int seq_len, int layer_size, int is_recurrent, Activation* activation)
 {
 	printf("\n\n\n");
 	printf("=============== BEGIN test_recurrent_model_bias2  =======================\n");
@@ -264,12 +264,14 @@ int main(int argc, char* argv[])
     int layer_size = 1;
     int seq_len = 1;
     int is_recurrent = 1;
+	Activation* activation; 
 
 	argv++; 
 	argc--; 
 
 	while (argc > 1) {
 		std::string arg = std::string(argv[0]);
+		printf("arg= %s\n", arg.c_str());
 		if (arg == "-b") {
 			nb_batch = atoi(argv[1]);
 			argc -= 2; argv += 2;
@@ -279,14 +281,29 @@ int main(int argc, char* argv[])
 		} else if (arg == "-l") {
 			layer_size = atoi(argv[1]);
 			argc -= 2; argv += 2;
-		} else if (arg == "-r") {
-			is_recurrent = atoi(argv[1]);
+		} else if (arg == "-a") {
+			std::string name = argv[1];
+			printf("name= %s\n", name.c_str());
+			if (name == "tanh") {
+				activation = new Tanh();
+			} else if (name == "iden") {
+				activation = new Identity();
+			} else if (name == "sigmoid") {
+				activation = new Sigmoid();
+			} else if (name == "relu") {
+				activation = new ReLU();
+			} else {
+				printf("(%s) unknown activation\n", name.c_str());
+				exit(1);
+			}
 			argc -= 2; argv += 2;
 		} else if (arg == "-h") {
 			printf("Argument usage: \n");
-			printf("  -b <nb_batch>  -s <seq_len> -l <layer_size> -r <0|1>\n");
+			printf("  -b <nb_batch>  -s <seq_len> -l <layer_size> -a <activation> -w <weight_initialization>\n");
+			printf("  Activations: \"tanh\"|\"sigmoid\"|\"iden\"|\"relu\"\n");
 		}
 	}
 
-	testRecurrentModelBias1(nb_batch, seq_len, layer_size, is_recurrent);
+	is_recurrent = 1;
+	testRecurrentModelBias1(nb_batch, seq_len, layer_size, is_recurrent, activation);
 }

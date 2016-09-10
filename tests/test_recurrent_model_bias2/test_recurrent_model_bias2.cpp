@@ -3,7 +3,7 @@
 #include <string>
 #include <cstdlib>
 
-void testRecurrentModelBias2(int nb_batch, int seq_len, int layer_size, int is_recurrent)
+void testRecurrentModelBias2(int nb_batch, int seq_len, int layer_size, int is_recurrent, Activation* activation)
 {
 	printf("\n\n\n");
 	printf("=============== BEGIN test_recurrent_model_bias2  =======================\n");
@@ -37,8 +37,8 @@ void testRecurrentModelBias2(int nb_batch, int seq_len, int layer_size, int is_r
 	m->add(d1, d2);
 
 	input->setActivation(new Identity());
-	d1->setActivation(   new Identity());
-	d2->setActivation(   new Identity());
+	d1->setActivation(   activation);
+	d2->setActivation(   activation);
 
 	m->addInputLayer(input);
 	m->addOutputLayer(d2);
@@ -296,12 +296,15 @@ int main(int argc, char* argv[])
     int nb_batch = 1;
     int layer_size = 1;
     int seq_len = 1;
+    int is_recurrent = 1;
+	Activation* activation; 
 
 	argv++; 
 	argc--; 
 
 	while (argc > 1) {
 		std::string arg = std::string(argv[0]);
+		printf("arg= %s\n", arg.c_str());
 		if (arg == "-b") {
 			nb_batch = atoi(argv[1]);
 			argc -= 2; argv += 2;
@@ -311,12 +314,29 @@ int main(int argc, char* argv[])
 		} else if (arg == "-l") {
 			layer_size = atoi(argv[1]);
 			argc -= 2; argv += 2;
+		} else if (arg == "-a") {
+			std::string name = argv[1];
+			printf("name= %s\n", name.c_str());
+			if (name == "tanh") {
+				activation = new Tanh();
+			} else if (name == "iden") {
+				activation = new Identity();
+			} else if (name == "sigmoid") {
+				activation = new Sigmoid();
+			} else if (name == "relu") {
+				activation = new ReLU();
+			} else {
+				printf("(%s) unknown activation\n", name.c_str());
+				exit(1);
+			}
+			argc -= 2; argv += 2;
 		} else if (arg == "-h") {
 			printf("Argument usage: \n");
-			printf("  -b <nb_batch>  -s <seq_len> -l <layer_size>\n");
+			printf("  -b <nb_batch>  -s <seq_len> -l <layer_size> -a <activation> -w <weight_initialization>\n");
+			printf("  Activations: \"tanh\"|\"sigmoid\"|\"iden\"|\"relu\"\n");
 		}
 	}
 
-	int is_recurrent = 1;
-	testRecurrentModelBias2(nb_batch, seq_len, layer_size, is_recurrent);
+	is_recurrent = 1;
+	testRecurrentModelBias2(nb_batch, seq_len, layer_size, is_recurrent, activation);
 }

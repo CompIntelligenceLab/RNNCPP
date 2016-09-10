@@ -58,7 +58,7 @@ void RecurrentLayer::processData(Connection* conn, VF2D_F& prod)
 //----------------------------------------------------------------------
 void RecurrentLayer::forwardLoops(int t)
 {
-	printf("inside forward loops, t=%d\n", t);
+	//printf("inside forward loops, t=%d\n", t);
 	// forward data to temporal connections
 	// handle self loop
 	const WEIGHT& loop_wght = recurrent_conn->getWeight();
@@ -73,7 +73,7 @@ void RecurrentLayer::forwardLoops()
 {
 	// forward data to temporal connections
 	// handle self loop
-	printf("inside RecurrentLayer::forwardLoops\n");
+	//printf("inside RecurrentLayer::forwardLoops\n");
 	const WEIGHT& loop_wght = recurrent_conn->getWeight();
 	U::matmul(loop_input, loop_wght, outputs, 0, 1); // out of bounds
 }
