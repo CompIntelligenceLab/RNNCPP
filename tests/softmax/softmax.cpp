@@ -35,6 +35,11 @@ void testSoftmax(int nb_batch=1)
 
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
+
+	//printf("m nb_batch= %d\n", m->getNbBatch);
+	printf("input nb_batch= %d\n", input->getNbBatch());
+	printf("softmax nb_batch= %d\n", d1->getNbBatch());
+	//exit(0);
 	//===========================================
 /***
 Check the sequences: prediction and back prop.
@@ -228,5 +233,5 @@ Forward:
 //----------------------------------------------------------------------
 int main()
 {
-	testSoftmax(1);
+	testSoftmax(2);
 }

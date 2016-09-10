@@ -238,6 +238,7 @@ void Connection::dLdaMulGrad(int t)
 	Layer* layer_to   = to;
 	int nb_batch = layer_from->getNbBatch();
 	int seq_len = layer_from->getSeqLen();
+	//printf("nb_batch= %d\n", nb_batch); exit(0);
 
 	const VF2D_F& old_deriv = layer_to->getDelta();
 	const VF2D_F& out = layer_from->getOutputs();

@@ -225,6 +225,10 @@ send data from input to the output via the weights. More generally, one could so
 differential equations. 
 SEEMS RATHER ELEGANT. 
 ----------------------------------------------------------------------
+Sept. 9, 2016
+Bias: something wrong with batch > 1. I doubt it is in the testing. 
+Weight deriv. Works with nb_batch > 1 (there was summation error in tests/
+-
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
