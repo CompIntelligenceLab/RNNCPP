@@ -3,12 +3,14 @@
 #include <math.h>
 #include "activations.h"
 #include "optimizer.h"
-#include "weights.h"
+#include "connection.h"
 #include "layers.h"
+#include "dense_layer.h"
 
 int main() 
 {
-	printf("=================================\n");
+	printf("\n\n\n");
+	printf("=============== BEGIN copy_constructorssss  =======================\n");
 	Optimizer* opt = new Optimizer("optGE");
 	Optimizer opt1(*opt);
 	Optimizer opt2 = *opt;
@@ -18,9 +20,9 @@ int main()
 	opt2.print("\n--> print opt2\n");
 
 	printf("=================================\n");
-	Weights* weight = new Weights(1,1,"wghtGE");
-	Weights w1(*weight);
-	Weights w2 = *weight;
+	Connection* weight = new Connection(1,1,"wghtGE");
+	Connection w1(*weight);
+	Connection w2 = *weight;
 
 	weight->print("\n --> print wght\n");
 	w1.print("\n --> print w1\n");
@@ -28,13 +30,13 @@ int main()
 
 	printf("=================================\n");
 	int layer_size = 5;
-	Layer* layer = new Layer(layer_size, "layerGE");
+	Layer* layer = new DenseLayer(layer_size, "layerGE");
 
 	// Both these statements lead to to identical objects being deleted. Only one of these
 	// statements leads to correct code. 
-	Layer layer3(layer_size, "layer3GE");
-	Layer layer2;
-	layer2 = layer3;
+	DenseLayer layer3(layer_size, "layer3GE");
+	DenseLayer layer2;
+	DenseLayer layer4 = layer3;
 
 	//Layer layer1(*layer);
 	#if 0

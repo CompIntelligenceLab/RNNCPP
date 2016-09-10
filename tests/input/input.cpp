@@ -8,7 +8,8 @@
 
 int main() 
 {
-	printf("\n----- input.cpp ---------\n");
+	printf("\n\n\n");
+	printf("=============== BEGIN input =======================\n");
 	std::string file = "test.csv";
 
 	Input input;

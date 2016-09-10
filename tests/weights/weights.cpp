@@ -2,25 +2,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "print_utils.h"
 #include "activations.h"
 #include "optimizer.h"
-#include "weights.h"
+#include "connection.h"
 #include "layers.h"
 
 int main() 
 {
-	Weights w1(5,6);
-	Weights w2(5,6);
+	printf("\n\n\n");
+	printf("=============== BEGIN weights  =======================\n");
+	Connection w1(5,6); // arguments: inputs, outputs, weight(output, input)
+	Connection w2(5,6); // WEIGHT 6,5
 
-	for (int i=0; i < 5; i++) {
-	for (int j=0; j < 6; j++) {
+	WEIGHT& ww = w1.getWeight();
+	U::print(ww, "ww");
+
+	for (int j=0; j < 5; j++) {  // inputs, 2nd arg
+	for (int i=0; i < 6; i++) {
 		printf("i,j= %d, %d\n", i,j);
 		w1(i,j) = i+j;
 		w2(i,j) = i-j;
 	}}
 
 	// assume single batch
-	Weights w3(w1);; // + w2; (works fine)
+	Connection w3(w1);; // + w2; (works fine)
 	for (int i=0; i < 2; i++) {
 	for (int j=0; j < 3; j++) {
 		printf("w1,w3(w1)= %f, %f\n", w1(i,j), w3(i,j));
@@ -36,7 +42,7 @@ int main()
 		printf("w1,w2= %f, %f, w3=w1+w2= %f\n", w1(i,j), w2(i,j), w3(i,j));
 	}}
 
-	Weights w10(6,5);
+	Connection w10(6,5);
 	for (int j=0; j < 5; j++) {
 	for (int i=0; i < 6; i++) {
 		w10(i,j) = i+j;
@@ -54,7 +60,7 @@ int main()
 	}}
 
 	//==============================
-	// Multiplication of w * x  (Weights * VF2D_F)
+	// Multiplication of w * x  (Connection * VF2D_F)
 
 	VF2D_F x(3);
 	//VF2D_F y(3);
@@ -71,10 +77,12 @@ int main()
 	}
 
 	//-----------------
-	Weights w11(3,2);  // layer[k], layer[k-1]
+	Connection w11(3,2);  // layer[k], layer[k-1]
 
-	printf("x dims: b: %d, (%d, %d)\n", x.n_rows, x[0].n_rows, x[0].n_cols);
-	printf("w11 rows/cols: %d, %d\n", w11.getNRows(), w11.getNCols());
+	U::print(x, "tests_weights, x");
+	w11.printSummary("w11"); 
+	//printf("x dims: b: %d, (%d, %d)\n", x.n_rows, x[0].n_rows, x[0].n_cols);
+	//printf("w11 rows/cols: %d, %d\n", w11.getNRows(), w11.getNCols());
 
 	for (int i=0; i < 3; i++) {
 	for (int j=0; j < 2; j++) {
@@ -99,11 +107,11 @@ int main()
 		}
 	}
 
-	printf("y batch: %d,  dims: %d, %d\n", y.n_rows, y[0].n_rows, y[0].n_cols);
+	U::print(y, "tests_weights, y");
+	//printf("y batch: %d,  dims: %d, %d\n", y.n_rows, y[0].n_rows, y[0].n_cols);
 
 	printf("y = w11 * x\n");
-	printf("y.size() = %d\n", y.size()); // should be (3, ...)
-	printf("print y dim: %d, %d\n", y[0].n_rows, y[0].n_cols);
+	U::print(y, "tests_weights, y");
 
 	for (int i=0; i < 3; i++) {
 		for (int p=0; p < 3; p++) {

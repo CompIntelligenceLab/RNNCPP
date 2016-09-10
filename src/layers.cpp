@@ -1,4 +1,5 @@
 #include "layers.h"
+#include "print_utils.h"
 #include <stdio.h>
 #include <iostream>
 #include <assert.h>
@@ -20,38 +21,58 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 
 	counter++;
 
-	// Input dimension has no significance if the layer is connect to several upstream layers
+	// Input dimension has no significance if the layer is connected to several upstream layers
 	// How to access connection to previous layer if this is the first layer? 
 
 	this->layer_size = layer_size;
 	input_dim   = -1; // no assignment yet. 
-	nb_batch    = 1; 
-	seq_len     = 1; 
-	//weights         = new Weights(1,1, "weights"); // default size
-	//weights    = WEIGHTS(layer_size, input_dim); // 2nd dimension is in_dim, first dimension is out_dim
+	nb_batch    =  1;   // HOW TO SET BATCH FOR LAYERS? 
+	seq_len     =  1; 
 	print_verbose   = true;
+	clock = 0;
+	recurrent_conn = 0;
+	bias.set_size(layer_size);
+	bias_delta.set_size(layer_size);
+
+	initVars(nb_batch);
 
 	// Default activation: tanh
 	activation = new Tanh("tanh");
 }
 
+void Layer::initVars(int nb_batch)
+{
+	inputs.set_size(nb_batch);
+	outputs.set_size(nb_batch);
+	delta.set_size(nb_batch);
+	gradient.set_size(nb_batch);
+	//printf("nb_batch= %d\n", nb_batch); exit(0);
+
+	for (int i=0; i < nb_batch; i++) {
+		inputs[i]   = VF2D(layer_size, seq_len);
+		outputs[i]  = VF2D(layer_size, seq_len);
+		gradient[i] = VF2D(layer_size, seq_len);
+		delta[i]    = VF2D(layer_size, seq_len);
+	}
+	bias.zeros();
+	bias_delta.zeros();
+	nb_hit = 0;
+
+	reset();
+}
+
 Layer::~Layer()
 {
 	printf("Layer destructor (%s)\n", name.c_str());
-	//if (weights)    delete weights; // no longer required
 	if (activation) delete activation;
-	//weights = 0; 
 	activation = 0;
 }
 
 Layer::Layer(const Layer& l) : layer_size(l.layer_size), input_dim(l.input_dim),
    print_verbose(l.print_verbose), seq_len(l.seq_len), nb_batch(l.nb_batch),
-   inputs(l.inputs), outputs(l.outputs), weights(l.weights)
+   inputs(l.inputs), outputs(l.outputs), clock(l.clock), delta(l.delta), 
+	recurrent_conn(l.recurrent_conn)
 {
-	//weights = new Weights(1,1, "weights_c"); // remove class Weights (for now)
-	//*weights = *l.weights;  // removed because of Nathan simplification (remove class Weights)
-	//weights = WEIGHTS(l.weights); // for Nathan's changes
-	//weights = l.weights;
 	name    = l.name + 'c';
 	printf("Layer copy constructor (%s)\n", name.c_str());
 
@@ -73,11 +94,13 @@ const Layer& Layer::operator=(const Layer& l)
 		print_verbose = l.print_verbose;
 		inputs = l.inputs;
 		outputs = l.outputs;
-		weights = l.weights;
+		delta = l.delta;
 		inputs = l.inputs;
 		outputs = l.outputs;
 		seq_len = l.seq_len;
-		nb_batch = l.seq_len;
+		nb_batch = l.nb_batch;
+		clock = l.clock;
+		recurrent_conn = l.recurrent_conn;
 
 		Activation *a1;
 
@@ -90,9 +113,7 @@ const Layer& Layer::operator=(const Layer& l)
 			throw;
 		}
 
-		//delete weights; // what if weights is 0? 
 		*activation = *a1; 
-		// remove class weights 
 
 		printf("Layer::operator= (%s)\n", name.c_str());
 	}
@@ -106,8 +127,8 @@ void Layer::print(std::string msg /* "" */)
     if (msg != "") printf("%s\n", msg.c_str());
 	printf("layer size: %d\n", layer_size);
 	printf("input_dim: %d\n", input_dim);
-	printf("inputs size: %d\n", inputs.size());
-	printf("outputs size: %d\n", outputs.size());
+	printf("inputs size: %llu\n", inputs.size());
+	printf("outputs size: %llu\n", outputs.size());
 	printf("print_verbose: %d\n", print_verbose);
 
 	if (print_verbose == false) return;
@@ -340,6 +361,17 @@ void Layer::processData(Connection* conn, VF2D_F& prod)
 			 setOutputs(prod);
 		}
 }
+//----------------------------------------------------------------------
+void Layer::forwardLoops()
+{ }
+void Layer::forwardLoops(int seq)
+{ }
+//----------------------------------------------------------------------
+void Layer::resetState()
+{
+	U::zeros(inputs);
+	U::zeros(outputs);
+	U::zeros(delta);
 
 	for (int i=0; i < layer_inputs.size(); i++) {
 		U::zeros(layer_inputs[i]);
@@ -354,9 +386,9 @@ void Layer::resetDelta()
 //----------------------------------------------------------------------
 void Layer::addBiasToInput(int t)
 {
-	// weights = new Weights(in, out, this->name+"_"+"weights"); // Nathan
-	weights = WEIGHTS(out, in);
-	printf("******createWeights, weights= %d, %d\n", weights.n_rows, weights.n_cols);
+	for (int b=0; b < nb_batch; b++) {
+		inputs(b).col(t) += bias;
+	}
 }
 //----------------------------------------------------------------------
 void Layer::gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_to)
@@ -443,3 +475,8 @@ void Layer::dLdaMulGrad(Connection* con, int t)
 		}
 	}
 }
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------

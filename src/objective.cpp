@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "print_utils.h"
 #include "objective.h"
 #include "typedefs.h"
 
@@ -15,13 +16,9 @@ Objective::Objective(std::string name /* "objective" */)
 	}
 	sprintf(cname, "%s%d", name.c_str(), counter);
 	this->name = cname;
-	printf("Objective constructor (%s)\n", this->name.c_str());
+	//printf("Objective constructor (%s)\n", this->name.c_str());
 
 	learning_rate = 1.e-5; // arbitrary value
-
-	for (int i=0; i < loss.n_rows; i++) {
-		loss[i].fill(1.e9f); // very large value
-	}
 }
 
 Objective::~Objective()
@@ -64,7 +61,7 @@ MeanSquareError::MeanSquareError(std::string name /* mse */)
 	}
 	sprintf(cname, "%s%d", name.c_str(), counter);
 	this->name = cname;
-	printf("MeanSquareError constructor (%s)\n", this->name.c_str());
+	//printf("MeanSquareError constructor (%s)\n", this->name.c_str());
 	counter++;
 }
 
@@ -85,7 +82,7 @@ MeanSquareError::MeanSquareError(const MeanSquareError& mse) : Objective(mse)
 	//return *this;
 //}
 
-VF1D_F MeanSquareError::computeError(VF2D_F& exact, VF2D_F& predict)
+void MeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 {
 	int nb_batch = exact.n_rows;
 	loss.set_size(nb_batch); // needed
@@ -181,6 +178,8 @@ void BinaryCrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 		loss[b] = exact[b]*arma::log(output) + (1.-exact[b]) * arma::log(1.-output); // check size compatibility
 		loss[b] = arma::sum(loss[b], 0);  // sum over 1st index (dimension)
 	}
+}
+
 
 void BinaryCrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 {
@@ -193,3 +192,4 @@ void BinaryCrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& pred
 		gradient[b] = exact[b] / output + (1-exact[b]) /(1-output);
 	}
 }
+

@@ -4,6 +4,8 @@
 
 int main() 
 {
+	printf("\n\n\n");
+	printf("=============== BEGIN bug =======================\n");
 	arma::Mat<float> x(2,2);
 
 	x(0,0) = 3;

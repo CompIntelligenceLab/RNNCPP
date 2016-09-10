@@ -5,6 +5,7 @@
 //#include <math.h>
 //#include <Eigen/Core>
 #include "typedefs.h"
+#include "print_utils.h"
 
 
 class Activation
@@ -12,6 +13,10 @@ class Activation
 protected:
 	std::string name;
 	static int counter;
+	
+	// "coupled": Compute a 2D Jacobian. Use "jacobian()" method
+	// "decoupled": Compute a 1D componentwise derivative
+	std::string deriv_type;  // "coupled" or "decoupled"
 
 public:
 	Activation(std::string name="activation");
@@ -22,10 +27,51 @@ public:
 	/** x has dimensionality equal to the previous layer size */
 	/** the return value has the dimensionality of the new layer size */
 	virtual VF2D_F derivative(const VF2D_F& x) = 0; // derivative of activation function evaluated at x
+	virtual VF2D jacobian(const VF1D& x, const VF1D& y) { ; // different variables are coupled, Jacobian
+		return VF2D(1,1);  // not really used, but a placeholder 
+	}
+	virtual VF1D derivative(const VF1D& x) = 0; // derivative of activation function evaluated at x
 	virtual VF2D_F operator()(const VF2D_F& x) = 0;
 	virtual void print(std::string name= "");
+	virtual std::string getName() { return name; }
+	virtual std::string getDerivType() { return deriv_type; }
 };
 
+//----------------------------------------------------------------------
+class Identity : public Activation
+{
+public:
+	Identity(std::string name="Identity") : Activation(name) {;}
+	~Identity();
+    Identity(const Identity&);
+    const Identity& operator=(const Identity&);
+ 
+	VF2D_F operator()(const VF2D_F& x) {
+		return x;
+	}
+
+	VF2D_F derivative(const VF2D_F& x)
+	{
+		VF2D_F y(x);
+		for (int b=0; b < x.size(); b++) {
+			y[b].ones();
+		}
+		return y;
+	}
+
+	VF1D derivative(const VF1D& x)
+	{
+		//printf("...derivative ...------------------\n");
+		VF1D y(size(x));
+		//U::print(x, "x");
+		//U::print(y, "y");
+		for (int b=0; b < x.size(); b++) {
+			y[b] = 1.;
+		}
+		//y.print("return y");
+		return y;
+	}
+};
 //----------------------------------------------------------------------
 class Tanh : public Activation
 {
@@ -53,14 +99,28 @@ public:
 	{
 #ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
+		//x.print("***> input to activation (tanh): x");
 		for (int i=0; i < x.n_rows; i++) {
-			y[i] = 1.-x[i]*x[i];
+			y[i] = tanh(x[i]);
+			y[i] = 1.-y[i]%y[i];
 		}
+		printf("***> tanh= %f, deriv= %f\n", tanh(x[0](0,0)), y[0](0,0));
 		return y;
 #else
 		VF s = this->operator()(x);
 		return (1.-s*s);
 #endif
+	}
+
+	VF1D derivative(const VF1D& x)
+	{
+		VF1D y(x.n_rows);
+		//x.print("***> input to activation (tanh): x");
+		for (int i=0; i < x.n_rows; i++) {
+			y[i] = tanh(x[i]);
+			y[i] = 1.-y[i]*y[i];
+		}
+		return y;
 	}
 };
 
@@ -75,32 +135,32 @@ public:
     const Sigmoid& operator=(const Sigmoid&);
 
 	VF2D_F operator()(const VF2D_F& x) {
-#ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
-		for (int i=0; i < x.n_rows; i++) {
+		for (int i=0; i < x.n_rows; i++) { // loop over field elements
 			y[i] = 1. / (1. + exp(-x[i]));
 		}
 		return y;
-#else
-		AF ex = x;
-		return 1. / (1. + (-ex).exp());
-#endif
 	}
 
 	//f = 1 / (1 + exp(-x)) = 1/D
 	//f' = -1/D^2 * (-exp(-x)-1 + 1) = -1/D^2 * (-D + 1) = 1/D - 1/D^2 = f (1-f)
 	VF2D_F derivative(const VF2D_F& x) 
 	{
-#ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
+		for (int i=0; i < x.n_rows; i++) {
+			y[i] = 1. / (1. + exp(-y[i]));   // y[i] is VF2D(dim, batches)
+			y[i] = y[i]%(1.-y[i]);
+		}
+		return y;
+	}
+
+	VF1D derivative(const VF1D& x) 
+	{
+		VF1D y(x.n_rows);
 		for (int i=0; i < x.n_rows; i++) {
 			y[i] = x[i]*(1.-x[i]);
 		}
 		return y;
-#else
-		AF s = this->operator()(x);
-		return s*(1-s);
-#endif
 	}
 };
 //----------------------------------------------------------------------

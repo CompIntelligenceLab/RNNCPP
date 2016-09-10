@@ -5,26 +5,51 @@
 #include <math.h>
 #include "input.h"
 
-Input::Input()
+using namespace std;
+
+int Input::counter = 0;
+
+Input::Input(std::string name /*input*/)
 {
-	printf("Input constructor\n");
+	char cname[80];
+	if (strlen(cname) > 80) {
+		printf("Activation::Activation : cname array too small\n");
+		exit(1);
+	}
+	sprintf(cname, "%s%d", name.c_str(), counter);
+	this->name = cname;
+	printf("Layer constructor (%s)\n", this->name.c_str());
+	name = "input";
+
+	printf("Input constructor (%s)\n", name.c_str());
 }
 
 Input::~Input()
 {}
 
-Input::Input(const Input& in)
+Input::Input(const Input& in) : name(in.name), print_verbose(in.print_verbose)
 {
-	printf("Input copy constructor\n");
+	name = in.name + "c";
+	printf("Input copy constructor (%s)\n", this->name.c_str());
 }
 
 const Input& Input::operator=(const Input& in)
-{}
+{
+	// MUST FIX THIS. INCORRECT FOR SUBCLASSES
+	if (this != &in) {
+		name = in.name + "=";
+		print_verbose = in.print_verbose;
+	}
+
+	printf("Input operator= (%s)\n", this->name.c_str());
+	return (*this);
+}
 
 void Input::print(std::string msg)
 {
 }
 
+#if 0
 VF1D Input::read1D(std::string filename)
 {
 	std::ifstream file (filename.c_str()); // declare file stream: http://www.cplusplus.com/reference/iostream/ifstream/
@@ -35,6 +60,7 @@ VF1D Input::read1D(std::string filename)
     	std::cout << std::string( value, 1, value.length()-2 ); // display value removing the first and the last character from it
 	}
 }
+#endif
 
 
 VF2D Input::loadFromCSV(const std::string& filename)
@@ -105,7 +131,8 @@ VF2D Input::load1DSine(int nb_pts, int nb_periods, int nb_pts_per_period)
 	}
 
 	// Returning by reference will create an error
-	printf("sizeof data= ", sizeof(data));
+	//printf("sizeof data= %d", sizeof(data));
+	cout << "sizeof data= " << sizeof(data) << endl;
 	return data;
 }
 

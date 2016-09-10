@@ -5,20 +5,42 @@
 #include <math.h>
 #include <string>
 #include "typedefs.h"
-#include "weights.h"
+#include "connection.h"
 #include "gradient.h"
 #include "activations.h"
 
 class Activation;
 
+
 class Layer
 {
+public:
+	// list of layers this layer is sending information to
+	PAIRS_L prev;
+	PAIRS_L next;
+	std::string type;
+	// main inputs to activation in a list to better handle backpropagation when 
+	// more than one layer hits a downstream layer
+	std::vector<VF2D_F> layer_inputs;
+	std::vector<VF2D_F> layer_deltas;
+	int nb_hit; // used to determine order of evaluation of a general spatial network
+	VF2D_F dLdOut;  // use getters and setters later.  d(loss)/d(layer_output)
+
+	// should really be in recurrent.h, but I do not know how to elegantly add up the inputs
+	// otherwise. One approach would be to add up the inputs as they arrive: keep them in both 
+	// inputs and in layer_inputs. 
+	Connection* recurrent_conn;
+	VF2D_F loop_input;
+	VF2D_F loop_delta;
+
 protected:
 	static int counter;
+	int clock; // initialized to zero. updates by one when signal arrives. If signal arrives when clock != 0,
+	           // change the connection to temporal from spatial. Also used in predict(). 
 	std::string name;
 	int layer_size; // number of nodes in layer
 	int input_dim; // size of previous layer
-	VF2D_F inputs;  // inputs to activation function
+	VF2D_F inputs;  // inputs to activation function (batch_sz, seq_len)  // change to input later
 	VF2D_F outputs; // outputs from activation function
 	DELTA delta; // d(loss) / d(layer output)  (transform to row vector)
 	BIAS bias;
@@ -28,6 +50,13 @@ protected:
 	                // if layers form graphs (recurrent or not)
 					// in the first layer, weights is not initialized. 
 	//Weights* weights;  // original code. Nathan wants to simplify
+
+	//std::vector<std::pair<Layer*, Weight*> > prev;
+
+	// list of layers this layer is receiving information from
+	//std::vector<std::pair<Layer*, Weights*> > next;
+
+
 
 	// Eventually, we will have two lists of nodes: 
 	// std::vector<Weight*> w_prev;
@@ -57,8 +86,7 @@ protected:
 	//    Object* next;
 	//    Object* prev;
 
-
-    GRADIENTS gradients;
+    GRADIENTS gradient;  // derivative of activation function with respect to argument
 	Activation* activation;
 	bool print_verbose;
 	int nb_batch; // number of batches (batch_size = nb_batch)
@@ -69,7 +97,10 @@ public:
    ~Layer();
    Layer(const Layer&);
    const Layer& operator=(const Layer&);
+   virtual void noop() = 0;  // To make sure that the Layer class is not instantiated
    virtual void print(std::string msg="");
+   virtual void printSummary(std::string msg="");
+   virtual void printName(std::string msg="");
 
    virtual int  getInputDim() const { return input_dim; }
    // input from previous layer
@@ -83,16 +114,22 @@ public:
    virtual void execute();
 
    /** get layer weights */
-   virtual void createWeights(int in, int out);  // not sure of data structure (Just simple matrix for now)
-   virtual void initializeWeights(std::string initialization_type="uniform");  // not sure of data structure
-   WEIGHTS getWeights() const {return weights;}  // not sure of data structure (Just simple matrix for now)
+   //virtual void createWeights(int in, int out);  // not sure of data structure (Just simple matrix for now)
+   //virtual void initializeWeights(std::string initialization_type="uniform");  // not sure of data structure
+   //WEIGHTS getWeights() const {return weights;}  // not sure of data structure (Just simple matrix for now)
 
    // gradient of loss function with respect to weights
+   GRADIENTS getGradient() const {return gradient;}
+   BIAS& getBias() {return bias;}  // return  reference or const ref? 
+   const BIAS& getBias() const {return bias;}  // return  reference or const ref? 
+   BIAS& getBiasDelta() { return bias_delta; }
+   const BIAS& getBiasDelta() const { return bias_delta; }
+   // make private?
    void computeGradient();
-   GRADIENTS getGradient() const {return gradients;}
+   void computeGradient(int t); // for sequences
 
 	int getNbBatch() { return nb_batch; }
-   	void setNbBatch(int nb_batch) { this->nb_batch = nb_batch; }
+   	void setNbBatch(int nb_batch) { this->nb_batch = nb_batch; initVars(nb_batch);  }
 	//int getInputDim() const {return input_dim;}  // in reality, the layer size
   	//void setInputDim(int input_dim) {this->input_dim = input_dim;}
   	void setSeqLen(int seq_len) { this->seq_len = seq_len;}

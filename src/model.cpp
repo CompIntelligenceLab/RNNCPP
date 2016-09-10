@@ -1,17 +1,22 @@
-//#include <armadillo>
+#include <typeinfo>
 #include <assert.h>
+#include <stdio.h>
+#include <iostream>
+#include "typedefs.h"
+#include <list>
 #include "model.h"
 #include "objective.h"
-#include "typedefs.h"
-#include <stdio.h>
+#include "connection.h"
+#include "print_utils.h"
 
-Model::Model(int input_dim, std::string name /* "model" */) 
+using namespace std;
+
+Model::Model(std::string name /* "model" */) 
 {
 	this->name = name;
 	learning_rate = 1.e-5;
 	return_sequences = false;
 	print_verbose = true;
-	this->input_dim = input_dim;
 	printf("Model constructor (%s)\n", this->name.c_str());
 	optimizer = new RMSProp();
 	objective = new MeanSquareError();
@@ -23,7 +28,6 @@ Model::Model(int input_dim, std::string name /* "model" */)
     stateful = false; 
 	seq_len = 1; // should be equivalent to feedforward (no time to unroll)
 	initialization_type = "uniform";  // can also choose Gaussian
-
 }
 //----------------------------------------------------------------------
 Model::~Model()
@@ -46,7 +50,7 @@ Model::~Model()
 }
 //----------------------------------------------------------------------
 Model::Model(const Model& m) : stateful(m.stateful), learning_rate(m.learning_rate), 
-    return_sequences(m.return_sequences), input_dim(m.input_dim), batch_size(m.batch_size),
+    return_sequences(m.return_sequences), batch_size(m.batch_size),
 	seq_len(m.seq_len), print_verbose(m.print_verbose), initialization_type(m.initialization_type),
 	nb_epochs(m.nb_epochs)
 
@@ -71,7 +75,6 @@ const Model& Model::operator=(const Model& m)
 		stateful = m.stateful;
 		learning_rate = m.learning_rate;
 		return_sequences = m.return_sequences;
-		input_dim = m.input_dim;
 		batch_size = m.batch_size;
         nb_epochs = m.nb_epochs;
 		seq_len = m.seq_len;
@@ -117,22 +120,18 @@ void Model::addLossLayer(Layer* layer)
 //----------------------------------------------------------------------
 void Model::addProbeLayer(Layer* layer)
 {
-	// check for layer size compatibility
-	printf("add layer ***** layers size: %d\n", layers.size());
+	probe_layers.push_back(layer);
+}
+//----------------------------------------------------------------------
+void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all-all"*/)
+{
+	printf("add(layer_from, layer)\n");
+	// Layers should only require layer_size 
 
-	if (layers.size() == 0) {
-		// 0th layer is an InputLayer
-		;
+	if (layer_from) {
+		layer_to->setInputDim(layer_from->getLayerSize());
 	} else {
-		int nb_layers = layers.size();
-		//printf("nb_layers= %d\n", nb_layers);
-		if (layers[nb_layers-1]->getLayerSize() != layer->getInputDim()) {
-			layer->setInputDim(layers[nb_layers-1]->getLayerSize());
-			printf("layer[%d], layer_size= %d\n", nb_layers-1, layers[nb_layers-1]->getLayerSize());
-			printf("new layer input size: %d\n", layer->getInputDim());
-			//printf("Incompatible layer_size between layers %d and %d\n", nb_layers-1, nb_layers);
-			//exit(0);
-		}
+		layer_to->setInputDim(layer_to->getInputDim());
 	}
 
   	layers.push_back(layer_to);
@@ -174,6 +173,7 @@ void Model::print(std::string msg /* "" */)
 
   if (optimizer != NULL) 
 	  optimizer->print();
+
   if (objective != NULL)
 	  objective->print();
 
@@ -184,12 +184,17 @@ void Model::print(std::string msg /* "" */)
 	}
 }
 //----------------------------------------------------------------------
-VF2D_F Model::predict(VF2D_F x)
+void Model::checkIntegrity()
 {
-  	VF2D_F prod(x); //copy constructor, .n_rows);
+	LAYERS layer_list;  // should be a linked list
+	LAYERS layers = getLayers();
+	assert(layers.size() > 1);  // need at least an input layer connected to an output layer
+	printf("layers size: %ld\n", layers.size());
 
-	for (int l=1; l < layers.size(); l++) {
-  		const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
+	// set all batch_sizes in layers to the model batch_layer
+	for (int i=0; i < layers.size(); i++) {
+		layers[i]->initVars(batch_size);
+	}
 
 	// input layer. Eventually, we might have multiple layers in the network. How to handle that?
 	// A model can only have a single input layer (at this time). How to generalize? Not clear how to input data then. 
@@ -447,22 +452,27 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 //----------------------------------------------------------------------
 // This was hastily decided on primarily as a means to construct feed forward
 // results to begin implementing the backprop. Should be reevaluated
-void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*/) 
+void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /*=1*/) 
 {
 	if (batch_size == 0) { // Means no value for batch_size was passed into this function
     	batch_size = this->batch_size; // Use the current value stored in model
     	printf("model batch size: %d\n", batch_size);
-		// resize x and y to handle different batch size
-		assert(x.n_rows == batch_size && y.n_rows == batch_size);
+		// resize x and exact to handle different batch size
+		assert(x.n_rows == batch_size && exact.n_rows == batch_size);
 	}
 
-	VF2D_F pred = predict(x);
-	VF1D_F loss = objective->computeError(y, pred);
-	printf("loss.n_rows= ", loss.n_rows);
-	loss.print("loss");
+	for (int i=0; i < nb_epochs; i++) {
+		printf("**** epoch %d ****\n");
+		VF2D_F pred = predictViaConnectionsBias(x);
+		objective->computeLoss(exact, pred);
+		const LOSS& loss = objective->getLoss();
+		loss.print("loss");
+		backPropagationViaConnectionsRecursion(exact, pred);
+		parameterUpdate();
+	}
 }
 //----------------------------------------------------------------------
-void Model::initializeWeights(std::string initialization_type /* "uniform" */)
+void Model::storeGradientsInLayersRec(int t)
 {
 	//printf("---- enter storeGradientsInLayersRec ----\n");
 	for (int l=0; l < layers.size(); l++) {
@@ -573,7 +583,28 @@ void Model::storeDLossDbiasInLayersRec(int t)
 	}
 }
 //----------------------------------------------------------------------
+void Model::resetDeltas()
+{
+	typedef CONNECTIONS::reverse_iterator IT;
+	IT it;
+
+	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+		(*it)->resetDelta();
+	}
+
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->resetDelta();
+		Connection* con = layers[l]->getConnection();
+		if (con) con->resetDelta();
+	}
+}
 //----------------------------------------------------------------------
+void Model::resetState()
+{
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->resetState();
+	}
+}
 //----------------------------------------------------------------------
 void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF2D_F& pred)
 {
@@ -601,12 +632,58 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	//printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 }
 //----------------------------------------------------------------------
+Connection* Model::getConnection(Layer* layer1, Layer* layer2)
+{
+	// Very inefficient, but only done rarely at beginning of simulations, and number of connection is never very large. 
+	// If this were a problem, I would use a dictionary. 
+
+	for (int c=0; c < connections.size(); c++) {
+		Connection* conn = connections[c];
+		if (conn->from == layer1 && conn->to == layer2) {
+			return conn;
+		}
+	}
+	printf("Model:: No connection between layers %s, %s\n", 
+		layer1->getName().c_str(), layer2->getName().c_str());
+	return 0;
+}
 //----------------------------------------------------------------------
+void Model::weightUpdate()
+{
+	// Assume that all connections in clist are spatial
+	// spatial connections
+	for (int c=0; c < clist.size(); c++) {
+		Connection* con = clist[c];
+		WEIGHT& wght = con->getWeight();
+		wght = wght - learning_rate * con->getDelta();
+	}
+
+	// temporal connections (loops)
+	for (int l=0; l < layers.size(); l++) {
+		Connection* con = layers[l]->getConnection();
+		if (!con) continue;
+		WEIGHT& wght = con->getWeight();
+		wght = wght - learning_rate * con->getDelta();
+	}
+}
 //----------------------------------------------------------------------
+void Model::biasUpdate()
+{
+	// temporal connections (loops)
+	for (int l=0; l < layers.size(); l++) {
+		BIAS& bias = layers[l]->getBias();
+		bias = bias - learning_rate * layers[l]->getBiasDelta();
+	}
+}
 //----------------------------------------------------------------------
+void Model::activationUpdate()
+{
+}
 //----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
-//----------------------------------------------------------------------
+void Model::parameterUpdate()
+{
+	weightUpdate();
+	biasUpdate();
+    activationUpdate();
+}
 //----------------------------------------------------------------------

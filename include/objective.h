@@ -9,7 +9,8 @@ class Objective
 protected:
 	float learning_rate;
 	std::string name;
-	VF1D_F loss;  // One loss per batch and per sequence (use field for consistency)
+	LOSS loss;  // One loss per batch and per sequence (use field for consistency)
+	VF2D_F gradient; // One gradient with respect to argument 
 	static int counter;
 
 public:
@@ -20,12 +21,19 @@ public:
 	virtual void print(std::string name= "");
 	virtual void setName(std::string name) { this->name = name; }
 	virtual const std::string getName() const { return name; }
-	virtual void setLoss(VF1D_F loss) { this->loss = loss; }
-	virtual VF1D_F getLoss() { return loss; }
+	virtual void setLoss(LOSS loss) { this->loss = loss; }
+	virtual const LOSS& getLoss() const { return loss; }
+	virtual VF2D_F& getGradient() { return gradient; }
 	
-	virtual VF1D_F computeError(VF2D_F& exact, VF2D_F& predict) = 0;
-};
+	virtual void computeLoss(const VF2D_F& exact, const VF2D_F& predict) = 0;
+	virtual void computeGradient(const VF2D_F& exact, const VF2D_F& predict) = 0;
 
+	virtual const LOSS& operator()(const VF2D_F& exact, const VF2D_F& predict) {
+		computeLoss(exact, predict);
+		return getLoss();
+	}
+};
+//----------------------------------------------------------------------
 class MeanSquareError : public Objective
 {
 private:
@@ -38,7 +46,24 @@ public:
 	//const MeanSquareError& MeanSquareError=(const MeanSquareError&);
 
 	/** sum_{batches} (predict - exact)^2 */
-	VF1D_F computeError(VF2D_F& exact, VF2D_F& predict);
+	void computeLoss(const VF2D_F& exact, const VF2D_F& predict);
+	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
+};
+//----------------------------------------------------------------------
+class BinaryCrossEntropy : public Objective
+{
+private:
+public:
+	BinaryCrossEntropy(std::string name="mse");
+	~BinaryCrossEntropy();
+	BinaryCrossEntropy(const BinaryCrossEntropy&);
+
+	// Use default assignment (works fine because there are no pointers among member variables)
+	//const BinaryCrossEntropy& BinaryCrossEntropy=(const BinaryCrossEntropy&);
+
+	/** sum_{batches} (predict - exact)^2 */
+	void computeLoss(const VF2D_F& exact, const VF2D_F& predict);
+	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
 };
 
 #endif

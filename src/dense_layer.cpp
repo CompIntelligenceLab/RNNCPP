@@ -3,7 +3,8 @@
 DenseLayer::DenseLayer(int layer_size, std::string name /* "dense" */) 
     : Layer(layer_size, name)
 {
-	//this->name = "dense";
+	type = "dense";
+	printf("DenseLayer constructor (%s)\n", name.c_str());
 }
 //----------------------------------------------------------------------
 DenseLayer::~DenseLayer()
@@ -14,4 +15,7 @@ DenseLayer::~DenseLayer()
 DenseLayer::DenseLayer(DenseLayer&)
 {
 }
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 //----------------------------------------------------------------------
