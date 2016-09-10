@@ -74,7 +74,22 @@ public:
   /** predict: run through the model  */
   //  x: signal input: (batch_size, seq_length, dimension)
   //  For non-recursive networks, x has size (batch_size, 1, dimension)
-  VF2D_F predict(VF2D_F x); 
+  //VF2D_F predictComplexMaybeWorks(VF2D_F x);  // for testing while Nathan works with predict
+  //VF2D_F predictComplex(VF2D_F x);  // for testing while Nathan works with predict
+  VF2D_F predictViaConnections(VF2D_F x); 
+  // Same as predictviaConnections, but take bias into account
+  VF2D_F predictViaConnectionsBias(VF2D_F x);
+  void   storeGradientsInLayers();
+  void   storeDactivationDoutputInLayers();
+  void 	storeDLossDweightInConnections();
+  //void 	storeDLossDweightInConnectionsCon();
+
+  void storeGradientsInLayersRec(int t);
+  void storeDactivationDoutputInLayersRecCon(int t);
+  void storeDLossDweightInConnectionsRecCon(int t);
+  void storeDLossDbiasInLayersRec(int t);
+
+  // x are predicted values, y are exact labels
   void train(VF2D_F x, VF2D_F y, int batch_size=0, int nb_epochs=1);
   void compile();
 

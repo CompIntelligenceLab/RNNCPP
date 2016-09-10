@@ -1,0 +1,230 @@
+----------------------------------------------------------------------
+PREDICT: 
+
+dens0 -> dens1 -> loss
+pred = w2*tanh(.0470*w1) = .0047
+w1 = .4587
+w2 = .2190
+----------------------------------------------------------------------
+
+-- layer_list[0], layer (input_layer0) --
+wght, prev connection
+   0.4587
+prod, prev layer
+[field column 0]
+   0.0470
+
+
+wght*prod
+[field column 0]
+   0.0216
+
+
+incrInputs: x.n_rows= 1
+inputs.n_rows= 1
+-- nlayer, layer (dense01) --
+nlayer
+[field column 0]
+   0.0216
+
+
+wght, prev connection
+   0.2190
+prod, prev layer
+[field column 0]
+   0.0216
+
+
+wght*prod
+[field column 0]
+   0.0047
+
+
+incrInputs: x.n_rows= 1
+inputs.n_rows= 1
+-- nlayer, layer (dense12) --
+nlayer
+[field column 0]
+   0.0047
+
+
+return value
+[field column 0]
+   0.0047
+
+Output: 0.004720667755633531  (CORRECT)
+----------------------------------------------------------------------
+input -> dens0 -> dens1
+==> dLdw_exact
+  -0.0634
+
+----------------------------------------------------------------------
+Created branch weight_recursive
+----------------------------------------------------------------------
+Check the sequences: prediction and back prop. 
+
+1) dimension = 1, identity activation functions
+   seq=2
+
+ l=0    l=1    l=2
+  In --> d1 --> d2 --> loss0    (t=0)
+         |      |
+         |      |
+         v      v
+  In --> d1 --> d2 --> loss1    (t=1)
+
+
+Inputs to nodes: z(l,t), a(l,t-1)
+Output to nodes: a(l,t)
+Weights: In -- d1 : w1
+Weights: d1 -- d2 : w12
+Weights: d1 -- d1 : w11
+Weights: d2 -- d2 : w22
+d1: l=1
+d2: l=2
+exact(t): exact results at time t
+loss0(a(2,0), exact(0))
+loss1(a(2,1), exact(1))
+Input at t=0: x0
+Input at t=1: x1
+
+Loss = L = loss0 + loss1
+Forward: 
+ a(1,-1) = 0, z(1,-1) = w11 * a(1,-1)
+ a(2,-1) = 0, z(1,-1) = w22 * a(2,-1)
+ a(1,0) = z(1,0) = w1*x0     + w12 * z(1,-1)
+ a(2,0) = z(2,0) = w2*z(1,0) + w12 * z(2,-1)
+ -------
+ z(1,0) = w11 * a(1,0)
+ z(2,0) = w21 * a(2,0)
+ a(1,0) = z(2,0) = w1*x1     + w12 * z(1,0)
+ a(2,0) = z(2,1) = w2*z(1,1) + w12 * z(2,0)
+-----------
+*** the model should have a variable called global loss, which the sum of individual loss that are collected. 
+
+One takes the derivative of the sum of losses over the sequences with respect to the weights. Is that correct? 
+----------------------------------------------------------------------
+Sept. 2, 2016
+test_recurrent5.cpp: prediction works, but only accurate to 4 digits compared to analytical in single precision. 
+Indicates that double precision might be necessary on larger networks unless algorithms are stable. 
+----------------------------------------------------------------------
+Sept. 2, 2016
+The gradient of the objective function appears to have the wrong sign. 
+Fixed in objective.cpp, method gradient in MSE subclass. 
+----------------------------------------------------------------------
+Sept. 2, 2016, 4 pm
+Backpropagation works with recurrent nets!
+Next: biases. Then GMM! Then LSTM!
+
+One bias per node. Consider a single layer. 
+----------------------------------------------------------------------
+a20, a21= 0.088806, 0.249670
+Prediction: pred
+[field column 0]
+   0.0890   0.2552 
+
+a20, a21= 0.088806, 0.249670
+Prediction: pred
+[field column 0]
+   0.0900   0.2670
+
+Input layer: 3
+Output layer: 5
+Weight: 5 x 3
+Number biases: 5
+Add another column to w
+Now Weight: 5 x 4
+So add unit component to the "a" layer output and 1 column to the weights:  
+  z* = w* * a*   (w* has additional column, a* has a unit component). z* has the 
+  same number of rows as before. 
+
+The disadvantage of storing weights the way we do, via pointers (if biases are incorporated into the weights), 
+is that one MUST share weights+biases at the same time. One cannot just share the weights and keep the biases individual. 
+That is a RESTRICTION OF OUR APPROACH. 
+
+Better though: the bias is a property of the layer. If a layer L1 has 128 nodes, 
+and two layers L2 and L3, of size 512 impinge on L1, there are are still only 128 biases in L1, 
+512 biases in L2 and another 512 biases in L3. 
+So we'll store the biases with the layers. 
+
+I will want to consider the biases to be on or off. Not clear how to do this. 
+----------------------------------------------------------------------
+Bias derivatives work for test_recurrent_model_bias2.cpp (2 recurrent nodes). 
+----------------------------------------------------------------------
+My guess: there is still a small error somewhere in the 3rd or 4th significant digit. Do not know where. 
+So, TODO: 
+- remove all print statement. 
+- remove unused methods
+- keep only the most general routines for recursion + weight updates with bias. 
+----------------------------------------------------------------------
+Sept. 4, 2016
+- implemented ReLU
+----------------------------------------------------------------------
+Sept. 4, 2016
+At this time, the Connection class has "WEIGHT weight" member variable, making it difficult to share weights between pointers. 
+To do so (share weights), it would be be better if this member were a WEIGHT* weight; I must now change all locations in the code
+using WEIGHT. 
+If the I did not have a special typedef for weights, it would much hard to identify all the locations where change was required in the code. 
+This little tidbit is for Nathan who complained one day about all the different typedefs to remember. 
+--------------------------------------------------------------------------------------------------------------------------------------------
+Sept. 4, 2016
+Storing of data in Armadillo is columnwise. So I am storing weight as w(seq, dim), so matrix products w*x are efficient. However, 
+w(2,5), follows w(1,5) in memory, like Fortran. Therefore, w(dim, seq) would be more efficient, and the matrix product should be x*w
+instead of w*x, with x a row vector. TODO IN THE FUTURE. softmax would be cheaper as well since one must sum over dimensions to 
+compute the denominator. However, ignore until total cost of program is diagnosed. 
+
+VF2D_F variables are stored as x[batch](dimension, seq). So summing over dimensions is equivalent to summing over one column, as it should
+be for efficiency. 
+
+Now consider the derivatives. 
+a = f(z) where a and z have dimension "layer_size". For scalar activation functions, one computes the gradient da/dz = f'
+But for vector functions (such as the softmax), da/dz = J = jacobian of the transformation, which is a (layer_size X layer_size) matrix. 
+Thus, the deltas dL/da(l) (l is the layer), is written as wght * (J * dL/da(l))
+----------------------------------------------------------------------
+Sep. 4, 2016
+Consider: 
+dL/da(l) = dL/da(l+1) * da(l+1)/dz(l+1) * dz(l+1)/da(l+1)
+dL/da(l)(k) = dL/da(l+1)(p) * da(l+1)(p)/dz(l+1)(q) * dz(l+1)(q)/da(l)(k)
+Given that: 
+z(l+1)(q) = w(q,j) * a(l)(j), 
+dz(l+1)(q)/da(l)(k) = w(q,j) * delta(k,j)  (Kronecker delta)
+                      w(q,k) (Kronecker delta) (ignore layer indices)
+We also have: 
+da(l+1)(p)/dz(l+1)(q) = J(l+1)(p,q) = Jacobian of activation function 
+
+Collecting and combining the above relations: 
+dL/da(l)(k) = dL/da(l+1)(p) * J(l+1)(p,q) * w(q,k)
+Need Jacobian of activation function
+----------------------------------------------------------------------
+Sept. 5, 2016
+Question: Consider a connection from a layer to itself. should the layers contain the connection information, 
+or should be considered a connection like any other connection? 
+- Any other connection:  more consistent with the rest of the program
+- Keeping the connection with the layer: the layer, if recurrent contains this connection and can treat it polymorphically. 
+  However, the general code becomes more complex. What is the difference between a connection going from layers L1 to L1 with a 
+  delay of 2 and a onnection going from layer L1 to layer L2 with a connection of 2? Shouldn't their treatment be identical? 
+- Also, how do LSTM's work? They have internal connections that are a part of the LSTM (they form in a sense a "complex" nodes. 
+  In fact, these complex nodes can be thought of as a model in themselves. either the single LSTM could be a Model, or a layer of 
+  LSTMs could be a model (probably better, especially if the weihgts of different LSTMs within a layer are connected (as they are, in 
+  Keras, for example.)
+----------------------------------------------------------------------
+Sept. 5, 2016
+Demonstrate making a change in common.cpp and recompiling as an example of why implementations should not be included in a file. 
+Rather they should be in a class. Compilation takes too long. if only the .h file is included, long compilations only occur when the .h
+file is changed, which happens less often than changes in the implementation cpp file. 
+----------------------------------------------------------------------
+Sept. 6, 2016
+Check Softmax and derivatives. Create a network with input, a single layer of 4 elements. Check that Softmax works. Use mse objective function.
+----------------------------------------------------------------------
+Sept. 9, 2016
+To handle arbitrary delays, put all this in the connections. Add two variables: 
+t_from = 0
+t_to = delay
+t_ : initially set to t_from, incremented every iteration. When t_ == t_to, 
+send data from input to the output via the weights. More generally, one could solve
+differential equations. 
+SEEMS RATHER ELEGANT. 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------

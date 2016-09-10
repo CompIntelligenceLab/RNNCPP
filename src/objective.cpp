@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "objective.h"
+#include "typedefs.h"
 
 int Objective::counter = 0;
 
@@ -87,12 +88,108 @@ MeanSquareError::MeanSquareError(const MeanSquareError& mse) : Objective(mse)
 VF1D_F MeanSquareError::computeError(VF2D_F& exact, VF2D_F& predict)
 {
 	int nb_batch = exact.n_rows;
-	loss.set_size(nb_batch);
+	loss.set_size(nb_batch); // needed
+	VF2D tmp;
 
-	for (int i=0; i < nb_batch; i++) {
-		loss[i] = exact[i] - predict[i]; // check size compatibility
-		loss[i] = arma::square(loss[i]);
+	//U::print(exact, "1 exact");
+	//U::print(exact(0), "2 exact(0)");
+	//U::print(predict, "3 predict");
+
+	// LOSS is a row vector. One value per sequence element
+
+	for (int b=0; b < nb_batch; b++) {
+		//U::print(loss(b), "4 loss(b)");  
+		//exact[b].print("5 exact(b)");
+		//predict[b].print("6 predict(b)");
+
+		tmp = exact[b] - predict[b];  // check size compatibility
+		//tmp.print("tmp");
+		tmp = arma::square(tmp);  // sum of output dimensions
+		//tmp.print("tmp");
+		loss[b] = arma::sum(tmp, 0);  // sum over 1st index (dimension)
+		//tmp.print("tmp");
+	}
+	#if 0
+	for (int b=0; b < nb_batch; b++) {
+		//U::print(loss(b), "4 loss(b)");  
+		//exact[b].print("5 exact(b)");
+		//predict[b].print("6 predict(b)");
+
+		//tmp = exact[b] - predict[b];  // check size compatibility
+		//tmp = arma::square(tmp);  // sum of output dimensions
+		//loss[b] = arma::sum(tmp, 0);  // sum over 1st index (dimension)
+		loss[b] = exact[b] - predict[b];  // check size compatibility
+		loss[b].print("loss[b]");
+		loss[b] = arma::square(loss[b]);  // sum of output dimensions
+		loss[b].print("loss[b]");
+		loss[b] = arma::sum(loss[b], 0);  // sum over 1st index (dimension)
+		loss[b].print("loss[b]");
+	}
+	#endif
+}
+
+void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
+{
+	int nb_batch = exact.n_rows;
+	gradient.set_size(nb_batch);
+
+	for (int b=0; b < nb_batch; b++) {
+		gradient[b] = 2.* (predict[b] - exact[b]); // check size compatibility
+	}
+}
+
+//----------------------------------------------------------------------
+BinaryCrossEntropy::BinaryCrossEntropy(std::string name /* bce */) 
+{
+	char cname[80];
+	if (strlen(cname) > 80) {
+		printf("MeanSquare::MeanSquare : cname array too small\n");
+		exit(1);
+	}
+	sprintf(cname, "%s%d", name.c_str(), counter);
+	this->name = cname;
+	//printf("BinaryCrossEntropy constructor (%s)\n", this->name.c_str());
+	counter++;
+}
+
+BinaryCrossEntropy::~BinaryCrossEntropy()
+{
+	printf("BinaryCrossEntropy destructor (%s)\n", name.c_str());
+}
+
+BinaryCrossEntropy::BinaryCrossEntropy(const BinaryCrossEntropy& bce) : Objective(bce)
+{
+}
+
+//BinaryCrossEntropy::BinaryCrossEntropy=(const BinaryCrossEntropy& bce)
+//{
+	//if (this != &bce) {
+		//name = o.getName() + "=";
+	//}
+	//return *this;
+//}
+
+void BinaryCrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
+{
+	int nb_batch = exact.n_rows;
+	loss.set_size(nb_batch); // needed
+	VF2D output(size(predict[0]));
+
+	for (int b=0; b < nb_batch; b++) {
+		// if predict is 0 or 1, loss goes to infinity. So clip. 
+		output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO); 
+		loss[b] = exact[b]*arma::log(output) + (1.-exact[b]) * arma::log(1.-output); // check size compatibility
+		loss[b] = arma::sum(loss[b], 0);  // sum over 1st index (dimension)
 	}
 
-	return loss;
+void BinaryCrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
+{
+	int nb_batch = exact.n_rows;
+	gradient.set_size(nb_batch);
+	VF2D output(size(predict[0]));
+
+	for (int b=0; b < nb_batch; b++) {
+		output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO);  // prevent next line from going to infinity
+		gradient[b] = exact[b] / output + (1-exact[b]) /(1-output);
+	}
 }

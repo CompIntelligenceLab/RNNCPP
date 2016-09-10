@@ -99,7 +99,23 @@ const Model& Model::operator=(const Model& m)
 	return *this;
 }
 //----------------------------------------------------------------------
-void Model::add(Layer* layer)
+void Model::addInputLayer(Layer* layer)
+{
+	input_layers.push_back(layer);
+}
+//----------------------------------------------------------------------
+void Model::addOutputLayer(Layer* layer)
+{
+	output_layers.push_back(layer);
+	//layer->setActivation(new Identity());
+}
+//----------------------------------------------------------------------
+void Model::addLossLayer(Layer* layer)
+{
+	loss_layers.push_back(layer);
+}
+//----------------------------------------------------------------------
+void Model::addProbeLayer(Layer* layer)
 {
 	// check for layer size compatibility
 	printf("add layer ***** layers size: %d\n", layers.size());
@@ -119,12 +135,31 @@ void Model::add(Layer* layer)
 		}
 	}
 
-	int in_dim  = layer->getInputDim();
-	int out_dim = layer->getOutputDim();
-	printf("Model::add, layer dim: in_dim: %d, out_dim: %d\n", in_dim, out_dim);
-	layer->createWeights(in_dim, out_dim);
-  	layers.push_back(layer);
-	printf("last layer in layers input size: %d\n", layers[layers.size()-1]->getInputDim());
+  	layers.push_back(layer_to);
+	layer_to->setNbBatch(nb_batch); // check
+	layer_to->setSeqLen(seq_len); // check
+	printf("layers: nb_batch= %d\n", nb_batch);
+
+	int in_dim  = layer_to->getInputDim();
+	int out_dim = layer_to->getOutputDim();
+	printf("Model::add, layer_to dim: in_dim: %d, out_dim: %d\n", in_dim, out_dim);
+
+	// Create weights
+	// Later on, we might create different kinds of connection. This would require a rework of 
+	// the interface. 
+	Connection* connection = Connection::ConnectionFactory(in_dim, out_dim, conn_type);
+	connection->initialize();
+	connections.push_back(connection);
+	connection->from = layer_from;
+	connection->to = layer_to;
+
+	// update prev and next lists in Layers class
+	if (layer_from) {
+		layer_from->next.push_back(std::pair<Layer*, Connection*>(layer_to, connection));
+		layer_to->prev.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
+		connection->which_lc = layer_to->prev.size()-1;
+		printf("    connection->which_lc= %d\n", connection->which_lc);
+	}
 }
 //----------------------------------------------------------------------
 void Model::print(std::string msg /* "" */)
@@ -156,14 +191,257 @@ VF2D_F Model::predict(VF2D_F x)
 	for (int l=1; l < layers.size(); l++) {
   		const WEIGHTS& wght= layers[l]->getWeights(); // between layer (l) and layer (l-1)
 
-		// loop over batches
-  		for (int b=0; b < x.n_rows; b++) { 
-  			prod(b) = wght * prod(b); // prod(b) has different dimensions before and after the multiplication
+	// input layer. Eventually, we might have multiple layers in the network. How to handle that?
+	// A model can only have a single input layer (at this time). How to generalize? Not clear how to input data then. 
+	// Probably need a list of input layers in a vector. In that case, it is not clear that layers[0] would be the input layer. 
+	Layer* input_layer = getInputLayers()[0];
+	layer_list.push_back(input_layer); 
+	checkIntegrity(layer_list);
+
+	// A recursive solution would be better. 
+}
+
+//------------------------------------------------------------
+void Model::checkIntegrity(LAYERS& layer_list)
+{
+/*
+   starting with first layer, connect to layer->next layers. Set their clocks to 1. 
+   For each of these next layers l, connect to l->next layers. Set their clocks to 2. 
+   - if the clock of l->next layers is not zero, change connection to temporal. Continue
+   until no more connections to process. 
+   - one should also set the connection's clock if used. 
+   - need routines: model.resetLayers(), model.resetConnections() // set clock=0 for connections and layers
+*/
+	// input layer. Eventually, we might have multiple layers in the network. How to handle that?
+
+	while (layer_list.size()) {
+		Layer* cur_layer = layer_list[0]; 
+		//cur_layer->incr_Clock(); // Do not increment input layers. 
+	                           	   // This will allow the input layer to also act as an output layer
+
+		int sz = cur_layer->next.size();
+		for (int l=0; l < sz; l++) {
+			Layer* nlayer = cur_layer->next[l].first;
+			Connection* nconnection = cur_layer->next[l].second;
+			//nlayer->printSummary("nlayer");
+
+			if (nconnection->getClock() > 0) {
+				nconnection->setTemporal(true);
+				nconnection->printSummary("checkIntegrity, setTemporal\n");
+			}
+
+			nconnection->incrClock();
+
+			if (nlayer->getClock() == 1) { // only add a layer once to the list of layers to process
+				layer_list.push_back(nlayer);  // layers left to process
+			}
+		}
+		layer_list.erase(layer_list.begin());
+	}
+	return;
+}
+//----------------------------------------------------------------------
+bool Model::areIncomingLayerConnectionsComplete(Layer* layer) 
+{
+	//printf("enter areIncomingLayerConnectionsComplete\n");
+
+	int nb_arrivals = layer->prev.size();
+	int nb_hits = layer->nb_hit;
+
+	return (nb_hits == nb_arrivals);
+}
+//----------------------------------------------------------------------
+bool Model::isLayerComplete(Layer* layer) 
+// Is the number of active connections = to the number of incoming connections
+// Assume all connections are spatial
+{
+	// Check that all outgoing connections are "hit"
+
+	int nb_departures = layer->next.size();
+
+	int all_hits = 0;
+	for (int i=0; i < nb_departures; i++) {
+		all_hits += layer->next[i].second->hit;
+	}
+
+	return areIncomingLayerConnectionsComplete(layer);
+}
+//----------------------------------------------------------------------
+void Model::removeFromList(std::list<Layer*>& llist, Layer* cur_layer)
+{
+	llist.remove(cur_layer);
+}
+//----------------------------------------------------------------------
+Layer* Model::checkPrevconnections(std::list<Layer*> llist)
+// Find first layer in the list which has all its previous connections hit. 
+{
+	typedef std::list<Layer*>::iterator IT;
+	IT it;
+
+	for (it=llist.begin(); it != llist.end(); ++it){ 
+		Layer* cur_layer = *it;
+		int count = 0;
+		for (int c=0; c < cur_layer->prev.size(); c++) {
+			Connection* con = cur_layer->prev[c].second;
+			count += con->hit;
+		}
+		if (count == cur_layer->prev.size()) {
+		}
+	}
+}
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+void Model::connectionOrderClean()
+{
+	typedef std::list<Layer*>::iterator IT;
+	IT it;
+
+	// STL list to allow erase of elements via address
+	std::list<Layer*> llist;
+	std::vector<Layer*> completed_layers;
+	Layer* cur_layer = getInputLayers()[0]; // assumes a single input layer
+	cur_layer->nb_hit = 0;
+	llist.push_back(cur_layer);
+
+	// set correct batch size in layers
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->setNbBatch(nb_batch);
+		layers[l]->setSeqLen(seq_len);
+	}
+
+	int xcount = 0;
+
+	while(llist.size()) {
+		xcount++; 
+
+		PAIRS_L next = cur_layer->next;
+
+		// the following loop can only be entered if all the layer inputs are activated
+		if (areIncomingLayerConnectionsComplete(cur_layer)) {
+			for (int n=0; n < next.size(); n++) {
+				Layer* nl      = next[n].first;
+				Connection* nc = next[n].second;
+				clist.push_back(nc);
+				nc->hit = 1;
+				nl->nb_hit++; 
+				llist.push_back(nl);
+				if (isLayerComplete(cur_layer)) { 
+					// these layers will be deleted from llist. They should never reappear
+					// since that would imply a cycle in the network, which is prohibited.
+					completed_layers.push_back(cur_layer);
+				}
+			}
+			if (next.size() == 0) {
+				if (isLayerComplete(cur_layer)) {
+					completed_layers.push_back(cur_layer);
+				}
+			}
 		}
 
-		// apply activation function
-		prod = layers[l]->getActivation()(prod);
+		llist.sort();
+		llist.unique();
+
+		// remove all layers that are "complete"
+		for (int i=0; i < completed_layers.size(); i++) {
+			llist.remove(completed_layers[i]);
+		}
+		completed_layers.clear();
+		cur_layer = *llist.begin();
 	}
+
+	for (int c=0; c < clist.size(); c++) {
+		Connection* con = clist[c];
+		Layer* from = con->from;
+		Layer* to = con->to;
+	}
+
+	for (int l=0; l < input_layers.size(); l++) {
+		if (input_layers[l]->prev.size() == 0) {
+			input_layers[l]->prev.resize(1);
+		}
+	}
+
+	// Assign memory
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->layer_inputs.resize(layers[l]->prev.size());
+		layers[l]->layer_deltas.resize(layers[l]->prev.size());
+
+		for (int i=0; i < layers[l]->layer_inputs.size(); i++) {
+			layers[l]->layer_inputs[i] = VF2D_F(nb_batch);
+			int input_dim = layers[l]->getLayerSize();
+			int seq_len   = layers[l]->getSeqLen();
+
+			for (int b=0; b < nb_batch; b++) {
+				layers[l]->layer_inputs[i](b) = VF2D(input_dim, seq_len);
+			}
+		}
+
+		// layer_deltas are unsused at this time
+	}
+	//printf("============== EXIT connectionOrderClean =================\n");
+}
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+void Model::printSummary()
+{
+	printf("\n-------------------------------------------------------------\n");
+	printf("------ MODEL SUMMARY ----------------------------------------\n");
+	std::string conn_type;
+	char buf[80];
+
+	for (int i=0; i < layers.size(); i++) {
+		Layer* layer = layers[i];
+		layer->printSummary("\n---- ");
+		PAIRS_L prev = layer->prev;
+		PAIRS_L next = layer->next;
+
+		for (int p=0; p < prev.size(); p++) {
+			Layer* pl = prev[p].first;
+			Connection* pc = prev[p].second;
+			conn_type = (pc->getTemporal()) ? "temporal" : "spatial";
+			sprintf(buf, "   - prev[%d]: ", p);
+			pl->printSummary(std::string(buf));
+			pc->printSummary(std::string(buf));
+		}
+		for (int n=0; n < next.size(); n++) {
+			Layer* nl = next[n].first;
+			Connection* nc = next[n].second;
+			conn_type = (nc->getTemporal()) ? "temporal" : "spatial";
+			sprintf(buf, "   - next[%d]: ", n);
+			nl->printSummary(buf);
+			nc->printSummary(buf);
+		}
+	}
+	printf("\n------ END MODEL SUMMARY ------------------------------------\n\n");
+}
+//----------------------------------------------------------------------
+VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
+{
+	VF2D_F prod(x.size());
+	//printf("****************** ENTER predictViaConnections ***************\n");
+
+	Layer* input_layer = getInputLayers()[0];
+	input_layer->layer_inputs[0] = x; 
+	input_layer->setOutputs(x);  // although input layer "could" have a nonlinear activation function (maybe)
+
+ 	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
+		for (int l=0; l < layers.size(); l++) {
+			layers[l]->nb_hit = 0;
+		}
+
+		// go through all the layers and update the temporal connections
+		// On the first pass, connections are empty
+		for (int l=0; l < layers.size(); l++) {
+			layers[l]->forwardLoops(t-1);    // does not change with biases (empty functions it seems)
+		}
+		
+		for (int c=0; c < clist.size(); c++) {
+			Connection* conn  = clist[c];
+			Layer* to_layer   = conn->to;
+			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
+		}
+ 	}
+
 	return prod;
 }
 //----------------------------------------------------------------------
@@ -186,26 +464,142 @@ void Model::train(VF2D_F x, VF2D_F y, int batch_size /*=0*/, int nb_epochs /*=1*
 //----------------------------------------------------------------------
 void Model::initializeWeights(std::string initialization_type /* "uniform" */)
 {
-	int in_dim, out_dim;
-	printf("inside initialize\n");
-	printf("layers size= %d\n", layers.size());
+	//printf("---- enter storeGradientsInLayersRec ----\n");
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->computeGradient(t);
+	}
+	//printf("---- exit storeGradientsInLayersRec ----\n");
+}
+//----------------------------------------------------------------------
+void Model::storeDactivationDoutputInLayersRecCon(int t)
+{
+	typedef CONNECTIONS::reverse_iterator IT;
+	IT it;
 
-	// NOTE: the loop starts from 1. Layer 0 (input layer) has no weights. 
-	// This issue will disappear once weights act as connectors between layers. 
-	for (int i=1; i < layers.size(); i++) {
-		Layer* layer = layers[i];
-		in_dim = layer->getInputDim(); //(i == 0) ? input_dim : layers[i-1]->getOutputDim();
-		out_dim = layer->getLayerSize();
-		printf("-- Model::initializeWeights, layer %d, in_dim, out_dim= %d, %d\n", i, in_dim, out_dim);
-		layer->createWeights(in_dim, out_dim);
-		layer->initializeWeights(initialization_type);
+	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
+	// Run layers backwards
+	// Run connections backwards
+
+	// Memory allocated in gradMulDLda)(
+	//VF2D_F prod(nb_batch);
+
+	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+		Connection* conn = (*it);
+		conn->gradMulDLda(t, t);
+	}
+
+	// Question: Must I somehow treat the loop connections of recurrent layers? 
+	// Answer: yes, and I must increment the delta
+
+	for (int l=0; l < layers.size(); l++) {
+		Connection* conn = layers[l]->getConnection();
+
+		if (!conn) continue;
+
+		// Question: where should this operation occur. Given that an activation function can be scalar or vector, 
+		// the operation should be split between the activation function and the model (or layer or connection)
+		// For example: 
+		// prod = grad % old_deriv   (or)
+		// prod = grad * old_deriv   (or) (or  old_deriv * grad)
+		// prod = wght_t * prod
+
+		if (t == 0) continue;
+		conn->gradMulDLda(t, t-1);  
 	}
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
+void Model::storeDLossDweightInConnectionsRecCon(int t)
+{
+	typedef CONNECTIONS::reverse_iterator IT;
+	IT it;
+
+	//printf("********** ENTER storeDLossDweightInConnections ***********\n");
+
+	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+		Connection* con = (*it);
+
+		// How to do this for a particular sequence element? 
+		// Currently, only works for sequence length of 1
+		// Could work if sequence were the field index
+
+		con->dLdaMulGrad(t);
+	}
+
+	// Needed when there are recurrent layers
+
+	// Perhaps one should store the delay itself with the connection? 
+	// So a delay of zero is spatial, a delay of 1 or greater is temporal. 
+
+	// Set Deltas of all the connections of temporal layers
+	for (int l=0; l < layers.size(); l++) {
+		Connection* con = layers[l]->getConnection();
+		if (!con) continue;
+		con->dLdaMulGrad(t);
+	}
+	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
+}
+//----------------------------------------------------------------------
+void Model::storeDLossDbiasInLayersRec(int t)
+{
+	VF1D delta;
+
+	for (int l=0; l < layers.size(); l++) {
+		Layer* layer = layers[l];
+
+		if (layer->getActivation().getDerivType() == "decoupled") {
+			const VF2D_F& grad      = layer->getGradient();
+			const VF2D_F& old_deriv = layer->getDelta();
+
+			for (int b=0; b < nb_batch; b++) {
+				delta = (old_deriv[b].col(t) % grad[b].col(t));
+			}
+
+			layer->incrBiasDelta(delta);
+		} else {
+			for (int b=0; b < nb_batch; b++) {
+				const VF1D& x =  layer->getInputs()(b).col(t);   // ERROR
+				const VF1D& y = layer->getOutputs()(b).col(t);
+				const VF2D grad = layer->getActivation().jacobian(x, y); // not stored (3,3)
+				const VF2D_F& old_deriv = layer->getDelta();
+
+				const VF2D& gg = old_deriv[b].col(t).t() * grad; // (1,3)
+				delta = gg.t();
+			}
+
+			layer->incrBiasDelta(delta);
+		}
+	}
+}
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
+//----------------------------------------------------------------------
+void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF2D_F& pred)
+{
+	nb_batch = pred.n_rows;
+
+	if (nb_batch == 0) {
+		printf("backPropagationViaConnections, nb_batch must be > 0\n");
+		exit(0);
+	}
+
+	resetDeltas();
+
+    objective->computeGradient(exact, pred);
+    VF2D_F& grad = objective->getGradient();
+	getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
+
+ 	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
+		storeGradientsInLayersRec(t);
+		//storeDactivationDoutputInLayersRec(t);
+		storeDactivationDoutputInLayersRecCon(t);
+		//storeDLossDweightInConnectionsRec(t);
+		storeDLossDweightInConnectionsRecCon(t);
+		storeDLossDbiasInLayersRec(t);
+	}
+	//printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
+}
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

@@ -20,7 +20,11 @@ protected:
 	int input_dim; // size of previous layer
 	VF2D_F inputs;  // inputs to activation function
 	VF2D_F outputs; // outputs from activation function
-	WEIGHTS weights; // between this layer and the previous one. Breaks down 
+	DELTA delta; // d(loss) / d(layer output)  (transform to row vector)
+	BIAS bias;
+	VF1D bias_delta; // arma::Col, d(loss) / d(bias)
+
+	//WEIGHTS weights; // between this layer and the previous one. Breaks down 
 	                // if layers form graphs (recurrent or not)
 					// in the first layer, weights is not initialized. 
 	//Weights* weights;  // original code. Nathan wants to simplify
@@ -96,6 +100,51 @@ public:
 
 	int getLayerSize() { return layer_size; }
 	void setLayerSize(int layer_size) { this->layer_size = layer_size; }
+	void setInputs(VF2D_F& inputs) { this->inputs = inputs; }
+	const VF2D_F& getInputs() { return inputs; }
+	void setOutputs(VF2D_F& outputs) { this->outputs = outputs; }
+	VF2D_F& getOutputs() { return outputs; }
+	void incrOutputs(VF2D_F& x);
+	void incrOutputs(VF2D_F& x, int t); // for sequences
+	void incrInputs(VF2D_F& x);
+	void incrInputs(VF2D_F& x, int t);
+	void resetInputs();
+	void resetInputs(int t);
+	void incrDelta(VF2D_F& x);
+	void incrDelta(VF2D_F& x, int t);
+	void incrBiasDelta(VF1D& x);
+	// reset inputs and ouputs to zero
+	void reset();
+	// reset deltas
+	void resetBackprop();
+	void setName(std::string name) { this->name = name; } // normally not used
+	std::string getName() { return name; }
+	int getClock() { return clock; }
+	void incrClock() { clock += 1; }
+	const DELTA& getDelta() const { return delta; } // both this and the above function are required
+	DELTA& getDelta() { return delta; }   // I might with to retrieve a pointer to delta and modify it directly (SECURITY RISK)
+	const DELTA& getDelta(int which_lc) { return layer_deltas[which_lc]; }
+	void setDelta(DELTA delta) { this->delta = delta; }
+	void setDelta(DELTA delta, int which_lc) { layer_deltas[which_lc] = delta; } // CHANGE
+	void resetDelta();
+	void resetState();
+	virtual void forwardData(Connection* conn, VF2D_F& prod, int seq);
+	virtual void forwardLoops();
+	virtual void forwardLoops(int seq_index);
+	virtual void processData(Connection* conn, VF2D_F& prod);
+	virtual bool areIncomingLayerConnectionsComplete();
+	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod);
+	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int seq);
+	virtual void addBiasToInput(int t);
+
+	// Doing this in layers since the approach to matrix multiplication will depend on whether the activation function
+	// gradient is done componentwise or via a Jacobian matrix
+	virtual void gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_to); // for now, do not store anything (at least until we know what is needed)
+	virtual void dLdaMulGrad(Connection* con, int t);
+	Connection* getConnection() {return recurrent_conn;}
+
+public:
+	virtual void initVars(int nb_batch);
 };
 
 //----------------------------------------------------------------------
