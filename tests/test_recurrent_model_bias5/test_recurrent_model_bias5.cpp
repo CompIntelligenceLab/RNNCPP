@@ -227,7 +227,12 @@ Forward:
 	// If all three give the same answer to within some tolerance, it is pretty certain that the results are correct (although not a proof)
 }
 //----------------------------------------------------------------------
-int main()
+int main(int argc, char* argv[])
 {
-	testRecurrentModelBias5(1);
+	int nb_batch; 
+	if (argc == 2) {
+		sscanf(argv[1], "%d", &nb_batch);
+		printf("args: nb_batch = %d\n", nb_batch);
+	}
+	testRecurrentModelBias5(nb_batch);
 }

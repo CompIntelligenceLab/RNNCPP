@@ -567,7 +567,7 @@ void Model::storeDLossDbiasInLayersRec(int t)
 				layer->incrBiasDelta(delta);
 			}
 
-		} else {
+		} else {  // coupled
 			for (int b=0; b < nb_batch; b++) {
 				const VF1D& x =  layer->getInputs()(b).col(t);   // ERROR
 				const VF1D& y = layer->getOutputs()(b).col(t);
@@ -578,7 +578,6 @@ void Model::storeDLossDbiasInLayersRec(int t)
 				delta = gg.t();
 				layer->incrBiasDelta(delta);
 			}
-
 		}
 	}
 }
