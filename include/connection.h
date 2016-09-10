@@ -86,6 +86,7 @@ public:
 	virtual void setTTo(int to) {t_to = to;}
 	virtual int getTTo() { return t_to; }
 	virtual void gradMulDLda(int ti_from, int ti_to);
+	virtual void dLdaMulGrad(int t);
 	//virtual void gradMulDLda(VF2D_F& prod, int ti_from, int ti_to);
 
 

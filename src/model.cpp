@@ -530,27 +530,22 @@ void Model::storeDactivationDoutputInLayersRecCon(int t)
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-void Model::storeDLossDweightInConnectionsRec(int t)
+//----------------------------------------------------------------------
+void Model::storeDLossDweightInConnectionsRecCon(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
-	WEIGHT delta;
 
 	//printf("********** ENTER storeDLossDweightInConnections ***********\n");
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* con = (*it);
-		Layer* layer_from = con->from;
-		Layer* layer_to   = con->to;
-
-		//const VF2D_F& out       = layer_from->getOutputs();
 
 		// How to do this for a particular sequence element? 
 		// Currently, only works for sequence length of 1
 		// Could work if sequence were the field index
 
-		//layer_to->dLdaMulGrad(*it, out, t);
-		layer_to->dLdaMulGrad(*it, t);
+		con->dLdaMulGrad(t);
 	}
 
 	// Needed when there are recurrent layers
@@ -562,42 +557,7 @@ void Model::storeDLossDweightInConnectionsRec(int t)
 	for (int l=0; l < layers.size(); l++) {
 		Connection* con = layers[l]->getConnection();
 		if (!con) continue;
-
-		Layer* layer_from = con->from;
-		Layer* layer_to   = con->to;
-
-		//const VF2D_F& out         = layer_from->getOutputs();
-
-		//const VF2D_F& grad      = layer_to->getGradient();
-		//const VF2D_F& old_deriv = layer_to->getDelta();
-		//delta = VF2D(size(con->getWeight()));
-
-		#if 1
-		//layer_to->dLdaMulGrad(con, out, t);
-		layer_to->dLdaMulGrad(con, t);
-		#endif
-
-		// QUESTION: why isn't dLdaMulGrad equivalent to the #ifdef below for test*bias5? 
-
-		//layers[l]->dLdaMulGrad(con, t);   // DO THIS LATER
-
-		// WILL NEED dLdaMulGrad again
-
-		#if 0
-        for (int b=0; b < nb_batch; b++) {
-           	const VF2D& out_t = out(b).t();
-			if (t > 0) continue;
-			printf(".t= %d\n", t);
-			old_deriv[b].col(t+1).print("old deriv");
-			grad[b].col(t+1).print("grad.col");
-			grad.print("grad");
-			out_t.row(t).print("out_t");
-           	delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t); //out(b).t();
-           	delta.print("**********");
-           	con->incrDelta(delta);
-			//exit(0);
-		}
-		#endif
+		con->dLdaMulGrad(t);
 	}
 	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }
@@ -676,7 +636,8 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 		storeGradientsInLayersRec(t);
 		//storeDactivationDoutputInLayersRec(t);
 		storeDactivationDoutputInLayersRecCon(t);
-		storeDLossDweightInConnectionsRec(t);
+		//storeDLossDweightInConnectionsRec(t);
+		storeDLossDweightInConnectionsRecCon(t);
 		storeDLossDbiasInLayersRec(t);
 	}
 	//printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");

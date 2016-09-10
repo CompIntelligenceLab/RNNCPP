@@ -111,10 +111,11 @@ public:
   void   storeGradientsInLayers();
   void   storeDactivationDoutputInLayers();
   void 	storeDLossDweightInConnections();
+  //void 	storeDLossDweightInConnectionsCon();
 
   void storeGradientsInLayersRec(int t);
   void storeDactivationDoutputInLayersRecCon(int t);
-  void storeDLossDweightInConnectionsRec(int t);
+  void storeDLossDweightInConnectionsRecCon(int t);
   void storeDLossDbiasInLayersRec(int t);
 
   // x are predicted values, y are exact labels
