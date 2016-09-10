@@ -564,9 +564,9 @@ void Model::storeDLossDbiasInLayersRec(int t)
 
 			for (int b=0; b < nb_batch; b++) {
 				delta = (old_deriv[b].col(t) % grad[b].col(t));
+				layer->incrBiasDelta(delta);
 			}
 
-			layer->incrBiasDelta(delta);
 		} else {
 			for (int b=0; b < nb_batch; b++) {
 				const VF1D& x =  layer->getInputs()(b).col(t);   // ERROR
@@ -576,9 +576,9 @@ void Model::storeDLossDbiasInLayersRec(int t)
 
 				const VF2D& gg = old_deriv[b].col(t).t() * grad; // (1,3)
 				delta = gg.t();
+				layer->incrBiasDelta(delta);
 			}
 
-			layer->incrBiasDelta(delta);
 		}
 	}
 }

@@ -223,5 +223,5 @@ Forward:
 //----------------------------------------------------------------------
 int main()
 {
-	testRecurrentModel5(2);
+	testRecurrentModel5(4);
 }
