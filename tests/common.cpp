@@ -86,6 +86,8 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 	std::vector<BIAS> bias_fd, bias_bp;
 	std::vector<WEIGHT> weight_fd, weight_bp;
 	std::vector<Connection*> conn;
+	std::vector<float> w_norm, w_abs_err_norm, w_rel_err_norm;
+	std::vector<float> b_norm, b_abs_err_norm, b_rel_err_norm;
 
 	for (int c=0; c < connections.size(); c++) {
 		Connection* con = connections[c];
@@ -95,6 +97,7 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		weight_fd.push_back(weight_fd_);
 	 	WEIGHT weight_bp_ = con->getDelta();
 		weight_bp.push_back(weight_bp_);
+		w_norm.push_back(arma::norm(weight_bp_));
 		//connections[c]->printSummary();
 	}
 
@@ -106,37 +109,53 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
     	BIAS bias_bp_ = layers[l]->getBiasDelta();
 		//bias_bp_.print("bias_bp_");
 		bias_bp.push_back(bias_bp_);
+		b_norm.push_back(arma::norm(bias_bp_));
 
 		Connection* con = layers[l]->getConnection();
-		if (con) {
+		// when seq_len=1, recurrence has no effect. 
+		if (con and layers[l]->getSeqLen() > 1) {
+			con->printSummary("con"); 
 			conn.push_back(con);
 		 	WEIGHT weight_fd_ = weightDerivative(m, *con, inc, xf, exact);
 			weight_fd.push_back(weight_fd_);
 		 	WEIGHT weight_bp_ = con->getDelta();
 			weight_bp.push_back(weight_bp_);
+			w_norm.push_back(arma::norm(weight_bp_));
 		}
 	}
 
+	// compute L2 norms of various quantities
+
 	printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-	printf("Relative ERRORS for weight derivatives for batch 0: \n");
+	printf("Relative ERRORS for weight derivatives: \n");
 
 	for (int i=0; i < weight_fd.size(); i++) {
 		WEIGHT abs_err = (weight_fd[i] - weight_bp[i]);
 		WEIGHT err = (weight_fd[i] - weight_bp[i]) / weight_bp[i];
+		float abs_err_norm = arma::norm(abs_err);
+		float err_norm     = arma::norm(err);
 		conn[i]->printSummary();
+		printf("weight: w,abs,rel= %f, %f, %f\n", w_norm[i], abs_err_norm, err_norm);
+		#if 0
 		printf("   d1-d1: ");  weight_bp[i].print("weight_bp");
 		printf("   d1-d1: ");  abs_err.print("weight abs err");
 		printf("   d1-d1: ");  err.print("weight rel err");
+		#endif
 	}
 
-	printf("Relative ERRORS for bias derivatives for batch 0: \n");
+	printf("Relative ERRORS for bias derivatives: \n");
 
 	for (int i=0; i < bias_fd.size(); i++) {
 		BIAS abs_err = (bias_fd[i] - bias_bp[i]);
 		BIAS err = (bias_fd[i] - bias_bp[i]) / bias_bp[i];
+		float abs_err_norm = arma::norm(abs_err);
+		float err_norm     = arma::norm(err);
+		printf("bias: w,abs,rel= %f, %f, %f\n", b_norm[i], abs_err_norm, err_norm);
+		#if 0
 		printf("   d1-d1: "); bias_bp[i].print("bias bp");
 		printf("   d1-d1: "); abs_err.print("bias abs err");
 		printf("   d1-d1: "); err.print("bias rel error");
+		#endif
 	}
 }
 //----------------------------------------------------------------------

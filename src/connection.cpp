@@ -243,8 +243,10 @@ void Connection::dLdaMulGrad(int t)
 			if (!temporal) {
 				delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
 			} else {
+				//printf("TEMPORAL LINK\n");
 				if (t+1 == seq_len) continue;    // ONLY FOR seq_len == 2
 				delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t);
+				//delta.print("delta");
 			}
 			incrDelta(delta);
 		}

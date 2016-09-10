@@ -311,6 +311,9 @@ int main(int argc, char* argv[])
 		} else if (arg == "-s") {
 			seq_len = atoi(argv[1]);
 			argc -= 2; argv += 2;
+		} else if (arg == "-r") {
+			is_recurrent = atoi(argv[1]);
+			argc -= 2; argv += 2;
 		} else if (arg == "-l") {
 			layer_size = atoi(argv[1]);
 			argc -= 2; argv += 2;
@@ -337,6 +340,5 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	is_recurrent = 1;
 	testRecurrentModelBias2(nb_batch, seq_len, layer_size, is_recurrent, activation);
 }
