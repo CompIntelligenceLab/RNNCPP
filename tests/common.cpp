@@ -74,7 +74,8 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 
 	// How to compute the less function
 	pred = m->predictViaConnectionsBias(xf);
-	//pred.print("pred");
+	pred.print("pred");
+	//exit(0);
 
 	Objective* obj = m->getObjective();
 	const LOSS& loss = (*obj)(exact, pred);
