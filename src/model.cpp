@@ -157,9 +157,6 @@ void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all
 		layer_from->next.push_back(std::pair<Layer*, Connection*>(layer_to, connection));
 		layer_to->prev.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
 		connection->which_lc = layer_to->prev.size()-1;
-		//connection->printSummary(" -> Model::add, connection, ");
-		//layer_from->printSummary(" -> Model::add, layer_from, ");
-		//layer_to->printSummary(" -> Model::add, layer_to, ");
 		printf("    connection->which_lc= %d\n", connection->which_lc);
 	}
 }
@@ -252,7 +249,6 @@ void Model::checkIntegrity(LAYERS& layer_list)
 bool Model::areIncomingLayerConnectionsComplete(Layer* layer) 
 {
 	//printf("enter areIncomingLayerConnectionsComplete\n");
-	//layer->printSummary("  ");
 
 	int nb_arrivals = layer->prev.size();
 	int nb_hits = layer->nb_hit;
@@ -264,19 +260,14 @@ bool Model::isLayerComplete(Layer* layer)
 // Is the number of active connections = to the number of incoming connections
 // Assume all connections are spatial
 {
-	//layer->printSummary("enter isLayerComplete, ");
-
 	// Check that all outgoing connections are "hit"
 
 	int nb_departures = layer->next.size();
-	//printf(" - nb_departures= %d\n", nb_departures);
 
 	int all_hits = 0;
 	for (int i=0; i < nb_departures; i++) {
 		all_hits += layer->next[i].second->hit;
 	}
-
-	//if (areIncomingLayerConnectionsComplete(layer)) printf("  LAYER COMPLETE");
 
 	return areIncomingLayerConnectionsComplete(layer);
 }
@@ -357,7 +348,6 @@ void Model::connectionOrderClean()
 
 		// remove all layers that are "complete"
 		for (int i=0; i < completed_layers.size(); i++) {
-			//completed_layers[i]->printSummary("completed_layers");
 			llist.remove(completed_layers[i]);
 		}
 		completed_layers.clear();
@@ -388,7 +378,6 @@ void Model::connectionOrderClean()
 
 			for (int b=0; b < nb_batch; b++) {
 				layers[l]->layer_inputs[i](b) = VF2D(input_dim, seq_len);
-				//U::print(layers[l]->layer_inputs[i](b), "layer_inputs");
 			}
 		}
 
@@ -641,42 +630,6 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 		storeDLossDbiasInLayersRec(t);
 	}
 	//printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
-
-	#if 0
-	// Correct
-	for (int l=0; l < layers.size(); l++) {
-		const VF2D_F& grad = layers[l]->getGradient();
-		layers[l]->printSummary();
-		grad.print("grad");
-	}
-	#endif
-
-	#if 0
-	// Correct
-	for (int l=0; l < layers.size(); l++) {
-		const DELTA& delta = layers[l]->getDelta();
-		layers[l]->printSummary();
-		printf("layer %d, ", l); delta.print("layer delta");
-		printf("layer %d, getOutputs(), ", l);layers[l]->getOutputs().print();
-
-	}
-	#endif
-
-	#if 0
-	for (int c=0; c < clist.size(); c++) {
-		Connection* con = clist[c];
-		con->printSummary("spatial con, "); con->getDelta().print("delta, ");
-	}
-	for (int l=0; l < layers.size(); l++) {
-		Connection* con = layers[l]->getConnection();
-		if (!con) continue;
-		con->printSummary("temporal con, "); con->getDelta().print("delta, ");
-		
-	}
-	#endif
-
-	//exit(0);
-
 }
 //----------------------------------------------------------------------
 Connection* Model::getConnection(Layer* layer1, Layer* layer2)
