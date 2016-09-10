@@ -1,14 +1,17 @@
 #include <math.h>
 #include "../common.h"
+#include <string>
+#include <cstdlib>
 
-void testRecurrentModelBias2(int nb_batch=1)
+void testRecurrentModelBias2(int nb_batch, int seq_len, int layer_size)
 {
 	printf("\n\n\n");
 	printf("=============== BEGIN test_recurrent_model_bias2  =======================\n");
 
 	//================================
 	Model* m  = new Model(); // argument is input_dim of model
-	m->setSeqLen(2); // runs (but who knows whether correct) with seq_len > 1
+	int input_dim  = 1;
+	m->setSeqLen(seq_len); // runs (but who knows whether correct) with seq_len > 1
 
 	// I am not sure that batchSize and nb_batch are the same thing
 	m->setBatchSize(nb_batch);
@@ -16,11 +19,9 @@ void testRecurrentModelBias2(int nb_batch=1)
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
-	Layer* input = new InputLayer(1, "input_layer");
-	Layer* d1    = new RecurrentLayer(1, "rdense");
-	Layer* d2    = new RecurrentLayer(1, "rdense");
-	Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
-	                                       // Automate this at a later time
+	Layer* input = new InputLayer(input_dim, "input_layer");
+	Layer* d1    = new RecurrentLayer(layer_size, "rdense");
+	Layer* d2    = new RecurrentLayer(layer_size, "rdense");
 
 	m->add(0,     input);
 	m->add(input, d1);
@@ -102,19 +103,19 @@ Forward:
 	float x1       = .75;
 	float ex0      = .75; // exact value
 	float ex1      = .85; // exact value
-	int seq_len    = 2;
-	int input_dim  = 1;
-	int nb_layers  = 2;  // in addition to input
-	VF2D a(nb_layers+1, seq_len); // assume al dimensions = 1
-	VF2D z(nb_layers+1, seq_len); // assume al dimensions = 1
+	VF2D a(layer_size+1, seq_len); // assume al dimensions = 1
+	VF2D z(layer_size+1, seq_len); // assume al dimensions = 1
 
+#if 0
 	// t=0
 	z(0,0) = x0;
 	a(0,0) = z(0,0);
 	//a(1,-1) is retrieved via  layer->getConnection()->from->getOutputs();
 	z(1,0) = w01 * a(0,0) + bias1; // + w11 * a(1,-1); // a(1,-1) is initially zero
 	a(1,0) = (z(1,0));
+	a.print("a");
 	z(2,0) = w12 * a(1,0) + bias2;
+	exit(0);
 	a(2,0) = (z(2,0));
 
 	// t=1
@@ -206,6 +207,7 @@ Forward:
 	printf("dLda01= %f\n", dLda01);
 	printf("dLda00= %f\n", dLda00);
 	#endif
+#endif
 
 	int output_dim = m->getOutputLayers()[0]->getOutputDim();
 
@@ -213,13 +215,15 @@ Forward:
 	for (int b=0; b < nb_batch; b++) {
 		xf(b) = VF2D(input_dim, seq_len);
 		for (int i=0; i < input_dim; i++) {
-			xf(b)(i,0) = x0; 
-			xf(b)(i,1) = x1;
+			for (int s=0; s < seq_len; s++) {
+				xf(b)(i,s) = x0; 
+			}
 		}
 		exact(b) = VF2D(output_dim, seq_len);
 		for (int i=0; i < output_dim; i++) {
-			exact(b)(i,0) = ex0; 
-			exact(b)(i,1) = ex1;
+			for (int s=0; s < seq_len; s++) {
+				exact(b)(i,s) = ex0; 
+			}
 		}
 	}
 
@@ -265,11 +269,40 @@ Forward:
 
 	//================================
 	float inc = 0.001;
-	runTest(m, inc, xf, exact);
+	runTest(m, inc, xf, exact); exit(0);
+
+	predictAndBackProp(m, xf, exact);
+
 	exit(0);
 }
 //----------------------------------------------------------------------
-int main()
+int main(int argc, char* argv[])
 {
-	testRecurrentModelBias2(1);
+// arguments: -b nb_batch, -l layer_size, -s seq_len
+
+    int nb_batch = 1;
+    int layer_size = 1;
+    int seq_len = 1;
+
+	argv++; 
+	argc--; 
+
+	while (argc > 1) {
+		std::string arg = std::string(argv[0]);
+		if (arg == "-b") {
+			nb_batch = atoi(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-s") {
+			seq_len = atoi(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-l") {
+			layer_size = atoi(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-h") {
+			printf("Argument usage: \n");
+			printf("  -b <nb_batch>  -s <seq_len> -l <layer_size>\n");
+		}
+	}
+
+	testRecurrentModelBias2(nb_batch, seq_len, layer_size);
 }

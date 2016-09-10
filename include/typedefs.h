@@ -22,6 +22,9 @@
 #endif
 #endif
 
+// Add additional print information if verpose is 1
+#define VERBOSE 0
+
 class Layer;
 //class Weights;
 class Connection;

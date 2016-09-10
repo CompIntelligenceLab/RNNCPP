@@ -109,11 +109,6 @@ void Connection::printSummary(std::string msg)
 Connection Connection::operator+(const Connection& w) 
 {
 	Connection tmp(*this);  // Ideally, this should initialize all components
-	printf("after tmp declaration and definition\n");
-
-	U::print(weight, "weight");
-	//printf("weight.size= %d, %d", weight.n_rows, weight.n_cols);
-	//printf("weight.size= %d", weight.size()); // n_rows * n_cols
 
 	tmp.weight += w.weight;
 
@@ -123,10 +118,7 @@ Connection Connection::operator+(const Connection& w)
 Connection Connection::operator*(const Connection& w) 
 {
 	Connection tmp(*this);  // Ideally, this should initialize all components
-	printf("after tmp declaration and definition\n");
-
 	tmp.weight = tmp.weight * w.weight;
-
 	return tmp;
 };
 
@@ -148,7 +140,6 @@ VF2D_F Connection::operator*(const VF2D_F& x)
 
 void Connection::initialize(std::string initialize_type /*"uniform"*/ )
 {
-	U::print(weight, "--  Connection::initialize, weight");
 	clock = 0;
 
 	if (initialize_type == "gaussian") {
@@ -238,7 +229,6 @@ void Connection::dLdaMulGrad(int t)
 	Layer* layer_to   = to;
 	int nb_batch = layer_from->getNbBatch();
 	int seq_len = layer_from->getSeqLen();
-	//printf("nb_batch= %d\n", nb_batch); exit(0);
 
 	const VF2D_F& old_deriv = layer_to->getDelta();
 	const VF2D_F& out = layer_from->getOutputs();
@@ -246,7 +236,6 @@ void Connection::dLdaMulGrad(int t)
 	WEIGHT delta = VF2D(size(weight));
 
 	if (activation.getDerivType() == "decoupled") {
-		printf("dLdaMulGrad, decoupled\n");
 		const VF2D_F& grad      = layer_to->getGradient();
 
 		for (int b=0; b < nb_batch; b++) {
@@ -260,7 +249,6 @@ void Connection::dLdaMulGrad(int t)
 			incrDelta(delta);
 		}
 	} else { // "coupled derivatives"
-		printf("dLdaMulGrad, coupled\n");
 		for (int b=0; b < nb_batch; b++) {
 			const VF2D& out_t = out(b).t();
 

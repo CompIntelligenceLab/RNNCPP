@@ -74,11 +74,11 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 
 	// How to compute the less function
 	pred = m->predictViaConnectionsBias(xf);
-	pred.print("pred");
+	//pred.print("pred");
 
 	Objective* obj = m->getObjective();
 	const LOSS& loss = (*obj)(exact, pred);
-	loss.print("loss");
+	//loss.print("loss");
 
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 
@@ -94,7 +94,7 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		weight_fd.push_back(weight_fd_);
 	 	WEIGHT weight_bp_ = con->getDelta();
 		weight_bp.push_back(weight_bp_);
-		connections[c]->printSummary();
+		//connections[c]->printSummary();
 	}
 
 	for (int l=0; l < layers.size(); l++) {
@@ -138,3 +138,10 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		printf("   d1-d1: "); err.print("bias rel error");
 	}
 }
+//----------------------------------------------------------------------
+void predictAndBackProp(Model* m, VF2D_F& xf, VF2D_F& exact)
+{
+	VF2D_F pred = m->predictViaConnectionsBias(xf);
+	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
+}
+//----------------------------------------------------------------------
