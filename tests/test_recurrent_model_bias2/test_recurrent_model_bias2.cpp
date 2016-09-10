@@ -3,7 +3,7 @@
 #include <string>
 #include <cstdlib>
 
-void testRecurrentModelBias2(int nb_batch, int seq_len, int layer_size)
+void testRecurrentModelBias2(int nb_batch, int seq_len, int layer_size, int is_recurrent)
 {
 	printf("\n\n\n");
 	printf("=============== BEGIN test_recurrent_model_bias2  =======================\n");
@@ -20,8 +20,17 @@ void testRecurrentModelBias2(int nb_batch, int seq_len, int layer_size)
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(input_dim, "input_layer");
-	Layer* d1    = new RecurrentLayer(layer_size, "rdense");
-	Layer* d2    = new RecurrentLayer(layer_size, "rdense");
+
+	Layer *d1;
+	Layer *d2;
+
+	if (is_recurrent) {
+		d1    = new RecurrentLayer(layer_size, "rdense");
+		d2    = new RecurrentLayer(layer_size, "rdense");
+	} else {
+		d1    = new DenseLayer(layer_size, "rdense");
+		d2    = new DenseLayer(layer_size, "rdense");
+	}
 
 	m->add(0,     input);
 	m->add(input, d1);
@@ -244,16 +253,20 @@ Forward:
 	
 	{
 		conn = d1->getConnection();
-		WEIGHT& w_11 = conn->getWeight();
-		w_11(0,0) = w11;
-		conn->computeWeightTranspose();
+		if (conn) {
+			WEIGHT& w_11 = conn->getWeight();
+			w_11(0,0) = w11;
+			conn->computeWeightTranspose();
+		}
 	}
 	
 	{
 		conn = d2->getConnection();
-		WEIGHT& w_22 = conn->getWeight();
-		w_22(0,0) = w22;
-		conn->computeWeightTranspose();
+		if (conn) {
+			WEIGHT& w_22 = conn->getWeight();
+			w_22(0,0) = w22;
+			conn->computeWeightTranspose();
+		}
 	}
 
 	{
@@ -304,5 +317,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	testRecurrentModelBias2(nb_batch, seq_len, layer_size);
+	int is_recurrent = 1;
+	testRecurrentModelBias2(nb_batch, seq_len, layer_size, is_recurrent);
 }
