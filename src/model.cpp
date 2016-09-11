@@ -686,3 +686,19 @@ void Model::parameterUpdate()
     activationUpdate();
 }
 //----------------------------------------------------------------------
+void Model::initializeWeights()
+{
+	CONNECTIONS& conn = getConnections();
+
+	for (int c=0; c < conn.size(); c++) {
+		conn[c]->initialize(getInitializationType());
+	}
+	const LAYERS& layers = getLayers();
+	for (int l=0; l < layers.size(); l++) {
+		Connection* con = layers[l]->getConnection();
+		if (con) {
+			con->initialize(getInitializationType());
+		}
+	}
+}
+//----------------------------------------------------------------------

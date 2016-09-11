@@ -43,19 +43,8 @@ void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activat
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
 
-	CONNECTIONS& conn = m->getConnections();
-	for (int c=0; c < conn.size(); c++) {
-		//printf("init type: %s\n", m->getInitializationType().c_str());
-		//exit(0);
-		conn[c]->initialize(m->getInitializationType());
-	}
-	const LAYERS& layers = m->getLayers();
-	for (int l=0; l < layers.size(); l++) {
-		Connection* con = layers[l]->getConnection();
-		if (con) {
-			con->initialize(m->getInitializationType());
-		}
-	}
+	m->initializeWeights();
+
 	//===========================================
 /***
 Check the sequences: prediction and back prop.
@@ -69,6 +58,16 @@ Check the sequences: prediction and back prop.
          | 
          v
   In --> d1 --> loss1    (t=1)
+
+Matrix form: 
+
+y1(n) = f(w01 * x0(n) + w11 * y1(n-1))
+Assume only a single x is input: then, 
+y1(n) = w11^2 y1(n-2) = w11^n y1(0)
+                      = w11^n (w01 * x0(0))
+Loss(n) = Loss(y1(n))
+w01(nn,1), w11(nn,nn), x0(1), x1(nn)
+nn = layer_size)
 
 
 Inputs to nodes: z(l,t), a(l,t-1)
@@ -230,9 +229,15 @@ Forward:
 		xf(b) = VF2D(input_dim, seq_len);
 		for (int i=0; i < input_dim; i++) {
 			for (int s=0; s < seq_len; s++) {
-				xf(b)(i,s) = x0; 
+				if (s == 0) {
+					xf(b)(i,s) = x0; 
+				} else {
+					xf(b)(i,s) = 0.;  // compare with analytics
+				}
 			}
 		}
+		printf("*** xf:   ONLY HAS INITIAL COMPONENT at t=0, else ZERO\n"):
+
 		exact(b) = VF2D(output_dim, seq_len);
 		for (int i=0; i < output_dim; i++) {
 			for (int s=0; s < seq_len; s++) {
@@ -246,7 +251,9 @@ Forward:
 		Connection* conn;
 		conn = m->getConnection(input, d1);
 		WEIGHT& w_01 = conn->getWeight();
-		w_01.print("w01: initial weight\n");
+
+		//w_01.print("w01: initial weight\n");
+
 		//w_01(0,0) = w01;
 		conn->computeWeightTranspose();
 	}
@@ -258,7 +265,25 @@ Forward:
 		conn = d1->getConnection();
 		if (conn) {
 			WEIGHT& w_11 = conn->getWeight();
-			w_11.print("w11: initial weight\n");
+			// transform w_11 to double
+			//arma::Mat<double> d_11(size(w_11));
+			arma::Mat<double> d_11 =  arma::conv_to<arma::Mat<double> >::from(w_11);
+			//for (int i=0; i < d_11.size(); i++) {
+				//d_11(i) = w_11(i);
+			//}
+			arma::cx_vec eigval = arma::eig_gen(d_11);
+			//w_11.print("w11");
+			//d_11.print("d11");
+			arma::cx_vec ee = arma::sort(eigval, "descend");
+			arma::Col<double> re = arma::real(ee);
+			arma::Col<double> im = arma::imag(ee);
+			arma::real(ee).print("real(ee)");
+			arma::imag(ee).print("imag(ee)");
+			//ee.print("eigenvalues");
+			double max_eig = sqrt(re[0]*re[0] + im[0]*im[0]);
+			//double max_eigen = sqrt(ee[0]*ee[0] + ee[1]*ee[1]);
+			printf("\n>>>>> max_eigen= %f\n\n", max_eig);
+			//w_11.print("w11: initial weight\n");
 			//w_11(0,0) = w11;
 			conn->computeWeightTranspose();
 		}
@@ -338,6 +363,8 @@ int main(int argc, char* argv[])
 			printf("  Activations: \"tanh\"|\"sigmoid\"|\"iden\"|\"relu\"\n");
 		}
 	}
+
+	arma_rng::set_seed_random(); // REMOVE LATER
 
 
 	Model* m  = new Model(); // argument is input_dim of model

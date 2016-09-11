@@ -74,7 +74,7 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 
 	// How to compute the less function
 	pred = m->predictViaConnectionsBias(xf);
-	pred.print("pred");
+	//pred.print("pred");
 	//exit(0);
 
 	Objective* obj = m->getObjective();
@@ -133,7 +133,7 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 	for (int i=0; i < weight_fd.size(); i++) {
 		printf("\n"), conn[i]->printSummary();
 		WEIGHT abs_err = (weight_fd[i] - weight_bp[i]);
-		WEIGHT rel_err = (weight_fd[i] - weight_bp[i]) / weight_bp[i];
+		WEIGHT rel_err = abs_err / weight_bp[i];
 		abs_err = arma::abs(abs_err);
 		rel_err = arma::abs(rel_err);
 		float abs_err_norm = arma::norm(abs_err);
@@ -142,11 +142,12 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		float wgt_imx = weight_bp[i](imx);
 		float rel_err_imx = rel_err(imx);
 		//float err_norm_inf = arma::norm(err, "inf");
-		conn[i]->getWeight().print("*weight*");
+
+		//conn[i]->getWeight().print("*weight*");
 		printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, rel_err_norm);
-		printf("max rel error: %f at weight %f\n", rel_err_imx, wgt_imx);
+		printf("max rel error: %f at weight_bp: %f\n", rel_err_imx, wgt_imx);
 		//printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, err_norm, err_norm_inf);
-		#if 1
+		#if 0
 		printf("   d1-d1: ");  weight_bp[i].print("weight_bp");
 		printf("   d1-d1: ");  abs_err.print("weight abs err");
 		printf("   d1-d1: ");  rel_err.print("weight rel err");

@@ -139,11 +139,11 @@ public:
   /** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */
   // Also allow fixed initialization in [-.8, .8] from a uniform distribution */
   // "gaussian", "uniform", "orthogonal"
-  void initializeWeights(std::string initialization_type="uniform");
   void removeFromList(std::list<Layer*>& llist, Layer* cur_layer);
   void resetDeltas();
   void resetState();
   Connection* getConnection(Layer* layer1, Layer* layer2);
+  void initializeWeights();
 
   // Ultimately, this should probably go into another polymorphic clas sequence
   void weightUpdate();

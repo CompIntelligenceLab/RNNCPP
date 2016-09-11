@@ -153,20 +153,29 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 		//weight.print("initializeConnection");
 	} else if (initialize_type == "orthogonal") {
 	} else if (initialize_type == "xavier") {
-		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian
+		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
 		// I want the standard deviation to be 1/n
 		//printf("to= %d\n", to);
 		//to->printSummary();
 		//printf("size: %d\n", to->getInputs().size());
 		//exit(0);
-		to->printSummary("to");
-		float n_outs = weight.n_rows;
+		//to->printSummary("to");
+		float n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
 		float n_ins  = weight.n_cols;
-		printf("n_ins, nouts= %d, %d\n", (int) n_ins, (int) n_outs);
+		//printf("n_ins, nouts= %d, %d\n", (int) n_ins, (int) n_outs);
 		n_outs = sqrt(n_outs);
-		printf("nb_outs= %f\n", n_outs);
+		//printf("nb_outs= %f\n", n_outs);
 		weight = weight / n_outs;
 		//exit(0);
+	} else if (initialize_type == "xavier_iden") {   // initialize recurrent weights to identity matrix
+		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
+		float n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
+		n_outs = sqrt(n_outs);
+		weight = weight / n_outs;
+
+		if (temporal) {
+			weight.eye(size(weight));
+		}
 	} else {
 		printf("initialize_type: %s not implemented\n", initialize_type.c_str());
 		exit(1);
