@@ -293,7 +293,7 @@ Forward:
 			// analytic calculation: 
 			VF2D w = w_11;
 			for (int s=0; s < seq_len; s++) {
-				w = w * w;
+				w = w * w_11;
 				printf("power = %d\n", s);
 			}
 			w.print("w power");

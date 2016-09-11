@@ -1,0 +1,24 @@
+\documentclass[11pt]{article}
+\begin{document}
+Given an $n\times n$ matrix $W$, a scalar initial condition $z_0$, with $n$ random elements, 
+and an output $y = W^p z_0$, compute the derivative of the scalar loss function $L(y)$. 
+
+$$
+\frac{dL}{dw_{p,q}} = \frac{dL}{dy_k}\frac{dy_k}{dw_{p,q}}
+$$
+We consider $y$: 
+$$
+y_k = (W^p)_{k,j} z_{0j}
+$$
+summed over $j$. 
+
+Too complex. So we operate via recursion.
+Call $W_p = W^p z_0$. We have: 
+$$
+W_p = W * W_{p-1}
+$$
+Therefore, 
+$$
+W_p' = W' * W_{p-1} + W * W_{p-1}'
+$$
+\end{document}

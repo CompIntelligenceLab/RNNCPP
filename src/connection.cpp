@@ -175,6 +175,7 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 
 		if (temporal) {
 			weight.eye(size(weight));
+			weight *= 0.98; // make matrix slightly stable. 
 		}
 	} else {
 		printf("initialize_type: %s not implemented\n", initialize_type.c_str());
