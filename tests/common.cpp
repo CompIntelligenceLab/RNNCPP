@@ -143,7 +143,7 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		float rel_err_imx = rel_err(imx);
 		//float err_norm_inf = arma::norm(err, "inf");
 
-		//conn[i]->getWeight().print("*weight*");
+		conn[i]->getWeight().print("*** weight ***");
 		printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, rel_err_norm);
 		printf("max rel error: %f at weight_bp: %f\n", rel_err_imx, wgt_imx);
 		//printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, err_norm, err_norm_inf);
