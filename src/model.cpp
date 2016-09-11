@@ -27,7 +27,7 @@ Model::Model(std::string name /* "model" */)
 	nb_epochs = 10; // Just using the value that Keras uses for now
     stateful = false; 
 	seq_len = 1; // should be equivalent to feedforward (no time to unroll)
-	initialization_type = "uniform";  // can also choose Gaussian
+	initialization_type = "xavier";  // can also choose Gaussian
 }
 //----------------------------------------------------------------------
 Model::~Model()
@@ -147,10 +147,10 @@ void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all
 	// Later on, we might create different kinds of connection. This would require a rework of 
 	// the interface. 
 	Connection* connection = Connection::ConnectionFactory(in_dim, out_dim, conn_type);
-	connection->initialize();
 	connections.push_back(connection);
 	connection->from = layer_from;
 	connection->to = layer_to;
+	connection->initialize(initialization_type); // must be called after layer_to definition
 
 	// update prev and next lists in Layers class
 	if (layer_from) {

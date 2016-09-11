@@ -3,18 +3,20 @@
 #include <string>
 #include <cstdlib>
 
-void testRecurrentModelBias1(int nb_batch, int seq_len, int layer_size, int is_recurrent, Activation* activation)
+//void testRecurrentModelBias1(int nb_batch, int seq_len, int layer_size, int is_recurrent, Activation* activation, 
+void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activation* activation) 
 {
 	printf("\n\n\n");
 	printf("=============== BEGIN test_recurrent_model_bias2  =======================\n");
 
 	//================================
-	Model* m  = new Model(); // argument is input_dim of model
+	int seq_len = m->getSeqLen();
+	int nb_batch = m->getBatchSize();
 	int input_dim  = 1;
-	m->setSeqLen(seq_len); // runs (but who knows whether correct) with seq_len > 1
+	//m->setSeqLen(seq_len); // runs (but who knows whether correct) with seq_len > 1
 
 	// I am not sure that batchSize and nb_batch are the same thing
-	m->setBatchSize(nb_batch);
+	//m->setBatchSize(nb_batch);
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
@@ -32,14 +34,28 @@ void testRecurrentModelBias1(int nb_batch, int seq_len, int layer_size, int is_r
 	m->add(0,     input);
 	m->add(input, d1);
 
-	input->setActivation(new Identity());
-	d1->setActivation(   new Identity());
+	input->setActivation(activation); 
+       d1->setActivation(activation); 
 
 	m->addInputLayer(input);
 	m->addOutputLayer(d1);
 
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
+
+	CONNECTIONS& conn = m->getConnections();
+	for (int c=0; c < conn.size(); c++) {
+		//printf("init type: %s\n", m->getInitializationType().c_str());
+		//exit(0);
+		conn[c]->initialize(m->getInitializationType());
+	}
+	const LAYERS& layers = m->getLayers();
+	for (int l=0; l < layers.size(); l++) {
+		Connection* con = layers[l]->getConnection();
+		if (con) {
+			con->initialize(m->getInitializationType());
+		}
+	}
 	//===========================================
 /***
 Check the sequences: prediction and back prop.
@@ -225,27 +241,36 @@ Forward:
 		}
 	}
 
-	Connection* conn;
+	#if 1
 	{
+		Connection* conn;
 		conn = m->getConnection(input, d1);
 		WEIGHT& w_01 = conn->getWeight();
-		w_01(0,0) = w01;
+		w_01.print("w01: initial weight\n");
+		//w_01(0,0) = w01;
 		conn->computeWeightTranspose();
 	}
+	#endif
 
+	#if 1
 	{
+		Connection* conn;
 		conn = d1->getConnection();
 		if (conn) {
 			WEIGHT& w_11 = conn->getWeight();
-			w_11(0,0) = w11;
+			w_11.print("w11: initial weight\n");
+			//w_11(0,0) = w11;
 			conn->computeWeightTranspose();
 		}
 	}
+	#endif
 	
+	#if 1
 	{
 		BIAS& bias_1 = d1->getBias();
-		bias_1(0) = bias1;
+		bias_1(0) = 0.; //bias1;
 	}
+	#endif
 
 	//================================
 	float inc = 0.001;
@@ -264,12 +289,15 @@ int main(int argc, char* argv[])
     int layer_size = 1;
     int seq_len = 1;
     int is_recurrent = 1;
-	Activation* activation; 
+	Activation* activation = new Identity(); 
+	std::string initialization_type;
+	initialization_type = "xavier";
 
 	argv++; 
 	argc--; 
 
-	while (argc > 1) {
+	printf("argc= %d\n", argc);
+	while (argc > 0) {
 		std::string arg = std::string(argv[0]);
 		printf("arg= %s\n", arg.c_str());
 		if (arg == "-b") {
@@ -281,12 +309,16 @@ int main(int argc, char* argv[])
 		} else if (arg == "-r") {
 			is_recurrent = atoi(argv[1]);
 			argc -= 2; argv += 2;
+		} else if (arg == "-w") {
+			initialization_type = argv[1];
+			argc -= 2; argv += 2;
+		printf("init type: %s\n", initialization_type.c_str());
 		} else if (arg == "-l") {
 			layer_size = atoi(argv[1]);
 			argc -= 2; argv += 2;
 		} else if (arg == "-a") {
 			std::string name = argv[1];
-			printf("name= %s\n", name.c_str());
+			//printf("name= %s\n", name.c_str());
 			if (name == "tanh") {
 				activation = new Tanh();
 			} else if (name == "iden") {
@@ -300,12 +332,20 @@ int main(int argc, char* argv[])
 				exit(1);
 			}
 			argc -= 2; argv += 2;
-		} else if (arg == "-h") {
+		} else { //if (arg == "-h") {
 			printf("Argument usage: \n");
 			printf("  -b <nb_batch>  -s <seq_len> -l <layer_size> -a <activation> -w <weight_initialization>\n");
 			printf("  Activations: \"tanh\"|\"sigmoid\"|\"iden\"|\"relu\"\n");
 		}
 	}
 
-	testRecurrentModelBias1(nb_batch, seq_len, layer_size, is_recurrent, activation);
+
+	Model* m  = new Model(); // argument is input_dim of model
+	m->setBatchSize(nb_batch);
+	m->setSeqLen(seq_len);
+	//m->setLayerSize(layer_size);
+	//m->setIsRecurrent(is_recurrent);
+	m->setInitializationType(initialization_type);
+
+	testRecurrentModelBias1(m, layer_size, is_recurrent, activation);
 }

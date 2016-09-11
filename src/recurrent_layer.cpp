@@ -8,12 +8,12 @@ RecurrentLayer::RecurrentLayer(int layer_size /*1*/, std::string name /*rec_laye
 {
 	printf("RecurrentLayer (%s): constructor\n", this->name.c_str());
 	recurrent_conn = new Connection(layer_size, layer_size, "loop_conn");
-	recurrent_conn->initialize();
 	recurrent_conn->from = this;
 	recurrent_conn->to = this;
 	recurrent_conn->setTemporal(true);
 	recurrent_conn->setTTo(1);    // by default, recurrent connections have delay of 1
 	loop_input.set_size(nb_batch);
+	recurrent_conn->initialize("xavier"); // must be last to call. 
 	type = "recurrent";
 }
 //----------------------------------------------------------------------

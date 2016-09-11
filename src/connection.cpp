@@ -101,7 +101,8 @@ void Connection::printSummary(std::string msg)
 	string name_from = (from == 0) ?  "NONE" : from->getName(); 
 	string name_to   = (to   == 0) ?  "NONE" :   to->getName(); 
 	cout << msg << "Connection (" << name << "), weight(" << weight.n_rows << ", " << weight.n_cols << "), " 
-	     << "layers: (" << name_from << ", " << name_to << "), type: " << type  << endl;
+	     << "layers: (" << name_from << ", " << name_to << "), type: " << type  
+		 << std::endl;
 }
 
 //----------------------------------------------------------------------
@@ -138,18 +139,34 @@ VF2D_F Connection::operator*(const VF2D_F& x)
 	return tmp;
 }
 
-void Connection::initialize(std::string initialize_type /*"uniform"*/ )
+//----------------------------------------------------------------------
+void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 {
 	clock = 0;
+	printf("Weight initialization: type: %s\n", initialize_type.c_str());
 
 	if (initialize_type == "gaussian") {
 	} else if (initialize_type == "uniform") {
 		//arma_rng::set_seed_random(); // put at beginning of code // DOES NOT WORK
 		//arma::Mat<float> ww = arma::randu<arma::Mat<float> >(3, 4); //arma::size(*weight));
 		weight = arma::randu<WEIGHT>(arma::size(weight)); //arma::size(*weight));
-		weight = arma::randu<WEIGHT>(arma::size(weight)); //arma::size(*weight));
 		//weight.print("initializeConnection");
 	} else if (initialize_type == "orthogonal") {
+	} else if (initialize_type == "xavier") {
+		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian
+		// I want the standard deviation to be 1/n
+		//printf("to= %d\n", to);
+		//to->printSummary();
+		//printf("size: %d\n", to->getInputs().size());
+		//exit(0);
+		to->printSummary("to");
+		float n_outs = weight.n_rows;
+		float n_ins  = weight.n_cols;
+		printf("n_ins, nouts= %d, %d\n", (int) n_ins, (int) n_outs);
+		n_outs = sqrt(n_outs);
+		printf("nb_outs= %f\n", n_outs);
+		weight = weight / n_outs;
+		//exit(0);
 	} else {
 		printf("initialize_type: %s not implemented\n", initialize_type.c_str());
 		exit(1);
@@ -157,6 +174,7 @@ void Connection::initialize(std::string initialize_type /*"uniform"*/ )
 	weight_t = weight.t();
 }
 
+//----------------------------------------------------------------------
 void Connection::weightUpdate(float learning_rate) {  // simplest algorithm
 	// delta is of type WEIGHT, which is not a field, but a VF2D
 	//for (int b=0; b < delta.n_rows;  b++) {    
@@ -165,6 +183,7 @@ void Connection::weightUpdate(float learning_rate) {  // simplest algorithm
 	weight_t = weight.t();
 }
 
+//----------------------------------------------------------------------
 void Connection::incrDelta(WEIGHT& x)
 {
 	if (delta.n_rows == 0) {
@@ -174,6 +193,7 @@ void Connection::incrDelta(WEIGHT& x)
 	}
 }
 
+//----------------------------------------------------------------------
 void Connection::computeWeightTranspose()
 {
 	weight_t = weight.t();

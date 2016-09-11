@@ -136,7 +136,7 @@ void Layer::print(std::string msg /* "" */)
 
 void Layer::printSummary(std::string msg) 
 {
-	printf("%sLayer (%s, %s), layer_size: %d\n", msg.c_str(), name.c_str(), type.c_str(), layer_size);
+	printf("%sLayer (%s, %s, %s), layer_size: %d\n", msg.c_str(), name.c_str(), activation->getName().c_str(), type.c_str(), layer_size);
 }
 
 void Layer::printName(std::string msg /*""*/)

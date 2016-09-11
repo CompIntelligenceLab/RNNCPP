@@ -116,6 +116,7 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		if (con and layers[l]->getSeqLen() > 1) {
 			con->printSummary("con"); 
 			conn.push_back(con);
+			//con->getWeight().print("*weight*");
 		 	WEIGHT weight_fd_ = weightDerivative(m, *con, inc, xf, exact);
 			weight_fd.push_back(weight_fd_);
 		 	WEIGHT weight_bp_ = con->getDelta();
@@ -130,16 +131,25 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 	printf("Relative ERRORS for weight derivatives: \n");
 
 	for (int i=0; i < weight_fd.size(); i++) {
+		printf("\n"), conn[i]->printSummary();
 		WEIGHT abs_err = (weight_fd[i] - weight_bp[i]);
-		WEIGHT err = (weight_fd[i] - weight_bp[i]) / weight_bp[i];
+		WEIGHT rel_err = (weight_fd[i] - weight_bp[i]) / weight_bp[i];
+		abs_err = arma::abs(abs_err);
+		rel_err = arma::abs(rel_err);
 		float abs_err_norm = arma::norm(abs_err);
-		float err_norm     = arma::norm(err);
-		conn[i]->printSummary();
-		printf("weight: w,abs,rel= %f, %f, %f\n", w_norm[i], abs_err_norm, err_norm);
-		#if 0
+		float rel_err_norm = arma::norm(rel_err);
+		int imx = rel_err.index_max();
+		float wgt_imx = weight_bp[i](imx);
+		float rel_err_imx = rel_err(imx);
+		//float err_norm_inf = arma::norm(err, "inf");
+		conn[i]->getWeight().print("*weight*");
+		printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, rel_err_norm);
+		printf("max rel error: %f at weight %f\n", rel_err_imx, wgt_imx);
+		//printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, err_norm, err_norm_inf);
+		#if 1
 		printf("   d1-d1: ");  weight_bp[i].print("weight_bp");
 		printf("   d1-d1: ");  abs_err.print("weight abs err");
-		printf("   d1-d1: ");  err.print("weight rel err");
+		printf("   d1-d1: ");  rel_err.print("weight rel err");
 		#endif
 	}
 
@@ -150,7 +160,7 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		BIAS err = (bias_fd[i] - bias_bp[i]) / bias_bp[i];
 		float abs_err_norm = arma::norm(abs_err);
 		float err_norm     = arma::norm(err);
-		printf("bias: w,abs,rel= %f, %f, %f\n", b_norm[i], abs_err_norm, err_norm);
+		printf("\n"); printf("bias: w,abs,rel= %f, %f, %f\n", b_norm[i], abs_err_norm, err_norm);
 		#if 0
 		printf("   d1-d1: "); bias_bp[i].print("bias bp");
 		printf("   d1-d1: "); abs_err.print("bias abs err");

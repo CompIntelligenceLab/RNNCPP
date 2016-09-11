@@ -232,5 +232,11 @@ Weight deriv. Works with nb_batch > 1 (there was summation error in tests/
 All tests codes EXCEPT test_recurrent_model_bias5.cpp, have backprop working with nb_batch > 1. 
 SO ONE ERROR TO FIX. 
 ----------------------------------------------------------------------
+Sept. 10, 2016
+tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 4  -b 1 -s 2 -a iden -r 1 -w "xavier"
+   (high derivatives of weights)
+tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 4  -b 1 -s 3 -a iden -r 1 -w "xavier"
+   (low derivatives of weights)
+SOMETHING WRONG. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
