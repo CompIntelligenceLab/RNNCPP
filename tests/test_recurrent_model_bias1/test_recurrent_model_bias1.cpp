@@ -65,6 +65,9 @@ y1(n) = f(w01 * x0(n) + w11 * y1(n-1))
 Assume only a single x is input: then, 
 y1(n) = w11^2 y1(n-2) = w11^n y1(0)
                       = w11^n (w01 * x0(0))
+dL/dw11(i,j) = dL/da(k) * d/dw11(i,j) (n * W11^(n-1)) dW11/dw11(i,j) * (w01.col(0)*x0(0))
+dAw/dw(i,j) = d/dw(i,j) (A(p,q) w(q,l)) = A(p,q) delta(i,q) delta(j,l)
+                                        = A(p,i) delta(j,l)
 Loss(n) = Loss(y1(n))
 w01(nn,1), w11(nn,nn), x0(1), x1(nn)
 nn = layer_size)
@@ -236,7 +239,7 @@ Forward:
 				}
 			}
 		}
-		printf("*** xf:   ONLY HAS INITIAL COMPONENT at t=0, else ZERO\n"):
+		printf("*** xf:   ONLY HAS INITIAL COMPONENT at t=0, else ZERO\n");
 
 		exact(b) = VF2D(output_dim, seq_len);
 		for (int i=0; i < output_dim; i++) {
@@ -286,6 +289,14 @@ Forward:
 			//w_11.print("w11: initial weight\n");
 			//w_11(0,0) = w11;
 			conn->computeWeightTranspose();
+
+			// analytic calculation: 
+			VF2D w = w_11;
+			for (int s=0; s < seq_len; s++) {
+				w = w * w;
+				printf("power = %d\n", s);
+			}
+			w.print("w power");
 		}
 	}
 	#endif
