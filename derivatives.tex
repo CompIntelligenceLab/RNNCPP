@@ -91,4 +91,42 @@ We can use this result to compare the backpropagation results against exact resu
 of sequence length, for arbitrary exact vectors, under the condition that the input $x$ to the network has a nonzero value
 only at the first iteration. Initial biases are set to zero for this to work. 
 
+I get the feeling the above formula is wrong. Let us start again. 
+
+\begin{align}
+y(0) &= w_{01}*x(0)  \\
+y(1) &= w_{01}*x(1) + w_{11}*y(0) &= w_{11}*w_{01}*x(0) \\
+y(2) &= w_{01}*x(2) + w_{11}*y(1) &= w_{11}^2*w_{01}*x(0)\\
+y(3) &= w_{01}*x(3) + w_{11}*y(2) &= w_{11}^3*w_{01}*x(0)\\
+\cdots &= \cdots 
+\end{align}
+Note that $x(1) = x(2) = \cdots = 0$. 
+
+Loss functions: 
+\begin{align}
+L(0) &= ||y(0) - e(0)||^2 = ||w_{01}*x(0)-e(0)||^2\\
+L(1) &= ||y(1) - e(1)||^2 = ||w_{11}*w_{01}*x(0) - e(1)||^2 \\
+L(2) &= ||y(2) - e(2)||^2 = ||w_{11}^2*w_{01}*x(0) - e(2)||^2 \\
+\cdots &= \cdots = \cdots \\
+L(s-1) &= ||y(s-1) - e(s-1)||^2 = ||w_{11}^{s-1}*w_{01}*x(0) - e(s-1)||^2 \\
+\cdots &= \cdots 
+\end{align}
+
+We wish to take the derivative of  ($s$ is number of elements in the sequence): 
+$$
+L = \sum_{k=0}^{s-1} L(k)
+$$
+
+The derivative of $L(k)$ is $L'(k)$: 
+$$
+L'(k) = 2.*(y(k)-e(k))^T_{m_0} k \alpha^{k-1} (w_{01}*x(0))_{n_0} \\
+$$
+where 
+$$
+y(k) = w_{11}^k * w_{01}*x(0)
+$$
+
+\section{Network, single layer, single neuron, sequence of 2.}
+
 \end{document}
+

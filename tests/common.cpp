@@ -18,6 +18,7 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 		WEIGHT& wm = con.getWeight(); 
 		wm(rr,cc) -= (2.*inc);
 		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
+		wp(rr,cc) += inc; // I had forgotten this. 
 
 		// Sum the loss over the sequences
 		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of floats
@@ -147,6 +148,19 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, rel_err_norm);
 		printf("max rel error: %f at weight_bp: %f\n", rel_err_imx, wgt_imx);
 		//printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, err_norm, err_norm_inf);
+
+	if (i == 1) {
+		int nr = weight_fd[1].n_rows;
+		int nc = weight_fd[1].n_cols;
+		nr = (nr > 3) ? 3 : nr;
+		nc = (nc > 3) ? 3 : nc;
+		VF2D& ww = weight_bp[i];
+		U::print(ww, "w_11");
+		for (int r=0; r < nr; r++) {
+		for (int c=0; c < nc; c++) {
+			printf("weight_bp/weight_fd(%d,%d)= %f, %f\n", r, c, weight_bp[i](r,c), weight_fd[i](r,c));  
+		}}
+	}
 		#if 0
 		printf("   d1-d1: ");  weight_bp[i].print("weight_bp");
 		printf("   d1-d1: ");  abs_err.print("weight abs err");

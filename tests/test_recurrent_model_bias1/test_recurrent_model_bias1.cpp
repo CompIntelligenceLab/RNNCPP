@@ -3,6 +3,8 @@
 #include <string>
 #include <cstdlib>
 
+float derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, std::vector<VF2D>& ws);
+
 //void testRecurrentModelBias1(int nb_batch, int seq_len, int layer_size, int is_recurrent, Activation* activation, 
 void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activation* activation) 
 {
@@ -250,6 +252,7 @@ Forward:
 	}
 
 	#if 1
+	WEIGHT ww01;
 	{
 		Connection* conn;
 		conn = m->getConnection(input, d1);
@@ -259,6 +262,7 @@ Forward:
 
 		//w_01(0,0) = w01;
 		conn->computeWeightTranspose();
+		ww01 = w_01; // TEMPORARY
 	}
 	#endif
 
@@ -292,14 +296,66 @@ Forward:
 
 			// analytic calculation: 
 			VF2D w = w_11;
+
+			printf("Vector of pow(w,k)\n");
+			std::vector<VF2D> ws; 
+			ws.push_back(w.eye(size(w)));
 			for (int s=0; s < seq_len; s++) {
 				w = w * w_11;
+				ws.push_back(w);
 				printf("power = %d\n", s);
 			}
 			w.print("w power");
+			ws[0].print("ws[0]");
+			ws[1].print("ws[1]");
+			ws[seq_len-1].print("ws[seq_len-1]");
+			ws[seq_len].print("ws[seq_len]");
+			//exit(0);
+
+			// Compute exact derivatives for one weight element, for starters. 
+			float alpha = w_11(0,0);
+			//xf.print("xf"); 
+			//printf("alpha= %f\n", alpha); 
+			int nr = w_11.n_rows;
+			int nc = w_11.n_cols;
+			float alphap = pow(alpha, seq_len);
+			//printf("seq_len= %d\n", seq_len);
+			//printf("alphap= %f\n", alphap);
+			exact(0).print("exact(0)");
+
+			int k;
+			//U::print(ww01, "ww01");
+			//xf(0).col(0).print("xf(0).col(0)");
+			//xf(0).col(1).print("xf(0).col(1)");
+			//z0.print("z0");
+			//VF1D y = xf;
+			//e.print("e");
+			
+			VF1D z0 = ww01*xf(0).col(0); // ERROR
+			VF2D total_deriv(size(w_11));
+
+			nr = total_deriv.n_rows;
+			nc = total_deriv.n_cols;
+			nr = nr > 3 ? 3 : nr;
+			nc = nc > 3 ? 3 : nc;
+
+			// derivative of L(k) with respect to w_11(m0, n0)
+			for (int m0=0; m0 < nr; m0++) {
+			for (int n0=0; n0 < nc; n0++) {
+				total_deriv(m0,n0) = 0.;
+				for (int k=0; k < seq_len; k++) {
+					VF1D e = exact(0).col(k);  // exact can be arbitrary
+					float dl = derivLoss(k, z0, e, w_11, alpha, m0, n0, ws);
+					total_deriv(m0,n0) += dl;
+					//printf("dl= %f\n", dl);
+				}
+				printf("total_deriv(%d,%d)= %f\n", m0, n0, total_deriv(m0,n0));
+			}}
+			//exit(0);
 		}
 	}
 	#endif
+	//exit(0);
 	
 	#if 1
 	{
@@ -310,11 +366,20 @@ Forward:
 
 	//================================
 	float inc = 0.001;
-	runTest(m, inc, xf, exact); exit(0);
+	runTest(m, inc, xf, exact); 
+	exit(0);
 
 	predictAndBackProp(m, xf, exact);
 
 	exit(0);
+}
+//----------------------------------------------------------------------
+float derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, std::vector<VF2D>& ws)
+{
+	VF2D x(1,1);
+	VF1D l = 2.*(z0-e); //.t();
+	float Lprime = l[m0] * k *pow(alpha, k-1) * z0[n0];
+	return Lprime;
 }
 //----------------------------------------------------------------------
 int main(int argc, char* argv[])
@@ -376,7 +441,6 @@ int main(int argc, char* argv[])
 	}
 
 	arma_rng::set_seed_random(); // REMOVE LATER
-
 
 	Model* m  = new Model(); // argument is input_dim of model
 	m->setBatchSize(nb_batch);
