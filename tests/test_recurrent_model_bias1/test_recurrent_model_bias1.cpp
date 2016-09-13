@@ -4,6 +4,7 @@
 #include <cstdlib>
 
 float derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, std::vector<VF2D>& ws);
+float predict(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, std::vector<VF2D>& ws);
 
 //void testRecurrentModelBias1(int nb_batch, int seq_len, int layer_size, int is_recurrent, Activation* activation, 
 void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activation* activation) 
@@ -342,6 +343,8 @@ Forward:
 			// derivative of L(k) with respect to w_11(m0, n0)
 			for (int m0=0; m0 < nr; m0++) {
 			for (int n0=0; n0 < nc; n0++) {
+				printf("---- m0,n0= %d, %d\n", m0, n0);
+				printf("seq_len= %d\n", seq_len);
 				total_deriv(m0,n0) = 0.;
 				for (int k=0; k < seq_len; k++) {
 					VF1D e = exact(0).col(k);  // exact can be arbitrary
@@ -349,6 +352,8 @@ Forward:
 					total_deriv(m0,n0) += dl;
 					//printf("dl= %f\n", dl);
 				}
+				VF1D e = exact(0).col(seq_len-1);  // exact can be arbitrary
+				predict(seq_len-1, z0, e, w_11, alpha, m0, n0, ws);
 				printf("total_deriv(%d,%d)= %f\n", m0, n0, total_deriv(m0,n0));
 			}}
 			//exit(0);
@@ -372,6 +377,17 @@ Forward:
 	predictAndBackProp(m, xf, exact);
 
 	exit(0);
+}
+//----------------------------------------------------------------------
+float predict(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, std::vector<VF2D>& ws)
+{
+	VF1D x = z0;
+	printf("iteration: 0, x= %14.7f\n", x(0));  //x.print("x: ");
+
+	for (int i=0; i < k; i++) {
+		x = w11*x;
+		printf("iteration: %d, x= %14.7f\n", i+1, x(0));  //x.print("x: ");
+	}
 }
 //----------------------------------------------------------------------
 float derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, std::vector<VF2D>& ws)
