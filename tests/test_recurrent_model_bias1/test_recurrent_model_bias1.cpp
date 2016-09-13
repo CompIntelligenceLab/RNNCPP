@@ -333,6 +333,11 @@ Forward:
 			//e.print("e");
 			
 			VF1D z0 = ww01*xf(0).col(0); // ERROR
+			printf("*********************  z0 ******************\n");
+			printf("ww01= %f\n", ww01(0,0));
+			printf("xf(0).col(0)= %f\n", xf(0).col(0)(0));
+			printf("z0= %f\n", z0(0));
+			printf("*****************************************\n");
 			VF2D total_deriv(size(w_11));
 
 			nr = total_deriv.n_rows;
@@ -406,10 +411,29 @@ float predict(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, 
 float derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, std::vector<VF2D>& ws)
 {
 	VF2D x(1,1);
-	VF1D l = 2.*(z0-e); //.t();
-	float Lprime = l[m0] * k *pow(alpha, k-1) * z0[n0];
+	printf("INSIDE derivloss\n");
+	printf("alpha= %f\n", alpha);
+	printf("m0, n0= %d, %d\n", m0, n0);
+	printf("w11= %f\n", w11(0,0));
+	printf("e= %f\n", e(0));
+	printf("z0= %f\n", z0(0));
+	printf("k= %d\n", k);
+	printf("\n");
+	float alphak = pow(alpha,k);
+	VF1D l = 2.*(alphak*z0-e); //.t();
+	l.print("l");
+	float Lprime = l[m0] * k * pow(alpha, k-1) * z0[n0];
+	printf("2*(w11*z0-e0)= %f\n",  2.*(w11(0,0)*z0(0)-e(0)));
+
+
+	float dLdw11 = 2.*(w11(0,0)*z0(0)-e(0)) * z0(0);
+	printf("*****************************\n");
+	printf("second dLdw11= %f\n", dLdw11);
+	printf("derivLoss dLdw11= %f\n", Lprime);
+	printf("*****************************\n");
 	return Lprime;
 }
+	//	float dLdw11 = 2.*(w11*w01*x0 - e1) * w01*x0;
 //----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
