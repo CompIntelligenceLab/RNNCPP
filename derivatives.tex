@@ -127,6 +127,26 @@ y(k) = w_{11}^k * w_{01}*x(0)
 $$
 
 \section{Network, single layer, single neuron, sequence of 2.}
+$$
+L = L_0 + L+1
+$$
+$E_n$ is the exact solution at time $n$.
+
+$$
+L_0 = (w_{10} x_0  - E_0)
+$$
+$$
+L_1 = (w_{11}w_{10} x_0 - E_1)
+$$
+
+$$
+\frac{dL}{dw_{11}} = 2 (w_{11} w_{10} x_0 - E_1) w_{10} x_0
+$$
+
+$$
+\frac{dL}{dw_{10}} = 2 (w_{11} w_{10} x_0 - E_1) w_{11} x_0
+ + 2 (w_{10} x_0 - E_0) x_0
+$$
 
 \end{document}
 

@@ -354,9 +354,23 @@ Forward:
 				}
 				VF1D e = exact(0).col(seq_len-1);  // exact can be arbitrary
 				predict(seq_len-1, z0, e, w_11, alpha, m0, n0, ws);
-				printf("total_deriv(%d,%d)= %f\n", m0, n0, total_deriv(m0,n0));
+				printf("total_deriv(%d,%d)= %14.7f\n", m0, n0, total_deriv(m0,n0));
 			}}
 			//exit(0);
+			printf("\n\n Direction computation of derivative of L wrt w_{11} when s=2 and layer_size=1\n");
+			{
+				Connection* conn = m->getConnection(input, d1);
+				WEIGHT& w_01 = conn->getWeight();
+				float w11 = w_11(0,0);
+				float w01 = w_01(0,0);
+				float e0 = exact(0).col(0)(0);
+				float e1 = exact(0).col(1)(0);
+				float x0 = xf(0)(0,0);  // x1 = 0 for this solution
+				float dLdw11 = 2.*(w11*w01*x0 - e1) * w01*x0;
+				float dLdw01 = 2.*(w11*w01*x0-e1)*w11*x0 + 2.*(w01*x0-e0) * x0;
+				printf("dLdw01= %14.7f\n", dLdw01);
+				printf("dLdw11= %14.7f\n", dLdw11);
+			}
 		}
 	}
 	#endif
@@ -375,7 +389,6 @@ Forward:
 	exit(0);
 
 	predictAndBackProp(m, xf, exact);
-
 	exit(0);
 }
 //----------------------------------------------------------------------
