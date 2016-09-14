@@ -64,7 +64,7 @@ BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact
 	return dLdb;
 }
 //----------------------------------------------------------------------
-void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
+std::vector<WEIGHT> runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 {
 	VF2D_F pred;
 
@@ -75,7 +75,7 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 
 	// How to compute the less function
 	pred = m->predictViaConnectionsBias(xf);
-	pred[0].raw_print(std::cout, "pred");
+	//pred[0].raw_print(std::cout, "pred");
 	//exit(0);
 
 	Objective* obj = m->getObjective();
@@ -83,7 +83,7 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 	//loss.print("loss");
 
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
-	exact.print("exact");
+	//exact.print("exact");
 	//exit(0);
 
 	std::vector<BIAS> bias_fd, bias_bp;
@@ -157,13 +157,16 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		nr = (nr > 3) ? 3 : nr;
 		nc = (nc > 3) ? 3 : nc;
 		VF2D& ww = weight_bp[i];
+
+		#if 0
 		U::print(ww, "w_11");
 		for (int r=0; r < nr; r++) {
 		for (int c=0; c < nc; c++) {
 			printf("<<<weight_bp/weight_fd(%d,%d)= %14.7f, %14.7f\n", r, c, weight_bp[i](r,c), weight_fd[i](r,c));  
 		}}
+		#endif
 	}
-		#if 1
+		#if 0
 		printf("----------\n");
 		printf("...d1-d1: ");  weight_bp[i].raw_print(cout, "weight_bp");
 		printf("   d1-d1: ");  abs_err.print("weight abs err");
@@ -185,6 +188,11 @@ void runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		printf("   d1-d1: "); err.print("bias rel error");
 		#endif
 	}
+
+	// return vector of weights
+	std::vector<WEIGHT> ws;
+	ws.push_back(weight_bp[1]); // recurrent weight
+	return ws;
 }
 //----------------------------------------------------------------------
 void predictAndBackProp(Model* m, VF2D_F& xf, VF2D_F& exact)

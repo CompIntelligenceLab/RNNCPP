@@ -153,20 +153,21 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 		//weight.print("initializeConnection");
 	} else if (initialize_type == "orthogonal") {
 	} else if (initialize_type == "xavier") {
-		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
-		// I want the standard deviation to be 1/n
-		//printf("to= %d\n", to);
-		//to->printSummary();
-		//printf("size: %d\n", to->getInputs().size());
-		//exit(0);
-		//to->printSummary("to");
-		float n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
-		float n_ins  = weight.n_cols;
-		//printf("n_ins, nouts= %d, %d\n", (int) n_ins, (int) n_outs);
-		n_outs = sqrt(n_outs);
-		//printf("nb_outs= %f\n", n_outs);
-		weight = weight / n_outs;
-		//exit(0);
+		if (!temporal) {
+			// IMPLEMENT XAVIER with UNIFORM DISTRIBUTION 
+			//weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
+			weight = arma::randu<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
+			// I want the standard deviation to be 1/n
+			float n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
+			float n_ins  = weight.n_cols;
+			n_outs = sqrt(n_outs);
+			weight = weight / n_outs;
+		} else {  // uniform with values of [-.08, .08]
+			weight = arma::randu<WEIGHT>(arma::size(weight)); //Uniform(0,1)
+			weight = 2.0*(weight - 0.5) * 0.08;    //Uniform(-.08, 0.08)
+			//weight.print("weight temporal");
+	    //printf("***\n");exit(0);
+		}
 	} else if (initialize_type == "xavier_iden") {   // initialize recurrent weights to identity matrix
 		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
 		float n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
@@ -175,7 +176,12 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 
 		if (temporal) {
 			weight.eye(size(weight));
-			weight *= 0.98; // make matrix slightly stable. 
+			// Below 0.8 and the errors for long sequences do not accumulate
+			// This initialization should only be required for recurrent connections. 
+			// The deduction was for a network with a single recurrent layer. More generally, one 
+			// only surmises that the results hold for more general recurrent networks. 
+			weight *= 0.50; // make matrix slightly stable. 
+			weight.print("weight temporal");
 		}
 	} else {
 		printf("initialize_type: %s not implemented\n", initialize_type.c_str());

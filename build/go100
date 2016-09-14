@@ -1,4 +1,4 @@
-tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 16  -b 1 -s 4 -a iden -r 1 -w xavier_iden
+tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 1  -b 1 -s 16 -a iden -r 1 -w xavier
 
 #tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 16  -b 1 -s 32 -a iden -r 1 -w xavier_iden
 
