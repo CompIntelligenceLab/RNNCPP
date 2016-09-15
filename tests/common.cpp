@@ -1,10 +1,10 @@
 
-WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
+WEIGHT weightDerivative(Model* m, Connection& con, REAL inc, VF2D_F& xf, VF2D_F& exact)
 {
 	WEIGHT w0 = con.getWeight();
 	int rrows = w0.n_rows;
 	int ccols = w0.n_cols;
-	dLdw = arma::Mat<float>(size(w0));
+	dLdw = arma::Mat<REAL>(size(w0));
 	dLdw.zeros();
 	Objective* mse = new MeanSquareError();
 
@@ -21,7 +21,7 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 		wp(rr,cc) += inc; // I had forgotten this. 
 
 		// Sum the loss over the sequences
-		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of floats
+		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of REALs
 		LOSS loss_n = (*mse)(exact, pred_n);
 
 		// take the derivative of batch 0, of the loss (summed over the sequences)
@@ -33,7 +33,7 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 	return dLdw;
 }
 //----------------------------------------------------------------------
-BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact)
+BIAS biasDerivative(Model* m, Layer& layer, REAL inc, VF2D_F& xf, VF2D_F& exact)
 {
 	BIAS bias = layer.getBias();
 	int layer_size = layer.getLayerSize();
@@ -52,7 +52,7 @@ BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact
 		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
 
 		// Sum the loss over the sequences
-		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of floats
+		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of REALs
 		LOSS loss_n = (*mse)(exact, pred_n);
 
 		// take the derivative of batch 0, of the loss (summed over the sequences)
@@ -64,7 +64,7 @@ BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact
 	return dLdb;
 }
 //----------------------------------------------------------------------
-std::vector<WEIGHT> runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
+std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 {
 	VF2D_F pred;
 
@@ -89,8 +89,8 @@ std::vector<WEIGHT> runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 	std::vector<BIAS> bias_fd, bias_bp;
 	std::vector<WEIGHT> weight_fd, weight_bp;
 	std::vector<Connection*> conn;
-	std::vector<float> w_norm, w_abs_err_norm, w_rel_err_norm;
-	std::vector<float> b_norm, b_abs_err_norm, b_rel_err_norm;
+	std::vector<REAL> w_norm, w_abs_err_norm, w_rel_err_norm;
+	std::vector<REAL> b_norm, b_abs_err_norm, b_rel_err_norm;
 
 	for (int c=0; c < connections.size(); c++) {
 		Connection* con = connections[c];
@@ -139,12 +139,12 @@ std::vector<WEIGHT> runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 		WEIGHT rel_err = abs_err / weight_bp[i];
 		abs_err = arma::abs(abs_err);
 		rel_err = arma::abs(rel_err);
-		float abs_err_norm = arma::norm(abs_err);
-		float rel_err_norm = arma::norm(rel_err);
+		REAL abs_err_norm = arma::norm(abs_err);
+		REAL rel_err_norm = arma::norm(rel_err);
 		int imx = rel_err.index_max();
-		float wgt_imx = weight_bp[i](imx);
-		float rel_err_imx = rel_err(imx);
-		//float err_norm_inf = arma::norm(err, "inf");
+		REAL wgt_imx = weight_bp[i](imx);
+		REAL rel_err_imx = rel_err(imx);
+		//REAL err_norm_inf = arma::norm(err, "inf");
 
 		conn[i]->getWeight().print("*** weight ***");
 		printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, rel_err_norm);
@@ -179,8 +179,8 @@ std::vector<WEIGHT> runTest(Model* m, float inc, VF2D_F& xf, VF2D_F& exact)
 	for (int i=0; i < bias_fd.size(); i++) {
 		BIAS abs_err = (bias_fd[i] - bias_bp[i]);
 		BIAS err = (bias_fd[i] - bias_bp[i]) / bias_bp[i];
-		float abs_err_norm = arma::norm(abs_err);
-		float err_norm     = arma::norm(err);
+		REAL abs_err_norm = arma::norm(abs_err);
+		REAL err_norm     = arma::norm(err);
 		printf("\n"); printf("bias: w,abs,rel= %f, %f, %f\n", b_norm[i], abs_err_norm, err_norm);
 		#if 0
 		printf("   d1-d1: "); bias_bp[i].print("bias bp");

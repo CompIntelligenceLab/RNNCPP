@@ -148,7 +148,7 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 	if (initialize_type == "gaussian") {
 	} else if (initialize_type == "uniform") {
 		//arma_rng::set_seed_random(); // put at beginning of code // DOES NOT WORK
-		//arma::Mat<float> ww = arma::randu<arma::Mat<float> >(3, 4); //arma::size(*weight));
+		//arma::Mat<REAL> ww = arma::randu<arma::Mat<REAL> >(3, 4); //arma::size(*weight));
 		weight = arma::randu<WEIGHT>(arma::size(weight)); //arma::size(*weight));
 		//weight.print("initializeConnection");
 	} else if (initialize_type == "orthogonal") {
@@ -158,8 +158,8 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 			//weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
 			weight = arma::randu<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
 			// I want the standard deviation to be 1/n
-			float n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
-			float n_ins  = weight.n_cols;
+			REAL n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
+			REAL n_ins  = weight.n_cols;
 			n_outs = sqrt(n_outs);
 			weight = weight / n_outs;
 		} else {  // uniform with values of [-.08, .08]
@@ -170,7 +170,7 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 		}
 	} else if (initialize_type == "xavier_iden") {   // initialize recurrent weights to identity matrix
 		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
-		float n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
+		REAL n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
 		n_outs = sqrt(n_outs);
 		weight = weight / n_outs;
 
@@ -191,7 +191,7 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 }
 
 //----------------------------------------------------------------------
-void Connection::weightUpdate(float learning_rate) {  // simplest algorithm
+void Connection::weightUpdate(REAL learning_rate) {  // simplest algorithm
 	// delta is of type WEIGHT, which is not a field, but a VF2D
 	//for (int b=0; b < delta.n_rows;  b++) {    
 		weight = weight - learning_rate * delta;

@@ -22,8 +22,8 @@ using namespace arma;
 using namespace std;
 
 void testData(Model& m, VF2D_F& xf, VF2D_F& yf, VF2D_F&);
-WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact);
-BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact);
+WEIGHT weightDerivative(Model* m, Connection& con, REAL inc, VF2D_F& xf, VF2D_F& exact);
+BIAS biasDerivative(Model* m, Layer& layer, REAL inc, VF2D_F& xf, VF2D_F& exact);
 void testRecurrentModel1(int nb_batch);
 void testRecurrentModel2(int nb_batch);
 void testRecurrentModel3(int nb_batch); // testRecurrentModel2 with no recurrence
@@ -32,7 +32,7 @@ WEIGHT dLdw(1,1);
 BIAS dLdb(1);
 
 //----------------------------------------------------------------------
-float runModel(Model* m)
+REAL runModel(Model* m)
 {
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
@@ -49,13 +49,13 @@ float runModel(Model* m)
 	for (int b=0; b < m->getBatchSize(); b++) {
 		xf(b) = .3;
 		yf(b) = .4;
-		exact(b) = arma::Mat<float>(output_dim,1);
+		exact(b) = arma::Mat<REAL>(output_dim,1);
 		exact(b).ones();
 		exact(b) *= .5;
 	}
 	//exact.print("exact");
 	//exit(0);
-	float w =  m->getConnections()[0]->getWeight()[0];
+	REAL w =  m->getConnections()[0]->getWeight()[0];
 	printf("w = %f\n", w);
 
 	printf("*** connections.size() = %d\n", connections.size());
@@ -88,7 +88,7 @@ float runModel(Model* m)
 	printf("----------------------------\n");
 	#endif
 
-	float inc = .0001;
+	REAL inc = .0001;
 	WEIGHT fd_dLdw;
 	// First connection is between 0 and input (does not count)
 	for (int c=1; c < connections.size(); c++) {
@@ -140,7 +140,7 @@ storeDLossDweightInConnections, prod 0.0995
 	//printf("gordon\n"); exit(0);
 }
 //----------------------------------------------------------------------
-WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F& exact)
+WEIGHT weightDerivative(Model* m, Connection& con, REAL inc, VF2D_F& xf, VF2D_F& exact)
 {
 	// I'd expect the code to work with nb_batch=1 
 	//printf("********** ENTER weightDerivative *************, \n");
@@ -148,7 +148,7 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 	WEIGHT w0 = con.getWeight();
 	int rrows = w0.n_rows;
 	int ccols = w0.n_cols;
-	dLdw = arma::Mat<float>(size(w0));
+	dLdw = arma::Mat<REAL>(size(w0));
 	dLdw.zeros();
 	Objective* mse = new MeanSquareError();
 
@@ -164,7 +164,7 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
 
 		// Sum the loss over the sequences
-		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of floats
+		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of REALs
 		//U::print(pred_p, "pred_p"); 
 		//U::print(loss_p, "loss_p"); 
 		//loss_p.print("loss_p");
@@ -187,7 +187,7 @@ WEIGHT weightDerivative(Model* m, Connection& con, float inc, VF2D_F& xf, VF2D_F
 	return dLdw;
 }
 //----------------------------------------------------------------------
-BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact)
+BIAS biasDerivative(Model* m, Layer& layer, REAL inc, VF2D_F& xf, VF2D_F& exact)
 {
 	// I'd expect the code to work with nb_batch=1 
 	//printf("********** ENTER biasDerivative *************, \n");
@@ -209,7 +209,7 @@ BIAS biasDerivative(Model* m, Layer& layer, float inc, VF2D_F& xf, VF2D_F& exact
 		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
 
 		// Sum the loss over the sequences
-		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of floats
+		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of REALs
 		LOSS loss_n = (*mse)(exact, pred_n);
 
 		// take the derivative of batch 0, of the loss (summed over the sequences)
@@ -256,7 +256,7 @@ void testCube()
 	printf("cub21(1,1,1)= %f\n", cub21(1,1,1));
 }
 //----------------------------------------------------------------------
-float runModelRecurrent(Model* m)
+REAL runModelRecurrent(Model* m)
 {
 #if 0
 	m->printSummary();
@@ -275,7 +275,7 @@ float runModelRecurrent(Model* m)
 	for (int b=0; b < m->getBatchSize(); b++) {
 		xf(b).fill(.3);
 		yf(b).fill(.4);
-		exact(b) = arma::Mat<float>(output_dim, m->getSeqLen());
+		exact(b) = arma::Mat<REAL>(output_dim, m->getSeqLen());
 		exact(b).fill(.5);
 	}
 	//U::print(xf, "xf"); exit(0);
@@ -313,7 +313,7 @@ float runModelRecurrent(Model* m)
 	}
 	// xf = .3
 	// yf = w * .3;
-	float w;
+	REAL w;
 	w =  m->getConnections()[0]->getWeight()(0,0);
 	printf("w[0] = %f\n", w);
 	printf("w[0]*xf = %f\n", w*xf(0)(0,0));
@@ -350,7 +350,7 @@ float runModelRecurrent(Model* m)
 	pred.print("second prediction\n");
 	exit(0);
 
-	float inc = .0001;
+	REAL inc = .0001;
 	WEIGHT fd_dLdw;
 	// First connection is between 0 and input (does not count)
 	for (int c=1; c < connections.size(); c++) {

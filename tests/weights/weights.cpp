@@ -71,7 +71,7 @@ int main()
 
 		for (int p=0; p < 2; p++) {
 		for (int q=0; q < 3; q++) {
-			x[i](p,q) = (float) (p+q)*(i+1);
+			x[i](p,q) = (REAL) (p+q)*(i+1);
 			printf("x[%d](%d,%d)= %f\n", i, p, q, x[i](p,q));
 		}}
 	}
@@ -86,7 +86,7 @@ int main()
 
 	for (int i=0; i < 3; i++) {
 	for (int j=0; j < 2; j++) {
-		w11(i,j) = (float) (i+2*j);
+		w11(i,j) = (REAL) (i+2*j);
 		printf("w11(%d,%d)= %f\n", i, j, w11(i,j));
 	}}
 
@@ -98,7 +98,7 @@ int main()
 	for (int b=0; b < x.n_rows; b++) {
 		for (int s=0; s < x[0].n_cols; s++) {
 			for (int l=0; l < w11.getNRows(); l++) {
-				float m = 0.;
+				REAL m = 0.;
 				for (int i=0; i < x[0].n_rows; i++) {
 					m += w11(l, i) * x[b](i, s);
 				}

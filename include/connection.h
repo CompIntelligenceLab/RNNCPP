@@ -78,7 +78,7 @@ public:
 	int getClock() { return clock; }
 	void incrClock() { clock += 1; }
 	void backProp() {;} // for future use
-	void weightUpdate(float learning_rate);
+	void weightUpdate(REAL learning_rate);
 	WEIGHT& getDelta() { return this->delta; }
 	void setDelta(WEIGHT delta) { this->delta = delta; }
 	void resetDelta() { delta.zeros(); }
@@ -97,8 +97,8 @@ public:
 	Connection operator+(const Connection&); // not needed, check dimensionality
 	Connection operator*(const Connection&); // not needed, check dimensionality
 	VF2D_F operator*(const VF2D_F&);
-	float& operator()(const int i, const int j) { return weight(i,j); }
-	const float& operator()(const int i, const int j) const { return weight(i,j); }
+	REAL& operator()(const int i, const int j) { return weight(i,j); }
+	const REAL& operator()(const int i, const int j) const { return weight(i,j); }
 	void incrDelta(WEIGHT& x);
 };
 

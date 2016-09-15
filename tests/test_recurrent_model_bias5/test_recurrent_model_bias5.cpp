@@ -78,15 +78,15 @@ Forward:
 // ANALYTICAL DERIVATION when activation functions are the identity
 
 	// set weights to 1 for testing
-	float w01      = .4;
-	float w11      = .6;  // recurrence weights for layer 1
-	float bias     = -.7; // single layer of size 1 ==> single bias
+	REAL w01      = .4;
+	REAL w11      = .6;  // recurrence weights for layer 1
+	REAL bias     = -.7; // single layer of size 1 ==> single bias
 	//w01      = 1.;
 	//w11      = 1.;  // recurrence weights for layer 1
-	float x0       = .45;
-	float x1       = .65;
-	float ex0      = .75; // exact value
-	float ex1      = .85; // exact value
+	REAL x0       = .45;
+	REAL x1       = .65;
+	REAL ex0      = .75; // exact value
+	REAL ex1      = .85; // exact value
 	int seq_len    = 2;
 	int input_dim  = 1;
 	int nb_layers  = 1;  // in addition to input
@@ -117,14 +117,14 @@ Forward:
 	// d(loss)/dw01 = 2*(l0-ex0)*x0 + 2*(l1-ex1)*x1 + 2*(l1-ex1)*w11*x0;
 	// d(loss)/dw11 = 2*(l1-ex1)*(w01*x0) 
 
-	float loss0 = (ex0-a(1,0))*(ex0-a(1,0));  // same as predict routine
-	float loss1 = (ex1-a(1,1))*(ex1-a(1,1));  // DIFFERENT FROM PREDICT ROUTINE
-	float loss_tot = loss0 + loss1;   // total loss for a sequence of length 2
-	float     L0 = 2.*(a(1,0)-ex0); // dlda10
-	float     L1 = 2.*(a(1,1)-ex1); // dlda11
+	REAL loss0 = (ex0-a(1,0))*(ex0-a(1,0));  // same as predict routine
+	REAL loss1 = (ex1-a(1,1))*(ex1-a(1,1));  // DIFFERENT FROM PREDICT ROUTINE
+	REAL loss_tot = loss0 + loss1;   // total loss for a sequence of length 2
+	REAL     L0 = 2.*(a(1,0)-ex0); // dlda10
+	REAL     L1 = 2.*(a(1,1)-ex1); // dlda11
 
-	float dldw01_direct = L0 * x0  +  L1 * (x1+w11*x0);
-	float dldw11_direct = L1 * w01 * x0;
+	REAL dldw01_direct = L0 * x0  +  L1 * (x1+w11*x0);
+	REAL dldw11_direct = L1 * w01 * x0;
 
 	// dlda00 = sum_t dla1t * da1t/da00 
 	//   = L0 * w01 + L1 * da11/da10 * da10/da00
@@ -134,10 +134,10 @@ Forward:
 	//   = L0 * da10/da01 + L1 * da11/da01
 	//   = L1 * da11/da10 * da10/da00
 	//   = L1 * w11 * w01;
-	float dlda10 = L0;
-	float dlda11 = L1;
-	float dlda00 = L0 * w01  +  L1 * w11 * w01;
-	float dlda01 = L1 * w11 * w01;
+	REAL dlda10 = L0;
+	REAL dlda11 = L1;
+	REAL dlda00 = L0 * w01  +  L1 * w11 * w01;
+	REAL dlda01 = L1 * w11 * w01;
 
 	#if 0
 	printf("\n ============== Layer Outputs =======================\n");
@@ -166,8 +166,8 @@ Forward:
 	//         = dlda20  * a10 + dlda21  * a11
     
 	#if 0
-	float dldw01 = dlda10*x0 + dlda11*x1;
-	float dldw11 = dlda20*a(1,0) + dlda21*a(1,1);
+	REAL dldw01 = dlda10*x0 + dlda11*x1;
+	REAL dldw11 = dlda20*a(1,0) + dlda21*a(1,1);
 
 	printf(".... Calculation of weight derivatives by hand\n");
 	printf("dldw01= %f\n", dldw01);
@@ -216,7 +216,7 @@ Forward:
 	}
 
 	// ================  BEGIN F-D weight derivatives ======================
-	float inc = .0001;
+	REAL inc = .0001;
 	runTest(m, inc, xf, exact);
 	exit(0);
 

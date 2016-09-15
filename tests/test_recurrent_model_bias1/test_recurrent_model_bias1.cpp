@@ -3,8 +3,8 @@
 #include <string>
 #include <cstdlib>
 
-float derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, std::vector<VF2D>& ws);
-float predict(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, std::vector<VF2D>& ws);
+REAL derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, REAL alpha, int m0, int n0, std::vector<VF2D>& ws);
+REAL predict(int k, VF1D& z0, VF1D& e, VF2D& w11, REAL alpha, int m0, int n0, std::vector<VF2D>& ws);
 
 void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& exact)
 {
@@ -71,12 +71,12 @@ void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& e
 			//exit(0);
 
 			// Compute exact derivatives for one weight element, for starters. 
-			float alpha = w_11(0,0);
+			REAL alpha = w_11(0,0);
 			//xf.print("xf"); 
 			//printf("alpha= %f\n", alpha); 
 			int nr = w_11.n_rows;
 			int nc = w_11.n_cols;
-			float alphap = pow(alpha, seq_len);
+			REAL alphap = pow(alpha, seq_len);
 			//printf("seq_len= %d\n", seq_len);
 			//printf("alphap= %f\n", alphap);
 			//exact(0).print("exact(0)");
@@ -112,7 +112,7 @@ void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& e
 				total_deriv(m0,n0) = 0.;
 				for (int k=0; k < seq_len; k++) {
 					VF1D e = exact(0).col(k);  // exact can be arbitrary
-					float dl = derivLoss(k, z0, e, w_11, alpha, m0, n0, ws);
+					REAL dl = derivLoss(k, z0, e, w_11, alpha, m0, n0, ws);
 					total_deriv(m0,n0) += dl;
 					//printf("dl= %f\n", dl);
 				}
@@ -128,13 +128,13 @@ void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& e
 			{
 				Connection* conn = m->getConnection(input, d1);
 				WEIGHT& w_01 = conn->getWeight();
-				float w11 = w_11(0,0);
-				float w01 = w_01(0,0);
-				float e0 = exact(0).col(0)(0);
-				float e1 = exact(0).col(1)(0);
-				float x0 = xf(0)(0,0);  // x1 = 0 for this solution
-				float dLdw11 = 2.*(w11*w01*x0 - e1) * w01*x0;
-				float dLdw01 = 2.*(w11*w01*x0-e1)*w11*x0 + 2.*(w01*x0-e0) * x0;
+				REAL w11 = w_11(0,0);
+				REAL w01 = w_01(0,0);
+				REAL e0 = exact(0).col(0)(0);
+				REAL e1 = exact(0).col(1)(0);
+				REAL x0 = xf(0)(0,0);  // x1 = 0 for this solution
+				REAL dLdw11 = 2.*(w11*w01*x0 - e1) * w01*x0;
+				REAL dLdw01 = 2.*(w11*w01*x0-e1)*w11*x0 + 2.*(w01*x0-e0) * x0;
 				printf("dLdw01= %14.7f\n", dLdw01);
 				printf("dLdw11= %14.7f\n", dLdw11);
 			}
@@ -142,7 +142,7 @@ void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& e
 		}
 
 		std::vector<WEIGHT> wss;
-		float inc = 0.01;
+		REAL inc = 0.01;
 		wss = runTest(m, inc, xf, exact); 
 		{
 			//U::print(wss[0], "wss");
@@ -150,7 +150,7 @@ void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& e
 			WEIGHT abs_err = wss[0] - total_deriv;
 			WEIGHT rel_err = abs_err % wss[0];
 			//rel_err.print("rel_err btwn back_prop and analytic");
-			float rel_err_norm = arma::norm(rel_err);
+			REAL rel_err_norm = arma::norm(rel_err);
 			printf("--> rel_err_norm(w11 vs analytic  = %f\n", rel_err_norm);
 		}
 }
@@ -260,17 +260,17 @@ Forward:
  a(2,1) = z(2,1) = w2*z(1,1) + w12 * z(2,0)
 ***/
 
-	float w01 = .4;
-	float w11 = .6;
-	float bias1 = -.7;  // single layer of size 1 ==> single bias
-	float bias2 = -.45; // single layer of size 1 ==> single bias
+	REAL w01 = .4;
+	REAL w11 = .6;
+	REAL bias1 = -.7;  // single layer of size 1 ==> single bias
+	REAL bias2 = -.45; // single layer of size 1 ==> single bias
 	//w01       = 1.;
 	//w11       = 1.;
 	//w22       = 1.;
-	float x0       = .45;
-	float x1       = .75;
-	float ex0      = .75; // exact value
-	float ex1      = .85; // exact value
+	REAL x0       = .45;
+	REAL x1       = .75;
+	REAL ex0      = .75; // exact value
+	REAL ex1      = .85; // exact value
 	VF2D a(layer_size+1, seq_len); // assume al dimensions = 1
 	VF2D z(layer_size+1, seq_len); // assume al dimensions = 1
 
@@ -307,14 +307,14 @@ Forward:
 	// d(loss)/dw22 = 2*(l2+l3-ex1)*(w12*w01*x0) 
 	//
 
-	float loss0 = (a(2,0)-ex0)*(a(2,0)-ex0);  // same as predict routine
-	float loss1 = (a(2,1)-ex1)*(a(2,1)-ex1);  // same as predict routine
-	float L0 = 2.*(a(2,0)-ex0);
-	float L1 = 2.*(a(2,1)-ex1);
-	float dldw1  = L0*w12*x0 + L1*(w12*x1+w12*w11*x0+w22*w12*x0); // CORRECT
-	float dldw12 = L0*w01*x0 + L1*(w01*x1+w11*w01*x0 + w22*w01*x0); // CORRECT
-	float dldw11 = L1*(w12*w01*x0); // CORRECT
-	float dldw22 = L1*(w12*w01*x0); // CORRECT
+	REAL loss0 = (a(2,0)-ex0)*(a(2,0)-ex0);  // same as predict routine
+	REAL loss1 = (a(2,1)-ex1)*(a(2,1)-ex1);  // same as predict routine
+	REAL L0 = 2.*(a(2,0)-ex0);
+	REAL L1 = 2.*(a(2,1)-ex1);
+	REAL dldw1  = L0*w12*x0 + L1*(w12*x1+w12*w11*x0+w22*w12*x0); // CORRECT
+	REAL dldw12 = L0*w01*x0 + L1*(w01*x1+w11*w01*x0 + w22*w01*x0); // CORRECT
+	REAL dldw11 = L1*(w12*w01*x0); // CORRECT
+	REAL dldw22 = L1*(w12*w01*x0); // CORRECT
 
 
 	#if 0
@@ -331,12 +331,12 @@ Forward:
 	//a10 = w01*a00
 	//a20 = w01*w11*a10;
 
-	float da11da01 = w01;
-	float da11da10 = w11;
-	float da21da11 = w12;
-	float da21da20 = w22;
-	float da10da00 = w01;
-	float da20da10 = w01*w11;
+	REAL da11da01 = w01;
+	REAL da11da10 = w11;
+	REAL da21da11 = w12;
+	REAL da21da20 = w22;
+	REAL da10da00 = w01;
+	REAL da20da10 = w01*w11;
 
 	#if 0
 	printf("dLda20= %f\n", L0);
@@ -350,13 +350,13 @@ Forward:
 	printf("\n\n");
 	#endif
 
-	float dLda20 = L0;
-	float dLda21 = L1;
-	float dLda11 = L1 * da21da11;
-	float dLda10 = L0*w01*w11;
-	float dLda01 = w01*w12*L1;
-	float dLda00 = w01*(L1*w11*w12 + L0*w01*w11);
-	//float dLda00 = da10da00*(L1*da11da10*da21d11 + L0*da20da10) = w01*(L1*w11*w12 + L0*w01*w11);
+	REAL dLda20 = L0;
+	REAL dLda21 = L1;
+	REAL dLda11 = L1 * da21da11;
+	REAL dLda10 = L0*w01*w11;
+	REAL dLda01 = w01*w12*L1;
+	REAL dLda00 = w01*(L1*w11*w12 + L0*w01*w11);
+	//REAL dLda00 = da10da00*(L1*da11da10*da21d11 + L0*da20da10) = w01*(L1*w11*w12 + L0*w01*w11);
 
 	#if 0
 	printf("Calculation of weight derivatives by hand\n");
@@ -403,7 +403,8 @@ Forward:
 
 
 	// Set to 1 to run the test with diagonal recurrent matrix
-	//diagRecurrenceTest(m, input, d1, xf, exact);
+	diagRecurrenceTest(m, input, d1, xf, exact);
+	exit(0);
 
 	#if 1
 	{
@@ -413,7 +414,7 @@ Forward:
 	#endif
 
 	//================================
-	float inc = 0.001;
+	REAL inc = 0.001;
 	std::vector<WEIGHT> wss;
 	wss = runTest(m, inc, xf, exact); 
 	exit(0);
@@ -422,7 +423,7 @@ Forward:
 	exit(0);
 }
 //----------------------------------------------------------------------
-float predict(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, std::vector<VF2D>& ws)
+REAL predict(int k, VF1D& z0, VF1D& e, VF2D& w11, REAL alpha, int m0, int n0, std::vector<VF2D>& ws)
 {
 	VF1D x = z0;
 	printf("iteration: 0, x= %14.7f\n", x(0));  //x.print("x: ");
@@ -433,7 +434,7 @@ float predict(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, 
 	}
 }
 //----------------------------------------------------------------------
-float derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0, std::vector<VF2D>& ws)
+REAL derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, REAL alpha, int m0, int n0, std::vector<VF2D>& ws)
 {
 	VF2D x(1,1);
 	#if 0
@@ -446,21 +447,21 @@ float derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, float alpha, int m0, int n0
 	printf("k= %d\n", k);
 	printf("\n");
 	#endif
-	float alphak = pow(alpha,k);
+	REAL alphak = pow(alpha,k);
 	VF1D l = 2.*(alphak*z0-e); //.t();
 	//l.print("l");
-	float Lprime = l[m0] * k * pow(alpha, k-1) * z0[n0];
+	REAL Lprime = l[m0] * k * pow(alpha, k-1) * z0[n0];
 	//printf("2*(w11*z0-e0)= %f\n",  2.*(w11(0,0)*z0(0)-e(0)));
 
 
-	float dLdw11 = 2.*(w11(0,0)*z0(0)-e(0)) * z0(0);
+	REAL dLdw11 = 2.*(w11(0,0)*z0(0)-e(0)) * z0(0);
 	//printf("*****************************\n");
 	//printf("second dLdw11= %f\n", dLdw11);
 	//printf("derivLoss dLdw11= %f\n", Lprime);
 	//printf("*****************************\n");
 	return Lprime;
 }
-	//	float dLdw11 = 2.*(w11*w01*x0 - e1) * w01*x0;
+	//	REAL dLdw11 = 2.*(w11*w01*x0 - e1) * w01*x0;
 //----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
