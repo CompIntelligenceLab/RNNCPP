@@ -242,4 +242,32 @@ SOMETHING WRONG.
 Need matrix with *Bias1.cpp for large largers and large sequences. 
 Calculate eigenvalues. Use identity activation. is_recursion = 1. 
 ----------------------------------------------------------------------
+Sept. 15, 2016
+Branch "double" in git. 
+Work in double precision. 
 ----------------------------------------------------------------------
+Sept. 16, 2016
+Construct a copy of bias1 code. Remove print statements. Add extra variables in layers.h, Connections and perhaps model.h
+in order to help with error diagnosis. 
+----------------------------------------------------------------------
+INSIDE derivloss
+alpha= -0.023967
+m0, n0= 1, 1
+w11= -0.023967
+e= 0.750000
+z0= 0.295810
+k= 0
+
+
+ derivLoss, l.. (loss)
+ -0.9083803553
+ -1.2013459311
+ dl = 0.000000
+ INSIDE derivloss
+ alpha= -0.023967
+ m0, n0= 1, 1
+ w11= -0.023967
+ e= 0.750000
+ z0= 0.295810
+ k= 1
+----

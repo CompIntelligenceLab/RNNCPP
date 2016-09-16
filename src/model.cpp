@@ -466,7 +466,9 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 		VF2D_F pred = predictViaConnectionsBias(x);
 		objective->computeLoss(exact, pred);
 		const LOSS& loss = objective->getLoss();
-		loss.print("loss");
+		LOSS ll = loss;
+		ll(0) = ll(0) / 3.7;
+		ll(0).raw_print(std::cout, "loss");
 		backPropagationViaConnectionsRecursion(exact, pred);
 		parameterUpdate();
 	}
@@ -500,6 +502,7 @@ void Model::storeDactivationDoutputInLayersRecCon(int t)
 
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
 	// Answer: yes, and I must increment the delta
+	// Temporal connections
 
 	for (int l=0; l < layers.size(); l++) {
 		Connection* conn = layers[l]->getConnection();
@@ -618,16 +621,21 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 
     objective->computeGradient(exact, pred);
     VF2D_F& grad = objective->getGradient();
-	getOutputLayers()[0]->setDelta(grad);  // assumes single output layer
+	getOutputLayers()[0]->setDelta(grad);  // assumes single output layer. Set for all sequences. 
 
+	getOutputLayers()[0]->getDelta()[0].raw_print(std::cout, "deltas of output layer (grad of Loss)"); 
+	//exit(0);
+
+	printf("ENTER LOOP\n");
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
+		printf("tt= %d\n", t);
 		storeGradientsInLayersRec(t);
-		//storeDactivationDoutputInLayersRec(t);
 		storeDactivationDoutputInLayersRecCon(t);
-		//storeDLossDweightInConnectionsRec(t);
 		storeDLossDweightInConnectionsRecCon(t);
 		storeDLossDbiasInLayersRec(t);
 	}
+	printf("EXIT LOOP\n");
+	//exit(0);
 	//printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
 }
 //----------------------------------------------------------------------

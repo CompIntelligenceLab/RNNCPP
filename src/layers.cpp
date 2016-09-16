@@ -392,6 +392,7 @@ void Layer::addBiasToInput(int t)
 	}
 }
 //----------------------------------------------------------------------
+#if 0
 void Layer::gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_to)
 {
 	assert(this == conn.to);
@@ -424,7 +425,9 @@ void Layer::gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_
 		}
 	}
 }
+#endif
 //----------------------------------------------------------------------
+#if 0
 void Layer::dLdaMulGrad(Connection* con, int t)
 {
 	Layer* layer_from = con->from;
@@ -476,6 +479,7 @@ void Layer::dLdaMulGrad(Connection* con, int t)
 		}
 	}
 }
+#endif
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

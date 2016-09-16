@@ -127,6 +127,8 @@ void MeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 
 void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 {
+	// compute the gradient of L with respect to all outputs for every sequence element
+
 	int nb_batch = exact.n_rows;
 	gradient.set_size(nb_batch);
 

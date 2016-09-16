@@ -24,8 +24,8 @@
 
 // Add additional print information if verpose is 1
 #define VERBOSE 0
-#define SINGLE_PRECISION
-//#define DOUBLE_PRECISION
+//#define SINGLE_PRECISION
+#define DOUBLE_PRECISION
 
 class Layer;
 //class Weights;

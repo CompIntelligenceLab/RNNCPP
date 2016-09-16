@@ -80,11 +80,10 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 
 	Objective* obj = m->getObjective();
 	const LOSS& loss = (*obj)(exact, pred);
-	//loss.print("loss");
 
+	printf("********************** ENTER BACKPROP **************************\n");
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
-	//exact.print("exact");
-	//exit(0);
+	printf("********************** EXIT BACKPROP **************************\n");
 
 	std::vector<BIAS> bias_fd, bias_bp;
 	std::vector<WEIGHT> weight_fd, weight_bp;
@@ -123,10 +122,12 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		 	WEIGHT weight_fd_ = weightDerivative(m, *con, inc, xf, exact);
 			weight_fd.push_back(weight_fd_);
 		 	WEIGHT weight_bp_ = con->getDelta();
+		 	weight_bp_.print("..............weight_bp_"); 
 			weight_bp.push_back(weight_bp_);
 			w_norm.push_back(arma::norm(weight_bp_));
 		}
 	}
+	//exit(0);
 
 	// compute L2 norms of various quantities
 
@@ -192,6 +193,9 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 	// return vector of weights
 	std::vector<WEIGHT> ws;
 	ws.push_back(weight_bp[1]); // recurrent weight
+	U::print(weight_bp[0], "bp[0]");
+	U::print(weight_bp[1], "bp[1]");
+	exit(0);
 	return ws;
 }
 //----------------------------------------------------------------------
