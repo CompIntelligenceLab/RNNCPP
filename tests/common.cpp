@@ -13,7 +13,8 @@ void printDerivativeBreakdown(Model* m)
 		layers[l]->printSummary();
 		for (int s=0; s < seq_len; s++) {
 			printf("--- s= %d\n", s);
-			layers[s]->deltas[s].print("delta layer-");
+			//printf("layers[s]->deltas[%d] = %ld\n", s, layers.deltas[s]);
+			layers[l]->deltas[s].print("delta layer-");
 		}
 	}
 
@@ -170,7 +171,6 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 	printf("Relative ERRORS for weight derivatives: \n");
 
 	for (int i=0; i < weight_fd.size(); i++) {
-		printf("\n"), conn[i]->printSummary();
 		WEIGHT abs_err = (weight_fd[i] - weight_bp[i]);
 		WEIGHT rel_err = abs_err / weight_bp[i];
 		abs_err = arma::abs(abs_err);
@@ -183,8 +183,13 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		//REAL err_norm_inf = arma::norm(err, "inf");
 
 		conn[i]->getWeight().print("*** weight ***");
-		printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, rel_err_norm);
-		printf("max rel error: %f at weight_bp: %f\n", rel_err_imx, wgt_imx);
+		printf("\n***********************************************************\n");
+		printf("\n      FINITE-Difference vs BACKPROP ***********************\n");
+		printf("\n"), conn[i]->printSummary();
+		printf("weight: w,abs,rel= %14.7e, %14.7e, %14.7e\n", w_norm[i], abs_err_norm, rel_err_norm);
+		printf("max rel error: %14.7e at weight_bp: %f\n", rel_err_imx, wgt_imx);
+
+		printf("\n\n");
 		//printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, err_norm, err_norm_inf);
 
 	#if 0
@@ -233,9 +238,9 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 	// return vector of weights
 	std::vector<WEIGHT> ws;
 	ws.push_back(weight_bp[1]); // recurrent weight
-	printf("Shapes of weight_bp\n");
-	U::print(weight_bp[0], "bp[0]");
-	U::print(weight_bp[1], "bp[1]");
+	//printf("Shapes of weight_bp\n");
+	//U::print(weight_bp[0], "bp[0]");
+	//U::print(weight_bp[1], "bp[1]");
 	return ws;
 }
 //----------------------------------------------------------------------

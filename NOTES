@@ -310,4 +310,29 @@ max rel error:  3.1367503e-07
   at weight_bp:    778.3234253
 
 Next: keep the diagonal at 0.98, and use finite-differences in single and double precision. 
+FINITE-DIFFERENCES VERY IMPRECISE
+DOUBLE PRECISION: 
+
+tests/debug_bias1/debug_bias1 -l 4  -b 1 -s 12 -a iden -r 1 -w xavier_iden -i 1.e-8
+Connection (weight2), weight(4, 1), layers: (input_layer0, rdense1), type: spatial
+weight: w,abs,rel=  1.7026641e+01,  5.5363446e-13,  6.3667533e-14
+max rel error:  4.4592673e-14 at weight_bp: -9.719782
+
+tests/debug_bias1/debug_bias1 -l 4  -b 1 -s 12 -a iden -r 1 -w xavier_iden -i 1.e-6
+Connection (loop_conn0), weight(4, 4), layers: (rdense1, rdense1), type: temporal
+weight: w,abs,rel=  7.4725563e+01,  2.5106331e+01,  2.1394613e+00
+max rel error:  7.9091690e-01 at weight_bp: -4.524829
+
+FINITE-difference very inaccurate with seq_len12 and inc=1.e-6!!! 
+
+SINGLE PRECISION
+
+tests/debug_bias1/debug_bias1 -l 4  -b 1 -s 12 -a iden -r 1 -w xavier_iden -i 1.e-6
+
+
+
+
+
+delta=1.e-3
+tests/debug_bias1/debug_bias1 -l 4  -b 1 -s 364 -a iden -r 1 -w xavier_iden -i .001
 ----------------------------------------------------------------------

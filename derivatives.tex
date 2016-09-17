@@ -148,5 +148,14 @@ $$
  + 2 (w_{10} x_0 - E_0) x_0
 $$
 
+\section{Finite-Difference Derivatives}
+Let us consider the accuracy of a finite-difference calculation. 
+We consider $y = x^n$ and its discrete derivative by finite-differences: 
+\begin{align}
+y' &= \frac{(x+\epsilon)^n - (x-\epsilon)^n}{2\epsilon}  \\
+   &= \frac{ (x^n +n x^{n-1}\epsilon) - (x^n - n x^{n-1}\epsilon)}{2\epsilon} + O(\epsilon) \\
+   &= n x^{n-1}
+\end{align}
+
 \end{document}
 

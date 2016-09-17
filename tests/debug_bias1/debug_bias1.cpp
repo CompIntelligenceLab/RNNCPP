@@ -168,25 +168,8 @@ void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& e
 		printf("max abs error: %14.7e\n", abs_err_max);
 		printf("max rel error: %14.7e\n", rel_err_max);
 		printf("  at weight_bp: %14.7f\n",  wgt_imx);
-		exit(0);
 
 
-
-		printf("\n*****************************************************************\n");
-		LAYERS layers = m->getLayers();
-		CONNECTIONS connections = m->getConnections();
-
-		layers[1]->getConnection()->printSummary("layers[1]->getConnection");
-		layers[1]->getConnection()->getDelta().print("layers[1]->getConnection, delta");
-
-		{
-			WEIGHT abs_err = wss[0] - total_deriv;
-			WEIGHT rel_err = abs_err % wss[0];
-			total_deriv.print("total_deriv");
-			//rel_err.print("rel_err btwn back_prop and analytic");
-			REAL rel_err_norm = arma::norm(rel_err);
-			printf("--> rel_err_norm(w11 vs analytic)  = %f\n", rel_err_norm);
-		}
 
 		printf("\n\n*** Derivative computed via backprop via RNN model\n");
 		printDerivativeBreakdown(m);
