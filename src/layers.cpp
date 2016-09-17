@@ -272,6 +272,7 @@ void Layer::computeGradient(int t)
 	} else {
 		; // Do not compute the gradient. Compute Jacobian when required
 	}
+	printf("gradient, t= %d  .", t); printSummary(); gradient.print("gradient");
 }
 //----------------------------------------------------------------------
 void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)

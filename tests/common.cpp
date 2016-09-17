@@ -1,4 +1,40 @@
 
+//----------------------------------------------------------------------
+#ifdef DEBUG
+void printDerivativeBreakdown(Model* m) 
+{
+	printf("\n\n****************************************************\n");
+	printf("printDerivativeBreakdown: DELTAS of LAYERS for all times: \n");
+	int seq_len = m->getSeqLen();
+	LAYERS layers = m->getLayers();
+	CONNECTIONS connections = m->getConnections();
+
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->printSummary();
+		for (int s=0; s < seq_len; s++) {
+			printf("--- s= %d\n", s);
+			layers[s]->deltas[s].print("delta layer-");
+		}
+	}
+
+	connections.push_back(layers[1]->getConnection());
+	layers[1]->getConnection()->printSummary();
+
+	printf("\n\n****************************************************\n");
+	printf("printDerivativeBreakdown: DELTAS of CONNECTIONS for all times: \n");
+	for (int c=0; c < connections.size(); c++) {
+		Connection* con = connections[c];
+		if (con->deltas.size()) {
+			con->printSummary();
+		}
+		for (int s=0; s < con->deltas.size(); s++) {
+			printf("--- s= %d\n", s);
+			con->deltas[s].print("delta con");
+		}
+	}
+}
+#endif
+//----------------------------------------------------------------------
 WEIGHT weightDerivative(Model* m, Connection& con, REAL inc, VF2D_F& xf, VF2D_F& exact)
 {
 	WEIGHT w0 = con.getWeight();
@@ -127,7 +163,6 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 			w_norm.push_back(arma::norm(weight_bp_));
 		}
 	}
-	//exit(0);
 
 	// compute L2 norms of various quantities
 
@@ -152,7 +187,8 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		printf("max rel error: %f at weight_bp: %f\n", rel_err_imx, wgt_imx);
 		//printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, err_norm, err_norm_inf);
 
-	if (i == 1) {
+	#if 0
+	if (i == 1) { // recurrent weight
 		int nr = weight_fd[1].n_rows;
 		int nc = weight_fd[1].n_cols;
 		nr = (nr > 3) ? 3 : nr;
@@ -167,6 +203,8 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		}}
 		#endif
 	}
+	#endif
+
 		#if 0
 		printf("----------\n");
 		printf("...d1-d1: ");  weight_bp[i].raw_print(cout, "weight_bp");
@@ -175,6 +213,7 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		#endif
 	}
 
+	#if 0
 	printf("Relative ERRORS for bias derivatives: \n");
 
 	for (int i=0; i < bias_fd.size(); i++) {
@@ -189,13 +228,14 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		printf("   d1-d1: "); err.print("bias rel error");
 		#endif
 	}
+	#endif
 
 	// return vector of weights
 	std::vector<WEIGHT> ws;
 	ws.push_back(weight_bp[1]); // recurrent weight
+	printf("Shapes of weight_bp\n");
 	U::print(weight_bp[0], "bp[0]");
 	U::print(weight_bp[1], "bp[1]");
-	exit(0);
 	return ws;
 }
 //----------------------------------------------------------------------

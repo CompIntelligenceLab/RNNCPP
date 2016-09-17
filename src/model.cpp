@@ -477,6 +477,7 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 void Model::storeGradientsInLayersRec(int t)
 {
 	//printf("---- enter storeGradientsInLayersRec ----\n");
+	printf("store: t= %d\n", t);
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->computeGradient(t);
 	}
@@ -627,6 +628,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	//exit(0);
 
 	printf("ENTER LOOP\n");
+	#if 0
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		printf("tt= %d\n", t);
 		storeGradientsInLayersRec(t);
@@ -634,6 +636,34 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 		storeDLossDweightInConnectionsRecCon(t);
 		storeDLossDbiasInLayersRec(t);
 	}
+	#endif
+
+	#if 1
+	printf("++++++++++++++++++++++++++++\n");
+	printf("   GRADIENT \n");
+ 	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
+		printf("tt= %d\n", t);
+		storeGradientsInLayersRec(t);
+	}
+	printf("++++++++++++++++++++++++++++\n");
+	printf("   d(loss)/da   (# CHECK IN) \n");    
+ 	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
+		printf("tt= %d\n", t);
+		storeDactivationDoutputInLayersRecCon(t);
+	}
+	printf("++++++++++++++++++++++++++++\n");
+	printf("   d(loss)/dw  \n");
+ 	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
+		printf("tt= %d\n", t);
+		storeDLossDweightInConnectionsRecCon(t);
+	}
+	printf("++++++++++++++++++++++++++++\n");
+	printf("   d(loss)/dbias  \n");
+ 	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
+		printf("tt= %d\n", t);
+		storeDLossDbiasInLayersRec(t);
+	}
+	#endif
 	printf("EXIT LOOP\n");
 	//exit(0);
 	//printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");

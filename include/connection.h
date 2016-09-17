@@ -35,6 +35,10 @@ public:
 	int t_from, t_to;
 	int t_clock;
 
+#ifdef DEBUG
+	std::vector<WEIGHT> deltas; // one delta per sequence time (they add up to delta). For debugging. 
+#endif
+
 protected:
 	static int counter;
 	std::string name;
@@ -43,6 +47,7 @@ protected:
 	                 // Cost is reduced once batch > 1 and using sequences. 
 	                 // Disadvantage: memory use is doubled. 
 	WEIGHT delta;
+
 	int in_dim, out_dim;
 	bool print_verbose;
 	bool temporal; // false: spatial link, true: temporal link

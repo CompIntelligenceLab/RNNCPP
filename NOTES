@@ -270,4 +270,44 @@ k= 0
  e= 0.750000
  z0= 0.295810
  k= 1
-----
+--------------------------------------------------------------------------
+The model should not have an input_dim. Only the input layers should. 
+
+I doubt this results is a function of the layer size. 
+
+DOUBLE PRECISION
+tests/debug_bias1/debug_bias1 -l 4  -b 1 -s 364 -a iden -r 1 -w xavier_iden -i .001
+diagonal element: 1.02
+abs_err_norm:  4.9263580e-06
+rel_err_norm:  5.8023473e-15
+max abs error:  2.5033951e-06
+max rel error:  2.9423055e-15
+  at weight: 850827721.9395312
+
+DOUBLE PRECISION
+tests/debug_bias1/debug_bias1 -l 4  -b 1 -s 364 -a iden -r 1 -w xavier_iden -i .001
+diagonal element: 0.98
+abs_err_norm:  2.7175785e-12
+rel_err_norm:  2.7044032e-15
+max abs error:  1.1368684e-12
+max rel error:  1.4606659e-15
+  at weight_bp:    778.3219815
+
+SINGLE PRECISION
+tests/debug_bias1/debug_bias1 -l 4  -b 1 -s 364 -a iden -r 1 -w xavier_iden -i .001
+abs_err_norm:  3.2653477e+03
+rel_err_norm:  2.4677461e-06
+max abs error: -6.0800000e+02
+max rel error:  1.2906820e-06
+  at weight_bp: -471068800.0000000
+
+SINGLE PRECISION
+tests/debug_bias1/debug_bias1 -l 4  -b 1 -s 364 -a iden -r 1 -w xavier_iden -i .001
+abs_err_norm:  1.4477477e-03
+rel_err_norm:  1.4488168e-06
+max abs error:  2.4414062e-04
+max rel error:  3.1367503e-07
+  at weight_bp:    778.3234253
+
+Next: keep the diagonal at 0.98, and use finite-differences in single and double precision. 
+----------------------------------------------------------------------

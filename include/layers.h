@@ -22,7 +22,13 @@ public:
 	// main inputs to activation in a list to better handle backpropagation when 
 	// more than one layer hits a downstream layer
 	std::vector<VF2D_F> layer_inputs;
-	std::vector<VF2D_F> layer_deltas;
+	std::vector<VF2D_F> layer_deltas; 
+
+#ifdef DEBUG
+	std::vector<DELTA> deltas;  // d(loss) / d(layer), one per sequence element
+#endif
+
+
 	int nb_hit; // used to determine order of evaluation of a general spatial network
 	VF2D_F dLdOut;  // use getters and setters later.  d(loss)/d(layer_output)
 

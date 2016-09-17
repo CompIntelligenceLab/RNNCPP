@@ -1,6 +1,9 @@
 #ifndef __TYPEDEFS__H_
 #define __TYPEDEFS__H_
 
+// set to use extra memory and diagnotics for debugging. 
+#define DEBUG 
+
 #include <vector>
 
 // Disable bound checks
@@ -24,8 +27,8 @@
 
 // Add additional print information if verpose is 1
 #define VERBOSE 0
-//#define SINGLE_PRECISION
-#define DOUBLE_PRECISION
+#define SINGLE_PRECISION
+//#define DOUBLE_PRECISION
 
 class Layer;
 //class Weights;

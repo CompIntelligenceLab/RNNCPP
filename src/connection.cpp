@@ -180,7 +180,8 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 			// This initialization should only be required for recurrent connections. 
 			// The deduction was for a network with a single recurrent layer. More generally, one 
 			// only surmises that the results hold for more general recurrent networks. 
-			weight *= 0.50; // make matrix slightly stable. 
+			weight *= 0.98; // make matrix slightly stable. 
+			//weight *= 1.02; // make matrix slightly stable. 
 			weight.print("weight temporal");
 		}
 	} else {
@@ -208,14 +209,12 @@ void Connection::incrDelta(WEIGHT& x)
 		delta += x;
 	}
 }
-
 //----------------------------------------------------------------------
 void Connection::computeWeightTranspose()
 {
 	weight_t = weight.t();
 }
 //----------------------------------------------------------------------
-//void Connection::gradMulDLda(VF2D_F& prod, int ti_from, int ti_to)
 void Connection::gradMulDLda(int ti_from, int ti_to)
 {
 	//assert(this == conn.to);
@@ -223,12 +222,13 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 	Layer* layer_from = from;
 	int nb_batch = layer_from->getNbBatch(); 
 	VF2D_F prod(nb_batch);
-	//layer_from->incrDelta(prod, ti_from);
 
 	const VF2D_F& old_deriv = layer_to->getDelta();  // 3
 	const WEIGHT& wght   = getWeight(); // invokes copy constructor, or what?  3 x 4
 
 	Activation& activation = layer_to->getActivation();
+
+	// CHECK AGAINST EXACT, ANALYTICAL!!! 
 
 	if (activation.getDerivType() == "decoupled") {   
 		//printf("gradMulDLda, decoupled\n");
@@ -239,7 +239,7 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 		const WEIGHT& wght_t = getWeightTranspose();
 		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to);  // dL/da
 		this->printSummary();
-		printf("Connection::gradMulDLda"); prod.print("prod = dL/da");
+		printf("Connection::gradMulDLda, "); prod.print("prod = dL/da");
 	} else { // "coupled"
 		//printf("gradMulDLda, coupled\n");
 		for (int b=0; b < nb_batch; b++) {
@@ -255,9 +255,17 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 	}
 
 	if (ti_from == ti_to) {
-		layer_from->incrDelta(prod, ti_from);
+		layer_from->incrDelta(prod, ti_from);   // spatial
+		#ifdef DEBUG
+		layer_from->deltas.push_back(prod);
+		#endif
 	} else {
-		if (ti_to >= 0) layer_from->incrDelta(prod, ti_to);  // I do not like this conditional
+		if (ti_to >= 0) {  // temporal
+			layer_from->incrDelta(prod, ti_to);  // I do not like this conditional, temporal
+			#ifdef DEBUG
+			layer_from->deltas.push_back(prod);
+			#endif
+		}
 	}
 }
 //----------------------------------------------------------------------
@@ -291,13 +299,16 @@ void Connection::dLdaMulGrad(int t)
 				printf("dLdaMulGrad, t= %f,"); delta.print("delta");
 			}
 			incrDelta(delta);
+			#ifdef DEBUG
+			deltas.push_back(delta);
+			#endif
 		}
 	} else { // "coupled derivatives"
 		for (int b=0; b < nb_batch; b++) {
 			const VF2D& out_t = out(b).t();
 
 			if (!temporal) {
-				const VF1D& x =  layer_to->getInputs()(b).col(t);
+				const VF1D& x = layer_to->getInputs()(b).col(t);
 				const VF1D& y = layer_to->getOutputs()(b).col(t);
 				const VF2D grad = activation.jacobian(x, y); // not stored
 	
@@ -314,9 +325,15 @@ void Connection::dLdaMulGrad(int t)
 			}
 
            	incrDelta(delta);
+			#ifdef DEBUG
+			deltas.push_back(delta);
+			#endif
 		}
 	}
 }
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
