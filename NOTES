@@ -225,6 +225,8 @@ send data from input to the output via the weights. More generally, one could so
 differential equations. 
 SEEMS RATHER ELEGANT. 
 ----------------------------------------------------------------------
+Oct. 3, 2016
+Add timings with Bollig's timing library. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
