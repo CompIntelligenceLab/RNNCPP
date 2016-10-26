@@ -1,0 +1,161 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\begin{document}
+Given an $n\times n$ matrix $W$, a scalar initial condition $z_0$, with $n$ random elements, 
+and an output $y = W^p z_0$, compute the derivative of the scalar loss function $L(y)$. 
+
+$$
+\frac{dL}{dw_{p,q}} = \frac{dL}{dy_k}\frac{dy_k}{dw_{p,q}}
+$$
+We consider $y$: 
+$$
+y_k = (W^p)_{k,j} z_{0j}
+$$
+summed over $j$. 
+
+Too complex. So we operate via recursion.
+Call $W_p = W^p z_0$. We have: 
+$$
+W_p = W * W_{p-1}
+$$
+Therefore, 
+$$
+W_p' = W' * W_{p-1} + W * W_{p-1}'
+$$
+
+%(W + eps)^p = W^p + eps
+%(W + eps)^pp = W + p * (eps * W^(p-1) + W * eps * W^(p-2) + W^2 * eps * W^(p-3) ...
+
+
+$E$ is a matrix with only one non-zero element. 
+Multiply $E * A$ where $A$ is diagonal and $E$ is non-zero in element $(p,q)$. How to do this? 
+$E$ has one non-zero element at $(m_0, n_0)$, of size $\epsilon$. 
+
+$$
+(E A)_{i,j} = E_{i,p} A_{p,j} = \epsilon \delta_{i,m_0}\delta_{p,n_0} A_{p,j} 
+    = \epsilon \delta_{i,m_0} A_{n_0,j}
+$$
+Since $A$ is diagonal, the result is zero, except when $i=m_0$ and $j=n_0$, which implies that the result
+is a matrix with one non-zero element in position $(m_0, n_0)$ with value $\epsilon A_{n_0, n_0}$. . 
+
+Now, let us consider the element  $(A * E)_{i,j}$. 
+$$
+(A E)_{i,j} = A_{i,p} E_{p,j} = \epsilon A_{i,p} \delta_{p,m_0}\delta_{j,n_0}
+    = \epsilon A_{i,m_0} \delta_{j,n_0}
+$$
+which is only non-zero when $i=m_0$ and $j=n_0$, with value $\epsilon A_{m_0, m_0}$. 
+
+Now consider $E$ with one nonzero element $E_{m_0, n_0}=\epsilon$, and diagonal matrices $A$ and $B$: : 
+$$
+A*E*B = (A*E)*B = \epsilon A(m_0,m_0) B(n_0,n_0)
+$$
+
+Let $A = D^k$ and $B = D^{p-1-k}$ and $D = \alpha I$, where $I$ is the identity matrix. Then, 
+$$
+(A*E*B)_{i,j} = \epsilon \alpha^{p-1}\delta_{i,m_0}\delta_{j,n_0} 
+$$
+Now, let us return to $y= W^p x$ and $L=||y-e||^2$, where $e$ is the exact value. $y$ has dimension $n$, so is a vector. 
+We assume that the gradient of $L$ is a row vector, and thus
+$$
+\frac{dL}{dw_{i,j}} = 2* (y-e)^T \frac{dW^p x}{dw_{i,j}}    
+$$
+where $()^T$ denotes transpose. 
+
+The results of differentiating $W^p x$ with respect to $w_{i,j}$ is a 2D $n\times n$ matrix. 
+
+Now consider $(A + E)^p$; 
+$$
+(A + E)^p = E A^{p-1} + A E A^{p-2} + ... + A^{p-1} E
+$$
+Assume $E$ has a non-zero element at position $(m_0, n_0)$, of amplitidue $\epsilon$: 
+$$
+(A + E)^p = p\epsilon\alpha^{p-1} \delta_{i,m_0}\delta_{j,n_0}
+$$
+where $\alpha$ is the diagonal element of $A$. Using central differences and dividing by $2\epsilon$: 
+$$
+F = \lim_{\epsilon\rightarrow 0} \frac{(A + E)^p-(A-E)^p}{2\epsilon} = p\alpha^{p-1} \delta_{i,m_0}\delta_{j,n_0}
+$$
+Now, multiply $F$ by a vector $v$: 
+$$
+(F*v)_i =  p\alpha^{p-1} \delta_{i,m_0}\delta_{j,n_0} v_j = p\alpha^{p-1} \delta_{i,m_0} v_{n_0}
+$$
+which has a single non-zero element when $i=m_0$. 
+
+So the final recurrent weight derivative derivative is: 
+$$
+2*(y-e) * (F*z_0) = 2*(y-e)^T_{m_0} p \alpha^{p-1} z_{0,n_0}
+$$
+where $p$ is the number of sequence steps. $\alpha$ is the diagonal element of $W_{11}$, the recurrent matrix. 
+
+We can use this result to compare the backpropagation results against exact results when $W_{11}$ is diagonal, as a function 
+of sequence length, for arbitrary exact vectors, under the condition that the input $x$ to the network has a nonzero value
+only at the first iteration. Initial biases are set to zero for this to work. 
+
+I get the feeling the above formula is wrong. Let us start again. 
+
+\begin{align}
+y(0) &= w_{01}*x(0)  \\
+y(1) &= w_{01}*x(1) + w_{11}*y(0) &= w_{11}*w_{01}*x(0) \\
+y(2) &= w_{01}*x(2) + w_{11}*y(1) &= w_{11}^2*w_{01}*x(0)\\
+y(3) &= w_{01}*x(3) + w_{11}*y(2) &= w_{11}^3*w_{01}*x(0)\\
+\cdots &= \cdots 
+\end{align}
+Note that $x(1) = x(2) = \cdots = 0$. 
+
+Loss functions: 
+\begin{align}
+L(0) &= ||y(0) - e(0)||^2 = ||w_{01}*x(0)-e(0)||^2\\
+L(1) &= ||y(1) - e(1)||^2 = ||w_{11}*w_{01}*x(0) - e(1)||^2 \\
+L(2) &= ||y(2) - e(2)||^2 = ||w_{11}^2*w_{01}*x(0) - e(2)||^2 \\
+\cdots &= \cdots = \cdots \\
+L(s-1) &= ||y(s-1) - e(s-1)||^2 = ||w_{11}^{s-1}*w_{01}*x(0) - e(s-1)||^2 \\
+\cdots &= \cdots 
+\end{align}
+
+We wish to take the derivative of  ($s$ is number of elements in the sequence): 
+$$
+L = \sum_{k=0}^{s-1} L(k)
+$$
+
+The derivative of $L(k)$ is $L'(k)$: 
+$$
+L'(k) = 2.*(y(k)-e(k))^T_{m_0} k \alpha^{k-1} (w_{01}*x(0))_{n_0} \\
+$$
+where 
+$$
+y(k) = w_{11}^k * w_{01}*x(0)
+$$
+
+\section{Network, single layer, single neuron, sequence of 2.}
+$$
+L = L_0 + L+1
+$$
+$E_n$ is the exact solution at time $n$.
+
+$$
+L_0 = (w_{10} x_0  - E_0)
+$$
+$$
+L_1 = (w_{11}w_{10} x_0 - E_1)
+$$
+
+$$
+\frac{dL}{dw_{11}} = 2 (w_{11} w_{10} x_0 - E_1) w_{10} x_0
+$$
+
+$$
+\frac{dL}{dw_{10}} = 2 (w_{11} w_{10} x_0 - E_1) w_{11} x_0
+ + 2 (w_{10} x_0 - E_0) x_0
+$$
+
+\section{Finite-Difference Derivatives}
+Let us consider the accuracy of a finite-difference calculation. 
+We consider $y = x^n$ and its discrete derivative by finite-differences: 
+\begin{align}
+y' &= \frac{(x+\epsilon)^n - (x-\epsilon)^n}{2\epsilon}  \\
+   &= \frac{ (x^n +n x^{n-1}\epsilon) - (x^n - n x^{n-1}\epsilon)}{2\epsilon} + O(\epsilon) \\
+   &= n x^{n-1}
+\end{align}
+
+\end{document}
+

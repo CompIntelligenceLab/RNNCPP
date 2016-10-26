@@ -28,13 +28,13 @@ private:
 	Optimizer* optimizer;
 	// More general models would have several loss functions running concurrently
 	Objective* objective;
-	std::string initialization_type;
 	int input_dim;   // dimensional input into the model
 	int batch_size;  // batch_size used for training, etc.
   	int nb_epochs;
 	int seq_len;     // sequence length (should not be a layer property)
 	                // represents the number of times to unroll
 	bool print_verbose;
+	std::string initialization_type; // how to initialize weights
 	// keep pointers to all weights into a dynamical linked list
 	LAYERS layers;
 	LAYERS input_layers;
@@ -59,6 +59,8 @@ public:
   /** update layer list. check for layer compatibility with previous layer */
 
   //void add(Layer* layer);
+  std::string getInitializationType() { return initialization_type; }
+  void setInitializationType(std::string initialization_type) { this->initialization_type = initialization_type; }
   void add(Layer* layer_from, Layer* layer, std::string conn_type="all-all");
   void addInputLayer(Layer* layer);
   // Specify output layer and activation function to Identity()
@@ -137,11 +139,11 @@ public:
   /** for now, initialize with random weights in [-1,1], from a Gaussian distribution.  */
   // Also allow fixed initialization in [-.8, .8] from a uniform distribution */
   // "gaussian", "uniform", "orthogonal"
-  void initializeWeights(std::string initialization_type="uniform");
   void removeFromList(std::list<Layer*>& llist, Layer* cur_layer);
   void resetDeltas();
   void resetState();
   Connection* getConnection(Layer* layer1, Layer* layer2);
+  void initializeWeights();
 
   // Ultimately, this should probably go into another polymorphic clas sequence
   void weightUpdate();

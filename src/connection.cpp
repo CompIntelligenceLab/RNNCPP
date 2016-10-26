@@ -101,7 +101,8 @@ void Connection::printSummary(std::string msg)
 	string name_from = (from == 0) ?  "NONE" : from->getName(); 
 	string name_to   = (to   == 0) ?  "NONE" :   to->getName(); 
 	cout << msg << "Connection (" << name << "), weight(" << weight.n_rows << ", " << weight.n_cols << "), " 
-	     << "layers: (" << name_from << ", " << name_to << "), type: " << type  << endl;
+	     << "layers: (" << name_from << ", " << name_to << "), type: " << type  
+		 << std::endl;
 }
 
 //----------------------------------------------------------------------
@@ -109,11 +110,6 @@ void Connection::printSummary(std::string msg)
 Connection Connection::operator+(const Connection& w) 
 {
 	Connection tmp(*this);  // Ideally, this should initialize all components
-	printf("after tmp declaration and definition\n");
-
-	U::print(weight, "weight");
-	//printf("weight.size= %d, %d", weight.n_rows, weight.n_cols);
-	//printf("weight.size= %d", weight.size()); // n_rows * n_cols
 
 	tmp.weight += w.weight;
 
@@ -123,10 +119,7 @@ Connection Connection::operator+(const Connection& w)
 Connection Connection::operator*(const Connection& w) 
 {
 	Connection tmp(*this);  // Ideally, this should initialize all components
-	printf("after tmp declaration and definition\n");
-
 	tmp.weight = tmp.weight * w.weight;
-
 	return tmp;
 };
 
@@ -146,19 +139,51 @@ VF2D_F Connection::operator*(const VF2D_F& x)
 	return tmp;
 }
 
-void Connection::initialize(std::string initialize_type /*"uniform"*/ )
+//----------------------------------------------------------------------
+void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 {
-	U::print(weight, "--  Connection::initialize, weight");
 	clock = 0;
+	printf("Weight initialization: type: %s\n", initialize_type.c_str());
 
 	if (initialize_type == "gaussian") {
 	} else if (initialize_type == "uniform") {
 		//arma_rng::set_seed_random(); // put at beginning of code // DOES NOT WORK
-		//arma::Mat<float> ww = arma::randu<arma::Mat<float> >(3, 4); //arma::size(*weight));
-		weight = arma::randu<WEIGHT>(arma::size(weight)); //arma::size(*weight));
+		//arma::Mat<REAL> ww = arma::randu<arma::Mat<REAL> >(3, 4); //arma::size(*weight));
 		weight = arma::randu<WEIGHT>(arma::size(weight)); //arma::size(*weight));
 		//weight.print("initializeConnection");
 	} else if (initialize_type == "orthogonal") {
+	} else if (initialize_type == "xavier") {
+		if (!temporal) {
+			// IMPLEMENT XAVIER with UNIFORM DISTRIBUTION 
+			//weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
+			weight = arma::randu<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
+			// I want the standard deviation to be 1/n
+			REAL n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
+			REAL n_ins  = weight.n_cols;
+			n_outs = sqrt(n_outs);
+			weight = weight / n_outs;
+		} else {  // uniform with values of [-.08, .08]
+			weight = arma::randu<WEIGHT>(arma::size(weight)); //Uniform(0,1)
+			weight = 2.0*(weight - 0.5) * 0.08;    //Uniform(-.08, 0.08)
+			//weight.print("weight temporal");
+	    //printf("***\n");exit(0);
+		}
+	} else if (initialize_type == "xavier_iden") {   // initialize recurrent weights to identity matrix
+		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
+		REAL n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
+		n_outs = sqrt(n_outs);
+		weight = weight / n_outs;
+
+		if (temporal) {
+			weight.eye(size(weight));
+			// Below 0.8 and the errors for long sequences do not accumulate
+			// This initialization should only be required for recurrent connections. 
+			// The deduction was for a network with a single recurrent layer. More generally, one 
+			// only surmises that the results hold for more general recurrent networks. 
+			weight *= 0.98; // make matrix slightly stable. 
+			//weight *= 1.02; // make matrix slightly stable. 
+			weight.print("weight temporal");
+		}
 	} else {
 		printf("initialize_type: %s not implemented\n", initialize_type.c_str());
 		exit(1);
@@ -166,7 +191,8 @@ void Connection::initialize(std::string initialize_type /*"uniform"*/ )
 	weight_t = weight.t();
 }
 
-void Connection::weightUpdate(float learning_rate) {  // simplest algorithm
+//----------------------------------------------------------------------
+void Connection::weightUpdate(REAL learning_rate) {  // simplest algorithm
 	// delta is of type WEIGHT, which is not a field, but a VF2D
 	//for (int b=0; b < delta.n_rows;  b++) {    
 		weight = weight - learning_rate * delta;
@@ -174,6 +200,7 @@ void Connection::weightUpdate(float learning_rate) {  // simplest algorithm
 	weight_t = weight.t();
 }
 
+//----------------------------------------------------------------------
 void Connection::incrDelta(WEIGHT& x)
 {
 	if (delta.n_rows == 0) {
@@ -182,13 +209,12 @@ void Connection::incrDelta(WEIGHT& x)
 		delta += x;
 	}
 }
-
+//----------------------------------------------------------------------
 void Connection::computeWeightTranspose()
 {
 	weight_t = weight.t();
 }
 //----------------------------------------------------------------------
-//void Connection::gradMulDLda(VF2D_F& prod, int ti_from, int ti_to)
 void Connection::gradMulDLda(int ti_from, int ti_to)
 {
 	//assert(this == conn.to);
@@ -196,12 +222,13 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 	Layer* layer_from = from;
 	int nb_batch = layer_from->getNbBatch(); 
 	VF2D_F prod(nb_batch);
-	//layer_from->incrDelta(prod, ti_from);
 
 	const VF2D_F& old_deriv = layer_to->getDelta();  // 3
 	const WEIGHT& wght   = getWeight(); // invokes copy constructor, or what?  3 x 4
 
 	Activation& activation = layer_to->getActivation();
+
+	// CHECK AGAINST EXACT, ANALYTICAL!!! 
 
 	if (activation.getDerivType() == "decoupled") {   
 		//printf("gradMulDLda, decoupled\n");
@@ -210,7 +237,9 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 			prod(b) = VF2D(size(layer_from->getDelta()(0)));
 		}
 		const WEIGHT& wght_t = getWeightTranspose();
-		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to); 
+		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to);  // dL/da
+		this->printSummary();
+		printf("Connection::gradMulDLda, "); prod.print("prod = dL/da");
 	} else { // "coupled"
 		//printf("gradMulDLda, coupled\n");
 		for (int b=0; b < nb_batch; b++) {
@@ -226,9 +255,17 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 	}
 
 	if (ti_from == ti_to) {
-		layer_from->incrDelta(prod, ti_from);
+		layer_from->incrDelta(prod, ti_from);   // spatial
+		#ifdef DEBUG
+		layer_from->deltas.push_back(prod);
+		#endif
 	} else {
-		if (ti_to >= 0) layer_from->incrDelta(prod, ti_to);  // I do not like this conditional
+		if (ti_to >= 0) {  // temporal
+			layer_from->incrDelta(prod, ti_to);  // I do not like this conditional, temporal
+			#ifdef DEBUG
+			layer_from->deltas.push_back(prod);
+			#endif
+		}
 	}
 }
 //----------------------------------------------------------------------
@@ -245,26 +282,33 @@ void Connection::dLdaMulGrad(int t)
 	WEIGHT delta = VF2D(size(weight));
 
 	if (activation.getDerivType() == "decoupled") {
-		printf("dLdaMulGrad, decoupled\n");
 		const VF2D_F& grad      = layer_to->getGradient();
 
 		for (int b=0; b < nb_batch; b++) {
 			const VF2D& out_t = out(b).t();
 			if (!temporal) {
 				delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
+				this->printSummary("spatial connection");
+				printf("dLdaMulGrad, t= %f,"); delta.print("delta");
 			} else {
+				//printf("TEMPORAL LINK\n");
 				if (t+1 == seq_len) continue;    // ONLY FOR seq_len == 2
 				delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t);
+
+				this->printSummary("temporal connection");
+				printf("dLdaMulGrad, t= %f,"); delta.print("delta");
 			}
 			incrDelta(delta);
+			#ifdef DEBUG
+			deltas.push_back(delta);
+			#endif
 		}
 	} else { // "coupled derivatives"
-		printf("dLdaMulGrad, coupled\n");
 		for (int b=0; b < nb_batch; b++) {
 			const VF2D& out_t = out(b).t();
 
 			if (!temporal) {
-				const VF1D& x =  layer_to->getInputs()(b).col(t);
+				const VF1D& x = layer_to->getInputs()(b).col(t);
 				const VF1D& y = layer_to->getOutputs()(b).col(t);
 				const VF2D grad = activation.jacobian(x, y); // not stored
 	
@@ -281,9 +325,15 @@ void Connection::dLdaMulGrad(int t)
 			}
 
            	incrDelta(delta);
+			#ifdef DEBUG
+			deltas.push_back(delta);
+			#endif
 		}
 	}
 }
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

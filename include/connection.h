@@ -35,6 +35,10 @@ public:
 	int t_from, t_to;
 	int t_clock;
 
+#ifdef DEBUG
+	std::vector<WEIGHT> deltas; // one delta per sequence time (they add up to delta). For debugging. 
+#endif
+
 protected:
 	static int counter;
 	std::string name;
@@ -43,6 +47,7 @@ protected:
 	                 // Cost is reduced once batch > 1 and using sequences. 
 	                 // Disadvantage: memory use is doubled. 
 	WEIGHT delta;
+
 	int in_dim, out_dim;
 	bool print_verbose;
 	bool temporal; // false: spatial link, true: temporal link
@@ -74,11 +79,11 @@ public:
 	int getNCols() { return weight.n_cols; }
 	void setTemporal(bool temporal) { this->temporal = temporal;}
 	bool getTemporal() {return temporal;}
-    virtual void initialize(std::string initialization_type="uniform");  // not sure of data structure
+    virtual void initialize(std::string initialization_type="xavier");  // not sure of data structure
 	int getClock() { return clock; }
 	void incrClock() { clock += 1; }
 	void backProp() {;} // for future use
-	void weightUpdate(float learning_rate);
+	void weightUpdate(REAL learning_rate);
 	WEIGHT& getDelta() { return this->delta; }
 	void setDelta(WEIGHT delta) { this->delta = delta; }
 	void resetDelta() { delta.zeros(); }
@@ -97,8 +102,8 @@ public:
 	Connection operator+(const Connection&); // not needed, check dimensionality
 	Connection operator*(const Connection&); // not needed, check dimensionality
 	VF2D_F operator*(const VF2D_F&);
-	float& operator()(const int i, const int j) { return weight(i,j); }
-	const float& operator()(const int i, const int j) const { return weight(i,j); }
+	REAL& operator()(const int i, const int j) { return weight(i,j); }
+	const REAL& operator()(const int i, const int j) const { return weight(i,j); }
 	void incrDelta(WEIGHT& x);
 };
 

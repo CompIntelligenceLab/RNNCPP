@@ -17,6 +17,8 @@ include_directories(
    ${EIGEN3_INCLUDE_DIR}
    ${ARMADILLO_INCLUDE_DIR}
    ${RNNCPP_SOURCE_DIR}/include
+   # command line processing
+   ${RNNCPP_SOURCE_DIR}/include/tclap 
 )
 
 # Call the CMakeLists.txt file in the src directory

@@ -74,12 +74,12 @@ Forward:
 // ANALYTICAL DERIVATION when activation functions are the identity
 
 	// set weights to 1 for testing
-	float w01      = .4;
-	float w12      = .5;
-	float x0       = .45;
-	float x1       = .75;
-	float ex0      = .75; // exact value
-	float ex1      = .85; // exact value
+	REAL w01      = .4;
+	REAL w12      = .5;
+	REAL x0       = .45;
+	REAL x1       = .75;
+	REAL ex0      = .75; // exact value
+	REAL ex1      = .85; // exact value
 	int seq_len    = 2;
 	int input_dim  = 1;
 	int nb_layers  = 2;  // in addition to input
@@ -112,18 +112,18 @@ Forward:
 	// d(loss)/dw01 = 2*(l0-ex0)*w12*x0 + 2*(l1-ex1)*(w12*x1) 
 	// d(loss)/dw12 = 2*(l0-ex0)*w01*x0 + 2*(l1-ex1)*(w01*x1) 
 
-	float loss0 = (ex0-a(2,0))*(ex0-a(2,0));  // same as predict routine
-	float loss1 = (ex1-a(2,1))*(ex1-a(2,1));  // DIFFERENT FROM PREDICT ROUTINE
-	float loss_tot  = loss0 + loss1;   // total loss for a sequence of length 2
+	REAL loss0 = (ex0-a(2,0))*(ex0-a(2,0));  // same as predict routine
+	REAL loss1 = (ex1-a(2,1))*(ex1-a(2,1));  // DIFFERENT FROM PREDICT ROUTINE
+	REAL loss_tot  = loss0 + loss1;   // total loss for a sequence of length 2
 
-	float     L0 = 2.*(a(2,0)-ex0);
-	float     L1 = 2.*(a(2,1)-ex1);
-	float dlda20 = L0;
-	float dlda21 = L1;
-	float dlda10 = dlda20 * w12;
-	float dlda11 = dlda21 * w12;
-	float dlda00 = dlda10 * w01;
-	float dlda01 = dlda11 * w01;
+	REAL     L0 = 2.*(a(2,0)-ex0);
+	REAL     L1 = 2.*(a(2,1)-ex1);
+	REAL dlda20 = L0;
+	REAL dlda21 = L1;
+	REAL dlda10 = dlda20 * w12;
+	REAL dlda11 = dlda21 * w12;
+	REAL dlda00 = dlda10 * w01;
+	REAL dlda01 = dlda11 * w01;
 
 	#if 0
 	printf("\n ============== Layer Outputs =======================\n");
@@ -147,8 +147,8 @@ Forward:
 	//         = dL/da20 * a10 + dL/da21 * a11
 	//         = dlda20  * a10 + dlda21  * a11
     
-	float dldw01 = dlda10*a(0,0) + dlda11*a(0,1);
-	float dldw12 = dlda20*a(1,0) + dlda21*a(1,1);
+	REAL dldw01 = dlda10*a(0,0) + dlda11*a(0,1);
+	REAL dldw12 = dlda20*a(1,0) + dlda21*a(1,1);
 
 	#if 0
 	printf(".... Calculation of weight derivatives by hand\n");
@@ -198,7 +198,7 @@ Forward:
 	}
 
 	// ================  BEGIN F-D weight derivatives ======================
-	float inc = .0001;
+	REAL inc = .0001;
 	runTest(m, inc, xf, exact);
 	exit(0);
 

@@ -136,7 +136,7 @@ void Layer::print(std::string msg /* "" */)
 
 void Layer::printSummary(std::string msg) 
 {
-	printf("%sLayer (%s, %s), layer_size: %d\n", msg.c_str(), name.c_str(), type.c_str(), layer_size);
+	printf("%sLayer (%s, %s, %s), layer_size: %d\n", msg.c_str(), name.c_str(), activation->getName().c_str(), type.c_str(), layer_size);
 }
 
 void Layer::printName(std::string msg /*""*/)
@@ -272,6 +272,7 @@ void Layer::computeGradient(int t)
 	} else {
 		; // Do not compute the gradient. Compute Jacobian when required
 	}
+	printf("gradient, t= %d  .", t); printSummary(); gradient.print("gradient");
 }
 //----------------------------------------------------------------------
 void Layer::forwardData(Connection* conn, VF2D_F& prod, int seq)
@@ -339,7 +340,8 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 		 	incrInputs(layer_inputs[i], t);
 		 }
 		 // add the self-looping if there. 
-		 incrInputs(loop_input); 
+		 //incrInputs(loop_input); 
+		 incrInputs(loop_input, t); 
 		 // Add layer biases. must loop over batch and over sequence size. 
 		 addBiasToInput(t);
 		 prod = getActivation()(getInputs());
@@ -391,6 +393,7 @@ void Layer::addBiasToInput(int t)
 	}
 }
 //----------------------------------------------------------------------
+#if 0
 void Layer::gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_to)
 {
 	assert(this == conn.to);
@@ -423,7 +426,9 @@ void Layer::gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_
 		}
 	}
 }
+#endif
 //----------------------------------------------------------------------
+#if 0
 void Layer::dLdaMulGrad(Connection* con, int t)
 {
 	Layer* layer_from = con->from;
@@ -475,6 +480,7 @@ void Layer::dLdaMulGrad(Connection* con, int t)
 		}
 	}
 }
+#endif
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------

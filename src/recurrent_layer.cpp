@@ -8,12 +8,12 @@ RecurrentLayer::RecurrentLayer(int layer_size /*1*/, std::string name /*rec_laye
 {
 	printf("RecurrentLayer (%s): constructor\n", this->name.c_str());
 	recurrent_conn = new Connection(layer_size, layer_size, "loop_conn");
-	recurrent_conn->initialize();
 	recurrent_conn->from = this;
 	recurrent_conn->to = this;
 	recurrent_conn->setTemporal(true);
 	recurrent_conn->setTTo(1);    // by default, recurrent connections have delay of 1
 	loop_input.set_size(nb_batch);
+	recurrent_conn->initialize("xavier"); // must be last to call. 
 	type = "recurrent";
 }
 //----------------------------------------------------------------------
@@ -56,17 +56,16 @@ void RecurrentLayer::processData(Connection* conn, VF2D_F& prod)
 		Layer::processData(conn, prod);
 }
 //----------------------------------------------------------------------
-void RecurrentLayer::forwardLoops(int seq_i)
+void RecurrentLayer::forwardLoops(int t)
 {
+	//printf("inside forward loops, t=%d\n", t);
 	// forward data to temporal connections
 	// handle self loop
 	const WEIGHT& loop_wght = recurrent_conn->getWeight();
 
-	//U::matmul(loop_input, loop_wght, outputs); // out of bounds
-	// calculate for sequence 0, store in sequence 1
-
-	if (seq_i >= 0) {
-		U::matmul(loop_input, loop_wght, outputs, seq_i, seq_i+1); // out of bounds
+	//printf("forward Loops, inside\n");
+	if (t >= 0) {
+		U::matmul(loop_input, loop_wght, outputs, t, t+1); // out of bounds
 	}
 }
 //----------------------------------------------------------------------
@@ -74,7 +73,7 @@ void RecurrentLayer::forwardLoops()
 {
 	// forward data to temporal connections
 	// handle self loop
-	printf("inside RecurrentLayer::forwardLoops\n");
+	//printf("inside RecurrentLayer::forwardLoops\n");
 	const WEIGHT& loop_wght = recurrent_conn->getWeight();
 	U::matmul(loop_input, loop_wght, outputs, 0, 1); // out of bounds
 }

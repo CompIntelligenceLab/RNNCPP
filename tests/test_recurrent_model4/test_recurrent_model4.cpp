@@ -77,14 +77,14 @@ Forward:
  a(2,1) = z(2,1) = w2*z(1,1) + w12 * z(2,0)
 ***/
 
-	float w1       = .4;
-	float w12      = .5;
-	float w11      = .6;
-	float w22      = .7;
-	float x0       = .45;
-	float x1       = .75;
-	float ex0      = .75; // exact value
-	float ex1      = .85; // exact value
+	REAL w1       = .4;
+	REAL w12      = .5;
+	REAL w11      = .6;
+	REAL w22      = .7;
+	REAL x0       = .45;
+	REAL x1       = .75;
+	REAL ex0      = .75; // exact value
+	REAL ex1      = .85; // exact value
 	int seq_len    = 2;
 	int input_dim  = 1;
 	int nb_layers  = 2;  // in addition to input
@@ -120,24 +120,24 @@ Forward:
 	// d(loss)/dw11 = 2*(l2+l3-ex1)*(w12*w1*x0) 
 	// d(loss)/dw22 = 2*(l2+l3-ex1)*(w12*w1*x0) 
 	//
-	float L0 = 2.*(a(2,0)-ex0);
-	float L1 = 2.*(a(2,1)-ex1);
-	float dldw1  = L0*w12*x0 + L1*(w12*x1+w12*w11*x0+w22*w12*x0); // CORRECT
-	float dldw12 = L0*w1*x0 + L1*(w1*x1+w11*w1*x0 + w22*w1*x0); // CORRECT
-	float dldw11 = L1*(w12*w1*x0); // CORRECT
-	float dldw22 = L1*(w12*w1*x0); // CORRECT
+	REAL L0 = 2.*(a(2,0)-ex0);
+	REAL L1 = 2.*(a(2,1)-ex1);
+	REAL dldw1  = L0*w12*x0 + L1*(w12*x1+w12*w11*x0+w22*w12*x0); // CORRECT
+	REAL dldw12 = L0*w1*x0 + L1*(w1*x1+w11*w1*x0 + w22*w1*x0); // CORRECT
+	REAL dldw11 = L1*(w12*w1*x0); // CORRECT
+	REAL dldw22 = L1*(w12*w1*x0); // CORRECT
 
 	//a11 = w1 *a01 + w11*a10;
 	//a21 = w12*a11 + w22*a20;
 	//a10 = w1*a00
 	//a20 = w1*w11*a10;
 
-	float da11da01 = w1;
-	float da11da10 = w11;
-	float da21da11 = w12;
-	float da21da20 = w22;
-	float da10da00 = w1;
-	float da20da10 = w1*w11;
+	REAL da11da01 = w1;
+	REAL da11da10 = w11;
+	REAL da21da11 = w12;
+	REAL da21da20 = w22;
+	REAL da10da00 = w1;
+	REAL da20da10 = w1*w11;
 
 	printf("dLda20= %f\n", L0);
 	printf("dLda21= %f\n", L1);
@@ -149,13 +149,13 @@ Forward:
 	printf("da20da10= %f\n", w1*w11);
 	printf("\n\n");
 
-	float dLda20 = L0;
-	float dLda21 = L1;
-	float dLda11 = L1 * da21da11;
-	float dLda10 = L0*w1*w11;
-	float dLda01 = w1*w12*L1;
-	float dLda00 = w1*(L1*w11*w12 + L0*w1*w11);
-	//float dLda00 = da10da00*(L1*da11da10*da21d11 + L0*da20da10) = w1*(L1*w11*w12 + L0*w1*w11);
+	REAL dLda20 = L0;
+	REAL dLda21 = L1;
+	REAL dLda11 = L1 * da21da11;
+	REAL dLda10 = L0*w1*w11;
+	REAL dLda01 = w1*w12*L1;
+	REAL dLda00 = w1*(L1*w11*w12 + L0*w1*w11);
+	//REAL dLda00 = da10da00*(L1*da11da10*da21d11 + L0*da20da10) = w1*(L1*w11*w12 + L0*w1*w11);
 
 	printf("Calculation of weight derivatives by hand\n");
 	printf("dldw1= %f\n", dldw1);
@@ -175,8 +175,8 @@ Forward:
 
 	printf("a(1,1)= %f,  a(2,1)= %f\n", a(1,1), a(2,1));
 
-	float loss0 = (ex0-a(2,0))*(ex0-a(2,0));  // same as predict routine
-	float loss1 = (ex1-a(2,1))*(ex1-a(2,1));  // DIFFERENT FROM PREDICT ROUTINE
+	REAL loss0 = (ex0-a(2,0))*(ex0-a(2,0));  // same as predict routine
+	REAL loss1 = (ex1-a(2,1))*(ex1-a(2,1));  // DIFFERENT FROM PREDICT ROUTINE
 	// Is error hand-solution or in predict? 
 	printf("loss0= %f, loss1= %f\n", loss0, loss1);
 
@@ -227,7 +227,7 @@ Forward:
 
 
 	//================================
-	float inc = .001;
+	REAL inc = .001;
 	runTest(m, inc, xf, exact);
 	exit(0);
 }

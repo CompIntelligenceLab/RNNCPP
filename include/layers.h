@@ -22,7 +22,13 @@ public:
 	// main inputs to activation in a list to better handle backpropagation when 
 	// more than one layer hits a downstream layer
 	std::vector<VF2D_F> layer_inputs;
-	std::vector<VF2D_F> layer_deltas;
+	std::vector<VF2D_F> layer_deltas; 
+
+#ifdef DEBUG
+	std::vector<DELTA> deltas;  // d(loss) / d(layer), one per sequence element
+#endif
+
+
 	int nb_hit; // used to determine order of evaluation of a general spatial network
 	VF2D_F dLdOut;  // use getters and setters later.  d(loss)/d(layer_output)
 
@@ -176,8 +182,10 @@ public:
 
 	// Doing this in layers since the approach to matrix multiplication will depend on whether the activation function
 	// gradient is done componentwise or via a Jacobian matrix
+	#if 0
 	virtual void gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_to); // for now, do not store anything (at least until we know what is needed)
 	virtual void dLdaMulGrad(Connection* con, int t);
+	#endif
 	Connection* getConnection() {return recurrent_conn;}
 
 public:
