@@ -3,36 +3,56 @@
 #include "print_utils.h"
 #include "activations.h"
 
-int main() {
+int main() 
+{
 	printf("\n\n\n");
 	printf("=============== BEGIN Activations =======================\n");
 	Tanh* ttanh = new Tanh();
 	Sigmoid* ssigmoid = new Sigmoid();
+	bool success = true;
 
-	VF2D_F c(1);
-	c[0] = VF2D(5,7);
-	for (int i=0; i < c.size(); i++) {
-		c[0](i) = i*.1;
+	VF2D_F c(2), tt(2), ttexact(2);        // number of fields
+	VF1D norms(c.size());
+	for (int f=0; f < c.size(); f++) {
+		c[f] = VF2D(3,4);   // single field
+		for (int i=0; i < c[f].size(); i++) {
+			c[f](i) = i*.1;
+		}
 	}
 
-	VF2D_F tt(1);
 	tt = (*ttanh)(c);   // ==> operator= not accepting a field as input
-	U::print(tt, "tt"); 
-
-	for (int i=0; i < tt[0].size(); i++) {
-		printf("%f, %f\n", tt[0][i], tanh(c[0][i]));
+	for (int f=0; f < c.size(); f++) {
+		ttexact[f] = VF2D(3,4);   // single field
+		for (int i=0; i < c[f].size(); i++) {
+			ttexact[f][i] = tanh(c[f][i]);
+		}
+		norms[f] = arma::norm(ttexact[f] - tt[f]);
+		if (norms[f] > 1.e-5) success = false;
+		printf("norms(Tanh::tanh, tanh) = %f\n", norms[f]);
 	}
+
+	U::print(tt, "Tanh::operator(VF2D_F) vs tanh(float x) function"); 
+
+//------------------------------------------
+	printf("\n\n---------- END TEST TANH ----------------\n");
+	U::print(tt, "Sigmoid::operator(VF2D_F) vs sigmoid(float x) function"); 
 
 	tt = (*ssigmoid)(c);
-	for (int i=0; i < tt[0].size(); i++) {
-		c[0][i] = 1. / (1. + exp(-i*.1));
+	for (int f=0; f < tt.size(); f++) {
+		for (int i=0; i < tt[f].size(); i++) {
+			ttexact[f][i] = 1. / (1. + exp(-i*.1));
+		}
+		norms[f] = arma::norm(ttexact[f] - tt[f]);
+		if (norms[f] > 1.e-5) success = false;
+		printf("norms(Sigmoid::sigmoid, sigmoid)= %f\n", norms[f]);
 	}
 
-	printf("\n");
-	for (int i=0; i < tt[0].size(); i++) {
-		printf("%f, %f\n", tt[0][i], c[0][i]);
-	}
+	printf("\n\n---------- END TEST SIGMOID ----------------\n");
 
-  printf("\n\n---Activations Test Successful---\n\n");
+    if (success) {
+  	  printf("\n\n--- Activations Test Successful! ---\n\n");
+    } else {
+  	  printf("\n\n--- Activations Test Failed! ---\n\n");
+    }
   return 0;
 }
