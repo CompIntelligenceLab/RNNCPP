@@ -341,3 +341,7 @@ tests/debug_bias1/debug_bias1 -l 4  -b 1 -s 12 -a iden -r 1 -w xavier_iden -i 1.
 delta=1.e-3
 tests/debug_bias1/debug_bias1 -l 4  -b 1 -s 364 -a iden -r 1 -w xavier_iden -i .001
 ----------------------------------------------------------------------
+Oct. 25, 2016
+- 1) run tests for recursive networks, make sure everything works. Keep networks very simple. 
+- 2) Add parameters + gradients to activation functions. 
+----------------------------------------------------------------------

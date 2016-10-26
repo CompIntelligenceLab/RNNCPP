@@ -18,6 +18,12 @@ protected:
 	// "decoupled": Compute a 1D componentwise derivative
 	std::string deriv_type;  // "coupled" or "decoupled"
 
+	// Add parameters for activation function
+	// Must add routines to compute the derivative of the activation function with respect 
+	// to params. These will be used for our experiments with determining a differential equation 
+	// from a solution signal. 
+	std::vector<REAL> params;
+
 public:
 	Activation(std::string name="activation");
 	virtual ~Activation();
