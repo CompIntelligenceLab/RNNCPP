@@ -32,11 +32,13 @@ public:
 	/** Derivative f'(x) of activation function f(x) */
 	/** x has dimensionality equal to the previous layer size */
 	/** the return value has the dimensionality of the new layer size */
+	/** Sometimes there is a need to use fields (VF2D_F) and sometimes simple 1D arrays (VF1D) as input */
 	virtual VF2D_F derivative(const VF2D_F& x) = 0; // derivative of activation function evaluated at x
+	virtual VF1D   derivative(const VF1D&   x) = 0; // derivative of activation function evaluated at x
+
 	virtual VF2D jacobian(const VF1D& x, const VF1D& y) { ; // different variables are coupled, Jacobian
 		return VF2D(1,1);  // not really used, but a placeholder 
 	}
-	virtual VF1D derivative(const VF1D& x) = 0; // derivative of activation function evaluated at x
 	virtual VF2D_F operator()(const VF2D_F& x) = 0;
 	virtual void print(std::string name= "");
 	virtual std::string getName() { return name; }

@@ -1,0 +1,2 @@
+./bias1_single -l 64  -b 1 -s 32 -a iden -r 1 -w xavier
+
