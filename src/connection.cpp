@@ -53,7 +53,8 @@ Connection::Connection(const Connection& w) : in_dim(w.in_dim), out_dim(w.out_di
 	 t_to(w.t_to), t_clock(w.t_clock)
 {
 	name = w.name + "c";
-	weight = WEIGHT(out_dim, in_dim);
+	//weight = WEIGHT(out_dim, in_dim);
+	weight = w.getWeight();
 	printf("Connection::copy_constructor (%s)\n", name.c_str());
 }
 
@@ -111,7 +112,12 @@ Connection Connection::operator+(const Connection& w)
 {
 	Connection tmp(*this);  // Ideally, this should initialize all components
 
+	//(*this).weight.print("operator+, *this");
+	//tmp.weight.print("operator+, tmp");
+	//w.weight.print("operator+, w");
 	tmp.weight += w.weight;
+
+	//tmp.weight.print("operator+, tmp += w");
 
 	return tmp;
 };
@@ -131,6 +137,9 @@ VF2D_F Connection::operator*(const VF2D_F& x)
 	int nb_seq   = x[0].n_cols;   // if x[0] exists
 
 	VF2D_F tmp(nb_batch);  // Ideally, this should initialize all components
+	//x[0].print("x[i]");
+	//weight.print("weight");
+	//exit(0);
 
 	for (int i=0; i < nb_batch; i++) {
 		tmp[i] = this->weight * x[i]; // benchmark for large arrays

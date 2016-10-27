@@ -1,9 +1,8 @@
 
-add_subdirectory(activations)
-add_subdirectory(feedforward)
-add_subdirectory(copy_constructors)
+#add_subdirectory(activations)
+#add_subdirectory(copy_constructors)
 add_subdirectory(weights)
-add_subdirectory(input)
+#add_subdirectory(input)
 #add_subdirectory(test_recurrent_model1)
 #add_subdirectory(test_recurrent_model2)
 #add_subdirectory(test_recurrent_model3)

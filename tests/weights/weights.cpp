@@ -15,49 +15,67 @@ int main()
 	Connection w1(5,6); // arguments: inputs, outputs, weight(output, input)
 	Connection w2(5,6); // WEIGHT 6,5
 
-	WEIGHT& ww = w1.getWeight();
-	U::print(ww, "ww");
-
 	for (int j=0; j < 5; j++) {  // inputs, 2nd arg
 	for (int i=0; i < 6; i++) {
 		printf("i,j= %d, %d\n", i,j);
-		w1(i,j) = i+j;
+		w1(i,j) = (i+1) + (j+1);
 		w2(i,j) = i-j;
 	}}
 
+	WEIGHT& ww = w1.getWeight();
+	U::print(ww, "ww");
+	ww.print("ww");
+
 	// assume single batch
-	Connection w3(w1);; // + w2; (works fine)
+	Connection w3(w1); // + w2; (works fine)
 	for (int i=0; i < 2; i++) {
 	for (int j=0; j < 3; j++) {
-		printf("w1,w3(w1)= %f, %f\n", w1(i,j), w3(i,j));
+		printf("1. w1,w3(w1)= %f, %f\n", w1(i,j), w3(i,j));
 	}}
 
 
-	printf("w3 = w1+w2+w1+w2\n");
-	w3 = w1 + w2 + w1 + w2; // works
-	exit(0);
+	Connection w4(w1); 
+	printf("w4 = w1+w2+w1+w2\n");
+	//w4 = w1 + w2 + w1 + w2; // works
+
+	//printf("===========================\n");
+	//w1.print("connection w1");
+	w4 = w1 + w2 + w1 + w2;
+	//printf("===========================\n");
 
 	for (int i=0; i < 2; i++) {
 	for (int j=0; j < 3; j++) {
-		printf("w1,w2= %f, %f, w3=w1+w2= %f\n", w1(i,j), w2(i,j), w3(i,j));
+		printf("2. w1,w2= %f, %f, w4=w1+w2+w1+w2= %f\n", w1(i,j), w2(i,j), w4(i,j));
 	}}
 
-	Connection w10(6,5);
-	for (int j=0; j < 5; j++) {
-	for (int i=0; i < 6; i++) {
+	//w4.getWeight().print("w4");
+
+	//exit(0);
+
+	// I do not the way weights are initialized. Ideally, weights should be initialized
+	//    as weights(outputs, inputs). But they are not. 
+	Connection w10(6,3); // arguments: inputs, outputs, weight(output, input)
+	for (int j=0; j < 6; j++) {
+	for (int i=0; i < 3; i++) {
 		w10(i,j) = i+j;
 	}}
+
+	w10.getWeight().print("w10");
+	w1.getWeight().print("w1");
 
 
 	// ===============================
 	//Test multiplication
 
-	w3 = w1 * w10;
+	// w1(5,6), w10(6,3). Therefore, 
+	//w3 = w1 * w10;
+	w3 = w10 * w1;
 
 	for (int i=0; i < 2; i++) {
 	for (int j=0; j < 3; j++) {
-		printf("w3=w1*w10= %f\n", w3(i,j));
+		printf("3. w1,w10= %f, %f, w3=w1*w10= %f\n", w1(i,j), w10(i,j), w3(i,j));
 	}}
+
 
 	//==============================
 	// Multiplication of w * x  (Connection * VF2D_F)
@@ -72,12 +90,12 @@ int main()
 		for (int p=0; p < 2; p++) {
 		for (int q=0; q < 3; q++) {
 			x[i](p,q) = (REAL) (p+q)*(i+1);
-			printf("x[%d](%d,%d)= %f\n", i, p, q, x[i](p,q));
+			printf("4. x[%d](%d,%d)= %f\n", i, p, q, x[i](p,q));
 		}}
 	}
 
 	//-----------------
-	Connection w11(3,2);  // layer[k], layer[k-1]
+	Connection w11(2,3);  // layer[k], layer[k-1]
 
 	U::print(x, "tests_weights, x");
 	w11.printSummary("w11"); 
@@ -87,8 +105,12 @@ int main()
 	for (int i=0; i < 3; i++) {
 	for (int j=0; j < 2; j++) {
 		w11(i,j) = (REAL) (i+2*j);
-		printf("w11(%d,%d)= %f\n", i, j, w11(i,j));
+		printf("5. w11(%d,%d)= %f\n", i, j, w11(i,j));
 	}}
+
+	w11.getWeight().print("w11");
+	x.print("x");
+	//exit(0);
 
 
 	VF2D_F y = w11 * x;  // w11(3,2) * x(3)(2,4) ==> x(3)(3,4) // w11[layer(l), layer(l-1))
@@ -116,7 +138,10 @@ int main()
 	for (int i=0; i < 3; i++) {
 		for (int p=0; p < 3; p++) {
 		for (int q=0; q < 4; q++) {
-			printf("y[%d](%d,%d)= %f, exact: %f\n", i, p, q, y[i](p,q), tst[i](p,q));  // ==> Index out of bounds
+			printf("6. y[%d](%d,%d)= %f, exact: %f\n", i, p, q, y[i](p,q), tst[i](p,q));  
 		}}
 	}
+
+	// FIX code to check calculations and return success or not when computing norms. 
+	exit(0);
 }

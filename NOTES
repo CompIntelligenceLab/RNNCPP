@@ -345,3 +345,13 @@ Oct. 25, 2016
 - 1) run tests for recursive networks, make sure everything works. Keep networks very simple. 
 - 2) Add parameters + gradients to activation functions. 
 ----------------------------------------------------------------------
+Oct. 27, 2016
+Weights are initialized as w(input, output), but are stored as w(output, input). 
+That is very confusing. At some point, I should change this so that weight 
+are initialized as w(output, input). 
+
+So if I define w1 = WEIGHT(3,5) and w = WEIGHT(5,7), 
+the multiplication w1*w does not work, but w*w1 does. 
+
+I am afraid that there are too many places to change in the code!
+----------------------------------------------------------------------

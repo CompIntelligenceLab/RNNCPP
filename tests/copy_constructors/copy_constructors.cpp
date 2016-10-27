@@ -38,15 +38,6 @@ int main()
 	DenseLayer layer2;
 	DenseLayer layer4 = layer3;
 
-	//Layer layer1(*layer);
-	#if 0
-
-	//layer->print("\n--> print layer\n");
-	layer1.print("\n--> print layer1\n");
-	exit(0);
-	layer2.print("\n--> print layer2\n");
-	//exit(0);
-	#endif
   printf("\n\n---Copy Constructor Test Successful---\n\n");
 }
 
