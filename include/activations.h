@@ -45,6 +45,7 @@ public:
 	virtual std::string getName() { return name; }
 	virtual std::string getDerivType() { return deriv_type; }
 	virtual void setNbParams(int nb_params) { params.resize(nb_params); }
+	virtual void setParam(int which, REAL value) { params[which] = value; }
 	virtual VF2D_F computeGradientWRTParam(int i) { return VF2D_F(0); }
 };
 
@@ -244,33 +245,34 @@ public:
 // Decay Differential equation, forward Euler
 class DecayDE : public Activation
 {
+public:
 	DecayDE(std::string name="tanh") : Activation(name) {;}
 	~DecayDE();
     DecayDE(const DecayDE&);
     const DecayDE& operator=(const DecayDE&);
  
-	VF2D_F operator()(const VF2D_F& x) {
-#ifdef ARMADILLO
+	VF2D_F operator()(const VF2D_F& x)
+	{
+		printf("operator()\n");
 		VF2D_F y(x.n_rows);
 		for (int i=0; i < x.n_rows; i++) {
 			// Forward Euler
 			y[i] = (1. + dt * params[0]) * x[i];
 		}
 		return y;
-#endif
 	}
 
 	VF2D_F derivative(const VF2D_F& x)
 	{
-#ifdef ARMADILLO
 		VF2D_F y(x.n_rows);
+		printf("derivative\n");
 		for (int i=0; i < x.n_rows; i++) {
 			for (int j=0; j < x[i].size(); j++) {
+				y[i] = VF2D(x[0]);
 				y[i][j] = (1. + dt * params[0]);
 			}
 		}
 		return y;
-#endif
 	}
 
 	VF1D derivative(const VF1D& x)
@@ -283,7 +285,8 @@ class DecayDE : public Activation
 		return y;
 	}
 
-	virtual VF2D_F computeGradientWRTParam(const VF2D_F& x, int ix) { 
+	virtual VF2D_F computeGradientWRTParam(const VF2D_F& x, int ix)
+	{
 		if (ix == 0) {
 			VF2D_F y(x.n_rows);
 			for (int i=0; i < x.n_rows; i++) {

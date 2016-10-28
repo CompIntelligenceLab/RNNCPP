@@ -176,3 +176,18 @@ ReLU::~ReLU()
 {
 }
 //----------------------------------------------------------------------
+DecayDE::~DecayDE() 
+{
+	printf("DecayDE constructor (%s)\n", this->name.c_str());
+}
+
+DecayDE::DecayDE(const DecayDE& t) : Activation(t)
+{ }
+
+const DecayDE& DecayDE::operator=(const DecayDE& t)
+{
+	if (this != &t) {
+		name = t.name + '=';
+	}
+	return *this;
+}

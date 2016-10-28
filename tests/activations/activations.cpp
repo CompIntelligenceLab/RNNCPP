@@ -54,5 +54,31 @@ int main()
     } else {
   	  printf("\n\n--- Activations Test Failed! ---\n\n");
     }
-  return 0;
+
+//-----------------------------------------------------
+	printf("\n\n: testing of activation parameter in DecayDE\n");
+	DecayDE* decay = new DecayDE();
+    {
+		VF2D_F c(2), tt(2), ttexact(2);        // number of fields
+		for (int f=0; f < c.size(); f++) {
+			c[f] = VF2D(3,4);   // single field
+			for (int i=0; i < c[f].size(); i++) {
+				c[f](i) = i*.1;
+			}
+		}
+
+		printf("before setParam\n");
+		decay->setNbParams(1);
+		decay->setParam(0, .15);
+		printf("after setParam\n");
+		VF2D_F val = (*decay)(c);
+		printf("after val\n");
+		c.print("c");
+		val.print("decay(c)");
+
+		VF2D_F deriv = decay->derivative(c);
+		deriv.print("deriv");
+	
+  		return 0;
+	}
 }

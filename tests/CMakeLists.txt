@@ -1,5 +1,5 @@
 
-#add_subdirectory(activations)
+add_subdirectory(activations)
 #add_subdirectory(copy_constructors)
 #add_subdirectory(weights)
 #add_subdirectory(input)
