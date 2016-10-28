@@ -25,6 +25,15 @@ protected:
 	REAL dt; // discrete time step. Not sure if needed
 	std::vector<REAL> params;
 
+#ifdef DEBUG
+	// derivative of loss function wrt parameters
+	// One per parameter and per sequence element
+	// deltas[i] = sequence elements for parameter i
+	typedef std::vector<DELTA>  DELTAS;  // one per sequence
+	// deltasp[i] corresponds to parameter "i" in the activation function
+	std::vector<DELTAS> deltasp;  // (one per sequence) per parameter
+#endif
+
 public:
 	Activation(std::string name="activation");
 	virtual ~Activation();

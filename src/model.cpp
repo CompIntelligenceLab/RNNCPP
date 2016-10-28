@@ -586,6 +586,42 @@ void Model::storeDLossDbiasInLayersRec(int t)
 	}
 }
 //----------------------------------------------------------------------
+// MUST REWRITE THIS. Use this as template. 
+void Model::storeDLossDactivationParams(int t)
+{
+	VF1D delta;
+
+	for (int l=0; l < layers.size(); l++) {
+		Layer* layer = layers[l];
+
+		const Activation& activation = layer->getActivation();
+
+		// REWRITE FOLLOWING LOOP
+
+		if (layer->getActivation().getDerivType() == "decoupled") {
+			const VF2D_F& grad      = layer->getGradient();
+			const VF2D_F& old_deriv = layer->getDelta();
+
+			for (int b=0; b < nb_batch; b++) {
+				delta = (old_deriv[b].col(t) % grad[b].col(t));
+				layer->incrBiasDelta(delta);
+			}
+
+		} else {  // coupled
+			for (int b=0; b < nb_batch; b++) {
+				const VF1D& x =  layer->getInputs()(b).col(t);   // ERROR
+				const VF1D& y = layer->getOutputs()(b).col(t);
+				const VF2D grad = layer->getActivation().jacobian(x, y); // not stored (3,3)
+				const VF2D_F& old_deriv = layer->getDelta();
+
+				const VF2D& gg = old_deriv[b].col(t).t() * grad; // (1,3)
+				delta = gg.t();
+				layer->incrBiasDelta(delta);
+			}
+		}
+	}
+}
+//----------------------------------------------------------------------
 void Model::resetDeltas()
 {
 	typedef CONNECTIONS::reverse_iterator IT;
@@ -622,48 +658,33 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 
     objective->computeGradient(exact, pred);
     VF2D_F& grad = objective->getGradient();
-	getOutputLayers()[0]->setDelta(grad);  // assumes single output layer. Set for all sequences. 
+	// assumes single output layer. Set for all sequences. 
+	getOutputLayers()[0]->setDelta(grad);  
 
-	//getOutputLayers()[0]->getDelta()[0].raw_print(std::cout, "deltas of output layer (grad of Loss)"); 
-
-	//printf("ENTER LOOP\n");
-	#if 0
- 	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		printf("tt= %d\n", t);
-		storeGradientsInLayersRec(t);
-		storeDactivationDoutputInLayersRecCon(t);
-		storeDLossDweightInConnectionsRecCon(t);
-		storeDLossDbiasInLayersRec(t);
-	}
-	#endif
-
-	#if 1
 	//printf("++++++++++++++++++++++++++++\n");
 	//printf("   GRADIENT \n");
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		//printf("tt= %d\n", t);
 		storeGradientsInLayersRec(t);
 	}
 	//printf("++++++++++++++++++++++++++++\n");
 	//printf("   d(loss)/da   (# CHECK IN) \n");    
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		//printf("tt= %d\n", t);
 		storeDactivationDoutputInLayersRecCon(t);
 	}
 	//printf("++++++++++++++++++++++++++++\n");
 	//printf("   d(loss)/dw  \n");
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		//printf("tt= %d\n", t);
 		storeDLossDweightInConnectionsRecCon(t);
 	}
 	//printf("++++++++++++++++++++++++++++\n");
 	//printf("   d(loss)/dbias  \n");
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		//printf("tt= %d\n", t);
 		storeDLossDbiasInLayersRec(t);
 	}
-	#endif
-	//printf("EXIT LOOP\n");
+
+ 	//for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
+		//storeDLossDbiasInLayersRec(t);
+	//}
 }
 //----------------------------------------------------------------------
 Connection* Model::getConnection(Layer* layer1, Layer* layer2)

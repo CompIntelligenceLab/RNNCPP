@@ -114,6 +114,8 @@ public:
   void   storeDactivationDoutputInLayers();
   void 	storeDLossDweightInConnections();
   //void 	storeDLossDweightInConnectionsCon();
+  // derivative of loss function wrt activation parameters
+  void storeDLossDactivationParams(int t);
 
   void storeGradientsInLayersRec(int t);
   void storeDactivationDoutputInLayersRecCon(int t);

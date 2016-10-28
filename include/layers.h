@@ -25,6 +25,7 @@ public:
 	std::vector<VF2D_F> layer_deltas; 
 
 #ifdef DEBUG
+    //  DELTA: VF2D_F: (batch)(layer_size, seq_len)
 	std::vector<DELTA> deltas;  // d(loss) / d(layer), one per sequence element
 #endif
 
