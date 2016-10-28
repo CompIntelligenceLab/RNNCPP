@@ -22,6 +22,7 @@ protected:
 	// Must add routines to compute the derivative of the activation function with respect 
 	// to params. These will be used for our experiments with determining a differential equation 
 	// from a solution signal. 
+	REAL dt; // discrete time step. Not sure if needed
 	std::vector<REAL> params;
 
 public:
@@ -253,7 +254,7 @@ class DecayDE : public Activation
 		VF2D_F y(x.n_rows);
 		for (int i=0; i < x.n_rows; i++) {
 			// Forward Euler
-			y[i] = (1. + params[0]) * x[i];
+			y[i] = (1. + dt * params[0]) * x[i];
 		}
 		return y;
 #endif
@@ -265,7 +266,7 @@ class DecayDE : public Activation
 		VF2D_F y(x.n_rows);
 		for (int i=0; i < x.n_rows; i++) {
 			for (int j=0; j < x[i].size(); j++) {
-				y[i][j] = (1. + params[0]);
+				y[i][j] = (1. + dt * params[0]);
 			}
 		}
 		return y;
@@ -277,7 +278,7 @@ class DecayDE : public Activation
 		VF1D y(x.n_rows);
 		//x.print("***> input to activation (tanh): x");
 		for (int i=0; i < x.n_rows; i++) {
-			y[i] = (1. + params[0]);
+			y[i] = (1. + dt * params[0]);
 		}
 		return y;
 	}
@@ -287,7 +288,7 @@ class DecayDE : public Activation
 			VF2D_F y(x.n_rows);
 			for (int i=0; i < x.n_rows; i++) {
 				// Forward Euler
-				y[i] = x[i];
+				y[i] = dt * x[i];
 			}
 			return y;
 		}

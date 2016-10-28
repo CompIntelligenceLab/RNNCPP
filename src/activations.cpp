@@ -8,6 +8,8 @@ Activation::Activation(std::string name /* "activation" */)
 	char cname[80];
 	deriv_type = "decoupled";  // default
 
+	dt = 0.01;   // Discrete time step
+
 	if (strlen(cname) > 80) {
 		printf("Activation::Activation : cname array too small\n");
 		exit(1);
