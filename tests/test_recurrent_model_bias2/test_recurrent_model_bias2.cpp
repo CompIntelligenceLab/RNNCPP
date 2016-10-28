@@ -36,6 +36,7 @@ void testRecurrentModelBias2(int nb_batch, int seq_len, int layer_size, int is_r
 	m->add(input, d1);
 	m->add(d1, d2);
 
+	// input should always be identity activation
 	input->setActivation(new Identity());
 	d1->setActivation(   activation);
 	d2->setActivation(   activation);
@@ -284,6 +285,8 @@ Forward:
 	REAL inc = 0.001;
 	runTest(m, inc, xf, exact); exit(0);
 
+	printf("------------------------------\n");
+	printf("excute predictAndBackProp()\n");
 	predictAndBackProp(m, xf, exact);
 
 	exit(0);
@@ -298,6 +301,8 @@ int main(int argc, char* argv[])
     int seq_len = 1;
     int is_recurrent = 1;
 	Activation* activation; 
+	std::string initialization_type;
+	initialization_type = "xavier";
 
 	argv++; 
 	argc--; 
@@ -313,6 +318,9 @@ int main(int argc, char* argv[])
 			argc -= 2; argv += 2;
 		} else if (arg == "-r") {
 			is_recurrent = atoi(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-w") {
+			initialization_type = argv[1];
 			argc -= 2; argv += 2;
 		} else if (arg == "-l") {
 			layer_size = atoi(argv[1]);

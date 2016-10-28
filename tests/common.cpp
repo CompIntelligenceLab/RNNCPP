@@ -36,7 +36,7 @@ void printDerivativeBreakdown(Model* m)
 }
 #endif
 //----------------------------------------------------------------------
-WEIGHT weightDerivative(Model* m, Connection& con, REAL inc, VF2D_F& xf, VF2D_F& exact)
+WEIGHT weightDerivative(Model* m, Connection& con, REAL fd_inc, VF2D_F& xf, VF2D_F& exact)
 {
 	WEIGHT w0 = con.getWeight();
 	int rrows = w0.n_rows;
@@ -49,28 +49,28 @@ WEIGHT weightDerivative(Model* m, Connection& con, REAL inc, VF2D_F& xf, VF2D_F&
 	for (int cc=0; cc < ccols; cc++)
 	{
 		WEIGHT& wp = con.getWeight(); 
-		wp(rr,cc) += inc;
+		wp(rr,cc) += fd_inc;
 		VF2D_F pred_n = m->predictViaConnectionsBias(xf);
 
 		WEIGHT& wm = con.getWeight(); 
-		wm(rr,cc) -= (2.*inc);
+		wm(rr,cc) -= (2.*fd_inc);
 		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
-		wp(rr,cc) += inc; // I had forgotten this. 
+		wp(rr,cc) += fd_inc; // I had forgotten this. 
 
 		// Sum the loss over the sequences
 		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of REALs
 		LOSS loss_n = (*mse)(exact, pred_n);
 
 		// take the derivative of batch 0, of the loss (summed over the sequences)
-		dLdw(rr, cc) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*inc);
+		dLdw(rr, cc) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*fd_inc);
 		for (int b=1; b < loss_p.n_rows; b++) {
-			dLdw(rr, cc) += (arma::sum(loss_n(b)) - arma::sum(loss_p(b))) / (2.*inc);
+			dLdw(rr, cc) += (arma::sum(loss_n(b)) - arma::sum(loss_p(b))) / (2.*fd_inc);
 		}
 	}}
 	return dLdw;
 }
 //----------------------------------------------------------------------
-BIAS biasDerivative(Model* m, Layer& layer, REAL inc, VF2D_F& xf, VF2D_F& exact)
+BIAS biasDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& xf, VF2D_F& exact)
 {
 	BIAS bias = layer.getBias();
 	int layer_size = layer.getLayerSize();
@@ -81,11 +81,11 @@ BIAS biasDerivative(Model* m, Layer& layer, REAL inc, VF2D_F& xf, VF2D_F& exact)
 	for (int rr=0; rr < layer_size; rr++)
 	{
 		BIAS& biasp = layer.getBias();
-		biasp(rr) += inc;
+		biasp(rr) += fd_inc;
 		VF2D_F pred_n = m->predictViaConnectionsBias(xf);
 
 		BIAS& biasm = layer.getBias(); 
-		biasm(rr) -= (2.*inc);
+		biasm(rr) -= (2.*fd_inc);
 		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
 
 		// Sum the loss over the sequences
@@ -93,9 +93,9 @@ BIAS biasDerivative(Model* m, Layer& layer, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		LOSS loss_n = (*mse)(exact, pred_n);
 
 		// take the derivative of batch 0, of the loss (summed over the sequences)
-		dLdb(rr) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*inc);
+		dLdb(rr) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*fd_inc);
 		for (int b=1; b < loss_p.n_rows; b++) {
-			dLdb(rr) += (arma::sum(loss_n(b)) - arma::sum(loss_p(b))) / (2.*inc);
+			dLdb(rr) += (arma::sum(loss_n(b)) - arma::sum(loss_p(b))) / (2.*fd_inc);
 		}
 	}
 	return dLdb;
@@ -121,6 +121,7 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 	printf("********************** ENTER BACKPROP **************************\n");
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	printf("********************** EXIT BACKPROP **************************\n");
+	exit(0);
 
 	std::vector<BIAS> bias_fd, bias_bp;
 	std::vector<WEIGHT> weight_fd, weight_bp;

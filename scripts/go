@@ -1,1 +1,1 @@
-tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 4  -b 1 -s 2 -a iden -r 1 -w "xavier"
+build/tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 4  -b 1 -s 2 -a iden -r 1 -w "xavier"

@@ -39,7 +39,7 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 	}
 	sprintf(cname, "%s%d", name.c_str(), counter);
 	this->name = cname;
-	printf("Connection constructor, in= %d, out=%d (%s)\n", in, out, this->name.c_str());
+	//printf("Connection constructor, in= %d, out=%d (%s)\n", in, out, this->name.c_str());
 	counter++;
 }
 
@@ -247,8 +247,8 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 		}
 		const WEIGHT& wght_t = getWeightTranspose();
 		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to);  // dL/da
-		this->printSummary();
-		printf("Connection::gradMulDLda, "); prod.print("prod = dL/da");
+		//this->printSummary();
+		//printf("Connection::gradMulDLda, "); prod.print("prod = dL/da");
 	} else { // "coupled"
 		//printf("gradMulDLda, coupled\n");
 		for (int b=0; b < nb_batch; b++) {
@@ -297,15 +297,15 @@ void Connection::dLdaMulGrad(int t)
 			const VF2D& out_t = out(b).t();
 			if (!temporal) {
 				delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
-				this->printSummary("spatial connection");
-				printf("dLdaMulGrad, t= %f,"); delta.print("delta");
+				//this->printSummary("spatial connection");
+				//printf("dLdaMulGrad, t= %f,"); delta.print("delta");
 			} else {
 				//printf("TEMPORAL LINK\n");
 				if (t+1 == seq_len) continue;    // ONLY FOR seq_len == 2
 				delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t);
 
-				this->printSummary("temporal connection");
-				printf("dLdaMulGrad, t= %f,"); delta.print("delta");
+				//this->printSummary("temporal connection");
+				//printf("dLdaMulGrad, t= %f,"); delta.print("delta");
 			}
 			incrDelta(delta);
 			#ifdef DEBUG

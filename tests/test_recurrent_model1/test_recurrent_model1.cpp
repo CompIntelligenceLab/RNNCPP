@@ -15,7 +15,10 @@ void testRecurrentModel1(int nb_batch=1)
 
 ***/
 	printf("\n --- testRecurrentModel1 ---\n");
+
 	int input_dim = 1; // predict works with input_dim > 1
+	int recurrent_dim = input_dim;
+
 	Model* m  = new Model(); // argument is input_dim of model
 	m->setSeqLen(2); // runs (but who knows whether correct) with seq_len > 1
 
@@ -23,17 +26,19 @@ void testRecurrentModel1(int nb_batch=1)
 	m->setBatchSize(nb_batch);
 	assert(m->getBatchSize() == nb_batch);
 
-	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
+	// Layers automatically adjust their input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(input_dim, "input_layer");
-	Layer* dense = new RecurrentLayer(1, "rdense");
+	Layer* dense = new RecurrentLayer(recurrent_dim, "rdense");
+
 	//Layer* out   = new OutLayer(1, "out");  // Dimension of out_layer must be 1.
 	                                       // Automate this at a later time
 
 	m->add(0,     input);
 	m->add(input, dense);
 
+	// Identity activations
 	dense->setActivation(new Identity());
 	input->setActivation(new Identity());
 
@@ -44,6 +49,7 @@ void testRecurrentModel1(int nb_batch=1)
 #if 1
 int main()
 {
+	// works with nb_batch=1
 	testRecurrentModel1(1);
 }
 #endif

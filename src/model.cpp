@@ -468,7 +468,7 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 		const LOSS& loss = objective->getLoss();
 		LOSS ll = loss;
 		ll(0) = ll(0) / 3.7;
-		ll(0).raw_print(std::cout, "loss");
+		//ll(0).raw_print(std::cout, "loss");
 		backPropagationViaConnectionsRecursion(exact, pred);
 		parameterUpdate();
 	}
@@ -477,7 +477,7 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 void Model::storeGradientsInLayersRec(int t)
 {
 	//printf("---- enter storeGradientsInLayersRec ----\n");
-	printf("store: t= %d\n", t);
+	//printf("store: t= %d\n", t);
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->computeGradient(t);
 	}
@@ -624,10 +624,9 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
     VF2D_F& grad = objective->getGradient();
 	getOutputLayers()[0]->setDelta(grad);  // assumes single output layer. Set for all sequences. 
 
-	getOutputLayers()[0]->getDelta()[0].raw_print(std::cout, "deltas of output layer (grad of Loss)"); 
-	//exit(0);
+	//getOutputLayers()[0]->getDelta()[0].raw_print(std::cout, "deltas of output layer (grad of Loss)"); 
 
-	printf("ENTER LOOP\n");
+	//printf("ENTER LOOP\n");
 	#if 0
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		printf("tt= %d\n", t);
@@ -639,34 +638,32 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	#endif
 
 	#if 1
-	printf("++++++++++++++++++++++++++++\n");
-	printf("   GRADIENT \n");
+	//printf("++++++++++++++++++++++++++++\n");
+	//printf("   GRADIENT \n");
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		printf("tt= %d\n", t);
+		//printf("tt= %d\n", t);
 		storeGradientsInLayersRec(t);
 	}
-	printf("++++++++++++++++++++++++++++\n");
-	printf("   d(loss)/da   (# CHECK IN) \n");    
+	//printf("++++++++++++++++++++++++++++\n");
+	//printf("   d(loss)/da   (# CHECK IN) \n");    
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		printf("tt= %d\n", t);
+		//printf("tt= %d\n", t);
 		storeDactivationDoutputInLayersRecCon(t);
 	}
-	printf("++++++++++++++++++++++++++++\n");
-	printf("   d(loss)/dw  \n");
+	//printf("++++++++++++++++++++++++++++\n");
+	//printf("   d(loss)/dw  \n");
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		printf("tt= %d\n", t);
+		//printf("tt= %d\n", t);
 		storeDLossDweightInConnectionsRecCon(t);
 	}
-	printf("++++++++++++++++++++++++++++\n");
-	printf("   d(loss)/dbias  \n");
+	//printf("++++++++++++++++++++++++++++\n");
+	//printf("   d(loss)/dbias  \n");
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		printf("tt= %d\n", t);
+		//printf("tt= %d\n", t);
 		storeDLossDbiasInLayersRec(t);
 	}
 	#endif
-	printf("EXIT LOOP\n");
-	//exit(0);
-	//printf("***************** EXIT BACKPROPVIACONNECTIONS_RECURSIONS <<<<<<<<<<<<<<<<<<<<<<\n");
+	//printf("EXIT LOOP\n");
 }
 //----------------------------------------------------------------------
 Connection* Model::getConnection(Layer* layer1, Layer* layer2)

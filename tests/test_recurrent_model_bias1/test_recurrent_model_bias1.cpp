@@ -209,7 +209,8 @@ void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activat
 	m->add(0,     input);
 	m->add(input, d1);
 
-	input->setActivation(activation); 
+	// input should always be identity activation
+	input->setActivation(new Identity()); 
        d1->setActivation(activation); 
 
 	m->addInputLayer(input);
