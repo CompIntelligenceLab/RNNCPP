@@ -6,15 +6,15 @@
 
 #add_subdirectory(test_recurrent_model1)
 
-add_subdirectory(test_recurrent_model2)
+#add_subdirectory(test_recurrent_model2)
 
 #add_subdirectory(test_recurrent_model3)
 
-add_subdirectory(test_recurrent_model4)
-add_subdirectory(test_recurrent_model5)
+#add_subdirectory(test_recurrent_model4)
+#add_subdirectory(test_recurrent_model5)
 add_subdirectory(test_recurrent_model_bias1)
-add_subdirectory(test_recurrent_model_bias2)
-add_subdirectory(test_recurrent_model_bias5)
+#add_subdirectory(test_recurrent_model_bias2)
+#add_subdirectory(test_recurrent_model_bias5)
 
 #add_subdirectory(softmax)
 #add_subdirectory(softmax_rec1)

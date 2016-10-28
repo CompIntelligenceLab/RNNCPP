@@ -300,8 +300,10 @@ void Connection::dLdaMulGrad(int t)
 				//this->printSummary("spatial connection");
 				//printf("dLdaMulGrad, t= %f,"); delta.print("delta");
 			} else {
-				//printf("TEMPORAL LINK\n");
+				printf("TEMPORAL LINK\n");
+				printf("t+1= %d\n", t+1);
 				if (t+1 == seq_len) continue;    // ONLY FOR seq_len == 2
+				printf("compute delta\n");
 				delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t);
 
 				//this->printSummary("temporal connection");

@@ -6,7 +6,7 @@
 REAL derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, REAL alpha, int m0, int n0, std::vector<VF2D>& ws);
 REAL predict(int k, VF1D& z0, VF1D& e, VF2D& w11, REAL alpha, int m0, int n0, std::vector<VF2D>& ws);
 
-void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& exact)
+void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& exact, REAL inc)
 {
 	#if 1
 	WEIGHT ww01;
@@ -98,7 +98,6 @@ void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& e
 			printf("*****************************************\n");
 			#endif
 
-
 			nr = total_deriv.n_rows;
 			nc = total_deriv.n_cols;
 			//nr = nr > 3 ? 3 : nr;
@@ -142,12 +141,17 @@ void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& e
 		}
 
 		std::vector<WEIGHT> wss;
-		REAL inc = 0.01;
+		//REAL inc = 0.001;
 
 		/***********
 		***********/
 
+		xf.print("xf");
+		exact.print("exact");
 		wss = runTest(m, inc, xf, exact); 
+		printf("\n<<< Exit after runTest >>>\n");
+		exit(0);
+
 		printf("\n*****************************************************************\n");
 		LAYERS layers = m->getLayers();
 		CONNECTIONS connections = m->getConnections();
@@ -427,7 +431,7 @@ Forward:
 
 
 	// Set to 1 to run the test with diagonal recurrent matrix
-	diagRecurrenceTest(m, input, d1, xf, exact);
+	diagRecurrenceTest(m, input, d1, xf, exact, inc);
 	exit(0);
 
 	#if 1
@@ -551,8 +555,8 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	//arma_rng::set_seed_random(); // REMOVE LATER
-	arma_rng::set_seed(100); // REMOVE LATER
+	arma_rng::set_seed_random(); // REMOVE LATER
+	//arma_rng::set_seed(100); // REMOVE LATER
 
 	Model* m  = new Model(); // argument is input_dim of model
 	m->setBatchSize(nb_batch);

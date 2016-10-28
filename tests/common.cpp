@@ -70,7 +70,7 @@ WEIGHT weightDerivative(Model* m, Connection& con, REAL fd_inc, VF2D_F& xf, VF2D
 	return dLdw;
 }
 //----------------------------------------------------------------------
-BIAS biasDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& xf, VF2D_F& exact)
+BIAS biasFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& xf, VF2D_F& exact)
 {
 	BIAS bias = layer.getBias();
 	int layer_size = layer.getLayerSize();
@@ -121,14 +121,14 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 	printf("********************** ENTER BACKPROP **************************\n");
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	printf("********************** EXIT BACKPROP **************************\n");
-	exit(0);
 
+	std::vector<Connection*> conn;
 	std::vector<BIAS> bias_fd, bias_bp;
 	std::vector<WEIGHT> weight_fd, weight_bp;
-	std::vector<Connection*> conn;
 	std::vector<REAL> w_norm, w_abs_err_norm, w_rel_err_norm;
 	std::vector<REAL> b_norm, b_abs_err_norm, b_rel_err_norm;
 
+	// NON-RECURRENT WEIGHTS and CONNECTIONS
 	for (int c=0; c < connections.size(); c++) {
 		Connection* con = connections[c];
 		if (con->from == 0) continue;
@@ -137,39 +137,51 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		weight_fd.push_back(weight_fd_);
 	 	WEIGHT weight_bp_ = con->getDelta();
 		weight_bp.push_back(weight_bp_);
+		//weight_bp_.print("weight_bp_");
+		//printf("norm(weight_bp_)= %f\n", arma::norm(weight_bp_));
 		w_norm.push_back(arma::norm(weight_bp_));
 		//connections[c]->printSummary();
 	}
 
+	// BIASES
 	for (int l=0; l < layers.size(); l++) {
 		if (layers[l]->type == "input") continue;
-		BIAS bias_fd_ = biasDerivative(m, *layers[l], inc, xf, exact);
+		BIAS bias_fd_ = biasFDDerivative(m, *layers[l], inc, xf, exact);
 		//bias_fd_.print("bias_fd_");
 		bias_fd.push_back(bias_fd_);
     	BIAS bias_bp_ = layers[l]->getBiasDelta();
 		//bias_bp_.print("bias_bp_");
 		bias_bp.push_back(bias_bp_);
 		b_norm.push_back(arma::norm(bias_bp_));
+	}
 
+	// RECURRENT WEIGHTS and CONNECTIONS
+	for (int l=0; l < layers.size(); l++) {
 		Connection* con = layers[l]->getConnection();
 		// when seq_len=1, recurrence has no effect. 
-		if (con and layers[l]->getSeqLen() > 1) {
-			con->printSummary("con"); 
+		if (con && layers[l]->getSeqLen() > 1) { 
+			//con->printSummary("con"); 
 			conn.push_back(con);
 			//con->getWeight().print("*weight*");
 		 	WEIGHT weight_fd_ = weightDerivative(m, *con, inc, xf, exact);
 			weight_fd.push_back(weight_fd_);
 		 	WEIGHT weight_bp_ = con->getDelta();
-		 	weight_bp_.print("..............weight_bp_"); 
+		 	//weight_bp_.print("..............weight_bp_"); 
 			weight_bp.push_back(weight_bp_);
+			//weight_bp_.print("weight_bp_");
+			//printf("norm(weight_bp_)= %f\n", arma::norm(weight_bp_));
 			w_norm.push_back(arma::norm(weight_bp_));
 		}
 	}
 
 	// compute L2 norms of various quantities
 
-	printf("++++++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+	printf("---------------------------------------------------\n");
 	printf("Relative ERRORS for weight derivatives: \n");
+
+	printf("\n***********************************************************\n");
+	printf("\n      FINITE-Difference vs BACKPROP ***********************\n");
+	printf("        List of Connections                                  \n");
 
 	for (int i=0; i < weight_fd.size(); i++) {
 		WEIGHT abs_err = (weight_fd[i] - weight_bp[i]);
@@ -183,12 +195,10 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		REAL rel_err_imx = rel_err(imx);
 		//REAL err_norm_inf = arma::norm(err, "inf");
 
-		conn[i]->getWeight().print("*** weight ***");
-		printf("\n***********************************************************\n");
-		printf("\n      FINITE-Difference vs BACKPROP ***********************\n");
-		printf("\n"), conn[i]->printSummary();
-		printf("weight: w,abs,rel= %14.7e, %14.7e, %14.7e\n", w_norm[i], abs_err_norm, rel_err_norm);
-		printf("max rel error: %14.7e at weight_bp: %f\n", rel_err_imx, wgt_imx);
+		printf("\nConnection %d\n", i); conn[i]->printSummary();
+		conn[i]->getWeight().print("*** Connection weight matrix ***");
+		printf("    norms: w,abs_err,rel_err= %14.7e, %14.7e, %14.7e\n", w_norm[i], abs_err_norm, rel_err_norm);
+		//printf("    max rel error: %14.7e at index weight_bp: %f\n", rel_err_imx, wgt_imx);
 
 		printf("\n\n");
 		//printf("weight: w,abs,rel= %f, %f, %f, norm_inf= %f\n", w_norm[i], abs_err_norm, err_norm, err_norm_inf);
@@ -219,7 +229,7 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		#endif
 	}
 
-	#if 0
+	#if 1
 	printf("Relative ERRORS for bias derivatives: \n");
 
 	for (int i=0; i < bias_fd.size(); i++) {
@@ -227,7 +237,7 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		BIAS err = (bias_fd[i] - bias_bp[i]) / bias_bp[i];
 		REAL abs_err_norm = arma::norm(abs_err);
 		REAL err_norm     = arma::norm(err);
-		printf("\n"); printf("bias: w,abs,rel= %f, %f, %f\n", b_norm[i], abs_err_norm, err_norm);
+		printf("\n"); printf("bias: norms: w,abs,rel= %f, %f, %f\n", b_norm[i], abs_err_norm, err_norm);
 		#if 0
 		printf("   d1-d1: "); bias_bp[i].print("bias bp");
 		printf("   d1-d1: "); abs_err.print("bias abs err");
