@@ -355,3 +355,8 @@ the multiplication w1*w does not work, but w*w1 does.
 
 I am afraid that there are too many places to change in the code!
 ----------------------------------------------------------------------
+Oct. 28, 2016
+development branch
+test_recurrent_model_bias1 : seems to run ok, with seq_len=2. However, 
+when seq_len=3, accuracy of FD derivatives decreases for recursive links. Do not know whether my solution is correct or not. 
+----------------------------------------------------------------------

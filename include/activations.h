@@ -43,6 +43,8 @@ public:
 	virtual void print(std::string name= "");
 	virtual std::string getName() { return name; }
 	virtual std::string getDerivType() { return deriv_type; }
+	virtual void setNbParams(int nb_params) { params.resize(nb_params); }
+	virtual VF2D_F computeGradientWRTParam(int i) { return VF2D_F(0); }
 };
 
 //----------------------------------------------------------------------
@@ -236,6 +238,60 @@ public:
 	// arguments are x and y=softmax(x) (already computed)
 	// The second argument is used for efficiency
 	VF2D jacobian(const VF1D& x, const VF1D& y);
+};
+//----------------------------------------------------------------------
+// Decay Differential equation, forward Euler
+class DecayDE : public Activation
+{
+	DecayDE(std::string name="tanh") : Activation(name) {;}
+	~DecayDE();
+    DecayDE(const DecayDE&);
+    const DecayDE& operator=(const DecayDE&);
+ 
+	VF2D_F operator()(const VF2D_F& x) {
+#ifdef ARMADILLO
+		VF2D_F y(x.n_rows);
+		for (int i=0; i < x.n_rows; i++) {
+			// Forward Euler
+			y[i] = (1. + params[0]) * x[i];
+		}
+		return y;
+#endif
+	}
+
+	VF2D_F derivative(const VF2D_F& x)
+	{
+#ifdef ARMADILLO
+		VF2D_F y(x.n_rows);
+		for (int i=0; i < x.n_rows; i++) {
+			for (int j=0; j < x[i].size(); j++) {
+				y[i][j] = (1. + params[0]);
+			}
+		}
+		return y;
+#endif
+	}
+
+	VF1D derivative(const VF1D& x)
+	{
+		VF1D y(x.n_rows);
+		//x.print("***> input to activation (tanh): x");
+		for (int i=0; i < x.n_rows; i++) {
+			y[i] = (1. + params[0]);
+		}
+		return y;
+	}
+
+	virtual VF2D_F computeGradientWRTParam(const VF2D_F& x, int ix) { 
+		if (ix == 0) {
+			VF2D_F y(x.n_rows);
+			for (int i=0; i < x.n_rows; i++) {
+				// Forward Euler
+				y[i] = x[i];
+			}
+			return y;
+		}
+	}
 };
 //----------------------------------------------------------------------
 

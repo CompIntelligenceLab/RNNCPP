@@ -197,6 +197,8 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 
 		printf("\nConnection %d\n", i); conn[i]->printSummary();
 		conn[i]->getWeight().print("*** Connection weight matrix ***");
+		weight_bp[i].print("bp derivatives: ");
+		weight_fd[i].print("fd derivatives: ");
 		printf("    norms: w,abs_err,rel_err= %14.7e, %14.7e, %14.7e\n", w_norm[i], abs_err_norm, rel_err_norm);
 		//printf("    max rel error: %14.7e at index weight_bp: %f\n", rel_err_imx, wgt_imx);
 
