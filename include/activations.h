@@ -24,6 +24,7 @@ protected:
 	// from a solution signal. 
 	REAL dt; // discrete time step. Not sure if needed
 	std::vector<REAL> params;
+	std::vector<bool> frozen;
 
 #ifdef DEBUG
 	// derivative of loss function wrt parameters
@@ -38,6 +39,7 @@ public:
 	Activation(std::string name="activation");
 	virtual ~Activation();
 	Activation(const Activation&); 
+	void freezeParam(int idx) { frozen[idx] = true; }
 	const Activation& operator=(const Activation&); 
 	/** Derivative f'(x) of activation function f(x) */
 	/** x has dimensionality equal to the previous layer size */
@@ -53,7 +55,7 @@ public:
 	virtual void print(std::string name= "");
 	virtual std::string getName() { return name; }
 	virtual std::string getDerivType() { return deriv_type; }
-	virtual void setNbParams(int nb_params) { params.resize(nb_params); }
+	virtual void setNbParams(int nb_params) { params.resize(nb_params); frozen.resize(nb_params); }
 	virtual void setParam(int which, REAL value) { params[which] = value; }
 	virtual VF2D_F computeGradientWRTParam(int i) { return VF2D_F(0); }
 };

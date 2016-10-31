@@ -18,6 +18,16 @@ Activation::Activation(std::string name /* "activation" */)
 	this->name = cname;
 	printf("Activation constructor (%s)\n", this->name.c_str());
 	counter++;
+
+	// allow for a maximum of 10 parameters
+	setNbParams(10);
+
+	for (int i=0; i < frozen.size(); i++) {
+		frozen[i] = true;
+	}
+
+	// freeze all parameters
+
 }
 //----------------------------------------------------------------------
 Activation::~Activation() 
