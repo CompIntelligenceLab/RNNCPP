@@ -22,11 +22,14 @@ Activation::Activation(std::string name /* "activation" */)
 	// allow for a maximum of 10 parameters
 	setNbParams(10);
 
+	// freeze all parameters
 	for (int i=0; i < frozen.size(); i++) {
 		frozen[i] = true;
 	}
 
-	// freeze all parameters
+	// unfreeze single parameter (the zeroth one)
+	unfreeze(0);
+
 
 }
 //----------------------------------------------------------------------

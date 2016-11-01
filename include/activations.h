@@ -40,6 +40,7 @@ public:
 	virtual ~Activation();
 	Activation(const Activation&); 
 	void freezeParam(int idx) { frozen[idx] = true; }
+	void unfreezeParam(int idx) { frozen[idx] = false; }
 	const Activation& operator=(const Activation&); 
 	/** Derivative f'(x) of activation function f(x) */
 	/** x has dimensionality equal to the previous layer size */
