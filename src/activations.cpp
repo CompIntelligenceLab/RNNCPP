@@ -20,17 +20,7 @@ Activation::Activation(std::string name /* "activation" */)
 	counter++;
 
 	// allow for a maximum of 10 parameters
-	setNbParams(10);
-
-	// freeze all parameters
-	for (int i=0; i < frozen.size(); i++) {
-		frozen[i] = true;
-	}
-
-	// unfreeze single parameter (the zeroth one)
-	unfreeze(0);
-
-
+	setNbParams(0);
 }
 //----------------------------------------------------------------------
 Activation::~Activation() 
@@ -189,12 +179,22 @@ ReLU::~ReLU()
 {
 }
 //----------------------------------------------------------------------
-DecayDE::~DecayDE() 
+DecayDE::DecayDE(std::string name /*="decayde"*/) : Activation(name)
 {
+	setNbParams(10);
+	// freeze all parameters
+	for (int i=0; i < params.size(); i++) {
+		frozen[i] = true;
+		params[i] = .1;  // should be random perhaps? 
+	}
+
+	// unfreeze single parameter (the zeroth one)
+	unfreezeParam(0);
+
 	printf("DecayDE constructor (%s)\n", this->name.c_str());
 }
 
-DecayDE::DecayDE(const DecayDE& t) : Activation(t)
+DecayDE::~DecayDE()
 { }
 
 const DecayDE& DecayDE::operator=(const DecayDE& t)

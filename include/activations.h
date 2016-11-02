@@ -55,10 +55,12 @@ public:
 	virtual VF2D_F operator()(const VF2D_F& x) = 0;
 	virtual void print(std::string name= "");
 	virtual std::string getName() { return name; }
-	virtual std::string getDerivType() { return deriv_type; }
+	virtual const std::string getDerivType() const { return deriv_type; }
 	virtual void setNbParams(int nb_params) { params.resize(nb_params); frozen.resize(nb_params); }
+	virtual int getNbParams() { return params.size(); }
+	virtual int isFrozen(int i) { return frozen[i]; }
 	virtual void setParam(int which, REAL value) { params[which] = value; }
-	virtual VF2D_F computeGradientWRTParam(int i) { return VF2D_F(0); }
+	virtual VF2D_F computeGradientWRTParam(const VF2D_F& x, int i) = 0;
 };
 
 //----------------------------------------------------------------------
@@ -95,6 +97,8 @@ public:
 		//y.print("return y");
 		return y;
 	}
+
+	virtual VF2D_F computeGradientWRTParam(const VF2D_F& x, int i) { return VF2D_F(0); }
 };
 //----------------------------------------------------------------------
 class Tanh : public Activation
@@ -146,6 +150,8 @@ public:
 		}
 		return y;
 	}
+
+	virtual VF2D_F computeGradientWRTParam(const VF2D_F& x, int i) { return VF2D_F(0); }
 };
 
 
@@ -186,6 +192,8 @@ public:
 		}
 		return y;
 	}
+
+	VF2D_F computeGradientWRTParam(const VF2D_F& x, int i) { return VF2D_F(0); }
 };
 //----------------------------------------------------------------------
 class ReLU : public Activation
@@ -225,6 +233,8 @@ public:
 		}
 		return y;
 	}
+
+	VF2D_F computeGradientWRTParam(const VF2D_F& x, int i) { return VF2D_F(0); }
 };
 //----------------------------------------------------------------------
 class Softmax : public Activation
@@ -252,13 +262,15 @@ public:
 	// arguments are x and y=softmax(x) (already computed)
 	// The second argument is used for efficiency
 	VF2D jacobian(const VF1D& x, const VF1D& y);
+
+	VF2D_F computeGradientWRTParam(const VF2D_F& x, int i) { return VF2D_F(0); }
 };
 //----------------------------------------------------------------------
 // Decay Differential equation, forward Euler
 class DecayDE : public Activation
 {
 public:
-	DecayDE(std::string name="tanh") : Activation(name) {;}
+	DecayDE(std::string name="decayde");
 	~DecayDE();
     DecayDE(const DecayDE&);
     const DecayDE& operator=(const DecayDE&);
@@ -266,9 +278,14 @@ public:
 	VF2D_F operator()(const VF2D_F& x)
 	{
 		printf("operator()\n");
+		printf("x.n_rows= %d\n", x.n_rows);
 		VF2D_F y(x.n_rows);
 		for (int i=0; i < x.n_rows; i++) {
 			// Forward Euler
+			printf("i= %d\n", i);
+			printf("params[0]= %f\n", params[0]);
+			x.print("x");
+			printf("dt= %f\n", dt);
 			y[i] = (1. + dt * params[0]) * x[i];
 		}
 		return y;
@@ -299,6 +316,7 @@ public:
 
 	virtual VF2D_F computeGradientWRTParam(const VF2D_F& x, int ix)
 	{
+		printf("computeGradient, ix= %d\n", ix);
 		if (ix == 0) {
 			VF2D_F y(x.n_rows);
 			for (int i=0; i < x.n_rows; i++) {
@@ -306,6 +324,9 @@ public:
 				y[i] = dt * x[i];
 			}
 			return y;
+		} else {
+			printf("ix != 0 not implemented\n");
+			exit(1);
 		}
 	}
 };

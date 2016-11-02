@@ -6,18 +6,18 @@ Let us first consider a feed-forward network with a single layer. The output tak
 $$
 y^k_i = \sum_{j}  f^k_i(w^{k,l}_{i,j} y^l_{j} + b^k_i)
 $$
-summed over the nodes of layer $l$. 
+summed over the nodes of layer $l$.  The superscripts $k$ and $l$ denote layers. 
 Information propagates from layer $l$ to layer $k$. The output to layer $l$, evaluated at node $j$ is $y^l_j$. 
 Calculate the derivative of $y^k_i$ with respect to $w^{k,l}(p,q)$: 
 \begin{align}
 \frac{dy^k_i}{dw^{k,l}_{p,q}}
-   &= \sum_{j} {f^k}' \delta_{i,p}\delta{j,q} y^l_j \\
+   &= \sum_{j} {f^k}' \delta_{i,p}\delta_{j,q} y^l_j \\
    &= {f^k}' \delta_{i,p} y^l_q
 \end{align}
-where $f'(x)$ is evaluated at $x=w^{k,l}_{i,j} y^l_{j} + b^k_i$. 
+where $f'(x)$ is evaluated at $x=w^{k,l}_{i,j} y^l_{j} + b^k_i$ and $\delta_{i,j}$ is the Kronecker Delta function. 
 %\end{document}
 
-Similarly, taking the derivative with respect to $b^k_j$,the result is: 
+Similarly, taking the derivative with respect to $b^k_j$, the result is: 
 \begin{align}
 \frac{dy^k_i}{db^{k}_{p}}
    &= \sum_{j} {f^k}' \delta_{i,p} \\
@@ -90,6 +90,18 @@ In general, the following relationship holds between two vectors $a$, $b$, and a
 $$
 \frac{da^TWb}{dW} = a b^T
 $$
+
+%-------------------
+\subsection{Parametrized activation function}
+$$
+\frac{dy^k_i}{d\alpha}
+   = \sum_{j} \frac{df_i^k(x)}{d\alpha} 
+$$
+where the activation function $f^k$ depends on the parameter $\alpha$ and is evaluated at 
+$x=w^{k,l}_{i,j} y^l_j + b^k_i$. 
+Therefore, one must compute 
+%-------------------
+
 
 \section{Nathan's Notes}
 

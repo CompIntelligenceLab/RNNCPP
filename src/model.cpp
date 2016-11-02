@@ -586,38 +586,52 @@ void Model::storeDLossDbiasInLayersRec(int t)
 	}
 }
 //----------------------------------------------------------------------
-// MUST REWRITE THIS. Use this as template. 
-void Model::storeDLossDactivationParams(int t)
+// MUST REWRITE. Use as template. 
+void Model::storeDLossDactivationParamsInLayer(int t)
 {
 	VF1D delta;
+	VF2D_F g;
 
 	for (int l=0; l < layers.size(); l++) {
 		Layer* layer = layers[l];
 
-		const Activation& activation = layer->getActivation();
+		Activation& activation = layer->getActivation();
+		if (activation.getNbParams() == 0) {
+			continue;
+		} else {
+			delta.resize(activation.getNbParams());
+			delta.zeros();
+		}
+		//printf("xx activation name: %s\n", activation.getName().c_str());
 
 		// REWRITE FOLLOWING LOOP
 
-		if (layer->getActivation().getDerivType() == "decoupled") {
+		if (activation.getDerivType() == "decoupled") {
 			const VF2D_F& grad      = layer->getGradient();
 			const VF2D_F& old_deriv = layer->getDelta();
 
-			for (int b=0; b < nb_batch; b++) {
-				delta = (old_deriv[b].col(t) % grad[b].col(t));
-				layer->incrBiasDelta(delta);
-			}
+			for (int i=0; i < activation.getNbParams(); i++) 
+			{
+				if (activation.isFrozen(i)) {
+					//printf("parameter %d frozen\n", i);
+					continue;
+				}
+				else {
+					const VF2D_F& x = layer->getInputs();
+					g = activation.computeGradientWRTParam(x, i);
+				}
+			//----------------
 
-		} else {  // coupled
-			for (int b=0; b < nb_batch; b++) {
-				const VF1D& x =  layer->getInputs()(b).col(t);   // ERROR
-				const VF1D& y = layer->getOutputs()(b).col(t);
-				const VF2D grad = layer->getActivation().jacobian(x, y); // not stored (3,3)
-				const VF2D_F& old_deriv = layer->getDelta();
-
-				const VF2D& gg = old_deriv[b].col(t).t() * grad; // (1,3)
-				delta = gg.t();
-				layer->incrBiasDelta(delta);
+				for (int b=0; b < nb_batch; b++) {
+					//old_deriv[b].col(t).print("deriv");
+					//g[b].col(t).print("g");
+					delta[i] += arma::dot(old_deriv[b].col(t), g[b].col(t)); //% grad[b].col(t);
+				}
 			}
+			//delta.print("final delta");
+		    layer->incrActivationDelta(delta);
+		} else { // coupled
+			;
 		}
 	}
 }
@@ -682,9 +696,10 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 		storeDLossDbiasInLayersRec(t);
 	}
 
- 	//for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		//storeDLossDbiasInLayersRec(t);
-	//}
+	//printf("  d(loss)/d(activation_params)
+ 	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
+		storeDLossDactivationParamsInLayer(t);
+	}
 }
 //----------------------------------------------------------------------
 Connection* Model::getConnection(Layer* layer1, Layer* layer2)

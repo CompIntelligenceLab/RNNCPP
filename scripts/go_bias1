@@ -1,5 +1,6 @@
-build/tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 4  -b 1 -s 2 -a iden -r 1 -w "xavier_iden" -i 1.e-3
-#build/tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 1  -b 1 -s 4 -a iden -r 1 -w "xavier_iden" -i 1.e-4
+build/tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 4  -b 1 -s 2 -a "decayde" -r 1 -w "xavier_iden" -i 1.e-3
+
+#build/tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 1  -b 1 -s 4 -a "iden" -r 1 -w "xavier_iden" -i 1.e-4
 # if seq_len = 1, -r should have no effect
 
-#build/tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 4  -b 1 -s 2 -a iden -r 1 -w "xavier"
+#build/tests/test_recurrent_model_bias1/test_recurrent_model_bias1 -l 4  -b 1 -s 2 -a "iden" -r 1 -w "xavier"

@@ -216,6 +216,7 @@ void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activat
 	// input should always be identity activation
 	input->setActivation(new Identity()); 
        d1->setActivation(activation); 
+	printf("activation name: %s\n", activation->getName().c_str());
 
 	m->addInputLayer(input);
 	m->addOutputLayer(d1);
@@ -534,7 +535,7 @@ int main(int argc, char* argv[])
 			argc -= 2; argv += 2;
 		} else if (arg == "-a") {
 			std::string name = argv[1];
-			//printf("name= %s\n", name.c_str());
+			printf("name= %s\n", name.c_str());
 			if (name == "tanh") {
 				activation = new Tanh();
 			} else if (name == "iden") {
@@ -543,6 +544,8 @@ int main(int argc, char* argv[])
 				activation = new Sigmoid();
 			} else if (name == "relu") {
 				activation = new ReLU();
+			} else if (name == "decayde") {
+				activation = new DecayDE();
 			} else {
 				printf("(%s) unknown activation\n", name.c_str());
 				exit(1);
@@ -563,5 +566,6 @@ int main(int argc, char* argv[])
 	m->setSeqLen(seq_len);
 	m->setInitializationType(initialization_type);
 
+	printf("activation name: %s\n", activation->getName().c_str());
 	testRecurrentModelBias1(m, layer_size, is_recurrent, activation, inc);
 }

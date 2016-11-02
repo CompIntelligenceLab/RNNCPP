@@ -31,8 +31,6 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	print_verbose   = true;
 	clock = 0;
 	recurrent_conn = 0;
-	bias.set_size(layer_size);
-	bias_delta.set_size(layer_size);
 
 	initVars(nb_batch);
 
@@ -46,6 +44,10 @@ void Layer::initVars(int nb_batch)
 	outputs.set_size(nb_batch);
 	delta.set_size(nb_batch);
 	gradient.set_size(nb_batch);
+	bias.set_size(layer_size);
+	bias_delta.set_size(layer_size);
+
+	// activation may not be set yet. 
 	//printf("nb_batch= %d\n", nb_batch); exit(0);
 
 	for (int i=0; i < nb_batch; i++) {
@@ -237,6 +239,11 @@ void Layer::incrDelta(VF2D_F& x, int t)
 void Layer::incrBiasDelta(VF1D& x)
 {
 	bias_delta += x;
+}
+//----------------------------------------------------------------------
+void Layer::incrActivationDelta(VF1D& x)
+{
+	activation_delta += x;
 }
 //----------------------------------------------------------------------
 void Layer::computeGradient()

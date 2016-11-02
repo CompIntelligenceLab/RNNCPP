@@ -51,7 +51,8 @@ protected:
 	VF2D_F outputs; // outputs from activation function
 	DELTA delta; // d(loss) / d(layer output)  (transform to row vector)
 	BIAS bias;
-	VF1D bias_delta; // arma::Col, d(loss) / d(bias)
+	VF1D bias_delta; // arma::Col, d(loss) / d(bias)   (one bias per layer)
+	VF1D activation_delta;   // one delta per activation parameter (set to zero if frozen parameter)
 
 	//WEIGHTS weights; // between this layer and the previous one. Breaks down 
 	                // if layers form graphs (recurrent or not)
@@ -115,7 +116,13 @@ public:
    virtual int  getOutputDim() { return this->getLayerSize(); }
    virtual void setOutputDim(int output_dim) { this->setLayerSize(output_dim); }
    virtual Activation& getActivation() const { return *activation; }
-   virtual void setActivation(Activation* activation) { this->activation = activation; }
+   virtual void setActivation(Activation* activation) 
+   { 
+        this->activation = activation; 
+		//activation.print("act");
+		int p = activation->getNbParams();
+		activation_delta.set_size(activation->getNbParams());
+   } 
 
    /** Compute the outputs given the inputs */
    virtual void execute();
@@ -157,6 +164,8 @@ public:
 	void incrDelta(VF2D_F& x);
 	void incrDelta(VF2D_F& x, int t);
 	void incrBiasDelta(VF1D& x);
+	void incrActivationDelta(VF1D& x);  // NOT sure whether argument if VF1D or VF2D_F or VF2D)
+	const VF1D& getActivationDelta() {return activation_delta; }  // NOT sure whether argument if VF1D or VF2D_F or VF2D)
 	// reset inputs and ouputs to zero
 	void reset();
 	// reset deltas
