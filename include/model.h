@@ -10,6 +10,7 @@
 #include "layers.h"
 #include "optimizer.h"
 #include "objective.h"
+#include "activations.h"
 #include "layers.h"
 
 //class Optimizer;
@@ -18,6 +19,13 @@
 
 class Model
 {
+public:
+// Variables specific to command line arguments to simplify calling function processArguments(argc, argv)
+	REAL inc;
+	int layer_size;
+	bool is_recurrent;
+	Activation* activation;
+
 private:
 	int nb_batch;
 	CONNECTIONS clist;

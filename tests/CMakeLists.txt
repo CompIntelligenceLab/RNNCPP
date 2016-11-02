@@ -21,4 +21,4 @@ add_subdirectory(test_recurrent_model_bias1)
 #add_subdirectory(debug_bias1)
 
 # calculate differential equation from signal
-#add_subdirectory(test_diff_eq1)
+add_subdirectory(test_diff_eq1)

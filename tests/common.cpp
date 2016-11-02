@@ -263,3 +263,84 @@ void predictAndBackProp(Model* m, VF2D_F& xf, VF2D_F& exact)
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 }
 //----------------------------------------------------------------------
+Model* processArguments(int argc, char** argv)
+{
+// arguments: -b nb_batch, -l layer_size, -s seq_len, -s is_recursive
+
+    int nb_batch = 1;
+    int layer_size = 1;
+    int seq_len = 1;
+    int is_recurrent = 1;
+	REAL inc;
+	Activation* activation = new Identity(); 
+	std::string initialization_type;
+	initialization_type = "xavier";
+
+	argv++; 
+	argc--; 
+
+	printf("argc= %d\n", argc);
+	while (argc > 0) {
+		std::string arg = std::string(argv[0]);
+		printf("arg= %s\n", arg.c_str());
+		if (arg == "-b") {
+			nb_batch = atoi(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-s") {
+			seq_len = atoi(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-r") {
+			is_recurrent = atoi(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-i") {
+			inc = atof(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-w") {
+			initialization_type = argv[1];
+			argc -= 2; argv += 2;
+			printf("init type: %s\n", initialization_type.c_str());
+		} else if (arg == "-l") {
+			layer_size = atoi(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-a") {
+			std::string name = argv[1];
+			//printf("name= %s\n", name.c_str());
+			if (name == "tanh") {
+				activation = new Tanh();
+			} else if (name == "iden") {
+				activation = new Identity();
+			} else if (name == "sigmoid") {
+				activation = new Sigmoid();
+			} else if (name == "relu") {
+				activation = new ReLU();
+			} else if (name == "decayde") {
+				activation = new DecayDE();
+			} else {
+				printf("(%s) unknown activation\n", name.c_str());
+				exit(1);
+			}
+			argc -= 2; argv += 2;
+		} else { //if (arg == "-h") 
+			printf("Argument usage: \n");
+			printf("  -b <nb_batch>  -s <seq_len> -l <layer_size> -a <activation> -w <weight_initialization>\n");
+			printf("  Activations: \"tanh\"|\"sigmoid\"|\"iden\"|\"relu\"\n");
+		}
+	}
+
+	arma_rng::set_seed_random(); // REMOVE LATER
+	//arma_rng::set_seed(100); // REMOVE LATER
+
+	Model* m  = new Model(); // argument is input_dim of model
+	m->setBatchSize(nb_batch);
+	m->setSeqLen(seq_len);
+	m->setInitializationType(initialization_type);
+
+	m->layer_size = layer_size;
+	m->is_recurrent = is_recurrent;
+	m->activation = activation;
+	m->inc = inc;
+
+	return m;
+
+	//testRecurrentModelBias1(m, layer_size, is_recurrent, activation, inc);
+}
