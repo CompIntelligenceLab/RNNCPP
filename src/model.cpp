@@ -699,6 +699,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	//printf("  d(loss)/d(activation_params)
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeDLossDactivationParamsInLayer(t);
+		;
 	}
 }
 //----------------------------------------------------------------------

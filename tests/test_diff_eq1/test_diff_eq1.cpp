@@ -235,17 +235,24 @@ void testDiffEq1(Model* m)
 
 	// Initialize xf and exact
 	VF2D_F xf, exact;
-	U::createMat(xf, nb_batch, layer_size, seq_len);
+	int input_size = input->getLayerSize();
+	U::createMat(xf, nb_batch, input_size, seq_len);
 	U::createMat(exact, nb_batch, layer_size, seq_len);
-	//U::print(xf, "xf"); //exit(0);
+	U::print(xf, "xf"); //exit(0);
+	U::print(exact, "exact"); //exit(0);
+	//exit(0);
 
 	for (int b=0; b < xf.n_rows; b++) {
-		xf[b] = arma::randu<VF2D>(layer_size, seq_len); //size(xf[b]));
+		xf[b] = arma::randu<VF2D>(input_size, seq_len); //size(xf[b]));
 		exact[b] = arma::randu<VF2D>(layer_size, seq_len); //size(xf[b]));
 	}
 	xf.print("xf"); 
 	exact.print("exact"); 
+	U::print(xf, "xf"); //exit(0);
+	U::print(exact, "exact"); //exit(0);
+	//exit(0);
 
+	// SOME KIND OF MATRIX INCOMPATIBILITY. That is because exact has the wrong dimensions. 
 	runTest(m, inc, xf, exact);
 	exit(0);
 
