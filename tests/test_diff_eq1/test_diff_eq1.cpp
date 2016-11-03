@@ -185,7 +185,6 @@ void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& e
 		}
 }
 //----------------------------------------------------------------------
-
 //void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activation* activation, REAL inc) 
 void testDiffEq1(Model* m)
 {
@@ -254,6 +253,7 @@ void testDiffEq1(Model* m)
 
 	// SOME KIND OF MATRIX INCOMPATIBILITY. That is because exact has the wrong dimensions. 
 	runTest(m, inc, xf, exact);
+	printf("gordon\n");
 	exit(0);
 
 	//===========================================
@@ -366,3 +366,4 @@ int main(int argc, char* argv[])
 	Model* m = processArguments(argc, argv);
 	testDiffEq1(m);
 }
+

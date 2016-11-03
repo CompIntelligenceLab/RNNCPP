@@ -106,7 +106,7 @@ VF1D activationParamsFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& x
 	//BIAS bias = layer.getBias();
 	Activation& activation = layer.getActivation();
 	VF1D activation_delta = layer.getActivationDelta();
-	activation_delta.print("delta"); exit(0);
+	//activation_delta.print("delta"); exit(0);
 
 	int layer_size = layer.getLayerSize();
 	VF1D dLdp = VF1D(activation.getNbParams());   // dL/d(Parameters)
@@ -164,6 +164,7 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 	std::vector<Connection*> conn;
 	std::vector<BIAS> bias_fd, bias_bp;
 	std::vector<WEIGHT> weight_fd, weight_bp;
+	std::vector<VF1D> param_fd, param_bp;
 	std::vector<REAL> w_norm, w_abs_err_norm, w_rel_err_norm;
 	std::vector<REAL> b_norm, b_abs_err_norm, b_rel_err_norm;
 
@@ -211,6 +212,19 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 			//printf("norm(weight_bp_)= %f\n", arma::norm(weight_bp_));
 			w_norm.push_back(arma::norm(weight_bp_));
 		}
+	}
+
+	// ACTIVATION PARAMETERS
+	for (int l=0; l < layers.size(); l++) {
+		Layer* layer = layers[l];
+		if (layers[l]->type == "input") continue;
+		Activation& activation = layer->getActivation();
+		int nbParams = activation.getNbParams();
+
+		VF1D param_fd_ = activationParamsFDDerivative(m, *layer, inc, xf, exact);
+		param_fd.push_back(param_fd_);
+		VF1D param_bp_ = layer->getActivationDelta();
+		param_bp.push_back(param_bp_);
 	}
 
 	// compute L2 norms of various quantities
@@ -286,6 +300,18 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		#endif
 	}
 	#endif
+
+	printf("\n\nRelative ERRORS for activation parameter derivatives: \n");
+
+	for (int i=0; i < param_fd.size(); i++) {
+		VF1D abs_err = (param_fd[i] - param_bp[i]);
+		VF1D err     = (param_fd[i] - param_bp[i]) / param_bp[i];
+		REAL abs_err_norm = arma::norm(abs_err); 
+		REAL     err_norm = arma::norm(    err); 
+		param_fd[i].print("fd derivatives of activation parameters");
+		param_bp[i].print("bp derivatives of activation parameters");
+		printf("\n"); printf("Activation params: norms: abs,rel= %f, %f\n", abs_err_norm, err_norm);
+	}
 
 	// return vector of weights
 	std::vector<WEIGHT> ws;
