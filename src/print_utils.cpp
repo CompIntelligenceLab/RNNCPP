@@ -154,8 +154,8 @@ void U::matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int from, int t
 //----------------------------------------------------------------------
 void U::createMat(VF2D_F& mat, int nb_batch, int nb_rows, int nb_cols)
 {
-	arma::field<arma::Mat<float> > m; m.set_size(3);
-	VF2D_F mm; mm.set_size(3);
+	//arma::field<arma::Mat<float> > m; m.set_size(3);
+	//VF2D_F mm; mm.set_size(3);
 	mat.set_size(nb_batch);
 
 	for (int b=0; b < nb_batch; b++) {
