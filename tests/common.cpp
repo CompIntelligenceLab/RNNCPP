@@ -101,6 +101,45 @@ BIAS biasFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& xf, VF2D_F& e
 	return dLdb;
 }
 //----------------------------------------------------------------------
+VF1D activationParamsFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& xf, VF2D_F& exact)
+{
+	//BIAS bias = layer.getBias();
+	Activation& activation = layer.getActivation();
+	VF1D activation_delta = layer.getActivationDelta();
+	activation_delta.print("delta"); exit(0);
+
+	int layer_size = layer.getLayerSize();
+	VF1D dLdp = VF1D(activation.getNbParams());   // dL/d(Parameters)
+	dLdp.zeros();
+	Objective* mse = new MeanSquareError();
+
+	for (int rr=0; rr < activation.getNbParams(); rr++)
+	{
+		if (activation.isFrozen(rr)) {
+			continue; 
+		}
+
+		REAL param = activation.getNbParams();
+		param += fd_inc;
+		VF2D_F pred_n = m->predictViaConnectionsBias(xf);
+
+		BIAS& biasm = layer.getBias(); 
+		param -= (2.*fd_inc);
+		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
+
+		// Sum the loss over the sequences
+		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of REALs
+		LOSS loss_n = (*mse)(exact, pred_n);
+
+		// take the derivative of batch 0, of the loss (summed over the sequences)
+		dLdp(rr) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*fd_inc);
+		for (int b=1; b < loss_p.n_rows; b++) {
+			dLdp(rr) += (arma::sum(loss_n(b)) - arma::sum(loss_p(b))) / (2.*fd_inc);
+		}
+	}
+	return dLdp;
+}
+//----------------------------------------------------------------------
 std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 {
 	VF2D_F pred;

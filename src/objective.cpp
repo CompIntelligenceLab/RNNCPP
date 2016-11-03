@@ -194,4 +194,3 @@ void BinaryCrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& pred
 		gradient[b] = exact[b] / output + (1-exact[b]) /(1-output);
 	}
 }
-
