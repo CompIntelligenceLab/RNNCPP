@@ -87,6 +87,7 @@ BIAS biasFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& xf, VF2D_F& e
 		BIAS& biasm = layer.getBias(); 
 		biasm(rr) -= (2.*fd_inc);
 		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
+		biasm(rr) += fd_inc;
 
 		// Sum the loss over the sequences
 		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of REALs
@@ -106,37 +107,68 @@ VF1D activationParamsFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& x
 	//BIAS bias = layer.getBias();
 	Activation& activation = layer.getActivation();
 	VF1D activation_delta = layer.getActivationDelta();
-	//activation_delta.print("delta"); exit(0);
 
 	int layer_size = layer.getLayerSize();
 	VF1D dLdp = VF1D(activation.getNbParams());   // dL/d(Parameters)
 	dLdp.zeros();
 	Objective* mse = new MeanSquareError();
+	printf("layer name: %s\n", layer.getName().c_str());
+	const VF1D& params = activation.getParams();
+	//for (int i=0; i < 10; i++) { printf("x params[%d]= %f\n", i, params[i]); }
+	//exit(0);
+	//ppp[0] = 3.;
+	//ppp.resize(10);
+	/*
+	printf("params.size()= %d\n", params.size());
+	printf("params.n_rows= %d\n", params.n_rows);
+	printf("params.n_cols= %d\n", params.n_cols);
+	printf("params: %f\n", params[0,0]);
+	printf("params: %f\n", params[0]);
+	printf("params: %f\n", params[1]);
+	U::print(params, "params"); // ERROR Why does not work? 
+	params.print("params");
+	*/
 
+	printf("************ activationParamsFDDerivative ****************\n");
 	for (int rr=0; rr < activation.getNbParams(); rr++)
 	{
 		if (activation.isFrozen(rr)) {
 			continue; 
 		}
 
-		REAL param = activation.getNbParams();
+		REAL param = params[rr];
+		printf("param= %f\n", param);
 		param += fd_inc;
+		activation.setParam(rr, param);
+		printf("param+inc= %f\n", param);
 		VF2D_F pred_n = m->predictViaConnectionsBias(xf);
+		pred_n.print("pred_n");
 
-		BIAS& biasm = layer.getBias(); 
 		param -= (2.*fd_inc);
+		activation.setParam(rr, param);
+		printf("param-inc= %f\n", param);
 		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
+		pred_p.print("pred_p");
+		param += fd_inc;
+		activation.setParam(rr, param);
+		printf("return to original value, param= %f\n", params[rr]);
+		activation.setParam(rr, param);
 
 		// Sum the loss over the sequences
 		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of REALs
 		LOSS loss_n = (*mse)(exact, pred_n);
+
+		loss_p.print("loss_p");
+		loss_n.print("loss_n");
 
 		// take the derivative of batch 0, of the loss (summed over the sequences)
 		dLdp(rr) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*fd_inc);
 		for (int b=1; b < loss_p.n_rows; b++) {
 			dLdp(rr) += (arma::sum(loss_n(b)) - arma::sum(loss_p(b))) / (2.*fd_inc);
 		}
+		dLdp.print("dLdp");
 	}
+	printf("activationParamsFDDerivative\n"); //exit(0);
 	return dLdp;
 }
 //----------------------------------------------------------------------

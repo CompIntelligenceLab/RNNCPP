@@ -46,6 +46,7 @@ void Layer::initVars(int nb_batch)
 	gradient.set_size(nb_batch);
 	bias.set_size(layer_size);
 	bias_delta.set_size(layer_size);
+	//activation_delta.set_size(getActivation().getNbParams());
 
 	// activation may not be set yet. 
 	//printf("nb_batch= %d\n", nb_batch); exit(0);
@@ -58,6 +59,7 @@ void Layer::initVars(int nb_batch)
 	}
 	bias.zeros();
 	bias_delta.zeros();
+	activation_delta.zeros();
 	nb_hit = 0;
 
 	reset();

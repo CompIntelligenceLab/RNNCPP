@@ -54,6 +54,17 @@ const Activation& Activation::operator=(const Activation& a)
 	}
 	return *this;
 }
+//----------------------------------------------------------------------
+void Activation::setParam(int which, REAL value) 
+{ 
+	if (which < params.size()) {
+		params[which] = value; 
+	} else {
+		printf("params argument out of range\n");
+		exit(1);
+	}
+}
+//----------------------------------------------------------------------
 
 
 Tanh::~Tanh() 
@@ -182,6 +193,10 @@ ReLU::~ReLU()
 DecayDE::DecayDE(std::string name /*="decayde"*/) : Activation(name)
 {
 	setNbParams(10);
+	//for (int i=0; i < 10; i++) { printf("x params[%d]= %f\n", i, params[i]); }
+	//exit(0);
+	//printf("params.size= %d\n", params.size());
+	//exit(0);
 	// freeze all parameters
 	for (int i=0; i < params.size(); i++) {
 		frozen[i] = true;

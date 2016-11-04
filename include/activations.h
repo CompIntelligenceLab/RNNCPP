@@ -23,7 +23,7 @@ protected:
 	// to params. These will be used for our experiments with determining a differential equation 
 	// from a solution signal. 
 	REAL dt; // discrete time step. Not sure if needed
-	std::vector<REAL> params;
+	VF1D params;
 	std::vector<bool> frozen;
 
 #ifdef DEBUG
@@ -58,8 +58,9 @@ public:
 	virtual const std::string getDerivType() const { return deriv_type; }
 	virtual void setNbParams(int nb_params) { params.resize(nb_params); frozen.resize(nb_params); }
 	virtual int getNbParams() { return params.size(); }
+	virtual const VF1D& getParams() { return params; }
+	virtual void setParam(int which, REAL value);
 	virtual int isFrozen(int i) { return frozen[i]; }
-	virtual void setParam(int which, REAL value) { params[which] = value; }
 	virtual VF2D_F computeGradientWRTParam(const VF2D_F& x, int i) = 0;
 };
 

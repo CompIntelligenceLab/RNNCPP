@@ -360,3 +360,5 @@ development branch
 test_recurrent_model_bias1 : seems to run ok, with seq_len=2. However, 
 when seq_len=3, accuracy of FD derivatives decreases for recursive links. Do not know whether my solution is correct or not. 
 ----------------------------------------------------------------------
+Do not use arma::size(...)  Used as np.dim in python. It is not an integer!
+----------------------------------------------------------------------
