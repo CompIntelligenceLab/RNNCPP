@@ -368,6 +368,7 @@ Model* processArguments(int argc, char** argv)
     int layer_size = 1;
     int seq_len = 1;
     int is_recurrent = 1;
+	int nb_layers = 1; // do not count input layer
 	REAL inc;
 	Activation* activation = new Identity(); 
 	std::string initialization_type;
@@ -396,6 +397,9 @@ Model* processArguments(int argc, char** argv)
 			initialization_type = argv[1];
 			argc -= 2; argv += 2;
 			printf("init type: %s\n", initialization_type.c_str());
+		} else if (arg == "-nl") {
+			nb_layers = atoi(argv[1]);
+			argc -= 2; argv += 2;
 		} else if (arg == "-l") {
 			layer_size = atoi(argv[1]);
 			argc -= 2; argv += 2;
@@ -419,10 +423,12 @@ Model* processArguments(int argc, char** argv)
 			argc -= 2; argv += 2;
 		} else { //if (arg == "-h") 
 			printf("Argument usage: \n");
-			printf("  -b <nb_batch>  -s <seq_len> -l <layer_size> -a <activation> -w <weight_initialization>\n");
+			printf("  -b <nb_batch>  -s <seq_len> -nb <nb_layers> -l <layer_size> -a <activation> -w <weight_initialization>\n");
 			printf("  Activations: \"tanh\"|\"sigmoid\"|\"iden\"|\"relu\"\n");
 		}
 	}
+
+	printf("nb layers: %d\n", nb_layers); exit(0);
 
 	arma_rng::set_seed_random(); // REMOVE LATER
 	//arma_rng::set_seed(100); // REMOVE LATER
