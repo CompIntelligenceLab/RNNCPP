@@ -335,7 +335,11 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 
 	printf("\n\nRelative ERRORS for activation parameter derivatives: \n");
 
+	printf("param_fd.size()= %d\n", param_fd.size());
+	printf("***********************\n"); //exit(0);
+
 	for (int i=0; i < param_fd.size(); i++) {
+		printf("********** layer %d ***********\n");
 		VF1D abs_err = (param_fd[i] - param_bp[i]);
 		VF1D err     = (param_fd[i] - param_bp[i]) / param_bp[i];
 		REAL abs_err_norm = arma::norm(abs_err); 
@@ -370,6 +374,7 @@ Model* processArguments(int argc, char** argv)
     int is_recurrent = 1;
 	int nb_layers = 1; // do not count input layer
 	REAL inc;
+	string activation_type;
 	Activation* activation = new Identity(); 
 	std::string initialization_type;
 	initialization_type = "xavier";
@@ -405,21 +410,11 @@ Model* processArguments(int argc, char** argv)
 			argc -= 2; argv += 2;
 		} else if (arg == "-a") {
 			std::string name = argv[1];
+			activation_type = name;
 			//printf("name= %s\n", name.c_str());
-			if (name == "tanh") {
-				activation = new Tanh();
-			} else if (name == "iden") {
-				activation = new Identity();
-			} else if (name == "sigmoid") {
-				activation = new Sigmoid();
-			} else if (name == "relu") {
-				activation = new ReLU();
-			} else if (name == "decayde") {
-				activation = new DecayDE();
-			} else {
-				printf("(%s) unknown activation\n", name.c_str());
-				exit(1);
-			}
+
+			// NEED an ACTIVATION FACTORY
+
 			argc -= 2; argv += 2;
 		} else { //if (arg == "-h") 
 			printf("Argument usage: \n");
@@ -428,7 +423,7 @@ Model* processArguments(int argc, char** argv)
 		}
 	}
 
-	printf("nb layers: %d\n", nb_layers); exit(0);
+	//printf("nb layers: %d\n", nb_layers); exit(0);
 
 	arma_rng::set_seed_random(); // REMOVE LATER
 	//arma_rng::set_seed(100); // REMOVE LATER
@@ -440,8 +435,26 @@ Model* processArguments(int argc, char** argv)
 
 	m->layer_size = layer_size;
 	m->is_recurrent = is_recurrent;
-	m->activation = activation;
 	m->inc = inc;
+	m->nb_layers = nb_layers;
+
+	for (int i=0; i < nb_layers; i++) {
+		if (activation_type == "tanh") {
+			m->activations.push_back(new Tanh());
+		} else if (activation_type == "iden") {
+			m->activations.push_back(new Identity());
+		} else if (activation_type == "sigmoid") {
+			m->activations.push_back(new Sigmoid());
+		} else if (activation_type == "relu") {
+			m->activations.push_back(new ReLU());
+		} else if (activation_type == "decayde") {
+			m->activations.push_back(new DecayDE());
+		} else {
+			printf("(%s) unknown activation\n", activation_type.c_str());
+			exit(1);
+		}
+	}
+
 
 	return m;
 

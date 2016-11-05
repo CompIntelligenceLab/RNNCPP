@@ -6,184 +6,6 @@
 REAL derivLoss(int k, VF1D& z0, VF1D& e, VF2D& w11, REAL alpha, int m0, int n0, std::vector<VF2D>& ws);
 REAL predict(int k, VF1D& z0, VF1D& e, VF2D& w11, REAL alpha, int m0, int n0, std::vector<VF2D>& ws);
 
-void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& exact, REAL inc)
-{
-	#if 1
-	WEIGHT ww01;
-	{
-		Connection* conn;
-		conn = m->getConnection(input, d1);
-		WEIGHT& w_01 = conn->getWeight();
-
-		//w_01.print("w01: initial weight\n");
-
-		//w_01(0,0) = w01;
-		conn->computeWeightTranspose();
-		ww01 = w_01; // TEMPORARY
-	}
-	#endif
-		int seq_len = m->getSeqLen();
-		WEIGHT w_11;
-		VF2D total_deriv;
-		Connection* conn;
-		conn = d1->getConnection();
-		if (conn) {
-			w_11 = conn->getWeight();
-			total_deriv = VF2D(size(w_11));
-			// transform w_11 to double
-			//arma::Mat<double> d_11(size(w_11));
-			arma::Mat<double> d_11 =  arma::conv_to<arma::Mat<double> >::from(w_11);
-			//for (int i=0; i < d_11.size(); i++) {
-				//d_11(i) = w_11(i);
-			//}
-			arma::cx_vec eigval = arma::eig_gen(d_11);
-			//w_11.print("w11");
-			//d_11.print("d11");
-			arma::cx_vec ee = arma::sort(eigval, "descend");
-			arma::Col<double> re = arma::real(ee);
-			arma::Col<double> im = arma::imag(ee);
-			arma::real(ee).print("real(ee)");
-			arma::imag(ee).print("imag(ee)");
-			//ee.print("eigenvalues");
-			double max_eig = sqrt(re[0]*re[0] + im[0]*im[0]);
-			//double max_eigen = sqrt(ee[0]*ee[0] + ee[1]*ee[1]);
-			printf("\n>>>>> max_eigen= %f\n\n", max_eig);
-			//w_11.print("w11: initial weight\n");
-			//w_11(0,0) = w11;
-			conn->computeWeightTranspose();
-
-			// analytic calculation: 
-			VF2D w = w_11;
-
-			printf("Vector of pow(w,k)\n");
-			std::vector<VF2D> ws; 
-			ws.push_back(w.eye(size(w)));
-			for (int s=0; s < seq_len; s++) {
-				w = w * w_11;
-				ws.push_back(w);
-				//printf("power = %d\n", s);
-			}
-			//w.print("w power");
-			//ws[0].print("ws[0]");
-			//ws[1].print("ws[1]");
-			//ws[seq_len-1].print("ws[seq_len-1]");
-			//ws[seq_len].print("ws[seq_len]");
-			//exit(0);
-
-			// Compute exact derivatives for one weight element, for starters. 
-			REAL alpha = w_11(0,0);
-			//xf.print("xf"); 
-			//printf("alpha= %f\n", alpha); 
-			int nr = w_11.n_rows;
-			int nc = w_11.n_cols;
-			REAL alphap = pow(alpha, seq_len);
-			//printf("seq_len= %d\n", seq_len);
-			//printf("alphap= %f\n", alphap);
-			//exact(0).print("exact(0)");
-
-			int k;
-			//U::print(ww01, "ww01");
-			//xf(0).col(0).print("xf(0).col(0)");
-			//xf(0).col(1).print("xf(0).col(1)");
-			//z0.print("z0");
-			//VF1D y = xf;
-			//e.print("e");
-			
-			VF1D z0 = ww01*xf(0).col(0); // ERROR
-			#if 0
-			printf("*********************  z0 ******************\n");
-			printf("ww01= %f\n", ww01(0,0));
-			printf("xf(0).col(0)= %f\n", xf(0).col(0)(0));
-			printf("z0= %f\n", z0(0));
-			printf("*****************************************\n");
-			#endif
-
-			nr = total_deriv.n_rows;
-			nc = total_deriv.n_cols;
-			//nr = nr > 3 ? 3 : nr;
-			//nc = nc > 3 ? 3 : nc;
-
-			// derivative of L(k) with respect to w_11(m0, n0)
-			for (int m0=0; m0 < nr; m0++) {
-			for (int n0=0; n0 < nc; n0++) {
-				printf("\n--w11--- m0,n0= %d, %d\n", m0, n0);
-				//printf("seq_len= %d\n", seq_len);
-				total_deriv(m0,n0) = 0.;
-				for (int k=0; k < seq_len; k++) {
-					VF1D e = exact(0).col(k);  // exact can be arbitrary
-					REAL dl = derivLoss(k, z0, e, w_11, alpha, m0, n0, ws);
-					total_deriv(m0,n0) += dl;
-					printf("--- dl = %14.7f\n", dl);
-				}
-				VF1D e = exact(0).col(seq_len-1);  // exact can be arbitrary
-				predict(seq_len-1, z0, e, w_11, alpha, m0, n0, ws);
-				//printf("total_deriv(%d,%d)= %14.7f\n", m0, n0, total_deriv(m0,n0));
-			}}
-			//exit(0);
-
-			#if 0
-			// KEEP FOR TESTING
-			printf("\n\n Direction computation of derivative of L wrt w_{11} when s=2 and layer_size=1\n");
-			{
-				Connection* conn = m->getConnection(input, d1);
-				WEIGHT& w_01 = conn->getWeight();
-				REAL w11 = w_11(0,0);
-				REAL w01 = w_01(0,0);
-				REAL e0 = exact(0).col(0)(0);
-				REAL e1 = exact(0).col(1)(0);
-				REAL x0 = xf(0)(0,0);  // x1 = 0 for this solution
-				REAL dLdw11 = 2.*(w11*w01*x0 - e1) * w01*x0;
-				REAL dLdw01 = 2.*(w11*w01*x0-e1)*w11*x0 + 2.*(w01*x0-e0) * x0;
-				printf("dLdw01= %14.7f\n", dLdw01);
-				printf("dLdw11= %14.7f\n", dLdw11);
-			}
-			#endif
-		}
-
-		std::vector<WEIGHT> wss;
-		//REAL inc = 0.001;
-
-		/***********
-		***********/
-
-		xf.print("xf");
-		exact.print("exact");
-
-
-		// missing xf and exact
-		//wss = runTest(m, inc, xf, exact); 
-		printf("\n<<< Exit after runTest >>>\n");
-		exit(0);
-
-		printf("\n*****************************************************************\n");
-		LAYERS layers = m->getLayers();
-		CONNECTIONS connections = m->getConnections();
-
-		printf("input-recurrent\n"); connections[0]->printSummary();
-		connections[0]->getDelta().print("delta");
-		printf("recurrent\n"); connections[1]->printSummary();
-		connections[1]->getDelta().print("delta");
-
-		layers[0]->printSummary();
-		layers[0]->getDelta().print("delta");
-		layers[1]->printSummary();
-		layers[1]->getDelta().print("delta");
-
-		layers[1]->getConnection()->printSummary("layers[1]->getConnection");
-		layers[1]->getConnection()->getDelta().print("layers[1]->getConnection, delta");
-
-		{
-			U::print(wss[0], "wss");
-			U::print(total_deriv, "total_deriv");
-			WEIGHT abs_err = wss[0] - total_deriv;
-			WEIGHT rel_err = abs_err % wss[0];
-			wss[0].print("wss[0]");
-			total_deriv.print("total_deriv");
-			//rel_err.print("rel_err btwn back_prop and analytic");
-			REAL rel_err_norm = arma::norm(rel_err);
-			printf("--> rel_err_norm(w11 vs analytic)  = %f\n", rel_err_norm);
-		}
-}
 //----------------------------------------------------------------------
 //void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activation* activation, REAL inc) 
 void testDiffEq1(Model* m)
@@ -191,8 +13,8 @@ void testDiffEq1(Model* m)
 	//testRecurrentModelBias1(m, layer_size, is_recurrent, activation, inc);
 	int layer_size = m->layer_size;
 	int is_recurrent = m->is_recurrent;
-	Activation* activation = m->activation;
 	REAL inc = m->inc;
+	int nb_layers = m->nb_layers;
 
 
 	printf("\n\n\n");
@@ -208,24 +30,36 @@ void testDiffEq1(Model* m)
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(input_dim, "input_layer");
 	Layer *d1;
+	std::vector<Layer*> internal_layers;
 
 	is_recurrent = 0;
 
-	if (is_recurrent) {
-		d1    = new RecurrentLayer(layer_size, "rdense");
-	} else {
-		d1    = new DenseLayer(layer_size, "rdense");
+	for (int i=0; i < nb_layers; i++) {
+		if (is_recurrent) {
+			d1    = new RecurrentLayer(layer_size, "rdense");
+		} else {
+			d1    = new DenseLayer(layer_size, "rdense");
+		}
+		internal_layers.push_back(d1);
 	}
 
 	m->add(0,     input);
-	m->add(input, d1);
+	input->setActivation(new Identity()); 
+
+	m->activations[0]->setParam(0, .8);
+    internal_layers[0]->setActivation(m->activations[0]); 
+	m->add(input, internal_layers[0]);
+
+	for (int i=1; i < internal_layers.size(); i++) {
+		m->activations[i]->setParam(0, i*.1);
+    	internal_layers[i]->setActivation(m->activations[i]); 
+		m->add(internal_layers[i-1], internal_layers[i]);
+	}
 
 	// input should always be identity activation
-	input->setActivation(new Identity()); 
-       d1->setActivation(activation); 
 
 	m->addInputLayer(input);
-	m->addOutputLayer(d1);
+	m->addOutputLayer(internal_layers[nb_layers-1]);
 
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
@@ -297,7 +131,7 @@ void testDiffEq1(Model* m)
 
 
 	// Set to 1 to run the test with diagonal recurrent matrix
-	diagRecurrenceTest(m, input, d1, xf, exact, inc);
+	//diagRecurrenceTest(m, input, d1, xf, exact, inc);
 	exit(0);
 
 	#if 1

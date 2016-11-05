@@ -24,7 +24,9 @@ public:
 	REAL inc;
 	int layer_size;
 	bool is_recurrent;
-	Activation* activation;
+	//Activation* activation;
+	std::vector<Activation*> activations;
+	int nb_layers;
 
 private:
 	int nb_batch;

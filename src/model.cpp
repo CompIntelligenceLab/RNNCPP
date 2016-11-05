@@ -399,6 +399,8 @@ void Model::printSummary()
 		layer->printSummary("\n---- ");
 		PAIRS_L prev = layer->prev;
 		PAIRS_L next = layer->next;
+		//Activation& activation = layer->getActivation();
+
 
 		for (int p=0; p < prev.size(); p++) {
 			Layer* pl = prev[p].first;
@@ -619,20 +621,20 @@ void Model::storeDLossDactivationParamsInLayer(int t)
 				else {
 					const VF2D_F& x = layer->getInputs();
 					g = activation.computeGradientWRTParam(x, i);
-					g.print("==> gradient");
+					//g.print("==> gradient");
 				}
 			//----------------
 
 				for (int b=0; b < nb_batch; b++) {
-					old_deriv[b].col(t).print("    ==> deriv");
-					g[b].col(t).print("    ==> g");
+					//old_deriv[b].col(t).print("    ==> deriv");
+					//g[b].col(t).print("    ==> g");
 					delta[i] += arma::dot(old_deriv[b].col(t), g[b].col(t)); //% grad[b].col(t);
-					layer->getActivationDelta().print("    ==> intermediate activation Delta\n"); 
+					//layer->getActivationDelta().print("    ==> intermediate activation Delta\n"); 
 				}
 			}
-			delta.print("==> final delta");
+			//delta.print("==> final delta");
 		    layer->incrActivationDelta(delta);
-			layer->getActivationDelta().print("==> activation Delta\n"); exit(0);
+			//layer->getActivationDelta().print("==> activation Delta\n"); exit(0);
 		} else { // coupled
 			;
 		}

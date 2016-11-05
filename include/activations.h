@@ -278,15 +278,15 @@ public:
  
 	VF2D_F operator()(const VF2D_F& x)
 	{
-		printf("operator()\n");
-		printf("x.n_rows= %d\n", x.n_rows);
+		//printf("operator()\n");
+		//printf("x.n_rows= %d\n", x.n_rows);
 		VF2D_F y(x.n_rows);
 		for (int i=0; i < x.n_rows; i++) {
 			// Forward Euler
-			printf("i= %d\n", i);
-			printf("params[0]= %f\n", params[0]);
-			x.print("x");
-			printf("dt= %f\n", dt);
+			//printf("i= %d\n", i);
+			//printf("params[0]= %f\n", params[0]);
+			//x.print("x");
+			//printf("dt= %f\n", dt);
 			y[i] = (1. + dt * params[0]) * x[i];
 		}
 		return y;
@@ -295,7 +295,7 @@ public:
 	VF2D_F derivative(const VF2D_F& x)
 	{
 		VF2D_F y(x.n_rows);
-		printf("derivative\n");
+		//printf("derivative\n");
 		for (int i=0; i < x.n_rows; i++) {
 			for (int j=0; j < x[i].size(); j++) {
 				y[i] = VF2D(x[0]);

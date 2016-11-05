@@ -8,7 +8,8 @@ Activation::Activation(std::string name /* "activation" */)
 	char cname[80];
 	deriv_type = "decoupled";  // default
 
-	dt = 0.01;   // Discrete time step
+	dt = .10;   // Discrete time step
+	printf("RESET dt to a small value!!!\n");
 
 	if (strlen(cname) > 80) {
 		printf("Activation::Activation : cname array too small\n");
@@ -200,8 +201,8 @@ DecayDE::DecayDE(std::string name /*="decayde"*/) : Activation(name)
 	// freeze all parameters
 	for (int i=0; i < params.size(); i++) {
 		frozen[i] = true;
-		params[i] = .1;  // should be random perhaps? 
 	}
+	params = arma::randn<VF1D>(arma::size(params)); 
 
 	// unfreeze single parameter (the zeroth one)
 	unfreezeParam(0);
