@@ -14,13 +14,14 @@ void testDiffEq1(Model* m)
 	int layer_size = m->layer_size;
 	int is_recurrent = m->is_recurrent;
 	REAL inc = m->inc;
-	int nb_layers = m->nb_layers;
+	int nb_serial_layers = m->nb_serial_layers;
+	int nb_parallel_layers = m->nb_parallel_layers;
 
 
 	printf("\n\n\n");
 	printf("=============== BEGIN test_recurrent_model_bias2  =======================\n");
 
-	//================================
+	//********************** BEGIN MODEL *****************************
 	int seq_len = m->getSeqLen();
 	int nb_batch = m->getBatchSize();
 	int input_dim  = 1;
@@ -34,7 +35,7 @@ void testDiffEq1(Model* m)
 
 	is_recurrent = 0;
 
-	for (int i=0; i < nb_layers; i++) {
+	for (int i=0; i < nb_serial_layers; i++) {
 		if (is_recurrent) {
 			d1    = new RecurrentLayer(layer_size, "rdense");
 		} else {
@@ -59,12 +60,15 @@ void testDiffEq1(Model* m)
 	// input should always be identity activation
 
 	m->addInputLayer(input);
-	m->addOutputLayer(internal_layers[nb_layers-1]);
+	m->addOutputLayer(internal_layers[nb_serial_layers-1]);
 
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
 
+	//********************** END MODEL *****************************
+
 	m->initializeWeights();
+
 
 	// Initialize xf and exact
 	VF2D_F xf, exact;

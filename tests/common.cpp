@@ -372,7 +372,8 @@ Model* processArguments(int argc, char** argv)
     int layer_size = 1;
     int seq_len = 1;
     int is_recurrent = 1;
-	int nb_layers = 1; // do not count input layer
+	int nb_serial_layers = 1; // do not count input layer
+	int nb_parallel_layers = 1; // do not count input layer
 	REAL inc;
 	string activation_type;
 	Activation* activation = new Identity(); 
@@ -402,8 +403,11 @@ Model* processArguments(int argc, char** argv)
 			initialization_type = argv[1];
 			argc -= 2; argv += 2;
 			printf("init type: %s\n", initialization_type.c_str());
-		} else if (arg == "-nl") {
-			nb_layers = atoi(argv[1]);
+		} else if (arg == "-nsl") { // number serial layers
+			nb_serial_layers = atoi(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-npl") {  // number parallel layers
+			nb_parallel_layers = atoi(argv[1]);
 			argc -= 2; argv += 2;
 		} else if (arg == "-l") {
 			layer_size = atoi(argv[1]);
@@ -436,9 +440,11 @@ Model* processArguments(int argc, char** argv)
 	m->layer_size = layer_size;
 	m->is_recurrent = is_recurrent;
 	m->inc = inc;
-	m->nb_layers = nb_layers;
+	m->nb_serial_layers =   nb_serial_layers;
+	m->nb_parallel_layers = nb_parallel_layers;
 
-	for (int i=0; i < nb_layers; i++) {
+	for (int j=0; j < nb_parallel_layers; j++) {
+	for (int i=0; i < nb_serial_layers; i++) {
 		if (activation_type == "tanh") {
 			m->activations.push_back(new Tanh());
 		} else if (activation_type == "iden") {
@@ -453,7 +459,7 @@ Model* processArguments(int argc, char** argv)
 			printf("(%s) unknown activation\n", activation_type.c_str());
 			exit(1);
 		}
-	}
+	}}
 
 
 	return m;

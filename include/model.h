@@ -26,7 +26,8 @@ public:
 	bool is_recurrent;
 	//Activation* activation;
 	std::vector<Activation*> activations;
-	int nb_layers;
+	int nb_serial_layers;
+	int nb_parallel_layers;
 
 private:
 	int nb_batch;
