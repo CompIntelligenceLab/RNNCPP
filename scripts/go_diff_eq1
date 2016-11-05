@@ -1,4 +1,4 @@
-build/tests/test_diff_eq1/test_diff_eq1 -l 4 -npl 2 -nsl 4  -b 1 -s 2 -a "decayde" -r 1 -w "xavier" -i 1.e-2
+build/tests/test_diff_eq1/test_diff_eq1 -l 4 -npl 3 -nsl 2  -b 1 -s 2 -a "decayde" -r 1 -w "xavier" -i 1.e-2
 
 #build/tests/test_diff_eq1/test_diff_eq1 -l 4 -nl 4  -b 1 -s 2 -a "decayde" -r 1 -w "xavier" -i 1.e-2
 

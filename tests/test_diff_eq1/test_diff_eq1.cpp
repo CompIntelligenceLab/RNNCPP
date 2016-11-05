@@ -31,37 +31,69 @@ void testDiffEq1(Model* m)
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(input_dim, "input_layer");
 	Layer *d1;
-	std::vector<Layer*> internal_layers;
+
+	typedef std::vector<Layer*> SLAYERS;
+	typedef std::vector<SLAYERS>  PLAYERS;
+	//std::vector<std::vector<Layer*> > parallel_layers(nb_parallel_layers);
+	//std::vector<Layer*> internal_layers;
+	PLAYERS internal_layers;
+	internal_layers.resize(nb_parallel_layers);
+	for (int i=0; i < nb_parallel_layers; i++) {
+		internal_layers[i].resize(nb_serial_layers);
+	}
+
 
 	is_recurrent = 0;
 
-	for (int i=0; i < nb_serial_layers; i++) {
-		if (is_recurrent) {
-			d1    = new RecurrentLayer(layer_size, "rdense");
-		} else {
-			d1    = new DenseLayer(layer_size, "rdense");
+	for (int i=0; i < m->activations.size(); i++) {
+		m->activations[i]->setParam(0, .1*i+.1);
+	}
+
+	for (int j=0; j < nb_parallel_layers; j++) {
+		for (int i=0; i < nb_serial_layers; i++) {
+			if (is_recurrent) {
+				d1    = new RecurrentLayer(layer_size, "rdense");
+			} else {
+				d1    = new DenseLayer(layer_size, "rdense");
+			}
+			internal_layers[j][i] = d1;
+			printf("--- j= %d, size: %d\n", j, internal_layers[j].size());
 		}
-		internal_layers.push_back(d1);
+		m->add(0,     input);
+		input->setActivation(new Identity()); 
+
+		printf("j= %d\n", j);
+		printf("layer: %ld\n", internal_layers[j][0]);
+    	internal_layers[j][0]->setActivation(m->activations[0+j*nb_serial_layers]); 
+		m->add(input, internal_layers[j][0]);
+
+		for (int i=1; i < nb_serial_layers; i++) {
+			printf("i= %d, j= %d, activation names: %s\n", i, j, m->activations[i+j*nb_serial_layers]->getName().c_str());
+    		internal_layers[j][i]->setActivation(m->activations[i+j*nb_serial_layers]); 
+			m->add(internal_layers[j][i-1], internal_layers[j][i]);
+		}
 	}
 
-	m->add(0,     input);
-	input->setActivation(new Identity()); 
+	// connect the two parallel layers by another layer 
 
-	m->activations[0]->setParam(0, .8);
-    internal_layers[0]->setActivation(m->activations[0]); 
-	m->add(input, internal_layers[0]);
-
-	for (int i=1; i < internal_layers.size(); i++) {
-		m->activations[i]->setParam(0, i*.1);
-    	internal_layers[i]->setActivation(m->activations[i]); 
-		m->add(internal_layers[i-1], internal_layers[i]);
+	if (is_recurrent) {
+		d1 = new RecurrentLayer(layer_size, "rdenseOut");
+	} else {
+		d1 = new DenseLayer(layer_size, "rdenseOut");
 	}
+
+	for (int j=0; j < nb_parallel_layers; j++) {
+		m->add(internal_layers[j][nb_serial_layers-1], d1);
+	}
+	d1->setActivation(new Tanh());
+
 
 	// input should always be identity activation
 
 	m->addInputLayer(input);
-	m->addOutputLayer(internal_layers[nb_serial_layers-1]);
+	m->addOutputLayer(d1);
 
+	printf("total nb layers: %d\n", m->getLayers().size());
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
 

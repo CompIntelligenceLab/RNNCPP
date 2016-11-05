@@ -125,6 +125,8 @@ void Model::addProbeLayer(Layer* layer)
 //----------------------------------------------------------------------
 void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all-all"*/)
 {
+	// I AM ADDING A Layer if the layer doesn't already exit. Otherwise, I am adding a connection
+
 	printf("add(layer_from, layer)\n");
 	// Layers should only require layer_size 
 
@@ -134,10 +136,19 @@ void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all
 		layer_to->setInputDim(layer_to->getInputDim());
 	}
 
-  	layers.push_back(layer_to);
-	layer_to->setNbBatch(nb_batch); // check
-	layer_to->setSeqLen(seq_len); // check
-	printf("layers: nb_batch= %d\n", nb_batch);
+	// Only add the layer if it is not already in the layer list
+	bool in_list = false;
+	for (int l=0; l < layers.size(); l++) {
+		if (layer_to == layers[l]) {
+			in_list = true;
+		}
+	}
+	if (in_list == false) {
+  		layers.push_back(layer_to);
+		layer_to->setNbBatch(nb_batch); // check
+		layer_to->setSeqLen(seq_len); // check
+		printf("layers: nb_batch= %d\n", nb_batch);
+	}
 
 	int in_dim  = layer_to->getInputDim();
 	int out_dim = layer_to->getOutputDim();
