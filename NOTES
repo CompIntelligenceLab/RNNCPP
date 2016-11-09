@@ -362,3 +362,10 @@ when seq_len=3, accuracy of FD derivatives decreases for recursive links. Do not
 ----------------------------------------------------------------------
 Do not use arma::size(...)  Used as np.dim in python. It is not an integer!
 ----------------------------------------------------------------------
+Nov. 5, 2016
+Are armadillo fields consecutive in memory? It would greatly simplify things when creating input to the prediction routine. 
+The the conversion of data is only done once. 
+----------------------------------------------------------------------
+Nov. 5, 2016
+I wonder if I have an error. If a layer has 16 nodes, how many different biases are there? 16? 
+----------------------------------------------------------------------

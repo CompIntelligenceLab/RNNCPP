@@ -48,6 +48,7 @@ public:
 	/** Sometimes there is a need to use fields (VF2D_F) and sometimes simple 1D arrays (VF1D) as input */
 	virtual VF2D_F derivative(const VF2D_F& x) = 0; // derivative of activation function evaluated at x
 	virtual VF1D   derivative(const VF1D&   x) = 0; // derivative of activation function evaluated at x
+	virtual void setDt(REAL dt) { this->dt = dt; }
 
 	virtual VF2D jacobian(const VF1D& x, const VF1D& y) { ; // different variables are coupled, Jacobian
 		return VF2D(1,1);  // not really used, but a placeholder 
@@ -59,6 +60,7 @@ public:
 	virtual void setNbParams(int nb_params) { params.resize(nb_params); frozen.resize(nb_params); }
 	virtual int getNbParams() { return params.size(); }
 	virtual const VF1D& getParams() { return params; }
+	virtual REAL getParam(int which) { return params[which]; }
 	virtual void setParam(int which, REAL value);
 	virtual int isFrozen(int i) { return frozen[i]; }
 	virtual VF2D_F computeGradientWRTParam(const VF2D_F& x, int i) = 0;

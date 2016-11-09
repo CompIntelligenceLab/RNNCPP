@@ -28,8 +28,8 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 	clock = 0;
 	from = to = 0;
 	hit = 0;
-	freeze = false;
 	type = "all-all";
+	frozen = false;
 
 	char cname[80];
 
@@ -49,7 +49,7 @@ Connection::~Connection()
 }
 
 Connection::Connection(const Connection& w) : in_dim(w.in_dim), out_dim(w.out_dim), print_verbose(w.print_verbose),
-     temporal(w.temporal), clock(w.clock), to(w.to), from(w.from), freeze(w.freeze), type(w.type), t_from(w.t_from),
+     temporal(w.temporal), clock(w.clock), to(w.to), from(w.from), frozen(w.frozen), type(w.type), t_from(w.t_from),
 	 t_to(w.t_to), t_clock(w.t_clock)
 {
 	name = w.name + "c";
@@ -73,7 +73,7 @@ const Connection& Connection::operator=(const Connection& w)
 		clock = w.clock;
 		from = w.from; 
 		to = w.to;
-		freeze = w.freeze;
+		frozen = w.frozen;
 		type = w.type;
 		t_from = w.t_from;
 		t_to = w.t_to;
@@ -89,7 +89,7 @@ void Connection::print(std::string msg /* "" */)
 	printf("connection: %s\n", name.c_str());
 	printf("in: %d, out: %d\n", in_dim, out_dim);
 	printf("print_verbose= %d\n", print_verbose);
-	printf("freeze= %d\n", freeze);
+	printf("frozen= %d\n", frozen);
 	if (msg != "") printf("%s\n", msg.c_str());
 
 	if (print_verbose == false) return;

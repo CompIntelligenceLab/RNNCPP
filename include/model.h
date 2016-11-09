@@ -28,6 +28,7 @@ public:
 	std::vector<Activation*> activations;
 	int nb_serial_layers;
 	int nb_parallel_layers;
+	REAL dt;
 
 private:
 	int nb_batch;

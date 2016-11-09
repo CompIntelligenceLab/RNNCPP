@@ -20,5 +20,8 @@ add_subdirectory(test_recurrent_model_bias1)
 #add_subdirectory(softmax_rec1)
 #add_subdirectory(debug_bias1)
 
-# calculate differential equation from signal
-add_subdirectory(test_diff_eq1)
+# calculate differential equation from signal (works)
+#add_subdirectory(test_diff_eq1)
+
+# solve for differential equation parameters
+add_subdirectory(test_diff_eq2)

@@ -14,7 +14,7 @@ using namespace std;
 Model::Model(std::string name /* "model" */) 
 {
 	this->name = name;
-	learning_rate = 1.e-5;
+	learning_rate = 0.01;
 	return_sequences = false;
 	print_verbose = true;
 	printf("Model constructor (%s)\n", this->name.c_str());
@@ -474,14 +474,17 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 		assert(x.n_rows == batch_size && exact.n_rows == batch_size);
 	}
 
+	printf("nb_epochs= %d\n", nb_epochs);
 	for (int i=0; i < nb_epochs; i++) {
-		printf("**** epoch %d ****\n");
+		printf("**** epoch %d ****\n", i);
 		VF2D_F pred = predictViaConnectionsBias(x);
 		objective->computeLoss(exact, pred);
+		exact.print("exact");
+		pred.print("pred");
 		const LOSS& loss = objective->getLoss();
 		LOSS ll = loss;
-		ll(0) = ll(0) / 3.7;
-		//ll(0).raw_print(std::cout, "loss");
+		//ll(0) = ll(0) / 3.7;
+		ll(0).raw_print(std::cout, "loss");
 		backPropagationViaConnectionsRecursion(exact, pred);
 		parameterUpdate();
 	}
@@ -764,6 +767,18 @@ void Model::biasUpdate()
 //----------------------------------------------------------------------
 void Model::activationUpdate()
 {
+	for (int l=0; l < layers.size(); l++) {
+		Activation& activation = layers[l]->getActivation();
+		int nb_params = activation.getNbParams();
+		const VF1D& delta = layers[l]->getActivationDelta();
+
+		for (int p=0; p < nb_params; p++) {
+			if (activation.isFrozen(p)) continue;
+			REAL param = activation.getParam(p) - learning_rate * delta[p];
+			activation.setParam(p, param);
+			printf("param= %f\n", param);
+		}
+	}
 }
 //----------------------------------------------------------------------
 void Model::parameterUpdate()

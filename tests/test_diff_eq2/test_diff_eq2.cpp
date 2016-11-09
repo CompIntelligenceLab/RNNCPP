@@ -97,8 +97,82 @@ void testDiffEq1(Model* m)
 	//********************** END MODEL *****************************
 
 	m->initializeWeights();
+	m->setLearningRate(0.01);
 
-	// RUN TEST TO CHECK ACCURACY OF WEIGHT, BIAS, ACTIVATION PARAMS deltas (dLoss/d...)
+	//------------------------------------------------------------------
+	// SOLVE ODE  dy/dt = -alpha y
+	// Determine alpha, given a curve YT (y target) = exp(-2 t)
+	// Initial condition on alpha: alpha(0) = 1.0
+	// I expect the neural net to return alpha=2 when the loss function is minimized. 
+
+	int npts = 300;
+	printf("npts= %d\n", npts); 
+	printf("seq_len= %d\n", seq_len); 
+
+	// npts should be a multiple of seq_len
+	npts = (npts / seq_len) * seq_len; 
+
+
+	VF1D ytarget(npts);
+	VF1D x(npts);   // abscissa
+	REAL delx = .025;  // will this work for uneven time steps? dt = .1, but there is a multiplier: alpha in front of it. 
+	                 // Some form of normalization will probably be necessary to scale out effect of dt (discrete time step)
+	m->dt = delx;
+	REAL alpha_target = 1.;
+	REAL alpha_initial = 1.5;  // should evolve towards alpha_target
+
+	for (int i=0; i < npts; i++) {
+		x[i] = i*delx;
+		ytarget[i] = exp(-alpha_target * x[i]);
+		printf("x: %f, target: %f\n", x[i], ytarget[i]);
+	}
+
+	// set all alphas to alpha_initial
+	LAYERS layers = m->getLayers();
+
+	for (int l=0; l < layers.size(); l++) {
+		Layer* layer = layers[l];
+		printf("l= %d\n", l);
+		// layers without parameters will ignore this call
+		layer->getActivation().setParam(0, alpha_initial);
+		layer->getActivation().setDt(m->dt);
+	}
+
+	// Assume nb_batch=1 for now. Extract a sequence of seq_len elements to input
+	// input into prediction followed by backprop followed by parameter updates.
+	// What I want is a data structure: 
+	//  VF2D_F[nb_batch][nb_inputs, seq_len] = VF2D_F[1][1, seq_len]
+	// 
+
+	int nb_samples = npts / seq_len; 
+	std::vector<VF2D_F> net_inputs;
+	VF2D_F vf2d;
+	U::createMat(vf2d, nb_batch, 1, seq_len);
+
+	VF2D_F vf2d_exact;
+	U::createMat(vf2d_exact, nb_batch, 1, seq_len);
+
+	// Assumes nb_batch = 1 and input dimensionality = 1
+	for (int i=0; i < nb_samples; i++) {
+		printf("i= %d\n", i);
+		for (int j=0; j < seq_len; j++) {
+			printf("i,j= %d, %d\n", i,j);
+			vf2d[0](0, j) = ytarget(j + seq_len*i);
+			net_inputs.push_back(vf2d);
+		}
+	}
+
+
+//void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /*=1*/) 
+	net_inputs[0].print("net_inputs[0]");
+	net_inputs[1].print("net_inputs[1]");
+
+	for (int i=0; i < nb_samples-1; i++) {
+		m->train(net_inputs[i], net_inputs[i+1], nb_batch, 1);
+	}
+	//------------------------------------------------------------------
+
+	exit(0);
 
 	// Initialize xf and exact
 	VF2D_F xf, exact;
@@ -122,6 +196,7 @@ void testDiffEq1(Model* m)
 	// SOME KIND OF MATRIX INCOMPATIBILITY. That is because exact has the wrong dimensions. 
 	runTest(m, inc, xf, exact);
 	exit(0);
+}
 //----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {

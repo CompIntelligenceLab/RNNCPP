@@ -60,9 +60,10 @@ void Activation::setParam(int which, REAL value)
 { 
 	if (which < params.size()) {
 		params[which] = value; 
+		printf("set parameter\n");
 	} else {
 		printf("params argument out of range\n");
-		exit(1);
+		//exit(1);
 	}
 }
 //----------------------------------------------------------------------

@@ -25,7 +25,7 @@ public:
 	Layer* to;    // useful for some algorithms
 	int hit;      // track whether a connection was hit (make private later perhaps)
 	int which_lc; // which index into layer_connections
-	bool freeze;  // do not update connections (NOT IMPLEMENTED). False by default
+	bool frozen;  // do not update connections if true. False by default
 	// used to handle connections with delays
 	// t_from: will be zero, but perhaps will acquire non-zero value in the future
 	// t_to: the connection delay. A "signal" takes (t_to-t_from) units to reach Layer "from"
@@ -73,6 +73,8 @@ public:
 	WEIGHT& getWeight() { return weight; } // more generally, return a vector of weights
 	const WEIGHT& getWeightTranspose() const { return weight_t; } // more generally, return a vector of weights
 	void computeWeightTranspose();
+	void freeze() { frozen = true; }
+	void unfreeze() { frozen = false; }
 	void print(std::string name= "");
 	void printSummary(std::string name= "");
 	int getNRows() { return weight.n_rows; }
