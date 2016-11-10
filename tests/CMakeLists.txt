@@ -25,3 +25,7 @@ add_subdirectory(test_recurrent_model_bias1)
 
 # solve for differential equation parameters
 add_subdirectory(test_diff_eq2)
+
+# solve for simplest equation dy/dy = -alpha y with simplest network (recurrent, seq=1)
+add_subdirectory(test_diff_eq3)
+
