@@ -88,9 +88,9 @@ void MeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 	loss.set_size(nb_batch); // needed
 	VF2D tmp;
 
-	U::print(exact, "1 exact");
-	U::print(exact(0), "2 exact(0)");
-	U::print(predict, "3 predict");
+	//U::print(exact, "1 exact");
+	//U::print(exact(0), "2 exact(0)");
+	//U::print(predict, "3 predict");
 
 	// LOSS is a row vector. One value per sequence element
 

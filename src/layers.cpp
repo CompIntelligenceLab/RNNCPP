@@ -298,38 +298,6 @@ bool Layer::areIncomingLayerConnectionsComplete()
 	return (nb_hit == prev.size());
 }
 //----------------------------------------------------------------------
-#if 1
-// Perhaps break this up into processing by Connection then by output layer
-void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod)
-{
-	//printf("enter Layer::processOutputDataFromPreviousLayern");
-	++nb_hit;
-
-	const VF2D_F& from_outputs = conn->from->getOutputs();
-	const WEIGHT& wght = conn->getWeight();  // what if connection operates differently
-	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
-
-	U::matmul(prod, wght, from_outputs);  // w * x
-	to_inputs = prod;
-
-	// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
-
-	// completeness only happens once per layer and per input value into the predicition module
-	if (areIncomingLayerConnectionsComplete()) {
-		 // sum up all the inputs + the temporal input if there is one
-		 resetInputs();
-		 for (int i=0; i < layer_inputs.size(); i++) {
-		 	incrInputs(layer_inputs[i]);
-		 }
-		 // add the self-looping if there. 
-		 incrInputs(loop_input);
-
-		 prod = getActivation()(getInputs());
-		 setOutputs(prod);
-	}
-}
-#endif
-//----------------------------------------------------------------------
 void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int t)
 {
 	//printf("enter Layer::processOutputDataFromPreviousLayer, t= %d\n", t);
@@ -349,7 +317,6 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 		 	incrInputs(layer_inputs[i], t);
 		 }
 		 // add the self-looping if there. 
-		 //incrInputs(loop_input); 
 		 incrInputs(loop_input, t); 
 		 // Add layer biases. must loop over batch and over sequence size. 
 		 addBiasToInput(t);
@@ -383,6 +350,8 @@ void Layer::resetState()
 	U::zeros(inputs);
 	U::zeros(outputs);
 	U::zeros(delta);
+
+	getOutputs().print("layer reset outputs");
 
 	for (int i=0; i < layer_inputs.size(); i++) {
 		U::zeros(layer_inputs[i]);

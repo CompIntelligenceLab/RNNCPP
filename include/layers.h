@@ -152,7 +152,9 @@ public:
 	int getLayerSize() { return layer_size; }
 	void setLayerSize(int layer_size) { this->layer_size = layer_size; }
 	void setInputs(VF2D_F& inputs) { this->inputs = inputs; }
+	const std::vector<VF2D_F>& getLayerInputs() { return layer_inputs; }
 	const VF2D_F& getInputs() { return inputs; }
+	const VF2D_F& getLoopInput() { return loop_input; }
 	void setOutputs(VF2D_F& outputs) { this->outputs = outputs; }
 	VF2D_F& getOutputs() { return outputs; }
 	void incrOutputs(VF2D_F& x);
@@ -186,7 +188,7 @@ public:
 	virtual void forwardLoops(int seq_index);
 	virtual void processData(Connection* conn, VF2D_F& prod);
 	virtual bool areIncomingLayerConnectionsComplete();
-	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod);
+	//virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod);
 	virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, int seq);
 	virtual void addBiasToInput(int t);
 

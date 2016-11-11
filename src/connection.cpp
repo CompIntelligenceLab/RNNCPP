@@ -193,6 +193,10 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 			//weight *= 1.02; // make matrix slightly stable. 
 			weight.print("weight temporal");
 		}
+	} else if (initialize_type == "unity") {
+		weight.ones();
+	} else if (initialize_type == "identity") {
+		weight.eye();
 	} else {
 		printf("initialize_type: %s not implemented\n", initialize_type.c_str());
 		exit(1);

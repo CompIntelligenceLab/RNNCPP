@@ -14,7 +14,7 @@ using namespace std;
 Model::Model(std::string name /* "model" */) 
 {
 	this->name = name;
-	learning_rate = 0.01;
+	learning_rate = 0.001;
 	return_sequences = false;
 	print_verbose = true;
 	printf("Model constructor (%s)\n", this->name.c_str());
@@ -25,7 +25,7 @@ Model::Model(std::string name /* "model" */)
 			   // WHY a string? (Gordon)
 	batch_size = 1; // batch size of 1 is equivalent to online learning
 	nb_epochs = 10; // Just using the value that Keras uses for now
-    stateful = false; 
+    stateful = false;  // all layers are stateful or not stateful
 	seq_len = 1; // should be equivalent to feedforward (no time to unroll)
 	initialization_type = "xavier";  // can also choose Gaussian
 }
@@ -435,6 +435,8 @@ void Model::printSummary()
 //----------------------------------------------------------------------
 VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 {
+	layers[1]->getOutputs().print("getOutputs"); // XXX
+
 	VF2D_F prod(x.size());
 	//printf("****************** ENTER predictViaConnections ***************\n");
 
@@ -463,6 +465,32 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	return prod;
 }
 //----------------------------------------------------------------------
+// Treat a single batch. x has dimesions [batch][input_dim, seq_len]
+// exact has dimesions [batch][last_layer_size, seq_len]
+// batch_size is encoded in the dimensions of "x"
+// I might create another function where x and exact does not include the batchsize, and 
+// the arrays would be computed inside the function
+// results to begin implementing the backprop. Should be reevaluated
+
+void Model::trainOneBatch(VF2D x_, VF2D exact_)
+{
+	// MUST REWRITE THIS PROPERLY
+	// DEAL WITH BATCH and SEQUENCES CORRECTLY
+	// FOR NOW, ASSUME BATCH=1
+
+	VF2D_F x(1); x[0] = x_;
+	VF2D_F exact(1); exact[0] = exact_;
+
+	VF2D_F pred = predictViaConnectionsBias(x);
+	//objective->computeLoss(exact, pred);
+
+	const LOSS& loss = objective->getLoss();
+	LOSS ll = loss;
+
+	//backPropagationViaConnectionsRecursion(exact, pred);
+	//parameterUpdate();
+}
+//----------------------------------------------------------------------
 // This was hastily decided on primarily as a means to construct feed forward
 // results to begin implementing the backprop. Should be reevaluated
 void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /*=1*/) 
@@ -474,17 +502,21 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 		assert(x.n_rows == batch_size && exact.n_rows == batch_size);
 	}
 
+	// MUST REWRITE THIS PROPERLY
+	// DEAL WITH BATCH and SEQUENCES CORRECTLY
+	// FOR NOW, ASSUME BATCH=1
+
 	printf("nb_epochs= %d\n", nb_epochs);
 	for (int i=0; i < nb_epochs; i++) {
 		printf("**** epoch %d ****\n", i);
 		VF2D_F pred = predictViaConnectionsBias(x);
 		objective->computeLoss(exact, pred);
-		exact.print("exact");
-		pred.print("pred");
+		//exact.print("exact");
+		//pred.print("pred");
 		const LOSS& loss = objective->getLoss();
 		LOSS ll = loss;
 		//ll(0) = ll(0) / 3.7;
-		ll(0).raw_print(std::cout, "loss");
+		//ll(0).raw_print(std::cout, "loss");
 		backPropagationViaConnectionsRecursion(exact, pred);
 		parameterUpdate();
 	}
@@ -744,6 +776,7 @@ void Model::weightUpdate()
 	for (int c=0; c < clist.size(); c++) {
 		Connection* con = clist[c];
 		WEIGHT& wght = con->getWeight();
+		if (con->frozen) continue;
 		wght = wght - learning_rate * con->getDelta();
 	}
 
@@ -751,6 +784,7 @@ void Model::weightUpdate()
 	for (int l=0; l < layers.size(); l++) {
 		Connection* con = layers[l]->getConnection();
 		if (!con) continue;
+		if (con->frozen) continue;
 		WEIGHT& wght = con->getWeight();
 		wght = wght - learning_rate * con->getDelta();
 	}

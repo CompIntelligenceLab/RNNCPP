@@ -1,0 +1,9 @@
+# Real test of parameter estimation to determine differential equation from a network. 
+
+build/tests/test_diff_eq2/test_diff_eq2 -l 1 -npl 1 -nsl 1  -b 1 -s 4 -a "decayde" -r 1 -w "xavier" -i 1.e-2
+
+# -sl:  serial layers: standard configuration for deep networks: one layer follows the other towards the loss function. 
+# -pl:  parallel layers: Input is connected to multiple layers, each one a deep network, and connected at the loss function. 
+
+# if seq_len = 1, -r should have no effect
+

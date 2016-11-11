@@ -319,7 +319,7 @@ public:
 
 	virtual VF2D_F computeGradientWRTParam(const VF2D_F& x, int ix)
 	{
-		printf("computeGradient, ix= %d\n", ix);
+		//printf("computeGradient, ix= %d\n", ix);
 		if (ix == 0) {
 			VF2D_F y(x.n_rows);
 			for (int i=0; i < x.n_rows; i++) {

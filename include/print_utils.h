@@ -3,6 +3,8 @@
 
 #include "typedefs.h"
 
+class Model;
+
 class U
 {
 public:
@@ -28,6 +30,12 @@ public:
 	static void leftTriad(VF2D_F& prod, VF2D_F& a, VF2D_F& b, VF2D_F& c, int from, int to);
 	static void rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c);
 	static void rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c, int from, int to);
+
+	static void printRecurrentLayerLoopInputs(Model *m);
+	static void printInputs(Model *m);
+	static void printLayerInputs(Model *m);
+	static void printLayerOutputs(Model *m);
+	static void printWeights(Model* m);
 };
 
 #endif

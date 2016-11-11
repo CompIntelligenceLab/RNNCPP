@@ -1,6 +1,7 @@
 #include <iostream>
 #include "typedefs.h"
 #include "print_utils.h"
+#include "model.h"
 
 using namespace std;
 
@@ -221,5 +222,86 @@ void U::rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c
 	prod.print("prod");
 	//exit(0);
 	#endif
+}
+//----------------------------------------------------------------------
+void U::printRecurrentLayerLoopInputs(Model *m)
+{
+	LAYERS layers = m->getLayers();
+	printf("----------------------------------------\n");
+	printf("Recurrent Layer Loop Inputs\n");
+	for (int i=0; i < layers.size(); i++) {
+		Layer* layer = layers[i]; 
+		Connection* con = layer->getConnection();
+		if (con) {
+			layer->printSummary();
+			layer->getLoopInput().print("loop input");
+		}
+	}
+}
+//----------------------------------------------------------------------
+void U::printInputs(Model *m)
+{
+	LAYERS layers = m->getLayers();
+	printf("----------------------------------------\n");
+	printf("Layer Inputs (input to activation function)\n");
+	for (int i=0; i < layers.size(); i++) {
+		Layer* layer = layers[i]; 
+		layer->printSummary();
+		layer->getInputs().print("inputs");
+		Connection* con = layer->getConnection();
+	}
+}
+//----------------------------------------------------------------------
+void U::printLayerInputs(Model *m)
+{
+	LAYERS layers = m->getLayers();
+	printf("----------------------------------------\n");
+	printf("Layer Inputs (input to to layer, before they are summed up\n");
+	for (int l=0; l < layers.size(); l++) {
+		Layer* layer = layers[l]; 
+		layer->printSummary();
+		std::vector<VF2D_F> inputs = layer->getLayerInputs();
+		for (int i=0; i < inputs.size(); i++) {
+			printf("layer input %d\n", i);
+			inputs[i].print("input ");
+		}
+		Connection* con = layer->getConnection();
+		if (con) {
+			layer->getLoopInput().print("loop input");
+		}
+	}
+}
+//----------------------------------------------------------------------
+void U::printLayerOutputs(Model *m)
+{
+	LAYERS layers = m->getLayers();
+	printf("----------------------------------------\n");
+	printf("Layer Outputs (output of activation function)\n");
+	for (int i=0; i < layers.size(); i++) {
+		Layer* layer = layers[i]; 
+		layer->printSummary();
+		layer->getOutputs().print("Outputs");
+	}
+}
+//----------------------------------------------------------------------
+void U::printWeights(Model* m)
+{
+	printf("-------------------------------------------------\n");
+	CONNECTIONS cons = m->getConnections();
+	printf("non-recurrent connections\n");
+	for (int i=0; i < cons.size(); i++) {
+		Connection* con = cons[i];
+		con->getWeight().print("weight");
+	}
+	printf("\nRecurrent connections\n");
+	LAYERS layers = m->getLayers();
+	for (int i=0; i < layers.size(); i++) {
+		Layer* layer = layers[i]; 
+		Connection* con = layer->getConnection();
+		if (con) {
+			con->printSummary("");
+			con->getWeight().print("weight");
+		}
+	}
 }
 //----------------------------------------------------------------------
