@@ -56,7 +56,14 @@ void testDiffEq1(Model* m)
 
 	m->initializeWeights();
 
-	m->setLearningRate(0.01);
+	// Set the weights of the two connection that input into Layer d1 to 1/2
+	// This should create a stable numerical scheme
+	WEIGHT& w = m->getConnections()[0]->getWeight();
+	w[0,0] *= 0.5;
+	WEIGHT& wr = d1->getConnection()->getWeight();
+	wr[0,0] *= 0.5;
+
+	m->setLearningRate(0.001);
 
 	//------------------------------------------------------------------
 	// SOLVE ODE  dy/dt = -alpha y
@@ -113,19 +120,16 @@ void testDiffEq1(Model* m)
 
 	// Assumes nb_batch = 1 and input dimensionality = 1
 	for (int i=0; i < nb_samples; i++) {
-		printf("i= %d\n", i);
 		for (int j=0; j < seq_len; j++) {
-			printf("i,j= %d, %d\n", i,j);
 			vf2d[0](0, j) = ytarget(j + seq_len*i);
 			net_inputs.push_back(vf2d);
 		}
 	}
 
-//void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /*=1*/) 
 	net_inputs[0].print("net_inputs[0]");
 	net_inputs[1].print("net_inputs[1]");
 
-	int nb_epochs = 13;
+	int nb_epochs = 2;
 	m->setStateful(false);
 	m->setStateful(true);
 	m->resetState();
@@ -139,14 +143,14 @@ void testDiffEq1(Model* m)
 	exit(0);
 	#endif
 
-	//for (int i=0; i < nb_samples-1; i++) {
-	for (int i=0; i < 2; i++) { // for testing
-		// I SHOULD CREATE A FUNCTION train_batch, that handles a single batch of data
-		if (m->getStateful() == false) {
-			//printf("reset state\n"); exit(0);
-			m->resetState();
+	for (int e=0; e < nb_epochs; e++) {
+		for (int i=0; i < nb_samples-1; i++) {
+			if (m->getStateful() == false) {
+				m->resetState();
+			}
+			//U::printRecurrentLayerLoopInputs(m);
+			m->trainOneBatch(net_inputs[i][0], net_inputs[i+1][0]);
 		}
-		m->trainOneBatch(net_inputs[i][0], net_inputs[i+1][0]);
 	}
 	//------------------------------------------------------------------
 

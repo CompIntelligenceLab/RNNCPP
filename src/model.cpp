@@ -437,9 +437,9 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 {
 	layers[1]->getOutputs().print("getOutputs"); // XXX
 
-	printf("===> ENTERING predict \n");
+	//printf("===> ENTERING predict \n");
 	U::printLayerInputs(this);
-	U::printLayerOutputs(this);
+	//U::printLayerOutputs(this);
 
 	VF2D_F prod(x.size());
 	//printf("****************** ENTER predictViaConnections ***************\n");
@@ -469,12 +469,12 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	// prepare the recursive layer inputs for the next input to the network (if stateful == true)
 	// DOES NOT WORK because matmul uses t and t+1, thus (seq_len-1) and (seq_len)
 	for (int l=0; l < layers.size(); l++) {
-		layers[l]->forwardLoops(seq_len-1);    // does not change with biases (empty functions it seems)
+		layers[l]->forwardLoops(seq_len-1, 0);    // does not change with biases (empty functions it seems)
 	}
 
-	printf("\n ===> EXITING PREDICT\n");
-	U::printLayerInputs(this);
-	U::printLayerOutputs(this);
+	//printf("\n ===> EXITING PREDICT\n");
+	//U::printLayerInputs(this);
+	//U::printLayerOutputs(this);
 
 	return prod;
 }
@@ -496,13 +496,13 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	VF2D_F exact(1); exact[0] = exact_;
 
 	VF2D_F pred = predictViaConnectionsBias(x);
-	//objective->computeLoss(exact, pred);
+	objective->computeLoss(exact, pred);
 
 	const LOSS& loss = objective->getLoss();
 	LOSS ll = loss;
 
-	//backPropagationViaConnectionsRecursion(exact, pred);
-	//parameterUpdate();
+	backPropagationViaConnectionsRecursion(exact, pred);
+	parameterUpdate();
 }
 //----------------------------------------------------------------------
 // This was hastily decided on primarily as a means to construct feed forward

@@ -154,23 +154,6 @@ void Layer::execute()
 	outputs = (*activation)(inputs);
 }
 
-void Layer::reset() // Must I reset recurrent connection? 
-{
-	for (int b=0; b < inputs.size(); b++) {
-		inputs(b).zeros();
-		outputs(b).zeros();
-		delta(b).zeros();
-		gradient(b).zeros();
-		clock = 0;
-	}
-}
-
-void Layer::resetBackprop()
-{
-	for (int b=0; b < delta.size(); b++) {
-		delta(b).zeros();
-	}
-}
 //----------------------------------------------------------------------
 void Layer::incrOutputs(VF2D_F& x)
 {
@@ -347,9 +330,26 @@ void Layer::forwardLoops(int seq)
 void Layer::forwardLoops(int t1, int t2)
 { }
 //----------------------------------------------------------------------
+void Layer::reset() // Must I reset recurrent connection? 
+{
+	U::zeros(inputs);
+	U::zeros(loop_input);
+	U::zeros(outputs);
+	U::zeros(delta);
+	U::zeros(gradient);
+	clock = 0;
+}
+
+void Layer::resetBackprop()
+{
+	for (int b=0; b < delta.size(); b++) {
+		delta(b).zeros();
+	}
+}
 void Layer::resetState()
 {
 	U::zeros(inputs);
+	U::zeros(loop_input);
 	U::zeros(outputs);
 	U::zeros(delta);
 
