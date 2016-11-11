@@ -437,6 +437,10 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 {
 	layers[1]->getOutputs().print("getOutputs"); // XXX
 
+	printf("===> ENTERING predict \n");
+	U::printLayerInputs(this);
+	U::printLayerOutputs(this);
+
 	VF2D_F prod(x.size());
 	//printf("****************** ENTER predictViaConnections ***************\n");
 
@@ -461,6 +465,16 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
 		}
  	}
+
+	// prepare the recursive layer inputs for the next input to the network (if stateful == true)
+	// DOES NOT WORK because matmul uses t and t+1, thus (seq_len-1) and (seq_len)
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->forwardLoops(seq_len-1);    // does not change with biases (empty functions it seems)
+	}
+
+	printf("\n ===> EXITING PREDICT\n");
+	U::printLayerInputs(this);
+	U::printLayerOutputs(this);
 
 	return prod;
 }

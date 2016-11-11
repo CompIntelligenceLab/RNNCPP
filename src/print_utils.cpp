@@ -243,7 +243,7 @@ void U::printInputs(Model *m)
 {
 	LAYERS layers = m->getLayers();
 	printf("----------------------------------------\n");
-	printf("Layer Inputs (input to activation function)\n");
+	printf("==> Layer Inputs (input to activation function)\n");
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i]; 
 		layer->printSummary();
@@ -256,7 +256,7 @@ void U::printLayerInputs(Model *m)
 {
 	LAYERS layers = m->getLayers();
 	printf("----------------------------------------\n");
-	printf("Layer Inputs (input to to layer, before they are summed up\n");
+	printf("==> Layer Inputs (input to to layer, before they are summed up\n");
 	for (int l=0; l < layers.size(); l++) {
 		Layer* layer = layers[l]; 
 		layer->printSummary();
@@ -276,7 +276,7 @@ void U::printLayerOutputs(Model *m)
 {
 	LAYERS layers = m->getLayers();
 	printf("----------------------------------------\n");
-	printf("Layer Outputs (output of activation function)\n");
+	printf("==> Layer Outputs (output of activation function)\n");
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i]; 
 		layer->printSummary();
@@ -287,13 +287,14 @@ void U::printLayerOutputs(Model *m)
 void U::printWeights(Model* m)
 {
 	printf("-------------------------------------------------\n");
+	printf("==> PRINT WEIGHTS\n");
 	CONNECTIONS cons = m->getConnections();
-	printf("non-recurrent connections\n");
+	printf("   Non-recurrent connections\n");
 	for (int i=0; i < cons.size(); i++) {
 		Connection* con = cons[i];
 		con->getWeight().print("weight");
 	}
-	printf("\nRecurrent connections\n");
+	printf("\n   Recurrent connections\n");
 	LAYERS layers = m->getLayers();
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i]; 

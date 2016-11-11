@@ -130,7 +130,7 @@ void testDiffEq1(Model* m)
 	m->setStateful(true);
 	m->resetState();
 
-	#if 1
+	#if 0
 	U::printWeights(m);
 	U::printRecurrentLayerLoopInputs(m);
 	U::printInputs(m);
@@ -140,7 +140,7 @@ void testDiffEq1(Model* m)
 	#endif
 
 	//for (int i=0; i < nb_samples-1; i++) {
-	for (int i=0; i < 5; i++) { // for testing
+	for (int i=0; i < 2; i++) { // for testing
 		// I SHOULD CREATE A FUNCTION train_batch, that handles a single batch of data
 		if (m->getStateful() == false) {
 			//printf("reset state\n"); exit(0);

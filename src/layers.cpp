@@ -344,6 +344,8 @@ void Layer::forwardLoops()
 { }
 void Layer::forwardLoops(int seq)
 { }
+void Layer::forwardLoops(int t1, int t2)
+{ }
 //----------------------------------------------------------------------
 void Layer::resetState()
 {

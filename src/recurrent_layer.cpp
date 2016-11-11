@@ -71,6 +71,15 @@ void RecurrentLayer::forwardLoops(int t)
 	}
 }
 //----------------------------------------------------------------------
+void RecurrentLayer::forwardLoops(int t1, int t2)
+{
+	//printf("inside forward loops, t=%d\n", t);
+	// forward data to temporal connections
+	// handle self loop
+	const WEIGHT& loop_wght = recurrent_conn->getWeight();
+	U::matmul(loop_input, loop_wght, outputs, t1, t2); // out of bounds
+}
+//----------------------------------------------------------------------
 void RecurrentLayer::forwardLoops()
 {
 	// forward data to temporal connections
