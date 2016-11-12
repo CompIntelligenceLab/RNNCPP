@@ -41,6 +41,9 @@ void testDiffEq1(Model* m)
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
 
+	#if 0
+	// FREEEZE weights and biases
+
     CONNECTIONS& cons = m->getConnections();
 	for (int i=0; i < cons.size(); i++) {
 		Connection* con = cons[i];
@@ -53,6 +56,7 @@ void testDiffEq1(Model* m)
     con->freeze();
 	input->setIsBiasFrozen(true);
 	d1->setIsBiasFrozen(true);
+	#endif
 	//********************** END MODEL *****************************
 
 	m->initializeWeights();
@@ -135,7 +139,7 @@ void testDiffEq1(Model* m)
 	//net_inputs[0].print("net_inputs[0]");
 	//net_inputs[1].print("net_inputs[1]");
 
-	int nb_epochs = 1;
+	int nb_epochs = 100;
 	m->setStateful(false);
 	m->setStateful(true);
 	m->resetState();
@@ -150,9 +154,10 @@ void testDiffEq1(Model* m)
 	#endif
 
 	for (int e=0; e < nb_epochs; e++) {
+		m->resetState();
 		printf("**** Epoch %d ****\n", e);
-		for (int i=0; i < nb_samples-1; i++) {
-		//for (int i=0; i < 2; i++) {
+		//for (int i=0; i < nb_samples-1; i++) {
+		for (int i=0; i < 100; i++) {
 			if (m->getStateful() == false) {
 				m->resetState();
 			}

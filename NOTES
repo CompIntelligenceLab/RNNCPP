@@ -376,5 +376,8 @@ Freeze the biases. This probably accounts for the errors I am getting.
 Found the error! I forget to reset the deltas to zero (for activation parameters) 
 before starting a new batch.
 ----------------------------------------------------------------------
+I don't think that rms error is best measure when function decays exponentially. 
+Perhaps the log(rms error)? Sum of (y-ex)^2 is RMS error. Is the arg minimum of log(y-ex)^2 the 
+same as the arg min(rms error)
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

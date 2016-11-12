@@ -1,62 +1,66 @@
 import numpy as np
 
-dt = 0.025
-alpha = 1
 
+def misc():
+	dt = 0.025
+	alpha = 1
+	
+	#print t
+	
+	xsol = np.zeros(niter)
+	xsol[0] = xT[0]
+	
+	x = xT[0]
+	
+	beta = 1-alpha*dt
+	
+	# Forward Euler scheme
+	
+	xsol[1] = 0.5*xsol[0] 
+	
+	for n in range(1,niter-1):
+		xx = 0.5*(xsol[n] + xT[n])
+		xsol[n+1] = xx*beta
+	
+	xsol2 = xsol.copy()
+	
+	#-------------------
+	xsol[1] = 0.5*(xsol[0] + xT[0])
+	
+	for n in range(1,niter-1):
+		xx = 0.5*(xsol[n] + xT[n])
+		xsol[n+1] = xx*beta
+	
+	xsol3 = xsol.copy()
+	
+	#print xsol2 - xsol3
+	
+	#--------------------------
+	#Forward Euler
+	
+	for n in range(0,niter-1):
+		xx = xsol[n]
+		xsol[n+1] = xx*beta
+	
+	xsol4 = xsol.copy()
+	
+	#print xsol2 - xsol4
+	
+#----------------------------------------------------------------------
+# computation of loss function at the first time step, and of dL/d(alpha)
+	
+dt = 0.025
+lr = 10      # learning rate
+alpha = 1.5
 niter = 300
 t = np.linspace(0., niter, niter+1) * dt
 xT = np.exp(-alpha*t)
-#print t
-
 xsol = np.zeros(niter)
-xsol[0] = xT[0]
-
-x = xT[0]
-
-beta = 1-alpha*dt
-
-# Forward Euler scheme
-
-xsol[1] = 0.5*xsol[0] 
-
-for n in range(1,niter-1):
-	xx = 0.5*(xsol[n] + xT[n])
-	xsol[n+1] = xx*beta
-
-xsol2 = xsol.copy()
-
-#-------------------
-xsol[1] = 0.5*(xsol[0] + xT[0])
-
-for n in range(1,niter-1):
-	xx = 0.5*(xsol[n] + xT[n])
-	xsol[n+1] = xx*beta
-
-xsol3 = xsol.copy()
-
-#print xsol2 - xsol3
-
-#--------------------------
-#Forward Euler
-
-for n in range(0,niter-1):
-	xx = xsol[n]
-	xsol[n+1] = xx*beta
-
-xsol4 = xsol.copy()
-
-#print xsol2 - xsol4
-
-#----------------------------------------------------------------------
-# computation of loss function at the first time step, and of dL/d(alpha)
-
-lr = 1      # learning rate
-alpha = 1.5
 xsol[0] = 0.
 
 # start with it=1
 def one_step(xsol, xT,  it):
-	global alpha
+	global alpha, dt
 	beta = (1 - alpha * dt)
 	xsol[it] = 0.5*(xsol[it-1] + xT[it-1]) * beta
 	dLda = (xsol[it] - xT[it]) * (xsol[it-1] + xT[it-1]) * (-dt)
