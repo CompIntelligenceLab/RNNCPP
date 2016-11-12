@@ -41,7 +41,7 @@ void testDiffEq1(Model* m)
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
 
-	#if 0
+	#if 1
 	// FREEEZE weights and biases
 
     CONNECTIONS& cons = m->getConnections();
@@ -73,7 +73,7 @@ void testDiffEq1(Model* m)
 	WEIGHT& wr = d1->getConnection()->getWeight();
 	wr[0,0] *= 0.5;
 
-	m->setLearningRate(1);
+	m->setLearningRate(1.);
 
 	//------------------------------------------------------------------
 	// SOLVE ODE  dy/dt = -alpha y
@@ -87,7 +87,6 @@ void testDiffEq1(Model* m)
 
 	// npts should be a multiple of seq_len
 	npts = (npts / seq_len) * seq_len; 
-
 
 	VF1D ytarget(npts);
 	VF1D x(npts);   // abscissa
@@ -139,7 +138,6 @@ void testDiffEq1(Model* m)
 	//net_inputs[0].print("net_inputs[0]");
 	//net_inputs[1].print("net_inputs[1]");
 
-	int nb_epochs = 100;
 	m->setStateful(false);
 	m->setStateful(true);
 	m->resetState();
@@ -153,8 +151,14 @@ void testDiffEq1(Model* m)
 	exit(0);
 	#endif
 
+	// manually set input from recurrent node to be nonzero at the first iteration
+	VF2D_F& in = d1->getLoopInput();
+	in[0] = 0.5 * net_inputs[0][0];
+	//in.print("loop"); exit(0);
+
+	int nb_epochs = 500;
+
 	for (int e=0; e < nb_epochs; e++) {
-		m->resetState();
 		printf("**** Epoch %d ****\n", e);
 		//for (int i=0; i < nb_samples-1; i++) {
 		for (int i=0; i < 100; i++) {
@@ -164,6 +168,7 @@ void testDiffEq1(Model* m)
 			//U::printRecurrentLayerLoopInputs(m);
 			m->trainOneBatch(net_inputs[i][0], net_inputs[i+1][0]);
 		}
+		m->resetState();
 	}
 	//------------------------------------------------------------------
 

@@ -155,7 +155,8 @@ public:
 	void setInputs(VF2D_F& inputs) { this->inputs = inputs; }
 	const std::vector<VF2D_F>& getLayerInputs() { return layer_inputs; }
 	const VF2D_F& getInputs() { return inputs; }
-	const VF2D_F& getLoopInput() { return loop_input; }
+	const VF2D_F& getLoopInput() const { return loop_input; }
+	VF2D_F& getLoopInput() { return loop_input; }
 	void setOutputs(VF2D_F& outputs) { this->outputs = outputs; }
 	VF2D_F& getOutputs() { return outputs; }
 	void incrOutputs(VF2D_F& x);
