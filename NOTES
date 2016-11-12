@@ -369,3 +369,12 @@ The the conversion of data is only done once.
 Nov. 5, 2016
 I wonder if I have an error. If a layer has 16 nodes, how many different biases are there? 16? 
 ----------------------------------------------------------------------
+I must freeze biases as well. 
+I just created is_bias_frozen with set and get operations in Layer
+Freeze the biases. This probably accounts for the errors I am getting. 
+----------------------------------------------------------------------
+Found the error! I forget to reset the deltas to zero (for activation parameters) 
+before starting a new batch.
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------

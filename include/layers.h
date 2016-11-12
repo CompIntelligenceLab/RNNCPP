@@ -51,6 +51,7 @@ protected:
 	VF2D_F outputs; // outputs from activation function
 	DELTA delta; // d(loss) / d(layer output)  (transform to row vector)
 	BIAS bias;
+	bool is_bias_frozen;
 	VF1D bias_delta; // arma::Col, d(loss) / d(bias)   (one bias per layer)
 	VF1D activation_delta;   // one delta per activation parameter (set to zero if frozen parameter)
 
@@ -183,6 +184,8 @@ public:
 	void setDelta(DELTA delta, int which_lc) { layer_deltas[which_lc] = delta; } // CHANGE
 	void resetDelta();
 	void resetState();
+	void setIsBiasFrozen(bool is_frozen) { this->is_bias_frozen = is_frozen; }
+	bool getIsBiasFrozen() { return is_bias_frozen; }
 	virtual void forwardData(Connection* conn, VF2D_F& prod, int seq);
 	virtual void forwardLoops();
 	virtual void forwardLoops(int t1, int t2);

@@ -63,8 +63,6 @@ void RecurrentLayer::forwardLoops(int t)
 	// handle self loop
 	const WEIGHT& loop_wght = recurrent_conn->getWeight();
 
-	loop_input.print("loop_input");
-
 	//printf("forward Loops, inside\n");
 	if (t >= 0) {
 		U::matmul(loop_input, loop_wght, outputs, t, t+1); // out of bounds

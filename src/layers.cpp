@@ -364,6 +364,7 @@ void Layer::resetState()
 void Layer::resetDelta()
 {
 	U::zeros(delta);
+	activation_delta.zeros();
 }
 //----------------------------------------------------------------------
 void Layer::addBiasToInput(int t)

@@ -36,6 +36,7 @@ public:
 	static void printLayerInputs(Model *m);
 	static void printLayerOutputs(Model *m);
 	static void printWeights(Model* m);
+	static void printLayerBiases(Model *m);
 };
 
 #endif

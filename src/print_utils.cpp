@@ -234,7 +234,8 @@ void U::printRecurrentLayerLoopInputs(Model *m)
 		Connection* con = layer->getConnection();
 		if (con) {
 			layer->printSummary();
-			layer->getLoopInput().print("loop input");
+			//layer->getLoopInput().print("loop input");
+			layer->getLoopInput()[0].raw_print(cout, "loop input");
 		}
 	}
 }
@@ -247,7 +248,8 @@ void U::printInputs(Model *m)
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i]; 
 		layer->printSummary();
-		layer->getInputs().print("inputs");
+		//layer->getInputs().print("inputs");
+		layer->getInputs()[0].raw_print(cout, "inputs");
 		Connection* con = layer->getConnection();
 	}
 }
@@ -263,11 +265,13 @@ void U::printLayerInputs(Model *m)
 		std::vector<VF2D_F> inputs = layer->getLayerInputs();
 		for (int i=0; i < inputs.size(); i++) {
 			printf("layer input %d\n", i);
-			inputs[i].print("input ");
+			//inputs[i].print("input ");
+			inputs[i][0].raw_print(cout, "input ");
 		}
 		Connection* con = layer->getConnection();
 		if (con) {
-			layer->getLoopInput().print("loop input");
+			//layer->getLoopInput().print("loop input");
+			layer->getLoopInput()[0].raw_print(cout, "loop input");
 		}
 	}
 }
@@ -280,7 +284,20 @@ void U::printLayerOutputs(Model *m)
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i]; 
 		layer->printSummary();
-		layer->getOutputs().print("Outputs");
+		//layer->getOutputs().print("Outputs");
+		layer->getOutputs()[0].raw_print(cout, "Outputs");
+	}
+}
+//----------------------------------------------------------------------
+void U::printLayerBiases(Model *m)
+{
+	LAYERS layers = m->getLayers();
+	printf("----------------------------------------\n");
+	printf("==> Layer Outputs (output of activation function)\n");
+	for (int i=0; i < layers.size(); i++) {
+		Layer* layer = layers[i]; 
+		layer->printSummary();
+		layer->getBias().raw_print(cout, "Bias");
 	}
 }
 //----------------------------------------------------------------------
@@ -292,6 +309,7 @@ void U::printWeights(Model* m)
 	printf("   Non-recurrent connections\n");
 	for (int i=0; i < cons.size(); i++) {
 		Connection* con = cons[i];
+		con->printSummary("");
 		con->getWeight().print("weight");
 	}
 	printf("\n   Recurrent connections\n");

@@ -435,14 +435,13 @@ void Model::printSummary()
 //----------------------------------------------------------------------
 VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 {
-	layers[1]->getOutputs().print("getOutputs"); // XXX
+	//printf("****************** ENTER predictViaConnections ***************\n");
+	//layers[1]->getOutputs()[0].raw_print(cout, "getOutputs"); // XXX
 
-	//printf("===> ENTERING predict \n");
-	U::printLayerInputs(this);
+	//U::printLayerInputs(this);
 	//U::printLayerOutputs(this);
 
 	VF2D_F prod(x.size());
-	//printf("****************** ENTER predictViaConnections ***************\n");
 
 	Layer* input_layer = getInputLayers()[0];
 	input_layer->layer_inputs[0] = x; 
@@ -466,15 +465,16 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		}
  	}
 
+	//U::printLayerInputs(this);
+	//U::printInputs(this);
+	//U::printLayerOutputs(this);
+
 	// prepare the recursive layer inputs for the next input to the network (if stateful == true)
 	// DOES NOT WORK because matmul uses t and t+1, thus (seq_len-1) and (seq_len)
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->forwardLoops(seq_len-1, 0);    // does not change with biases (empty functions it seems)
 	}
 
-	//printf("\n ===> EXITING PREDICT\n");
-	//U::printLayerInputs(this);
-	//U::printLayerOutputs(this);
 
 	return prod;
 }
@@ -491,15 +491,20 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	// MUST REWRITE THIS PROPERLY
 	// DEAL WITH BATCH and SEQUENCES CORRECTLY
 	// FOR NOW, ASSUME BATCH=1
+	printf("ENTER trainOneBatch ******************************\n");
+	cout.precision(11);
 
 	VF2D_F x(1); x[0] = x_;
 	VF2D_F exact(1); exact[0] = exact_;
 
 	VF2D_F pred = predictViaConnectionsBias(x);
+	pred[0].raw_print(cout, "pred");
+	exact[0].raw_print(cout, "exact");
 	objective->computeLoss(exact, pred);
 
 	const LOSS& loss = objective->getLoss();
 	LOSS ll = loss;
+	printf("loss= %21.14f\n", loss[0][0]);
 
 	backPropagationViaConnectionsRecursion(exact, pred);
 	parameterUpdate();
@@ -651,6 +656,7 @@ void Model::storeDLossDbiasInLayersRec(int t)
 // MUST REWRITE. Use as template. 
 void Model::storeDLossDactivationParamsInLayer(int t)
 {
+	printf("enter storeDLossDactivationParamsInLayer *****\n");
 	VF1D delta;
 	VF2D_F g;
 
@@ -681,7 +687,7 @@ void Model::storeDLossDactivationParamsInLayer(int t)
 				else {
 					const VF2D_F& x = layer->getInputs();
 					g = activation.computeGradientWRTParam(x, i);
-					//g.print("==> gradient");
+					//g[0].raw_print(cout, "==> activation gradient"); // OK
 				}
 			//----------------
 
@@ -692,7 +698,8 @@ void Model::storeDLossDactivationParamsInLayer(int t)
 					//layer->getActivationDelta().print("    ==> intermediate activation Delta\n"); 
 				}
 			}
-			//delta.print("==> final delta");
+			//delta.raw_print(cout, "==> final delta");
+			//printf("increment delta\n");
 		    layer->incrActivationDelta(delta);
 			//layer->getActivationDelta().print("==> activation Delta\n"); exit(0);
 		} else { // coupled
@@ -808,8 +815,10 @@ void Model::biasUpdate()
 {
 	// temporal connections (loops)
 	for (int l=0; l < layers.size(); l++) {
-		BIAS& bias = layers[l]->getBias();
-		bias = bias - learning_rate * layers[l]->getBiasDelta();
+		if (layers[l]->getIsBiasFrozen() == false) {
+			BIAS& bias = layers[l]->getBias();
+			bias = bias - learning_rate * layers[l]->getBiasDelta();
+		}
 	}
 }
 //----------------------------------------------------------------------
@@ -822,17 +831,18 @@ void Model::activationUpdate()
 
 		for (int p=0; p < nb_params; p++) {
 			if (activation.isFrozen(p)) continue;
+			printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
 			REAL param = activation.getParam(p) - learning_rate * delta[p];
 			activation.setParam(p, param);
-			printf("param= %f\n", param);
+			printf("aft param= %21.14f\n", param);
 		}
 	}
 }
 //----------------------------------------------------------------------
 void Model::parameterUpdate()
 {
-	weightUpdate();
-	biasUpdate();
+	weightUpdate();  // TEMPORARY
+	biasUpdate();  // TEMPORARY
     activationUpdate();
 }
 //----------------------------------------------------------------------

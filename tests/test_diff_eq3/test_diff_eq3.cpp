@@ -51,19 +51,25 @@ void testDiffEq1(Model* m)
 	Connection* con = d1->getConnection();
 	con->printSummary();
     con->freeze();
-	//exit(0);
+	input->setIsBiasFrozen(true);
+	d1->setIsBiasFrozen(true);
 	//********************** END MODEL *****************************
 
 	m->initializeWeights();
+	//m->initializeBiases();
+	BIAS& bias1 = input->getBias();
+	BIAS& bias2 =    d1->getBias();
+	bias1.zeros();
+	bias2.zeros();
 
 	// Set the weights of the two connection that input into Layer d1 to 1/2
 	// This should create a stable numerical scheme
-	WEIGHT& w = m->getConnections()[0]->getWeight();
+	WEIGHT& w = m->getConnections()[1]->getWeight();
 	w[0,0] *= 0.5;
 	WEIGHT& wr = d1->getConnection()->getWeight();
 	wr[0,0] *= 0.5;
 
-	m->setLearningRate(0.001);
+	m->setLearningRate(1);
 
 	//------------------------------------------------------------------
 	// SOLVE ODE  dy/dt = -alpha y
@@ -90,7 +96,7 @@ void testDiffEq1(Model* m)
 	for (int i=0; i < npts; i++) {
 		x[i] = i*delx;
 		ytarget[i] = exp(-alpha_target * x[i]);
-		printf("x: %f, target: %f\n", x[i], ytarget[i]);
+		//printf("x: %f, target: %f\n", x[i], ytarget[i]);
 	}
 
 	// set all alphas to alpha_initial
@@ -98,7 +104,7 @@ void testDiffEq1(Model* m)
 
 	for (int l=0; l < layers.size(); l++) {
 		Layer* layer = layers[l];
-		printf("l= %d\n", l);
+		//printf("l= %d\n", l);
 		// layers without parameters will ignore this call
 		layer->getActivation().setParam(0, alpha_initial);
 		layer->getActivation().setDt(m->dt);
@@ -126,10 +132,10 @@ void testDiffEq1(Model* m)
 		}
 	}
 
-	net_inputs[0].print("net_inputs[0]");
-	net_inputs[1].print("net_inputs[1]");
+	//net_inputs[0].print("net_inputs[0]");
+	//net_inputs[1].print("net_inputs[1]");
 
-	int nb_epochs = 2;
+	int nb_epochs = 1;
 	m->setStateful(false);
 	m->setStateful(true);
 	m->resetState();
@@ -144,7 +150,9 @@ void testDiffEq1(Model* m)
 	#endif
 
 	for (int e=0; e < nb_epochs; e++) {
+		printf("**** Epoch %d ****\n", e);
 		for (int i=0; i < nb_samples-1; i++) {
+		//for (int i=0; i < 2; i++) {
 			if (m->getStateful() == false) {
 				m->resetState();
 			}
@@ -154,6 +162,7 @@ void testDiffEq1(Model* m)
 	}
 	//------------------------------------------------------------------
 
+	U::printLayerBiases(m);
 	printf("gordon\n");
 	exit(0);
 

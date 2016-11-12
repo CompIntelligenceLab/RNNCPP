@@ -30,9 +30,9 @@ protected:
 	// derivative of loss function wrt parameters
 	// One per parameter and per sequence element
 	// deltas[i] = sequence elements for parameter i
-	typedef std::vector<DELTA>  DELTAS;  // one per sequence
+	//typedef std::vector<DELTA>  DELTAS;  // one per sequence
 	// deltasp[i] corresponds to parameter "i" in the activation function
-	std::vector<DELTAS> deltasp;  // (one per sequence) per parameter
+	//std::vector<DELTAS> deltasp;  // (one per sequence) per parameter
 #endif
 
 public:
@@ -64,6 +64,9 @@ public:
 	virtual void setParam(int which, REAL value);
 	virtual int isFrozen(int i) { return frozen[i]; }
 	virtual VF2D_F computeGradientWRTParam(const VF2D_F& x, int i) = 0;
+
+	//* reset derivative of activation wrt parameters to zero
+	//virtual void resetDelta();
 };
 
 //----------------------------------------------------------------------
@@ -285,11 +288,10 @@ public:
 		VF2D_F y(x.n_rows);
 		for (int i=0; i < x.n_rows; i++) {
 			// Forward Euler
-			//printf("i= %d\n", i);
-			//printf("params[0]= %f\n", params[0]);
-			//x.print("x");
-			//printf("dt= %f\n", dt);
-			y[i] = (1. + dt * params[0]) * x[i];
+
+			// Somehow, x[i] is not the same as in Python code. Weird. 
+			y[i] = (1. - dt * params[0]) * x[i];
+			//printf("dt= %21.14f, params[0]= %21.14f, x[0][0]= %21.14f, y[0][0]= %21.14f\n", dt, params[0], x[0][0], y[0][0]);
 		}
 		return y;
 	}
@@ -301,7 +303,7 @@ public:
 		for (int i=0; i < x.n_rows; i++) {
 			for (int j=0; j < x[i].size(); j++) {
 				y[i] = VF2D(x[0]);
-				y[i][j] = (1. + dt * params[0]);
+				y[i][j] = (1. - dt * params[0]);
 			}
 		}
 		return y;
@@ -312,7 +314,7 @@ public:
 		VF1D y(x.n_rows);
 		//x.print("***> input to activation (tanh): x");
 		for (int i=0; i < x.n_rows; i++) {
-			y[i] = (1. + dt * params[0]);
+			y[i] = (1. - dt * params[0]);
 		}
 		return y;
 	}
@@ -324,7 +326,7 @@ public:
 			VF2D_F y(x.n_rows);
 			for (int i=0; i < x.n_rows; i++) {
 				// Forward Euler
-				y[i] = dt * x[i];
+				y[i] = -dt * x[i];
 			}
 			return y;
 		} else {
