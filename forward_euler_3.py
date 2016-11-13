@@ -49,14 +49,14 @@ def misc():
 #----------------------------------------------------------------------
 # computation of loss function at the first time step, and of dL/d(alpha)
 	
-dt = 0.025
-lr = 10      # learning rate
-alpha = 1.5
-niter = 300
+dt = 0.005
+lr = 2      # learning rate
+alpha = 2.0
+alpha_target = 1  # the correct value
+niter = 11
 t = np.linspace(0., niter, niter+1) * dt
-xT = np.exp(-alpha*t)
+xT = np.exp(-alpha_target*t)
 xsol = np.zeros(niter)
-xsol[0] = 0.
 
 # start with it=1
 def one_step(xsol, xT,  it):
@@ -64,21 +64,21 @@ def one_step(xsol, xT,  it):
 	beta = (1 - alpha * dt)
 	xsol[it] = 0.5*(xsol[it-1] + xT[it-1]) * beta
 	dLda = (xsol[it] - xT[it]) * (xsol[it-1] + xT[it-1]) * (-dt)
-	dactdp = 0.5*(xsol[it-1]+xT[it-1])*(-dt)
-	#print "Iteration ", it, ": dLda= ", dLda
-	#print "  0.5*xT[0]= ",   0.5*xT[0]
-	#print "0.5*xsol[0]= ", 0.5*xsol[0]
-	#print "     sum   = ", 0.5*(xT[0]+xsol[0])
-	#print "xsol[1]= ", xsol[1]
-	#print "  xT[1]= ",   xT[1]
-	#print "loss[0]= ", (xsol[1]-xT[1])**2
+	#dactdp = 0.5*(xsol[it-1]+xT[it-1])*(-dt)  # derivative of activation wrt parameter
 
-	alpha = alpha - lr * dLda
-	print "alpha= ", alpha
-	print
+	dalpha =  lr * dLda     
+	print "initial alpha: ", alpha, ",   lr= ", lr
+	alpha = alpha - dalpha       
+	print "xsol[it-1,it]= ", xsol[it-1], xsol[it]
+	print "xT[it-1,it]= ", xT[it-1], xT[it]
+	print "alpha= ", alpha, ",   dalpha= ", -lr*dLda, ", lr= ", lr
+	print "--------------------"
 
-for i in range(1,100):
-	one_step(xsol, xT, i)
+nb_epochs = 2
+for e in range(0,nb_epochs): # epochs
+	xsol[0] = 1.
+	for i in range(1,niter):
+		one_step(xsol, xT, i)
 
 # First iteration is correct
 

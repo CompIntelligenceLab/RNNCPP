@@ -32,14 +32,20 @@ target_signal='exp'
 # note: the answer comes out better with a smaller dt and a larger number for nsteps
 if(set_signal=='exp'):
 	dt=0.001
+	dt=0.005
 	alpha=2.0
 	alpha_tgt=1.0 #target alpha
 	
 #initialize starting value at t=0
 x_0=1.0
 # length of signal
-nsteps=int(math.ceil(2000))
-nepochs=100
+#nsteps=int(math.ceil(2000))
+nsteps=int(math.ceil(600))
+nepochs=400
+#nsteps=2
+#nepochs=1
+
+alphas = []
 
 # set learning rate
 lr = 2.0
@@ -47,6 +53,7 @@ decay = lr/nepochs #if this is 0, learning rate is constant
 decay = 0  # for testing without scheduling of lr
 
 for epoch in xrange(nepochs):
+	print "**** epoch ", epoch, " *************"
 	loss=0
 	x=np.zeros(nsteps+1)
 	x_star=np.zeros(nsteps+1)
@@ -58,25 +65,35 @@ for epoch in xrange(nepochs):
 	lr = lr / (1+decay*epoch) #change learning rate each epoch
 	
 	for i in xrange(nsteps):
-		dalpha=0
+		dalpha = 0
 		x_target[i+1]=signal(t+dt,alpha_tgt)
 		# forward propagation
-		x[i+1]=x[i]*(1-alpha*dt)
+		#x[i+1]=x[i]*(1-alpha*dt)
+		x[i+1]=0.5*(x[i]+x_target[i])*(1-alpha*dt)
+		#print "x update, x[i]= ", x[i], ",  1-alpha*dt= ", 1-alpha*dt
 			
 		# update weights
-		dalpha += 2*(x[i+1]-x_target[i])*-dt*x[i] #backward pass
+		#dalpha += 2 * (x[i+1]-x_target[i]) * (-dt) * x[i] #backward pass original
+		#dalpha += 2 * (x[i+1]-x_target[i+1]) * (-dt) * x[i] #backward pass
+		dalpha += (x[i+1]-x_target[i+1]) * (-dt) * (x[i]+x_target[i]) #backward pass
+		print "x[i,i+1]= ", x[i], x[i+1]
+		print "xT[i,i+1]= ", x_target[i], x_target[i+1]
 
 		#Loss function
 		loss += (x[i+1]-x_target[i+1])**2
 		t += dt
+		print "initial alpha: ", alpha
 		alpha -= lr*dalpha 
+		print "alpha= ", alpha, ",  dalpha= ", dalpha, ",  dt= ", dt, ",  lr= ", lr
+		print "----------------------"
+		alphas.append(alpha)
 	
 	loss=loss/(nsteps) #mean square error of x and x_target
 	
-	print(x)
-	print "After epoch",epoch+1,":"
-	print "alpha = ",alpha,"  target = ",alpha_tgt
-	print "loss  = ",loss
+	#print(x)
+	#print "After epoch",epoch+1,":"
+	#print "alpha = ",alpha,"  target = ",alpha_tgt
+	#print "loss  = ",loss
 
 	if(epoch<3 or epoch==(nepochs-1)):
 		single_plot(dt,nsteps,x,x_target, epoch)
@@ -102,3 +119,7 @@ plt.xlabel('t')
 plt.ylabel('x')
 plt.show()
 print "final mse = ",loss_mse_final
+
+plt.plot(alphas)
+plt.suptitle("alpha(iter)")
+plt.show()

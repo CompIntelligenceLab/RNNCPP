@@ -808,6 +808,9 @@ void Model::weightUpdate()
 		if (con->frozen) continue;
 		WEIGHT& wght = con->getWeight();
 		wght = wght - learning_rate * con->getDelta();
+		// wgth unchanged if seq_len == 1
+		//con->getDelta().raw_print(cout, "con->getDelta");
+		//wght.raw_print(cout, "loop wgt");
 	}
 }
 //----------------------------------------------------------------------

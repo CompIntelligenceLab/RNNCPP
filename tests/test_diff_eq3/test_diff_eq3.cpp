@@ -73,7 +73,7 @@ void testDiffEq1(Model* m)
 	WEIGHT& wr = d1->getConnection()->getWeight();
 	wr[0,0] *= 0.5;
 
-	m->setLearningRate(1.);
+	m->setLearningRate(2.);
 
 	//------------------------------------------------------------------
 	// SOLVE ODE  dy/dt = -alpha y
@@ -81,7 +81,7 @@ void testDiffEq1(Model* m)
 	// Initial condition on alpha: alpha(0) = 1.0
 	// I expect the neural net to return alpha=2 when the loss function is minimized. 
 
-	int npts = 300;
+	int npts = 600;
 	printf("npts= %d\n", npts); 
 	printf("seq_len= %d\n", seq_len); 
 
@@ -90,16 +90,16 @@ void testDiffEq1(Model* m)
 
 	VF1D ytarget(npts);
 	VF1D x(npts);   // abscissa
-	REAL delx = .025;  // will this work for uneven time steps? dt = .1, but there is a multiplier: alpha in front of it. 
+	REAL delx = .005;  // will this work for uneven time steps? dt = .1, but there is a multiplier: alpha in front of it. 
 	                 // Some form of normalization will probably be necessary to scale out effect of dt (discrete time step)
 	m->dt = delx;
 	REAL alpha_target = 1.;
-	REAL alpha_initial = 1.5;  // should evolve towards alpha_target
+	REAL alpha_initial = 2;  // should evolve towards alpha_target
 
 	for (int i=0; i < npts; i++) {
 		x[i] = i*delx;
 		ytarget[i] = exp(-alpha_target * x[i]);
-		//printf("x: %f, target: %f\n", x[i], ytarget[i]);
+		//printf("x: %21.14f, target: %21.14f\n", x[i], ytarget[i]);
 	}
 
 	// set all alphas to alpha_initial
@@ -153,20 +153,23 @@ void testDiffEq1(Model* m)
 
 	// manually set input from recurrent node to be nonzero at the first iteration
 	VF2D_F& in = d1->getLoopInput();
-	in[0] = 0.5 * net_inputs[0][0];
 	//in.print("loop"); exit(0);
 
-	int nb_epochs = 500;
+	int nb_epochs;
+	nb_epochs = 2;
+	nb_epochs = 200;
 
 	for (int e=0; e < nb_epochs; e++) {
+		in[0] = 0.5 * net_inputs[0][0];
 		printf("**** Epoch %d ****\n", e);
-		//for (int i=0; i < nb_samples-1; i++) {
-		for (int i=0; i < 100; i++) {
+		for (int i=0; i < nb_samples-1; i++) {
+		//for (int i=0; i < 10; i++) {
 			if (m->getStateful() == false) {
 				m->resetState();
 			}
 			//U::printRecurrentLayerLoopInputs(m);
 			m->trainOneBatch(net_inputs[i][0], net_inputs[i+1][0]);
+			U::printWeights(m);
 		}
 		m->resetState();
 	}

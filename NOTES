@@ -380,4 +380,13 @@ I don't think that rms error is best measure when function decays exponentially.
 Perhaps the log(rms error)? Sum of (y-ex)^2 is RMS error. Is the arg minimum of log(y-ex)^2 the 
 same as the arg min(rms error)
 ----------------------------------------------------------------------
+Nov. 12, 2016
+I duplicate results from Mark's code: exp(-alpha*dt), alpha=1, starting with alpha=2. 
+600 steps in t, dt=0.005, 200 epochs. Unfreezing biases leads to instability. 
+Unfreezing weights leads to convergence to a different state. 
+
+Must experiment with speeding up convergence, and with more complex networks. 
+How to impose constraints between weights (like the sum of two weights = 1?)
+development git branch. 
+----------------------------------------------------------------------
 ----------------------------------------------------------------------
