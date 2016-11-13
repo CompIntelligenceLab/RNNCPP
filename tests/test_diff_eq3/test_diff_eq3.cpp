@@ -39,7 +39,19 @@ void testDiffEq1(Model* m)
 
 	printf("total nb layers: %d\n", m->getLayers().size());
 	m->printSummary();
+	// Code crashes if not called
+	// compute clist datastructure (list of connections)
 	m->connectionOrderClean(); // no print statements
+
+	CONNECTIONS& conns = m->getConnections();
+	for (int c=0; c < conns.size(); c++) {
+		conns[c]->printSummary("connections, ");
+	}
+	CONNECTIONS& clist = m->getClist();
+	for (int c=0; c < clist.size(); c++) {
+		clist[c]->printSummary("clist, ");
+	}
+	//exit(0);
 
 	#if 1
 	// FREEEZE weights and biases
@@ -54,6 +66,7 @@ void testDiffEq1(Model* m)
 	Connection* con = d1->getConnection();
 	con->printSummary();
     con->freeze();
+
 	input->setIsBiasFrozen(true);
 	d1->setIsBiasFrozen(true);
 	#endif
@@ -147,15 +160,6 @@ void testDiffEq1(Model* m)
 	m->setStateful(true);
 	m->resetState();
 
-	#if 0
-	U::printWeights(m);
-	U::printRecurrentLayerLoopInputs(m);
-	U::printInputs(m);
-	U::printLayerInputs(m);
-	U::printLayerOutputs(m);
-	exit(0);
-	#endif
-
 	// manually set input from recurrent node to be nonzero at the first iteration
 	VF2D_F& in = d1->getLoopInput();
 	//in.print("loop"); exit(0);
@@ -180,7 +184,16 @@ void testDiffEq1(Model* m)
 	}
 	//------------------------------------------------------------------
 
-	//U::printLayerBiases(m);
+	#if 1
+	U::printWeights(m);
+	U::printLayerBiases(m);
+	//U::printRecurrentLayerLoopInputs(m);
+	//U::printInputs(m);
+	//U::printLayerInputs(m);
+	//U::printLayerOutputs(m);
+	exit(0);
+	#endif
+
 	exit(0);
 }
 //----------------------------------------------------------------------

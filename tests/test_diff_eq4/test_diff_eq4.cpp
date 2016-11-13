@@ -28,18 +28,38 @@ void testDiffEq1(Model* m)
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(input_dim, "input_layer");
-	Layer* d1    = new RecurrentLayer(layer_size, "rdense");
+	Layer* d1    = new DenseLayer(layer_size, "dense_layer");
+	Layer* d2    = new DenseLayer(layer_size, "recurrent_layer");
 	m->add(0, input);
 	m->add(input, d1);
+	m->add(d1, d2);
+	m->add(d2, d1);
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
+	d2->setActivation(new Tanh());
+
+	// set temporal link manually
+	{
+		Connection* con = m->getConnection(d2, d1);
+		con->setTemporal(true);
+	}
 
 	m->addInputLayer(input);
-	m->addOutputLayer(d1);
+	m->addOutputLayer(d2);
 
 	printf("total nb layers: %d\n", m->getLayers().size());
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
+
+	CONNECTIONS& conns = m->getConnections();
+	for (int c=0; c < conns.size(); c++) {
+		conns[c]->printSummary("connections, ");
+	}
+	CONNECTIONS& clist = m->getClist();
+	for (int c=0; c < clist.size(); c++) {
+		clist[c]->printSummary("clist, ");
+	}
+	exit(0);
 
 	#if 1
 	// FREEEZE weights and biases
@@ -52,6 +72,7 @@ void testDiffEq1(Model* m)
 	}
 	// recurrent connection
 	Connection* con = d1->getConnection();
+	printf("con= %ld\n", con); exit(0);
 	con->printSummary();
     con->freeze();
 	input->setIsBiasFrozen(true);
@@ -63,8 +84,10 @@ void testDiffEq1(Model* m)
 	//m->initializeBiases();
 	BIAS& bias1 = input->getBias();
 	BIAS& bias2 =    d1->getBias();
+	BIAS& bias3 =    d2->getBias();
 	bias1.zeros();
 	bias2.zeros();
+	bias3.zeros();
 
 	// Set the weights of the two connection that input into Layer d1 to 1/2
 	// This should create a stable numerical scheme

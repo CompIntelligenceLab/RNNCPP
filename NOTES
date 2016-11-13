@@ -394,4 +394,17 @@ Create a git tag: v.02
 Try with seq_len > 1
 Try with batch_size > 1
 ----------------------------------------------------------------------
+Nov. 13, 2015
+test_diff_eq4: set certain connections to temporal manually to make it easier to 
+create clist() for the spatial connections. clist is normally constructed by connectionOrderCleanOrig. Contrary to what I thought, this routine cannot handle all cases. So let us ignore connections already identified as temporal. 
+
+Perhaps I need to keep the temporal links in a separate list from the spatial links, 
+and include in this list all the temporal links from the RecurrentLayers. This might 
+actually simplify things. 
+
+Of course, this manual approach will make it hard to handle reservoir networks, unless all the connections are treated as temporal. 
+
+Create a new branch called temporal to deal with this problem. 
+----------------------------------------------------------------------
+
 ----------------------------------------------------------------------

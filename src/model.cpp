@@ -221,9 +221,8 @@ void Model::checkIntegrity()
 void Model::checkIntegrity(LAYERS& layer_list)
 {
 /*
-   starting with first layer, connect to layer->next layers. Set their clocks to 1. 
+   Starting with first layer, connect to layer->next layers. Set their clocks to 1. 
    For each of these next layers l, connect to l->next layers. Set their clocks to 2. 
-   - if the clock of l->next layers is not zero, change connection to temporal. Continue
    until no more connections to process. 
    - one should also set the connection's clock if used. 
    - need routines: model.resetLayers(), model.resetConnections() // set clock=0 for connections and layers
@@ -306,14 +305,14 @@ Layer* Model::checkPrevconnections(std::list<Layer*> llist)
 	}
 }
 //----------------------------------------------------------------------
-//----------------------------------------------------------------------
-void Model::connectionOrderClean()
+void Model::connectionOrderCleanOrig()
 {
 	typedef std::list<Layer*>::iterator IT;
 	IT it;
 
 	// STL list to allow erase of elements via address
 	std::list<Layer*> llist;
+	std::list<Layer*>::iterator llist_iter;
 	std::vector<Layer*> completed_layers;
 	Layer* cur_layer = getInputLayers()[0]; // assumes a single input layer
 	cur_layer->nb_hit = 0;
@@ -334,6 +333,8 @@ void Model::connectionOrderClean()
 
 		// the following loop can only be entered if all the layer inputs are activated
 		if (areIncomingLayerConnectionsComplete(cur_layer)) {
+			cur_layer->printSummary(); // --------
+			printf("*complete\n");     // --------
 			for (int n=0; n < next.size(); n++) {
 				Layer* nl      = next[n].first;
 				Connection* nc = next[n].second;
@@ -349,6 +350,8 @@ void Model::connectionOrderClean()
 			}
 			if (next.size() == 0) {
 				if (isLayerComplete(cur_layer)) {
+					cur_layer->printSummary(); // --------
+					printf("completed layers push_back\n");  // ------- not reached
 					completed_layers.push_back(cur_layer);
 				}
 			}
@@ -364,6 +367,121 @@ void Model::connectionOrderClean()
 		completed_layers.clear();
 		cur_layer = *llist.begin();
 	}
+
+	for (int c=0; c < clist.size(); c++) {
+		Connection* con = clist[c];
+		Layer* from = con->from;
+		Layer* to = con->to;
+	}
+
+	for (int l=0; l < input_layers.size(); l++) {
+		if (input_layers[l]->prev.size() == 0) {
+			input_layers[l]->prev.resize(1);
+		}
+	}
+
+	// Assign memory
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->layer_inputs.resize(layers[l]->prev.size());
+		layers[l]->layer_deltas.resize(layers[l]->prev.size());
+
+		for (int i=0; i < layers[l]->layer_inputs.size(); i++) {
+			layers[l]->layer_inputs[i] = VF2D_F(nb_batch);
+			int input_dim = layers[l]->getLayerSize();
+			int seq_len   = layers[l]->getSeqLen();
+
+			for (int b=0; b < nb_batch; b++) {
+				layers[l]->layer_inputs[i](b) = VF2D(input_dim, seq_len);
+			}
+		}
+
+		// layer_deltas are unsused at this time
+	}
+	//printf("============== EXIT connectionOrderClean =================\n");
+}
+//----------------------------------------------------------------------
+void Model::connectionOrderClean()
+{
+	typedef std::list<Layer*>::iterator IT;
+	IT it;
+
+	// What to do with temporal nodes
+
+	// STL list to allow erase of elements via address
+	std::list<Layer*> llist;
+	std::list<Layer*>::iterator llist_iter;
+	std::vector<Layer*> completed_layers;
+	Layer* cur_layer = getInputLayers()[0]; // assumes a single input layer
+	cur_layer->nb_hit = 0;
+	llist.push_back(cur_layer);
+
+	// set correct batch size in layers
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->setNbBatch(nb_batch);
+		layers[l]->setSeqLen(seq_len);
+	}
+
+	int xcount = 0;
+
+	while(llist.size()) {
+		printf("*** top of while(llist.size()) loop ***\n");
+		xcount++; 
+
+		PAIRS_L next = cur_layer->next;
+
+		// the following loop can only be entered if all the layer inputs are activated
+		if (areIncomingLayerConnectionsComplete(cur_layer)) {
+			cur_layer->printSummary(); // --------
+			printf("*complete\n");     // --------
+			for (int n=0; n < next.size(); n++) {
+				Layer* nl      = next[n].first;
+				Connection* nc = next[n].second;
+				clist.push_back(nc);
+				nc->hit = 1;
+				nl->nb_hit++; 
+				llist.push_back(nl);
+				printf("add layer %s to llist\n", nl->getName().c_str());
+				if (isLayerComplete(cur_layer)) { 
+					printf("add layer %s to complete_layers\n", cur_layer->getName().c_str());
+					// only input_layer is added
+
+					// these layers will be deleted from llist. They should never reappear
+					// since that would imply a cycle in the network, which is prohibited.
+					completed_layers.push_back(cur_layer);
+				}
+			}
+			if (next.size() == 0) {
+				printf("next.size == 0\n");
+				if (isLayerComplete(cur_layer)) {
+					cur_layer->printSummary("completed layer"); // --------
+					printf("completed_layers push_back\n");  // ------- not reached
+					completed_layers.push_back(cur_layer);
+				}
+			}
+		}
+		// Only one layer is complete
+		//exit(0); // line is reached
+
+		llist.sort();
+		llist.unique();
+		printf(" =========== print llist ============\n");
+		for (llist_iter = llist.begin(); llist_iter != llist.end(); llist_iter++) {
+			(*llist_iter)->printSummary();
+		}
+
+		// remove all layers that are "complete"
+		for (int i=0; i < completed_layers.size(); i++) {
+			llist.remove(completed_layers[i]);
+			printf("remove layer %s\n", completed_layers[i]->getName().c_str());
+		}  // leaving only deacy layer
+		completed_layers.clear();
+		cur_layer = *llist.begin();
+		cur_layer->printSummary("cur_layer, return to top of while(llist.size()), ");
+		printf("cur_layer: nb hit= %d\n", cur_layer->nb_hit);
+
+		// llist is not changing (single element dense_layer)
+	}
+	exit(0); // never reached
 
 	for (int c=0; c < clist.size(); c++) {
 		Connection* con = clist[c];

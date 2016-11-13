@@ -32,6 +32,7 @@ public:
 
 private:
 	int nb_batch;
+	// order in which connections should be handled, computed by connectionOrderClean()
 	CONNECTIONS clist;
 	std::string name;
 	bool   stateful;
@@ -112,6 +113,7 @@ public:
 
   /** return vector of weights for each layer */
   CONNECTIONS& getConnections() { return connections; }
+  CONNECTIONS& getClist() { return clist; }
   //WeightList& getWeightsL();
 
   /** predict: run through the model  */
@@ -148,7 +150,8 @@ public:
   void compile();
   // Evaluate connection order to run prediction of a spatial network
   //CONNECTIONS connectionOrder();
-  void connectionOrderClean();
+  void connectionOrderCleanOrig(); // in working code diff_eq3.cpp
+  void connectionOrderClean();  // in code diff_eq4.cpp
 	Layer* checkPrevconnections(std::list<Layer*> llist);
 	void removeFromList(LAYERS& llist, Layer* cur_layer);
 
