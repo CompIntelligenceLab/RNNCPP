@@ -29,3 +29,7 @@ add_subdirectory(test_diff_eq2)
 # solve for simplest equation dy/dy = -alpha y with simplest network (recurrent, seq=1)
 add_subdirectory(test_diff_eq3)
 
+# solve for simplest equation dy/dy = -alpha y (recurrent, seq=1)
+# Experiment with multiple layers and layers with multiple nodes. 
+add_subdirectory(test_diff_eq4)
+

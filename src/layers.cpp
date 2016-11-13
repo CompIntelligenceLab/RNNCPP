@@ -353,7 +353,7 @@ void Layer::resetState()
 	U::zeros(outputs);
 	U::zeros(delta);
 
-	getOutputs().print("layer reset outputs");
+	//getOutputs().print("layer reset outputs");
 
 	for (int i=0; i < layer_inputs.size(); i++) {
 		U::zeros(layer_inputs[i]);

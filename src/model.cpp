@@ -491,20 +491,20 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	// MUST REWRITE THIS PROPERLY
 	// DEAL WITH BATCH and SEQUENCES CORRECTLY
 	// FOR NOW, ASSUME BATCH=1
-	printf("ENTER trainOneBatch ******************************\n");
+	//printf("ENTER trainOneBatch ******************************\n");
 	cout.precision(11);
 
 	VF2D_F x(1); x[0] = x_;
 	VF2D_F exact(1); exact[0] = exact_;
 
 	VF2D_F pred = predictViaConnectionsBias(x);
-	pred[0].raw_print(cout, "pred");
-	exact[0].raw_print(cout, "exact");
+	//pred[0].raw_print(cout, "pred");
+	//exact[0].raw_print(cout, "exact");
 	objective->computeLoss(exact, pred);
 
 	const LOSS& loss = objective->getLoss();
 	LOSS ll = loss;
-	printf("loss= %21.14f\n", loss[0][0]);
+	//printf("loss= %21.14f\n", loss[0][0]);
 
 	backPropagationViaConnectionsRecursion(exact, pred);
 	parameterUpdate();
@@ -656,7 +656,7 @@ void Model::storeDLossDbiasInLayersRec(int t)
 // MUST REWRITE. Use as template. 
 void Model::storeDLossDactivationParamsInLayer(int t)
 {
-	printf("enter storeDLossDactivationParamsInLayer *****\n");
+	//printf("enter storeDLossDactivationParamsInLayer *****\n");
 	VF1D delta;
 	VF2D_F g;
 
@@ -834,10 +834,10 @@ void Model::activationUpdate()
 
 		for (int p=0; p < nb_params; p++) {
 			if (activation.isFrozen(p)) continue;
-			printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
+			//printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
 			REAL param = activation.getParam(p) - learning_rate * delta[p];
 			activation.setParam(p, param);
-			printf("aft param= %21.14f\n", param);
+			//printf("aft param= %21.14f\n", param);
 		}
 	}
 }

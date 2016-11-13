@@ -388,6 +388,8 @@ Unfreezing weights leads to convergence to a different state.
 Must experiment with speeding up convergence, and with more complex networks. 
 How to impose constraints between weights (like the sum of two weights = 1?)
 development git branch. 
+
+Create a git tag: v.02
 ----------------------------------------------------------------------
 Try with seq_len > 1
 Try with batch_size > 1
