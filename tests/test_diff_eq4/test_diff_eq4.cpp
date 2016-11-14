@@ -75,6 +75,18 @@ void testDiffEq4(Model* m)
 	d2->setIsBiasFrozen(true);
 
 	// scan through temporal  connections, and freeze weights
+	CONNECTIONS& tcons = m->getTemporalConnections();
+	for (int c=0; c < tcons.size(); c++) {
+		tcons[c]->freeze();
+		printf("xxx\n"); tcons[c]->printSummary();
+	}
+
+	CONNECTIONS& ccons = m->getConnections();
+	for (int c=0; c < ccons.size(); c++) {
+		ccons[c]->printSummary();
+	}
+	//exit(0);
+
 	#endif
 	//********************** END MODEL *****************************
 
@@ -87,11 +99,13 @@ void testDiffEq4(Model* m)
 	bias2.zeros();
 	bias3.zeros();
 
-	// Set the weights of the two connection that input into Layer d1 to 1/2
+	// Set the weights of the two connections that input into Layer d1 to 1/2
 	// This should create a stable numerical scheme
+
+	// SET THE WEIGHTS PROPERLY
 	WEIGHT& w = m->getConnections()[1]->getWeight();
 	w[0,0] *= 0.5;
-	WEIGHT& wr = d1->getConnection()->getWeight();
+	WEIGHT& wr = m->getTemporalConnections()[0]->getWeight(); 
 	wr[0,0] *= 0.5;
 
 	m->setLearningRate(10.);
@@ -178,7 +192,7 @@ void testDiffEq4(Model* m)
 	#endif
 
 	// manually set input from recurrent node to be nonzero at the first iteration
-	VF2D_F& in = d1->getLoopInput();
+	VF2D_F& in = d1->getLoopInput();   // **** REPLACE BY WHAT? FOR GENERAL TEMPORAL CONNECTION?  MUST FIX
 	//in.print("loop"); exit(0);
 
 	int nb_epochs;
@@ -186,7 +200,7 @@ void testDiffEq4(Model* m)
 	nb_epochs = 200;
 
 	for (int e=0; e < nb_epochs; e++) {
-		in[0] = 0.5 * net_inputs[0][0];
+		//in[0] = 0.5 * net_inputs[0][0];  // MUST FIX  in[0] is not what I think
 		printf("**** Epoch %d ****\n", e);
 		for (int i=0; i < nb_samples-1; i++) {
 		//for (int i=0; i < 10; i++) {     

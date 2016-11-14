@@ -159,7 +159,11 @@ void Model::add(Layer* layer_from, Layer* layer_to, bool is_temporal, std::strin
 	// the interface. 
 	Connection* connection = Connection::ConnectionFactory(in_dim, out_dim, conn_type);
 	connection->setTemporal(is_temporal);  // not in other add() routine
-	connections.push_back(connection);
+
+	// connections must contain all connections (to allow retrieval of the connection given the layers)
+	//if (connection->getTemporal() == false) {
+		connections.push_back(connection);
+	//}
 	connection->from = layer_from;
 	connection->to = layer_to;
 	connection->initialize(initialization_type); // must be called after layer_to definition
@@ -214,13 +218,15 @@ void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all
 	// Later on, we might create different kinds of connection. This would require a rework of 
 	// the interface. 
 	Connection* connection = Connection::ConnectionFactory(in_dim, out_dim, conn_type);
-	connections.push_back(connection);
+	//if (connection->getTemporal() == false) {
+		connections.push_back(connection);
+	//}
 	connection->from = layer_from;
 	connection->to = layer_to;
 	connection->initialize(initialization_type); // must be called after layer_to definition
 
 	// update prev and next lists in Layers class
-	if (layer_from) {
+	if (layer_from && connection->getTemporal() == false) {
 		layer_from->next.push_back(std::pair<Layer*, Connection*>(layer_to, connection));
 		layer_to->prev.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
 		connection->which_lc = layer_to->prev.size()-1;
@@ -929,7 +935,7 @@ void Model::activationUpdate()
 			//printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
 			REAL param = activation.getParam(p) - learning_rate * delta[p];
 			activation.setParam(p, param);
-			//printf("aft param= %21.14f\n", param);
+			printf("aft param= %21.14f\n", param);
 		}
 	}
 }
