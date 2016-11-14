@@ -159,18 +159,22 @@ void Model::add(Layer* layer_from, Layer* layer_to, bool is_temporal, std::strin
 	// the interface. 
 	Connection* connection = Connection::ConnectionFactory(in_dim, out_dim, conn_type);
 	connection->setTemporal(is_temporal);  // not in other add() routine
-	exit(0);
 	connections.push_back(connection);
 	connection->from = layer_from;
 	connection->to = layer_to;
 	connection->initialize(initialization_type); // must be called after layer_to definition
 
 	// update prev and next lists in Layers class
-	if (layer_from && connection->getTemporal() == false) {
-		layer_from->next.push_back(std::pair<Layer*, Connection*>(layer_to, connection));
-		layer_to->prev.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
+	if (connection->getTemporal() == false) {
+		if (layer_from) layer_from->next.push_back(std::pair<Layer*, Connection*>(layer_to, connection));
+		if (layer_to) layer_to->prev.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
 		connection->which_lc = layer_to->prev.size()-1;
 		printf("    connection->which_lc= %d\n", connection->which_lc);
+	}
+
+	if (connection->getTemporal() == true) {
+		if (layer_from) layer_from->next_temporal.push_back(std::pair<Layer*, Connection*>(layer_to, connection));
+		if (layer_to) layer_to->prev_temporal.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
 	}
 }
 //----------------------------------------------------------------------

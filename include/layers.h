@@ -18,6 +18,12 @@ public:
 	// list of layers this layer is sending information to
 	PAIRS_L prev;
 	PAIRS_L next;
+
+	// For more general network. Used to handle all temporal links
+	// The first link will be the self loop of a recurrent node
+	PAIRS_L prev_temporal;
+	PAIRS_L next_temporal;
+
 	std::string type;
 	// main inputs to activation in a list to better handle backpropagation when 
 	// more than one layer hits a downstream layer

@@ -15,6 +15,9 @@ RecurrentLayer::RecurrentLayer(int layer_size /*1*/, std::string name /*rec_laye
 	loop_input.set_size(nb_batch);
 	recurrent_conn->initialize("xavier"); // must be last to call. 
 	type = "recurrent";
+
+	next_temporal.push_back(std::pair<Layer*, Connection*>(this, recurrent_conn));
+	prev_temporal.push_back(std::pair<Layer*, Connection*>(this, recurrent_conn));
 }
 //----------------------------------------------------------------------
 RecurrentLayer::~RecurrentLayer()
