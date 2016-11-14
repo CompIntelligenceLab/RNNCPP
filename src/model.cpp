@@ -540,12 +540,21 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 
 		// go through all the layers and update the temporal connections
 		// On the first pass, connections are empty
+		#if 0
 		for (int l=0; l < layers.size(); l++) {
 			layers[l]->forwardLoops(t-1);    // does not change with biases (empty functions it seems)
 		}
+		#endif
 
 		// update all other temporal connections coming into the layers (arbitrary order, I think)
 		// ...........
+		// go through all the layers and update the temporal connections
+		// On the first pass, connections are empty
+		for (int c=0; c < clist_temporal.size(); c++) {
+			Connection* conn = clist_temporal[c];
+			Layer* to_layer = conn->to;
+			to_layer->forwardLoops(conn, t-1);
+		}
 		
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];

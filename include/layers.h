@@ -197,6 +197,7 @@ public:
 	virtual void forwardLoops();
 	virtual void forwardLoops(int t1, int t2);
 	virtual void forwardLoops(int seq_index);
+	void forwardLoops(Connection* con, int t);
 	virtual void processData(Connection* conn, VF2D_F& prod);
 	virtual bool areIncomingLayerConnectionsComplete();
 	//virtual void processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod);

@@ -12,7 +12,7 @@ RecurrentLayer::RecurrentLayer(int layer_size /*1*/, std::string name /*rec_laye
 	recurrent_conn->to = this;
 	recurrent_conn->setTemporal(true);
 	recurrent_conn->setTTo(1);    // by default, recurrent connections have delay of 1
-	loop_input.set_size(nb_batch);
+	//loop_input.set_size(nb_batch);
 	recurrent_conn->initialize("xavier"); // must be last to call. 
 	type = "recurrent";
 
@@ -71,6 +71,7 @@ void RecurrentLayer::forwardLoops(int t)
 		U::matmul(loop_input, loop_wght, outputs, t, t+1); // out of bounds
 	}
 }
+//----------------------------------------------------------------------
 //----------------------------------------------------------------------
 void RecurrentLayer::forwardLoops(int t1, int t2)
 {

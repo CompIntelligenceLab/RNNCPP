@@ -410,3 +410,7 @@ Nov. 13, branch temporal.
 Perhaps do not update "next" and "prev" when the connection is temporal. That would imply specifying the link
 is temporal at the time I execute that "add" command. 
 ----------------------------------------------------------------------
+Nov. 14, 2016, branch temporal
+added loop_input, and forwardLoops to Layer.cpp. This will serve as input to temporal connections. 
+In the future, allow for multiple temporal inputs into a layer. 
+----------------------------------------------------------------------

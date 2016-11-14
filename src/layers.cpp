@@ -18,6 +18,7 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	sprintf(cname, "%s%d", name.c_str(), counter);
 	this->name = cname;
 	printf("Layer constructor (%s)\n", this->name.c_str());
+	loop_input.set_size(nb_batch);
 
 	counter++;
 
@@ -61,6 +62,17 @@ void Layer::initVars(int nb_batch)
 	bias_delta.zeros();
 	activation_delta.zeros();
 	nb_hit = 0;
+
+	// In the future, generalize to a number of temporal links > 1
+	loop_input.set_size(nb_batch);
+	loop_delta.set_size(nb_batch);
+
+    for (int b=0; b < nb_batch; b++) {
+        loop_input[b] = VF2D(layer_size, seq_len);   // << NEED proper sequence length, maybe
+        loop_delta[b] = VF2D(layer_size, seq_len);
+		loop_input[b].zeros();
+		loop_delta[b].zeros();
+    }   
 
 	reset();
 }
@@ -329,10 +341,22 @@ void Layer::processData(Connection* conn, VF2D_F& prod)
 //----------------------------------------------------------------------
 void Layer::forwardLoops()
 { }
-void Layer::forwardLoops(int seq)
+void Layer::forwardLoops(int t)
 { }
 void Layer::forwardLoops(int t1, int t2)
 { }
+void Layer::forwardLoops(Connection* con, int t)
+{
+	//printf("inside forward loops, t=%d\n", t);
+	// forward data to temporal connections
+	// handle self loop
+	const WEIGHT& wght = con->getWeight();
+
+	// For now, assume that a layer can have a maximum of one temporal input
+	if (t >= 0) {
+		U::matmul(loop_input, wght, outputs, t, t+1); // out of bounds
+	}
+}
 //----------------------------------------------------------------------
 void Layer::reset() // Must I reset recurrent connection? 
 {
