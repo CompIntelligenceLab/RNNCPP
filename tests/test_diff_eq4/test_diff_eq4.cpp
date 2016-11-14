@@ -69,16 +69,26 @@ void testDiffEq4(Model* m)
 		con->printSummary();
 		con->freeze();
 	}
+
+	CONNECTIONS& tcons = m->getTemporalConnections();
+	for (int i=0; i < tcons.size(); i++) {
+		Connection* con = tcons[i];
+		con->printSummary();
+		con->freeze();
+	}
+
+
+
 	// recurrent connection
 	input->setIsBiasFrozen(true);
 	d1->setIsBiasFrozen(true);
 	d2->setIsBiasFrozen(true);
 
 	// scan through temporal  connections, and freeze weights
-	CONNECTIONS& tcons = m->getTemporalConnections();
-	for (int c=0; c < tcons.size(); c++) {
-		tcons[c]->freeze();
-		printf("xxx\n"); tcons[c]->printSummary();
+	CONNECTIONS& ttcons = m->getTemporalConnections();
+	for (int c=0; c < ttcons.size(); c++) {
+		ttcons[c]->freeze();
+		printf("xxx\n"); ttcons[c]->printSummary();
 	}
 
 	CONNECTIONS& ccons = m->getConnections();
@@ -103,9 +113,11 @@ void testDiffEq4(Model* m)
 	// This should create a stable numerical scheme
 
 	// SET THE WEIGHTS PROPERLY
-	WEIGHT& w = m->getConnections()[1]->getWeight();
+	WEIGHT& w = m->getConnection(input, d1)->getWeight(); 
 	w[0,0] *= 0.5;
-	WEIGHT& wr = m->getTemporalConnections()[0]->getWeight(); 
+	//Connection* cc = m->getConnection(d2, d1);
+	//printf("cc= %ld\n", cc); exit(0);
+	WEIGHT& wr = m->getConnection(d2, d1)->getWeight();
 	wr[0,0] *= 0.5;
 
 	m->setLearningRate(10.);
@@ -200,7 +212,7 @@ void testDiffEq4(Model* m)
 	nb_epochs = 200;
 
 	for (int e=0; e < nb_epochs; e++) {
-		//in[0] = 0.5 * net_inputs[0][0];  // MUST FIX  in[0] is not what I think
+		in[0] = 0.5 * net_inputs[0][0];  // MUST FIX  in[0] is not what I think
 		printf("**** Epoch %d ****\n", e);
 		for (int i=0; i < nb_samples-1; i++) {
 		//for (int i=0; i < 10; i++) {     

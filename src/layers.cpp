@@ -357,6 +357,14 @@ void Layer::forwardLoops(Connection* con, int t)
 		U::matmul(loop_input, wght, outputs, t, t+1); // out of bounds
 	}
 }
+void Layer::forwardLoops(Connection* con, int t1, int t2)
+{
+	//printf("inside forward loops, t=%d\n", t);
+	// forward data to temporal connections
+	// handle self loop
+	const WEIGHT& wght = con->getWeight();
+	U::matmul(loop_input, wght, outputs, t1, t2); // out of bounds
+}
 //----------------------------------------------------------------------
 void Layer::reset() // Must I reset recurrent connection? 
 {

@@ -550,6 +550,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		// ...........
 		// go through all the layers and update the temporal connections
 		// On the first pass, connections are empty
+		// Added Nov. 14. 
 		for (int c=0; c < clist_temporal.size(); c++) {
 			Connection* conn = clist_temporal[c];
 			Layer* to_layer = conn->to;
@@ -569,12 +570,19 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 
 	// prepare the recursive layer inputs for the next input to the network (if stateful == true)
 	// DOES NOT WORK because matmul uses t and t+1, thus (seq_len-1) and (seq_len)
+	#if 0
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->forwardLoops(seq_len-1, 0);    // does not change with biases (empty functions it seems)
 	}
+	#endif
 	// update all other temporal connections coming into the layers (arbitrary order, I think)
 	// ...........
 
+	for (int c=0; c < clist.size(); c++) {
+		Connection* conn  = clist[c];
+		Layer* to_layer   = conn->to;
+		to_layer->forwardLoops(conn, seq_len-1, 0);
+	}
 
 	return prod;
 }
@@ -672,6 +680,8 @@ void Model::storeDactivationDoutputInLayersRecCon(int t)
 	// Answer: yes, and I must increment the delta
 	// Temporal connections
 
+	// REPLACED by more general temporal connection
+	#if 0
 	for (int l=0; l < layers.size(); l++) {
 		Connection* conn = layers[l]->getConnection();
 
@@ -687,8 +697,17 @@ void Model::storeDactivationDoutputInLayersRecCon(int t)
 		if (t == 0) continue;
 		conn->gradMulDLda(t, t-1);  
 
-		// All other temporal connections into this layer
-		// ........
+	}
+	#endif
+	// All other temporal connections into this layer
+	// ........
+
+	//CONNECTIONS& connections = getTemporalConnections();
+	for (int c=0; c < clist_temporal.size(); c++) {
+		Connection* conn = clist_temporal[c];
+
+		if (t == 0) continue;
+		conn->gradMulDLda(t, t-1);
 	}
 }
 //----------------------------------------------------------------------
@@ -717,14 +736,19 @@ void Model::storeDLossDweightInConnectionsRecCon(int t)
 	// So a delay of zero is spatial, a delay of 1 or greater is temporal. 
 
 	// Set Deltas of all the connections of temporal layers
+	#if 0
 	for (int l=0; l < layers.size(); l++) {
 		Connection* con = layers[l]->getConnection();
 		if (!con) continue;
 		con->dLdaMulGrad(t);
 	}
+	#endif
 
 	// deal with remainder temporal layers
 	// ...
+	for (int c=0; c < clist_temporal.size(); c++) {
+		clist_temporal[c]->dLdaMulGrad(t);
+	}
 
 	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }

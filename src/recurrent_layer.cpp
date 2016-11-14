@@ -46,11 +46,14 @@ const RecurrentLayer& RecurrentLayer::operator=(const RecurrentLayer& l)
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
+#if 0
 void RecurrentLayer::forwardData(Connection* conn, VF2D_F& prod, int seq)
 {
+#if 0
 	printf("recurrent: forward data\n");
 	// forward data to spatial connections
 	Layer::forwardData(conn, prod, seq);
+#endif
 }
 //----------------------------------------------------------------------
 void RecurrentLayer::processData(Connection* conn, VF2D_F& prod)
@@ -90,6 +93,7 @@ void RecurrentLayer::forwardLoops()
 	const WEIGHT& loop_wght = recurrent_conn->getWeight();
 	U::matmul(loop_input, loop_wght, outputs, 0, 1); // out of bounds
 }
+#endif
 //----------------------------------------------------------------------
 void RecurrentLayer::initVars(int nb_batch)
 {
