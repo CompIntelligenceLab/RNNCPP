@@ -6,7 +6,7 @@
 
 //----------------------------------------------------------------------
 //void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activation* activation, REAL inc) 
-void testDiffEq1(Model* m)
+void testDiffEq4(Model* m)
 {
 	//testRecurrentModelBias1(m, layer_size, is_recurrent, activation, inc);
 	int layer_size = m->layer_size;
@@ -33,7 +33,7 @@ void testDiffEq1(Model* m)
 	m->add(0, input);
 	m->add(input, d1);
 	m->add(d1, d2);
-	m->add(d2, d1);
+	m->add(d2, d1, true);
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
 	d2->setActivation(new Tanh());
@@ -59,7 +59,6 @@ void testDiffEq1(Model* m)
 	for (int c=0; c < clist.size(); c++) {
 		clist[c]->printSummary("clist, ");
 	}
-	exit(0);
 
 	#if 1
 	// FREEEZE weights and biases
@@ -72,7 +71,6 @@ void testDiffEq1(Model* m)
 	}
 	// recurrent connection
 	Connection* con = d1->getConnection();
-	printf("con= %ld\n", con); exit(0);
 	con->printSummary();
     con->freeze();
 	input->setIsBiasFrozen(true);
@@ -212,6 +210,6 @@ int main(int argc, char* argv[])
 // arguments: -b nb_batch, -l layer_size, -s seq_len, -s is_recursive
 
 	Model* m = processArguments(argc, argv);
-	testDiffEq1(m);
+	testDiffEq4(m);
 }
 

@@ -78,7 +78,7 @@ public:
   // Identical routine to previous add(), except for the addition of is_temporal
   // When is_temporal == true, the next() and prev() elements of connected layers are not updated. 
   // next() and prev() will only be use for spatial connections
-  void add(Layer* layer_from, Layer* layer_to, bool is_temporal, std::string conn_type /*"all-all"*/);
+  void add(Layer* layer_from, Layer* layer_to, bool is_temporal, std::string conn_type="all-all");
   void addInputLayer(Layer* layer);
   // Specify output layer and activation function to Identity()
   void addOutputLayer(Layer* layer);
@@ -154,7 +154,6 @@ public:
   void compile();
   // Evaluate connection order to run prediction of a spatial network
   //CONNECTIONS connectionOrder();
-  void connectionOrderCleanOrig(); // in working code diff_eq3.cpp
   void connectionOrderClean();  // in code diff_eq4.cpp
 	Layer* checkPrevconnections(std::list<Layer*> llist);
 	void removeFromList(LAYERS& llist, Layer* cur_layer);
