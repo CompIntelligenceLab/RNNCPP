@@ -75,6 +75,10 @@ public:
   std::string getInitializationType() { return initialization_type; }
   void setInitializationType(std::string initialization_type) { this->initialization_type = initialization_type; }
   void add(Layer* layer_from, Layer* layer, std::string conn_type="all-all");
+  // Identical routine to previous add(), except for the addition of is_temporal
+  // When is_temporal == true, the next() and prev() elements of connected layers are not updated. 
+  // next() and prev() will only be use for spatial connections
+  void add(Layer* layer_from, Layer* layer_to, bool is_temporal, std::string conn_type /*"all-all"*/);
   void addInputLayer(Layer* layer);
   // Specify output layer and activation function to Identity()
   void addOutputLayer(Layer* layer);

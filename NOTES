@@ -406,5 +406,7 @@ Of course, this manual approach will make it hard to handle reservoir networks, 
 
 Create a new branch called temporal to deal with this problem. 
 ----------------------------------------------------------------------
-
+Nov. 13, branch temporal. 
+Perhaps do not update "next" and "prev" when the connection is temporal. That would imply specifying the link
+is temporal at the time I execute that "add" command. 
 ----------------------------------------------------------------------

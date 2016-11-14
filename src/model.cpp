@@ -123,6 +123,56 @@ void Model::addProbeLayer(Layer* layer)
 	probe_layers.push_back(layer);
 }
 //----------------------------------------------------------------------
+void Model::add(Layer* layer_from, Layer* layer_to, bool is_temporal, std::string conn_type /*"all-all"*/)
+{
+	// I AM ADDING A Layer if the layer doesn't already exit. Otherwise, I am adding a connection
+
+	printf("add(layer_from, layer)\n");
+	// Layers should only require layer_size 
+
+	if (layer_from) {
+		layer_to->setInputDim(layer_from->getLayerSize());
+	} else {
+		layer_to->setInputDim(layer_to->getInputDim());
+	}
+
+	// Only add the layer if it is not already in the layer list
+	bool in_list = false;
+	for (int l=0; l < layers.size(); l++) {
+		if (layer_to == layers[l]) {
+			in_list = true;
+		}
+	}
+	if (in_list == false) {
+  		layers.push_back(layer_to);
+		layer_to->setNbBatch(nb_batch); // check
+		layer_to->setSeqLen(seq_len); // check
+		printf("layers: nb_batch= %d\n", nb_batch);
+	}
+
+	int in_dim  = layer_to->getInputDim();
+	int out_dim = layer_to->getOutputDim();
+	printf("Model::add, layer_to dim: in_dim: %d, out_dim: %d\n", in_dim, out_dim);
+
+	// Create weights
+	// Later on, we might create different kinds of connection. This would require a rework of 
+	// the interface. 
+	Connection* connection = Connection::ConnectionFactory(in_dim, out_dim, conn_type);
+	connection->setTemporal(is_temporal);  // not in other add() routine
+	connections.push_back(connection);
+	connection->from = layer_from;
+	connection->to = layer_to;
+	connection->initialize(initialization_type); // must be called after layer_to definition
+
+	// update prev and next lists in Layers class
+	if (layer_from && connection->getTemporal() == false) {
+		layer_from->next.push_back(std::pair<Layer*, Connection*>(layer_to, connection));
+		layer_to->prev.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
+		connection->which_lc = layer_to->prev.size()-1;
+		printf("    connection->which_lc= %d\n", connection->which_lc);
+	}
+}
+//----------------------------------------------------------------------
 void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all-all"*/)
 {
 	// I AM ADDING A Layer if the layer doesn't already exit. Otherwise, I am adding a connection
