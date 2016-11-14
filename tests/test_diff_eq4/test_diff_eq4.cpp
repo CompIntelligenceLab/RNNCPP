@@ -50,6 +50,7 @@ void testDiffEq4(Model* m)
 	printf("total nb layers: %d\n", m->getLayers().size());
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
+	exit(0);
 
 	CONNECTIONS& conns = m->getConnections();
 	for (int c=0; c < conns.size(); c++) {

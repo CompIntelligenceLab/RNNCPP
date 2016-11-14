@@ -159,6 +159,7 @@ void Model::add(Layer* layer_from, Layer* layer_to, bool is_temporal, std::strin
 	// the interface. 
 	Connection* connection = Connection::ConnectionFactory(in_dim, out_dim, conn_type);
 	connection->setTemporal(is_temporal);  // not in other add() routine
+	exit(0);
 	connections.push_back(connection);
 	connection->from = layer_from;
 	connection->to = layer_to;
@@ -511,6 +512,9 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		for (int l=0; l < layers.size(); l++) {
 			layers[l]->forwardLoops(t-1);    // does not change with biases (empty functions it seems)
 		}
+
+		// update all other temporal connections coming into the layers (arbitrary order, I think)
+		// ...........
 		
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
@@ -528,6 +532,8 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->forwardLoops(seq_len-1, 0);    // does not change with biases (empty functions it seems)
 	}
+	// update all other temporal connections coming into the layers (arbitrary order, I think)
+	// ...........
 
 
 	return prod;
@@ -640,6 +646,9 @@ void Model::storeDactivationDoutputInLayersRecCon(int t)
 
 		if (t == 0) continue;
 		conn->gradMulDLda(t, t-1);  
+
+		// All other temporal connections into this layer
+		// ........
 	}
 }
 //----------------------------------------------------------------------
@@ -673,6 +682,10 @@ void Model::storeDLossDweightInConnectionsRecCon(int t)
 		if (!con) continue;
 		con->dLdaMulGrad(t);
 	}
+
+	// deal with remainder temporal layers
+	// ...
+
 	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
 }
 //----------------------------------------------------------------------

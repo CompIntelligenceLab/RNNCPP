@@ -301,6 +301,10 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 		 }
 		 // add the self-looping if there. 
 		 incrInputs(loop_input, t); 
+
+		 // add all other temporal links
+		 // ......
+
 		 // Add layer biases. must loop over batch and over sequence size. 
 		 addBiasToInput(t);
 		 prod = getActivation()(getInputs());
