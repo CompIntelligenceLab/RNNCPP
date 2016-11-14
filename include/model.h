@@ -33,7 +33,8 @@ public:
 private:
 	int nb_batch;
 	// order in which connections should be handled, computed by connectionOrderClean()
-	CONNECTIONS clist;
+	CONNECTIONS clist;  // spatial connections
+	CONNECTIONS clist_temporal;  // temporal connections
 	std::string name;
 	bool   stateful;
 	float learning_rate;

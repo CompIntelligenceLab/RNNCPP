@@ -173,6 +173,7 @@ void Model::add(Layer* layer_from, Layer* layer_to, bool is_temporal, std::strin
 	}
 
 	if (connection->getTemporal() == true) {
+		clist_temporal.push_back(connection);
 		if (layer_from) layer_from->next_temporal.push_back(std::pair<Layer*, Connection*>(layer_to, connection));
 		if (layer_to) layer_to->prev_temporal.push_back(std::pair<Layer*, Connection*>(layer_from, connection));
 	}
@@ -471,6 +472,26 @@ void Model::printSummary()
 		PAIRS_L next = layer->next;
 		//Activation& activation = layer->getActivation();
 
+
+		for (int p=0; p < prev.size(); p++) {
+			Layer* pl = prev[p].first;
+			Connection* pc = prev[p].second;
+			conn_type = (pc->getTemporal()) ? "temporal" : "spatial";
+			sprintf(buf, "   - prev[%d]: ", p);
+			pl->printSummary(std::string(buf));
+			pc->printSummary(std::string(buf));
+		}
+		for (int n=0; n < next.size(); n++) {
+			Layer* nl = next[n].first;
+			Connection* nc = next[n].second;
+			conn_type = (nc->getTemporal()) ? "temporal" : "spatial";
+			sprintf(buf, "   - next[%d]: ", n);
+			nl->printSummary(buf);
+			nc->printSummary(buf);
+		}
+
+		prev = layer->prev_temporal;
+		next = layer->next_temporal;
 
 		for (int p=0; p < prev.size(); p++) {
 			Layer* pl = prev[p].first;

@@ -50,7 +50,6 @@ void testDiffEq4(Model* m)
 	printf("total nb layers: %d\n", m->getLayers().size());
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
-	exit(0);
 
 	CONNECTIONS& conns = m->getConnections();
 	for (int c=0; c < conns.size(); c++) {
@@ -71,11 +70,11 @@ void testDiffEq4(Model* m)
 		con->freeze();
 	}
 	// recurrent connection
-	Connection* con = d1->getConnection();
-	con->printSummary();
-    con->freeze();
 	input->setIsBiasFrozen(true);
 	d1->setIsBiasFrozen(true);
+	d2->setIsBiasFrozen(true);
+
+	// scan through temporal  connections, and freeze weights
 	#endif
 	//********************** END MODEL *****************************
 
