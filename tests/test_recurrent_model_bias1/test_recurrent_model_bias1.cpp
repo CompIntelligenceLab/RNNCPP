@@ -183,7 +183,7 @@ void diagRecurrenceTest(Model* m, Layer* input, Layer* d1, VF2D_F& xf, VF2D_F& e
 }
 //----------------------------------------------------------------------
 
-void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activation* activation, REAL inc) 
+void testRecurrentModelBias1(Model* m)
 {
 	printf("\n\n\n");
 	printf("=============== BEGIN test_recurrent_model_bias2  =======================\n");
@@ -192,6 +192,11 @@ void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activat
 	int seq_len = m->getSeqLen();
 	int nb_batch = m->getBatchSize();
 	int input_dim  = 1;
+	int layer_size = m->layer_size;
+	int is_recurrent = m->is_recurrent;
+	Activation* activation = m->activations[0];
+	REAL inc = m->inc;
+
 	//m->setSeqLen(seq_len); // runs (but who knows whether correct) with seq_len > 1
 
 	// I am not sure that batchSize and nb_batch are the same thing
@@ -498,6 +503,11 @@ int main(int argc, char* argv[])
 {
 // arguments: -b nb_batch, -l layer_size, -s seq_len, -s is_recursive
 
+	Model* m = processArguments(argc, argv);
+	//testRecurrentModelBias1(m, layer_size, is_recurrent, activation, inc);
+	testRecurrentModelBias1(m);
+
+#if 0
     int nb_batch = 1;
     int layer_size = 1;
     int seq_len = 1;
@@ -568,4 +578,5 @@ int main(int argc, char* argv[])
 
 	printf("activation name: %s\n", activation->getName().c_str());
 	testRecurrentModelBias1(m, layer_size, is_recurrent, activation, inc);
+#endif
 }

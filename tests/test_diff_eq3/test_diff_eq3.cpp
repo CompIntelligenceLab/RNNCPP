@@ -87,7 +87,7 @@ void testDiffEq1(Model* m)
 	wr[0,0] *= 0.5;
 
 	m->setLearningRate(10.);
-	//m->setLearningRate(2.);
+	m->setLearningRate(2.);
 
 	//------------------------------------------------------------------
 	// SOLVE ODE  dy/dt = -alpha y
@@ -138,18 +138,22 @@ void testDiffEq1(Model* m)
 	// 
 
 	int nb_samples = npts / seq_len; 
-	std::vector<VF2D_F> net_inputs;
-	VF2D_F vf2d;
-	U::createMat(vf2d, nb_batch, 1, seq_len);
+	std::vector<VF2D_F> net_inputs, net_targets;
+	VF2D_F vf2d_input, vf2d_target;
+	U::createMat(vf2d_input, nb_batch, 1, seq_len);
+	U::createMat(vf2d_target, nb_batch, 1, seq_len);
 
 	VF2D_F vf2d_exact;
 	U::createMat(vf2d_exact, nb_batch, 1, seq_len);
 
 	// Assumes nb_batch = 1 and input dimensionality = 1
-	for (int i=0; i < nb_samples; i++) {
+	for (int i=0; i < nb_samples-1; i+=seq_len) { // to allow for last point not going out of bounds in vf2d_target
 		for (int j=0; j < seq_len; j++) {
-			vf2d[0](0, j) = ytarget(j + seq_len*i);
-			net_inputs.push_back(vf2d);
+			printf("i,j= %d, %d\n", i,j);
+			vf2d_input[0](0, j)  = ytarget(i + j);
+			vf2d_target[0](0, j) = ytarget(i + j + 1);
+			net_inputs.push_back(vf2d_input);
+			net_targets.push_back(vf2d_target);
 		}
 	}
 
@@ -167,17 +171,24 @@ void testDiffEq1(Model* m)
 	int nb_epochs;
 	nb_epochs = 2;
 	nb_epochs = 200;
+	nb_epochs = 400;
 
 	for (int e=0; e < nb_epochs; e++) {
 		in[0] = 0.5 * net_inputs[0][0];
 		printf("**** Epoch %d ****\n", e);
-		for (int i=0; i < nb_samples-1; i++) {
+		//for (int i=0; i < nb_samples-1; i+=seq_len) {
+		for (int i=0; i < (nb_samples-1)/seq_len; i++) {
 		//for (int i=0; i < 10; i++) {     
 			if (m->getStateful() == false) {
 				m->resetState();
 			}
 			//U::printRecurrentLayerLoopInputs(m);
-			m->trainOneBatch(net_inputs[i][0], net_inputs[i+1][0]);
+			// The targets are wrong. 
+			//m->trainOneBatch(net_inputs[i][0], net_inputs[i+1][0]);
+			//printf("i= %d\n", i);
+			//net_inputs[i].print("net_inputs");
+			//net_targets[i].print("net_targets");
+			m->trainOneBatch(net_inputs[i][0], net_targets[i][0]);
 			//U::printWeights(m);
 		}
 		m->resetState();

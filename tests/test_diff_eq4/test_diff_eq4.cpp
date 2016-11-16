@@ -180,9 +180,9 @@ void testDiffEq4(Model* m)
 	U::createMat(vf2d_exact, nb_batch, 1, seq_len);
 
 	// Assumes nb_batch = 1 and input dimensionality = 1
-	for (int i=0; i < nb_samples; i++) {
+	for (int i=0; i < nb_samples; i += seq_len) {
 		for (int j=0; j < seq_len; j++) {
-			vf2d[0](0, j) = ytarget(j + seq_len*i);
+			vf2d[0](0, j) = ytarget(j + i);
 			net_inputs.push_back(vf2d);
 		}
 	}

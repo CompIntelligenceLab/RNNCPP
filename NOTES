@@ -416,6 +416,7 @@ In the future, allow for multiple temporal inputs into a layer.
 ----------------------------------------------------------------------
 Nov. 14, 2016, branch sequence (derived from temporal)
 Try test_diff_eq3 with sequence length of 2 or higher. See if it still works.o
+Cannot get seq_len=2 to work with test_diff_eq3! seq_len=1 works fine. Do not know why.
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
