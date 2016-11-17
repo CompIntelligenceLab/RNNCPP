@@ -558,8 +558,8 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	arma_rng::set_seed_random(); // REMOVE LATER
-	//arma_rng::set_seed(100); // REMOVE LATER
+	//arma_rng::set_seed_random(); // REMOVE LATER
+	arma_rng::set_seed(100); // REMOVE LATER
 
 	Model* m  = new Model(); // argument is input_dim of model
 	m->setBatchSize(nb_batch);

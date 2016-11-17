@@ -50,7 +50,10 @@ WEIGHT weightDerivative(Model* m, Connection& con, REAL fd_inc, VF2D_F& xf, VF2D
 	{
 		WEIGHT& wp = con.getWeight(); 
 		wp(rr,cc) += fd_inc;
+		wp.print("wp");
 		VF2D_F pred_n = m->predictViaConnectionsBias(xf);
+		pred_n[0].raw_print(cout, "pred_n");
+		//printf("inside weightDerivative\n"); exit(0);
 
 		WEIGHT& wm = con.getWeight(); 
 		wm(rr,cc) -= (2.*fd_inc);
@@ -78,15 +81,19 @@ BIAS biasFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& xf, VF2D_F& e
 	dLdb.zeros();
 	Objective* mse = new MeanSquareError();
 
+	printf("=== biasFDDerivative ===\n");
+
 	for (int rr=0; rr < layer_size; rr++)
 	{
 		BIAS& biasp = layer.getBias();
 		biasp(rr) += fd_inc;
 		VF2D_F pred_n = m->predictViaConnectionsBias(xf);
+		pred_n[0].raw_print(cout, "pred_n");
 
 		BIAS& biasm = layer.getBias(); 
 		biasm(rr) -= (2.*fd_inc);
 		VF2D_F pred_p = m->predictViaConnectionsBias(xf);
+		pred_p[0].raw_print(cout, "pred_p");
 		biasm(rr) += fd_inc;
 
 		// Sum the loss over the sequences
@@ -214,6 +221,7 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		w_norm.push_back(arma::norm(weight_bp_));
 		//connections[c]->printSummary();
 	}
+	//printf("after non-recurrent FD weights\n"); exit(0);
 
 	// BIASES
 	for (int l=0; l < layers.size(); l++) {
@@ -282,8 +290,8 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 
 		printf("\nConnection %d\n", i); conn[i]->printSummary();
 		conn[i]->getWeight().print("*** Connection weight matrix ***");
-		weight_bp[i].print("bp derivatives: ");
-		weight_fd[i].print("fd derivatives: ");
+		weight_bp[i].raw_print(cout, "bp derivatives: ");
+		weight_fd[i].raw_print(cout, "fd derivatives: ");
 		printf("    norms: w,abs_err,rel_err= %14.7e, %14.7e, %14.7e\n", w_norm[i], abs_err_norm, rel_err_norm);
 		//printf("    max rel error: %14.7e at index weight_bp: %f\n", rel_err_imx, wgt_imx);
 
@@ -321,10 +329,12 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 
 	for (int i=0; i < bias_fd.size(); i++) {
 		BIAS abs_err = (bias_fd[i] - bias_bp[i]);
+		bias_fd[i].raw_print(cout, "bias_fd");
+		bias_bp[i].raw_print(cout, "bias_bp");
 		BIAS err = (bias_fd[i] - bias_bp[i]) / bias_bp[i];
 		REAL abs_err_norm = arma::norm(abs_err);
 		REAL err_norm     = arma::norm(err);
-		printf("\n"); printf("bias: norms: w,abs,rel= %f, %f, %f\n", b_norm[i], abs_err_norm, err_norm);
+		printf("\n"); printf("bias: norms: bias,abs,rel= %f, %f, %f\n", b_norm[i], abs_err_norm, err_norm);
 		#if 0
 		printf("   d1-d1: "); bias_bp[i].print("bias bp");
 		printf("   d1-d1: "); abs_err.print("bias abs err");

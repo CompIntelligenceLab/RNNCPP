@@ -312,6 +312,7 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 		 	incrInputs(layer_inputs[i], t);
 		 }
 		 // add the self-looping if there. 
+		 loop_input[0].raw_print(cout, "layer, loop input");
 		 incrInputs(loop_input, t); 
 
 		 // add all other temporal links

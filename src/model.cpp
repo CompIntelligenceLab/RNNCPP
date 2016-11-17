@@ -521,7 +521,12 @@ void Model::printSummary()
 //----------------------------------------------------------------------
 VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 {
-	//printf("****************** ENTER predictViaConnections ***************\n");
+	if (stateful == false) {
+		resetState(); 
+	}
+
+	printf("****************** ENTER predictViaConnections ***************\n");
+	x[0].raw_print(cout, "x");
 	//layers[1]->getOutputs()[0].raw_print(cout, "getOutputs"); // XXX
 
 	//U::printLayerInputs(this);
@@ -561,6 +566,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 			Connection* conn  = clist[c];
 			Layer* to_layer   = conn->to;
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
+			prod[0].raw_print("prod[0]");
 		}
  	}
 
@@ -584,6 +590,8 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		to_layer->forwardLoops(conn, seq_len-1, 0);
 	}
 
+	prod[0].raw_print(cout, "prod");
+	//exit(0);
 	return prod;
 }
 //----------------------------------------------------------------------
@@ -763,9 +771,12 @@ void Model::storeDLossDbiasInLayersRec(int t)
 		if (layer->getActivation().getDerivType() == "decoupled") {
 			const VF2D_F& grad      = layer->getGradient();
 			const VF2D_F& old_deriv = layer->getDelta();
+			grad[0].raw_print(cout, "grad");
+			old_deriv[0].raw_print(cout, "old_deriv");
 
 			for (int b=0; b < nb_batch; b++) {
 				delta = (old_deriv[b].col(t) % grad[b].col(t));
+				delta.raw_print(cout, "delta");
 				layer->incrBiasDelta(delta);
 			}
 
@@ -898,6 +909,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeDLossDbiasInLayersRec(t);
 	}
+	//exit(0);
 
 	//printf("  d(loss)/d(activation_params)
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT

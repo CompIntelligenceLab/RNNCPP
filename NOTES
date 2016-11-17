@@ -414,3 +414,9 @@ Nov. 14, 2016, branch temporal
 added loop_input, and forwardLoops to Layer.cpp. This will serve as input to temporal connections. 
 In the future, allow for multiple temporal inputs into a layer. 
 ----------------------------------------------------------------------
+Nov. 16, 2016, branch temporal
+Apparently, prediction is different from cfe3fe8. 
+
+FOUND THE ERROR: When doing FD tests, I am calling predict multiple times. I must do this with stateful = false. 
+Fix this problem in model.cpp: resetState() at the top of the prediction method. 
+----------------------------------------------------------------------
