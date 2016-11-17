@@ -87,18 +87,23 @@ const Connection& Connection::operator=(const Connection& w)
 void Connection::print(std::string msg /* "" */)
 {
 	printf("connection: %s\n", name.c_str());
-	printf("in: %d, out: %d\n", in_dim, out_dim);
-	printf("print_verbose= %d\n", print_verbose);
-	printf("frozen= %d\n", frozen);
 	if (msg != "") printf("%s\n", msg.c_str());
+	printf("   in: %d, out: %d\n", in_dim, out_dim);
+	printf("   print_verbose= %d\n", print_verbose);
+	printf("   frozen= %d\n", frozen);
+	printf("   temporal= %d\n", temporal);
 
 	if (print_verbose == false) return;
 }
 
 void Connection::printSummary(std::string msg) 
 {
+	printf("enter Connection::printSummary\n");
+	//printf("Connection::temporal= %d\n", temporal);
 	std::string type = (temporal) ? "temporal" : "spatial";
 
+	//printf("from= %ld\n", from);
+	//printf("to=   %ld\n",   to);
 	string name_from = (from == 0) ?  "NONE" : from->getName(); 
 	string name_to   = (to   == 0) ?  "NONE" :   to->getName(); 
 	cout << msg << "Connection (" << name << "), weight(" << weight.n_rows << ", " << weight.n_cols << "), " 

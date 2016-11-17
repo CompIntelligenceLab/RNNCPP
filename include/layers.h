@@ -211,7 +211,8 @@ public:
 	virtual void gradMulDLda(VF2D_F& prod, const Connection& conn, int t_from, int t_to); // for now, do not store anything (at least until we know what is needed)
 	virtual void dLdaMulGrad(Connection* con, int t);
 	#endif
-	Connection* getConnection() {return recurrent_conn;}
+	//Connection* getConnection() {return recurrent_conn;}
+	Connection* getConnection() {printf("Layer::getConnection: not implemented;\n"); exit(0); } //return recurrent_conn;}
 
 public:
 	virtual void initVars(int nb_batch);

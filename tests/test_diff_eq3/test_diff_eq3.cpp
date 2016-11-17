@@ -6,7 +6,7 @@
 
 //----------------------------------------------------------------------
 //void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activation* activation, REAL inc) 
-void testDiffEq1(Model* m)
+void testDiffEq3(Model* m)
 {
 	//testRecurrentModelBias1(m, layer_size, is_recurrent, activation, inc);
 	int layer_size = m->layer_size;
@@ -28,9 +28,11 @@ void testDiffEq1(Model* m)
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(input_dim, "input_layer");
-	Layer* d1    = new RecurrentLayer(layer_size, "rdense");
+	//Layer* d1    = new RecurrentLayer(layer_size, "rdense");
+	Layer* d1    = new DenseLayer(layer_size, "rdense");
 	m->add(0, input);
 	m->add(input, d1);
+	m->add(d1, d1, true); // temporal link
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
 
@@ -47,11 +49,10 @@ void testDiffEq1(Model* m)
 	for (int c=0; c < conns.size(); c++) {
 		conns[c]->printSummary("connections, ");
 	}
-	CONNECTIONS& clist = m->getClist();
-	for (int c=0; c < clist.size(); c++) {
-		clist[c]->printSummary("clist, ");
+	CONNECTIONS& tconns = m->getTemporalConnections();
+	for (int c=0; c < tconns.size(); c++) {
+		tconns[c]->printSummary("temporal connections, ");
 	}
-	//exit(0);
 
 	#if 1
 	// FREEEZE weights and biases
@@ -62,10 +63,18 @@ void testDiffEq1(Model* m)
 		con->printSummary();
 		con->freeze();
 	}
+
+    CONNECTIONS& tcons = m->getTemporalConnections();
+	for (int i=0; i < tcons.size(); i++) {
+		Connection* con = tcons[i];
+		con->printSummary();
+		con->freeze();
+	}
+
 	// recurrent connection
-	Connection* con = d1->getConnection();
-	con->printSummary();
-    con->freeze();
+	//Connection* con = d1->getConnection();
+	//con->printSummary();
+    //con->freeze();
 
 	input->setIsBiasFrozen(true);
 	d1->setIsBiasFrozen(true);
@@ -83,7 +92,7 @@ void testDiffEq1(Model* m)
 	// This should create a stable numerical scheme
 	WEIGHT& w = m->getConnections()[1]->getWeight();
 	w[0,0] *= 0.5;
-	WEIGHT& wr = d1->getConnection()->getWeight();
+	WEIGHT& wr = m->getConnection(d1, d1)->getWeight();
 	wr[0,0] *= 0.5;
 
 	m->setLearningRate(10.);
@@ -191,6 +200,7 @@ void testDiffEq1(Model* m)
 	//U::printInputs(m);
 	//U::printLayerInputs(m);
 	//U::printLayerOutputs(m);
+	printf("XXX gordon XXX\n");
 	exit(0);
 	#endif
 
@@ -202,6 +212,6 @@ int main(int argc, char* argv[])
 // arguments: -b nb_batch, -l layer_size, -s seq_len, -s is_recursive
 
 	Model* m = processArguments(argc, argv);
-	testDiffEq1(m);
+	testDiffEq3(m);
 }
 

@@ -600,7 +600,6 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	}
 
 	prod[0].raw_print(cout, "prod");
-	//exit(0);
 	return prod;
 }
 //----------------------------------------------------------------------
@@ -868,10 +867,14 @@ void Model::resetDeltas()
 		(*it)->resetDelta();
 	}
 
+	for (it=clist_temporal.rbegin(); it != clist_temporal.rend(); ++it) {
+		(*it)->resetDelta();
+	}
+
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->resetDelta();
-		Connection* con = layers[l]->getConnection();
-		if (con) con->resetDelta();
+		//Connection* con = layers[l]->getConnection();
+		//if (con) con->resetDelta();
 	}
 }
 //----------------------------------------------------------------------
@@ -918,7 +921,6 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeDLossDbiasInLayersRec(t);
 	}
-	//exit(0);
 
 	//printf("  d(loss)/d(activation_params)
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
@@ -953,17 +955,27 @@ void Model::weightUpdate()
 		wght = wght - learning_rate * con->getDelta();
 	}
 
-	// temporal connections (loops)
+	// temporal connections 
+	for (int c=0; c < clist_temporal.size(); c++) {
+		Connection* con = clist_temporal[c];
+		WEIGHT& wght = con->getWeight();
+		//printf("con= %ld\n", con);
+		if (con->frozen) continue;
+		wght = wght - learning_rate * con->getDelta();
+	}
+
+	#if 0
 	for (int l=0; l < layers.size(); l++) {
 		Connection* con = layers[l]->getConnection();
 		if (!con) continue;
-		if (con->frozen) continue;
+		//if (con->frozen) continue;
 		WEIGHT& wght = con->getWeight();
 		wght = wght - learning_rate * con->getDelta();
 		// wgth unchanged if seq_len == 1
 		//con->getDelta().raw_print(cout, "con->getDelta");
 		//wght.raw_print(cout, "loop wgt");
 	}
+	#endif
 }
 //----------------------------------------------------------------------
 void Model::biasUpdate()
