@@ -545,7 +545,8 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 
 		// go through all the layers and update the temporal connections
 		// On the first pass, connections are empty
-		#if 0
+		// TEMPORARY: should be #if 0
+		#if 0    
 		for (int l=0; l < layers.size(); l++) {
 			layers[l]->forwardLoops(t-1);    // does not change with biases (empty functions it seems)
 		}
@@ -556,14 +557,21 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		// go through all the layers and update the temporal connections
 		// On the first pass, connections are empty
 		// Added Nov. 14. 
+		// Temporary: should be #if 1
+		#if 1
+		printf("clist_temporal size: %d\n", clist_temporal.size());
+		// I FORGOT TO PUT RECURRENT LINKS WITH clist_temporal
 		for (int c=0; c < clist_temporal.size(); c++) {
 			Connection* conn = clist_temporal[c];
+			conn->printSummary(""); conn->getWeight().print("temporal weights");
 			Layer* to_layer = conn->to;
 			to_layer->forwardLoops(conn, t-1);
 		}
+		#endif
 		
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
+			conn->printSummary(""); conn->getWeight().print("spatial weights");
 			Layer* to_layer   = conn->to;
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
 			prod[0].raw_print("prod[0]");
@@ -584,6 +592,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	// update all other temporal connections coming into the layers (arbitrary order, I think)
 	// ...........
 
+	printf("before last for in predict\n");
 	for (int c=0; c < clist.size(); c++) {
 		Connection* conn  = clist[c];
 		Layer* to_layer   = conn->to;
@@ -999,6 +1008,13 @@ void Model::initializeWeights()
 	for (int c=0; c < conn.size(); c++) {
 		conn[c]->initialize(getInitializationType());
 	}
+
+	CONNECTIONS& tconn = getTemporalConnections();
+	for (int c=0; c < tconn.size(); c++) {
+		tconn[c]->initialize(getInitializationType());
+	}
+
+	#if 0
 	const LAYERS& layers = getLayers();
 	for (int l=0; l < layers.size(); l++) {
 		Connection* con = layers[l]->getConnection();
@@ -1006,5 +1022,6 @@ void Model::initializeWeights()
 			con->initialize(getInitializationType());
 		}
 	}
+	#endif
 }
 //----------------------------------------------------------------------

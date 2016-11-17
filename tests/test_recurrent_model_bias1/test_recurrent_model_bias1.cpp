@@ -210,7 +210,8 @@ void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activat
 		d1    = new DenseLayer(layer_size, "rdense");
 	}
 
-	m->add(0,     input);
+	m->add(0,     input); 
+	m->add(d1,    d1, true); // Should somehow be done automatically (temporal link)
 	m->add(input, d1);
 
 	// input should always be identity activation
@@ -224,7 +225,9 @@ void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activat
 	m->printSummary();
 	m->connectionOrderClean(); // no print statements
 
+	arma_rng::set_seed(100); // REMOVE LATER
 	m->initializeWeights();
+	//printf("initializeWeights\n"); exit(0);
 
 	//===========================================
 /***

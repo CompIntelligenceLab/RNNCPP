@@ -420,3 +420,23 @@ Apparently, prediction is different from cfe3fe8.
 FOUND THE ERROR: When doing FD tests, I am calling predict multiple times. I must do this with stateful = false. 
 Fix this problem in model.cpp: resetState() at the top of the prediction method. 
 ----------------------------------------------------------------------
+Nov. 17, 2016, branch temporal
+When seq_len=2, there is a difference between the two code: 
+layer, loop input
+0 -0.19281525099  (for code that works)
+0  0              (for code that does not work)
+
+Figured the error out: recurrent layers have a temporal connection. In the new code, 
+the temporal connections are contained in Model::clist_temporal. So I must change initialize_weights
+to initialize the recucrrent connections correctly. 
+
+I need a way to initialize weight using a preestablished sequence of random or non-random numbers. Otherwise
+it becomes hard to compare multiple codes with each other. Alternatively, how to I initiate a random 
+stream? 
+
+PROBLEM: number of times Connection::initialize() is called is different for the two codes. DO NOT UNDERSTAND WHY. 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------

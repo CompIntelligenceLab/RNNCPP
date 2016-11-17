@@ -179,6 +179,9 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 		}
 	} else if (initialize_type == "xavier_iden") {   // initialize recurrent weights to identity matrix
 		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
+		printf("inside Connection::initialize()\n");
+		weight.print("weight");
+
 		REAL n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
 		n_outs = sqrt(n_outs);
 		weight = weight / n_outs;

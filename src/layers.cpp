@@ -348,10 +348,11 @@ void Layer::forwardLoops(int t1, int t2)
 { }
 void Layer::forwardLoops(Connection* con, int t)
 {
-	//printf("inside forward loops, t=%d\n", t);
+	printf("inside forward loops, t=%d\n", t);
 	// forward data to temporal connections
 	// handle self loop
 	const WEIGHT& wght = con->getWeight();
+	outputs[0].raw_print(cout, "loop, outputs");
 
 	// For now, assume that a layer can have a maximum of one temporal input
 	if (t >= 0) {
