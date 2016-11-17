@@ -436,6 +436,15 @@ stream?
 
 PROBLEM: number of times Connection::initialize() is called is different for the two codes. DO NOT UNDERSTAND WHY. 
 ----------------------------------------------------------------------
+Nov. 17, 2016, branch temporal
+seq_len=4, diff_eq3, I get nan with lr=2 (works with lr=10, but wrong parameter value)
+ANOTHER BUG? Yes. Initialization of xf() was incorrect. 
+
+seq_len=1, alpha goes from 1 to 2. Weird.  Learning_rate = 10. 
+seq_len=2, alpha goes from 1 to 3. Weird.  Learning_rate = 10. 
+seq_len=4, alpha goes from 1 to 5. Weird.  Learning_rate = 10. 
+seq_len=4, alpha goes from 1 to 5. Weird.  Learning_rate = 20. 
+seq_len=6, alpha goes from 1 to 7. Weird.  Learning_rate = 20. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

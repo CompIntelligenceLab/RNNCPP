@@ -229,13 +229,13 @@ void U::printRecurrentLayerLoopInputs(Model *m)
 	LAYERS layers = m->getLayers();
 	printf("----------------------------------------\n");
 	printf("Recurrent Layer Loop Inputs\n");
-	for (int i=0; i < layers.size(); i++) {
-		Layer* layer = layers[i]; 
-		Connection* con = layer->getConnection();
-		if (con) {
-			layer->printSummary();
-			//layer->getLoopInput().print("loop input");
-			layer->getLoopInput()[0].raw_print(cout, "loop input");
+	CONNECTIONS& tconn = m->getTemporalConnections();
+	for (int c=0; c < tconn.size(); c++) {
+		Connection* con = tconn[c];
+		if (con->to == con->from) {
+			con->to->printSummary();
+			// What if multiple inputs from "from" to "to"? ... update code
+			con->to->getLoopInput()[0].raw_print(cout, "loop input");
 		}
 	}
 }
@@ -250,7 +250,7 @@ void U::printInputs(Model *m)
 		layer->printSummary();
 		//layer->getInputs().print("inputs");
 		layer->getInputs()[0].raw_print(cout, "inputs");
-		Connection* con = layer->getConnection();
+		//Connection* con = layer->getConnection();
 	}
 }
 //----------------------------------------------------------------------
@@ -268,7 +268,7 @@ void U::printLayerInputs(Model *m)
 			//inputs[i].print("input ");
 			inputs[i][0].raw_print(cout, "input ");
 		}
-		Connection* con = layer->getConnection();
+		Connection* con = m->getConnection(layer, layer); 
 		if (con) {
 			//layer->getLoopInput().print("loop input");
 			layer->getLoopInput()[0].raw_print(cout, "loop input");
@@ -316,7 +316,7 @@ void U::printWeights(Model* m)
 	LAYERS layers = m->getLayers();
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i]; 
-		Connection* con = layer->getConnection();
+		Connection* con = m->getConnection(layer, layer);
 		if (con) {
 			con->printSummary("");
 			con->getWeight().print("weight");

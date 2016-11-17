@@ -71,11 +71,6 @@ void testDiffEq3(Model* m)
 		con->freeze();
 	}
 
-	// recurrent connection
-	//Connection* con = d1->getConnection();
-	//con->printSummary();
-    //con->freeze();
-
 	input->setIsBiasFrozen(true);
 	d1->setIsBiasFrozen(true);
 	#endif
@@ -90,12 +85,12 @@ void testDiffEq3(Model* m)
 
 	// Set the weights of the two connection that input into Layer d1 to 1/2
 	// This should create a stable numerical scheme
-	WEIGHT& w = m->getConnections()[1]->getWeight();
+	WEIGHT& w = m->getConnection(input, d1)->getWeight();
 	w[0,0] *= 0.5;
 	WEIGHT& wr = m->getConnection(d1, d1)->getWeight();
 	wr[0,0] *= 0.5;
 
-	m->setLearningRate(10.);
+	m->setLearningRate(20.);
 	//m->setLearningRate(2.);
 
 	//------------------------------------------------------------------
@@ -158,8 +153,8 @@ void testDiffEq3(Model* m)
 	for (int i=0; i < nb_samples; i++) {
 		for (int j=0; j < seq_len; j++) {
 			vf2d[0](0, j) = ytarget(j + seq_len*i);
-			net_inputs.push_back(vf2d);
 		}
+		net_inputs.push_back(vf2d);
 	}
 
 	//net_inputs[0].print("net_inputs[0]");
@@ -175,7 +170,7 @@ void testDiffEq3(Model* m)
 
 	int nb_epochs;
 	nb_epochs = 2;
-	nb_epochs = 200;
+	nb_epochs = 400;
 
 	for (int e=0; e < nb_epochs; e++) {
 		in[0] = 0.5 * net_inputs[0][0];
@@ -186,6 +181,7 @@ void testDiffEq3(Model* m)
 				m->resetState();
 			}
 			//U::printRecurrentLayerLoopInputs(m);
+			//net_inputs[i][0].raw_print(cout, "net_inputs"); 
 			m->trainOneBatch(net_inputs[i][0], net_inputs[i+1][0]);
 			//U::printWeights(m);
 		}
