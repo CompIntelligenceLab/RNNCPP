@@ -50,6 +50,8 @@ void testDiffEq3(Model* m)
 	#if 1
 	// FREEEZE weights and biases
 
+	#if 1
+	// FREEEZE weights  (if unfrozen, code does not run. Nans arise.)
     CONNECTIONS& cons = m->getConnections();
 	for (int i=0; i < cons.size(); i++) {
 		Connection* con = cons[i];
@@ -63,6 +65,7 @@ void testDiffEq3(Model* m)
 		con->printSummary();
 		con->freeze();
 	}
+	#endif
 
 	input->setIsBiasFrozen(true);
 	d1->setIsBiasFrozen(true);
@@ -83,6 +86,7 @@ void testDiffEq3(Model* m)
 	wr[0,0] *= 0.5;
 
 	m->setLearningRate(20.);
+	//m->setLearningRate(.01);
 	//m->setLearningRate(2.);
 
 	//------------------------------------------------------------------
@@ -178,8 +182,8 @@ void testDiffEq3(Model* m)
 				m->resetState();
 			}
 			//U::printRecurrentLayerLoopInputs(m);
-			net_inputs[i][0].raw_print(cout, "net_inputs"); 
-			net_exact[i][0].raw_print(cout, "net_exact"); 
+			//net_inputs[i][0].raw_print(cout, "net_inputs"); 
+			//net_exact[i][0].raw_print(cout, "net_exact"); 
 			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
 			//U::printWeights(m);
 		}

@@ -312,7 +312,7 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 		 	incrInputs(layer_inputs[i], t);
 		 }
 		 // add the self-looping if there. 
-		 loop_input[0].raw_print(cout, "layer, loop input");
+		 //loop_input[0].raw_print(cout, "layer, loop input");
 		 incrInputs(loop_input, t); 
 
 		 // add all other temporal links
@@ -348,11 +348,11 @@ void Layer::forwardLoops(int t1, int t2)
 { }
 void Layer::forwardLoops(Connection* con, int t)
 {
-	printf("inside forward loops, t=%d\n", t);
+	//printf("inside forward loops, t=%d\n", t);
 	// forward data to temporal connections
 	// handle self loop
 	const WEIGHT& wght = con->getWeight();
-	outputs[0].raw_print(cout, "loop, outputs");
+	//outputs[0].raw_print(cout, "loop, outputs");
 
 	// For now, assume that a layer can have a maximum of one temporal input
 	if (t >= 0) {

@@ -525,8 +525,8 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		resetState(); 
 	}
 
-	printf("****************** ENTER predictViaConnections ***************\n");
-	x[0].raw_print(cout, "x");
+	//printf("****************** ENTER predictViaConnections ***************\n");
+	//x[0].raw_print(cout, "x");
 	//layers[1]->getOutputs()[0].raw_print(cout, "getOutputs"); // XXX
 
 	//U::printLayerInputs(this);
@@ -559,11 +559,11 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		// Added Nov. 14. 
 		// Temporary: should be #if 1
 		#if 1
-		printf("clist_temporal size: %d\n", clist_temporal.size());
+		//printf("clist_temporal size: %d\n", clist_temporal.size());
 		// I FORGOT TO PUT RECURRENT LINKS WITH clist_temporal
 		for (int c=0; c < clist_temporal.size(); c++) {
 			Connection* conn = clist_temporal[c];
-			conn->printSummary(""); conn->getWeight().print("temporal weights");
+			//conn->printSummary(""); conn->getWeight().print("temporal weights");
 			Layer* to_layer = conn->to;
 			to_layer->forwardLoops(conn, t-1);
 		}
@@ -571,10 +571,10 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
-			conn->printSummary(""); conn->getWeight().print("spatial weights");
+			//conn->printSummary(""); conn->getWeight().print("spatial weights");
 			Layer* to_layer   = conn->to;
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
-			prod[0].raw_print("prod[0]");
+			//prod[0].raw_print("prod[0]");
 		}
  	}
 
@@ -582,24 +582,17 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	//U::printInputs(this);
 	//U::printLayerOutputs(this);
 
-	// prepare the recursive layer inputs for the next input to the network (if stateful == true)
-	// DOES NOT WORK because matmul uses t and t+1, thus (seq_len-1) and (seq_len)
-	#if 0
-	for (int l=0; l < layers.size(); l++) {
-		layers[l]->forwardLoops(seq_len-1, 0);    // does not change with biases (empty functions it seems)
-	}
-	#endif
 	// update all other temporal connections coming into the layers (arbitrary order, I think)
 	// ...........
 
-	printf("before last for in predict\n");
+	//printf("before last for in predict\n");
 	for (int c=0; c < clist.size(); c++) {
 		Connection* conn  = clist[c];
 		Layer* to_layer   = conn->to;
 		to_layer->forwardLoops(conn, seq_len-1, 0);
 	}
 
-	prod[0].raw_print(cout, "prod");
+	//prod[0].raw_print(cout, "prod");
 	return prod;
 }
 //----------------------------------------------------------------------
@@ -640,7 +633,7 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 {
 	if (batch_size == 0) { // Means no value for batch_size was passed into this function
     	batch_size = this->batch_size; // Use the current value stored in model
-    	printf("model batch size: %d\n", batch_size);
+    	//printf("model batch size: %d\n", batch_size);
 		// resize x and exact to handle different batch size
 		assert(x.n_rows == batch_size && exact.n_rows == batch_size);
 	}
@@ -649,7 +642,7 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 	// DEAL WITH BATCH and SEQUENCES CORRECTLY
 	// FOR NOW, ASSUME BATCH=1
 
-	printf("nb_epochs= %d\n", nb_epochs);
+	//printf("nb_epochs= %d\n", nb_epochs);
 	for (int i=0; i < nb_epochs; i++) {
 		printf("**** epoch %d ****\n", i);
 		VF2D_F pred = predictViaConnectionsBias(x);
@@ -754,12 +747,12 @@ void Model::storeDLossDbiasInLayersRec(int t)
 		if (layer->getActivation().getDerivType() == "decoupled") {
 			const VF2D_F& grad      = layer->getGradient();
 			const VF2D_F& old_deriv = layer->getDelta();
-			grad[0].raw_print(cout, "grad");
-			old_deriv[0].raw_print(cout, "old_deriv");
+			//grad[0].raw_print(cout, "grad");
+			//old_deriv[0].raw_print(cout, "old_deriv");
 
 			for (int b=0; b < nb_batch; b++) {
 				delta = (old_deriv[b].col(t) % grad[b].col(t));
-				delta.raw_print(cout, "delta");
+				//delta.raw_print(cout, "delta");
 				layer->incrBiasDelta(delta);
 			}
 
@@ -912,8 +905,8 @@ Connection* Model::getConnection(Layer* layer1, Layer* layer2)
 			return conn;
 		}
 	}
-	printf("Model:: No connection between layers %s, %s\n", 
-		layer1->getName().c_str(), layer2->getName().c_str());
+	//printf("Model:: No connection between layers %s, %s\n", 
+		//layer1->getName().c_str(), layer2->getName().c_str());
 	return 0;
 }
 //----------------------------------------------------------------------
