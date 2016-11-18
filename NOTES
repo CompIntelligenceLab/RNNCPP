@@ -448,5 +448,11 @@ seq_len=6, alpha goes from 1 to 7. Weird.  Learning_rate = 20.
 ----------------------------------------------------------------------
 Something changed: even with seq_len=1, I get alpha going to 4.455 . What did I do? 
 ----------------------------------------------------------------------
+seq_len=4 (x(0)=0.5 ==> alpha->5, x(0)=1 ==> alpha => 6.64...
+For some reason, I must start with with 
+	for (int e=0; e < nb_epochs; e++) {
+		in[0][0,0] = 0.5 * net_inputs[0][0][0,0]; // <<<<< NOTE: 0.5 coefficient. WHY?  Weight is already 1/2
+		Reason is that I am multiplying by the fixed weight of 1/2 manually. 
+		printf("**** Epoch %d ****\n", e);
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

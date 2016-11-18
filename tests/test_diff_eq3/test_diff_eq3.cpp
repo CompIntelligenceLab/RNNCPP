@@ -134,7 +134,7 @@ void testDiffEq3(Model* m)
 	// 
 
 	int nb_samples = npts / seq_len; 
-	std::vector<VF2D_F> net_inputs;
+	std::vector<VF2D_F> net_inputs, net_exact;
 	VF2D_F vf2d;
 	U::createMat(vf2d, nb_batch, 1, seq_len);
 
@@ -142,12 +142,17 @@ void testDiffEq3(Model* m)
 	U::createMat(vf2d_exact, nb_batch, 1, seq_len);
 
 	// Assumes nb_batch = 1 and input dimensionality = 1
-	for (int i=0; i < nb_samples; i++) {
+	for (int i=0; i < nb_samples-1; i++) {
 		for (int j=0; j < seq_len; j++) {
-			vf2d[0](0, j) = ytarget(j + seq_len*i);
+			vf2d[0](0, j)       = ytarget(j + seq_len*i);
+			vf2d_exact[0](0, j) = ytarget(j + seq_len*i + 1);
 		}
 		net_inputs.push_back(vf2d);
+		net_exact.push_back(vf2d_exact);
 	}
+	//net_inputs[0].print("net_inputs");
+	//net_exact[0].print("net_exact");
+	//exit(0);
 
 	//net_inputs[0].print("net_inputs[0]");
 	//net_inputs[1].print("net_inputs[1]");
@@ -165,7 +170,7 @@ void testDiffEq3(Model* m)
 	nb_epochs = 400;
 
 	for (int e=0; e < nb_epochs; e++) {
-		in[0] = 0.5 * net_inputs[0][0];
+		in[0][0,0] = 0.5 * net_inputs[0][0][0,0];
 		printf("**** Epoch %d ****\n", e);
 		for (int i=0; i < nb_samples-1; i++) {
 		//for (int i=0; i < 10; i++) {     
@@ -173,8 +178,9 @@ void testDiffEq3(Model* m)
 				m->resetState();
 			}
 			//U::printRecurrentLayerLoopInputs(m);
-			//net_inputs[i][0].raw_print(cout, "net_inputs"); 
-			m->trainOneBatch(net_inputs[i][0], net_inputs[i+1][0]);
+			net_inputs[i][0].raw_print(cout, "net_inputs"); 
+			net_exact[i][0].raw_print(cout, "net_exact"); 
+			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
 			//U::printWeights(m);
 		}
 		m->resetState();
