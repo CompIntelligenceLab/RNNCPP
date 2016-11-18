@@ -352,7 +352,13 @@ void Layer::forwardLoops(Connection* con, int t)
 	// forward data to temporal connections
 	// handle self loop
 	const WEIGHT& wght = con->getWeight();
+	//wght.printSummary("wght"); 
+	wght.print("wght"); printf("row/col= %d, %d\n", wght.n_rows, wght.n_cols);
+	U::print(loop_input, "loop_input"); //loop_input.print("loop_input");
+	U::print(outputs, "outputs"); //outputs.print("outputs");
 	//outputs[0].raw_print(cout, "loop, outputs");
+
+	// loop_input = wght * outputs
 
 	// For now, assume that a layer can have a maximum of one temporal input
 	if (t >= 0) {

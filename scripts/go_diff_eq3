@@ -3,7 +3,7 @@
 # nsl 0 means there is no nodes in the series section of the network
 # this network will have a single recurrent node 
 
-build/tests/test_diff_eq3/test_diff_eq3 -l 1 -npl 1 -nsl 0  -b 1 -s 40 -a "decayde" -r 1 -w "identity" -i 1.e-2
+build/tests/test_diff_eq3/test_diff_eq3 -l 1 -npl 1 -nsl 0  -b 1 -s 4 -a "decayde" -r 1 -w "identity" -i 1.e-2
 
 # -sl:  serial layers: standard configuration for deep networks: one layer follows the other towards the loss function. 
 # -pl:  parallel layers: Input is connected to multiple layers, each one a deep network, and connected at the loss function. 

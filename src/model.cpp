@@ -578,18 +578,19 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		}
  	}
 
-	//U::printLayerInputs(this);
-	//U::printInputs(this);
-	//U::printLayerOutputs(this);
-
 	// update all other temporal connections coming into the layers (arbitrary order, I think)
 	// ...........
 
 	//printf("before last for in predict\n");
-	for (int c=0; c < clist.size(); c++) {
-		Connection* conn  = clist[c];
+	//for (int c=0; c < clist.size(); c++) {
+	for (int c=0; c < clist_temporal.size(); c++) {  // WILL THIS CHANGE eq3 test? 
+		Connection* conn  = clist_temporal[c];
 		Layer* to_layer   = conn->to;
+		printf("before forwardLoops\n");
+		//conn->printSummary();
+		//to_layer->printSummary();
 		to_layer->forwardLoops(conn, seq_len-1, 0);
+		//exit(0);
 	}
 
 	//prod[0].raw_print(cout, "prod");

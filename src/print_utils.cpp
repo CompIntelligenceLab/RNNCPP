@@ -148,7 +148,14 @@ void U::matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int seq)
 // Efficiency is not the purpose. 
 void U::matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int from, int to)
 {
+	//printf("from= %d, to = %d\n", from, to);
+
 	for (int b=0; b < vec.n_rows; b++) {
+		//printf("*** b= %d\n", b);
+		VF1D vv = vec(b).col(from);
+		//printf("vv: rows, cols= %d, %d\n", vv.n_rows, vv.n_cols);
+		//printf("mat: rows, cols= %d, %d\n", mat.n_rows, mat.n_cols);
+		//U::print(vv, "vec.col");
 		prod(b).col(to) = mat * vec(b).col(from);
 	}
 }
@@ -267,11 +274,12 @@ void U::printLayerInputs(Model *m)
 			//inputs[i].print("input ");
 			inputs[i][0].raw_print(cout, "input ");
 		}
-		Connection* con = m->getConnection(layer, layer); 
-		if (con) {
-			//layer->getLoopInput().print("loop input");
-			layer->getLoopInput()[0].raw_print(cout, "loop input");
-		}
+	}
+
+	CONNECTIONS tconn = m->getTemporalConnections();
+	for (int c=0; c < tconn.size(); c++) {
+		Connection* con = tconn[c];
+		con->to->getLoopInput()[0].raw_print(cout, "loop input");
 	}
 }
 //----------------------------------------------------------------------

@@ -466,3 +466,6 @@ seq_len=10: 18 epochs needed for alpha to go from 1.0 to 1.99
 seq_len=20: 9 epochs needed for alpha to go from 1.0 to 1.99
 seq_len=40: 2 epochs needed for alpha to go from 1.0 to 1.99
 ----------------------------------------------------------------------
+Nov. 18
+Trying layer=2. There is a problem with matrix incompatibility. 
+----------------------------------------------------------------------
