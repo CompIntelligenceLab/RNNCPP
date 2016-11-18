@@ -23,14 +23,18 @@ void testDiffEq3(Model* m)
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(input_dim, "input_layer");
 	Layer* d1    = new DenseLayer(layer_size, "rdense");
+	Layer* d2    = new DenseLayer(layer_size, "rdense");
 	m->add(0, input);
 	m->add(input, d1);
+	m->add(d1, d2);
 	m->add(d1, d1, true); // temporal link
+	m->add(d2, d2, true); // temporal link
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
+	d2->setActivation(new DecayDE());
 
 	m->addInputLayer(input);
-	m->addOutputLayer(d1);
+	m->addOutputLayer(d2);
 
 	printf("total nb layers: %d\n", m->getLayers().size());
 	m->printSummary();
@@ -69,23 +73,30 @@ void testDiffEq3(Model* m)
 
 	input->setIsBiasFrozen(true);
 	d1->setIsBiasFrozen(true);
+	d2->setIsBiasFrozen(true);
 	#endif
 	//********************** END MODEL *****************************
 
 	m->initializeWeights();
-	BIAS& bias1 = input->getBias();
-	BIAS& bias2 =    d1->getBias();
-	bias1.zeros();
-	bias2.zeros();
+
+	BIAS& bias1 = input->getBias(); 	bias1.zeros();
+	BIAS& bias2 =    d1->getBias(); 	bias2.zeros();
+	BIAS& bias3 =    d2->getBias(); 	bias3.zeros();
 
 	// Set the weights of the two connection that input into Layer d1 to 1/2
 	// This should create a stable numerical scheme
-	WEIGHT& w = m->getConnection(input, d1)->getWeight();
-	w[0,0] *= 0.5;
-	WEIGHT& wr = m->getConnection(d1, d1)->getWeight();
-	wr[0,0] *= 0.5;
+	WEIGHT& w1  = m->getConnection(input, d1)->getWeight();
+	w1[0,0]    *= 0.5;
+	WEIGHT& wr1 = m->getConnection(d1, d1)->getWeight();
+	wr1[0,0]   *= 0.5;
+
+	WEIGHT& w2  = m->getConnection(d1, d2)->getWeight();
+	w2[0,0]    *= 0.5;
+	WEIGHT& wr2 = m->getConnection(d2, d2)->getWeight();
+	wr2[0,0]   *= 0.5;
 
 	m->setLearningRate(20.);
+	m->setLearningRate(5.);
 	//m->setLearningRate(.01);
 	//m->setLearningRate(2.);
 
@@ -154,32 +165,16 @@ void testDiffEq3(Model* m)
 		net_inputs.push_back(vf2d);
 		net_exact.push_back(vf2d_exact);
 	}
-	//net_inputs[0].print("net_inputs");
-	//net_exact[0].print("net_exact");
-	//exit(0);
-
-	//net_inputs[0].print("net_inputs[0]");
-	//net_inputs[1].print("net_inputs[1]");
 
 	m->setStateful(false);
 	m->setStateful(true);
 	m->resetState();
-
-	// manually set input from recurrent node to be nonzero at the first iteration
-	// Might have to adjust in case there are multiple temporal inputs one day. 
-	VF2D_F& in = d1->getLoopInput();
-	//in.print("loop"); exit(0);
 
 	int nb_epochs;
 	nb_epochs = 2;
 	nb_epochs = 400;
 
 	for (int e=0; e < nb_epochs; e++) {
-
-		// alpha converges for seq > 1. Why? 
-		//in[0][0,0] = wr[0,0] * net_inputs[0][0][0,0];
-		// alpha no longer converges for seq > 1. Why? 
-		//in[0][0,0] = 0.; // more general. I would expect problems. 
 
 		// First iteration, make effective weight from input to d1 equal to one
 		net_inputs[0][0][0,0] *= 2.;
@@ -197,6 +192,8 @@ void testDiffEq3(Model* m)
 			// Compute  delta(w) = delta(w1) - delta(w2)
 			// w1 -= lr * delta(w)
 			// w2 += lr * delta(w)
+			#if 0
+			{
 			WEIGHT& deltaw1 = m->getConnection(input, d1)->getDelta();
 			WEIGHT& deltaw2 = m->getConnection(d1, d1)->getDelta();
 			WEIGHT delta = deltaw1 - deltaw2;
@@ -207,6 +204,20 @@ void testDiffEq3(Model* m)
 			w1 -= 0.001 * lr * delta;
 			w2 += 0.001 * lr * delta;
 			printf("w1, w2= %f, %f\n", w1[0,0], w2[0,0]);
+			}
+			{
+			WEIGHT& deltaw1 = m->getConnection(d1, d2)->getDelta();
+			WEIGHT& deltaw2 = m->getConnection(d2, d2)->getDelta();
+			WEIGHT delta = deltaw1 - deltaw2;
+			WEIGHT& w1 = m->getConnection(d1, d2)->getWeight();
+			WEIGHT& w2 = m->getConnection(d2, d2)->getWeight();
+			REAL lr = m->getLearningRate();
+			delta.print("delta");
+			w1 -= 0.001 * lr * delta;
+			w2 += 0.001 * lr * delta;
+			printf("w1, w2= %f, %f\n", w1[0,0], w2[0,0]);
+			}
+			#endif
 		}
 		m->resetState();
 
@@ -215,16 +226,9 @@ void testDiffEq3(Model* m)
 	}
 	//------------------------------------------------------------------
 
-	#if 1
 	U::printWeights(m);
 	U::printLayerBiases(m);
-	//U::printRecurrentLayerLoopInputs(m);
-	//U::printInputs(m);
-	//U::printLayerInputs(m);
-	//U::printLayerOutputs(m);
 	printf("XXX gordon XXX\n");
-	exit(0);
-	#endif
 
 	exit(0);
 }
