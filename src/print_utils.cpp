@@ -250,7 +250,6 @@ void U::printInputs(Model *m)
 		layer->printSummary();
 		//layer->getInputs().print("inputs");
 		layer->getInputs()[0].raw_print(cout, "inputs");
-		//Connection* con = layer->getConnection();
 	}
 }
 //----------------------------------------------------------------------

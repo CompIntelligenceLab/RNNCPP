@@ -697,24 +697,6 @@ void Model::storeDactivationDoutputInLayersRecCon(int t)
 	// Temporal connections
 
 	// REPLACED by more general temporal connection
-	#if 0
-	for (int l=0; l < layers.size(); l++) {
-		Connection* conn = layers[l]->getConnection();
-
-		if (!conn) continue;
-
-		// Question: where should this operation occur. Given that an activation function can be scalar or vector, 
-		// the operation should be split between the activation function and the model (or layer or connection)
-		// For example: 
-		// prod = grad % old_deriv   (or)
-		// prod = grad * old_deriv   (or) (or  old_deriv * grad)
-		// prod = wght_t * prod
-
-		if (t == 0) continue;
-		conn->gradMulDLda(t, t-1);  
-
-	}
-	#endif
 	// All other temporal connections into this layer
 	// ........
 
@@ -752,13 +734,6 @@ void Model::storeDLossDweightInConnectionsRecCon(int t)
 	// So a delay of zero is spatial, a delay of 1 or greater is temporal. 
 
 	// Set Deltas of all the connections of temporal layers
-	#if 0
-	for (int l=0; l < layers.size(); l++) {
-		Connection* con = layers[l]->getConnection();
-		if (!con) continue;
-		con->dLdaMulGrad(t);
-	}
-	#endif
 
 	// deal with remainder temporal layers
 	// ...
@@ -873,8 +848,6 @@ void Model::resetDeltas()
 
 	for (int l=0; l < layers.size(); l++) {
 		layers[l]->resetDelta();
-		//Connection* con = layers[l]->getConnection();
-		//if (con) con->resetDelta();
 	}
 }
 //----------------------------------------------------------------------
@@ -963,19 +936,6 @@ void Model::weightUpdate()
 		if (con->frozen) continue;
 		wght = wght - learning_rate * con->getDelta();
 	}
-
-	#if 0
-	for (int l=0; l < layers.size(); l++) {
-		Connection* con = layers[l]->getConnection();
-		if (!con) continue;
-		//if (con->frozen) continue;
-		WEIGHT& wght = con->getWeight();
-		wght = wght - learning_rate * con->getDelta();
-		// wgth unchanged if seq_len == 1
-		//con->getDelta().raw_print(cout, "con->getDelta");
-		//wght.raw_print(cout, "loop wgt");
-	}
-	#endif
 }
 //----------------------------------------------------------------------
 void Model::biasUpdate()
@@ -1025,15 +985,5 @@ void Model::initializeWeights()
 	for (int c=0; c < tconn.size(); c++) {
 		tconn[c]->initialize(getInitializationType());
 	}
-
-	#if 0
-	const LAYERS& layers = getLayers();
-	for (int l=0; l < layers.size(); l++) {
-		Connection* con = layers[l]->getConnection();
-		if (con) {
-			con->initialize(getInitializationType());
-		}
-	}
-	#endif
 }
 //----------------------------------------------------------------------
