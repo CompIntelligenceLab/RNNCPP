@@ -5,16 +5,10 @@
 
 
 //----------------------------------------------------------------------
-//void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activation* activation, REAL inc) 
-void testDiffEq4(Model* m)
+void testDiffEq3(Model* m)
 {
-	//testRecurrentModelBias1(m, layer_size, is_recurrent, activation, inc);
 	int layer_size = m->layer_size;
 	int is_recurrent = m->is_recurrent;
-	//REAL inc = m->inc;
-	//int nb_serial_layers = m->nb_serial_layers;
-	//int nb_parallel_layers = m->nb_parallel_layers;
-
 
 	printf("\n\n\n");
 	printf("=============== BEGIN test_recurrent_model_bias2  =======================\n");
@@ -28,41 +22,36 @@ void testDiffEq4(Model* m)
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(input_dim, "input_layer");
-	Layer* d1    = new DenseLayer(layer_size, "dense_layer");
-	Layer* d2    = new DenseLayer(layer_size, "recurrent_layer");
+	Layer* d1    = new DenseLayer(layer_size, "rdense");
 	m->add(0, input);
 	m->add(input, d1);
-	m->add(d1, d2);
-	m->add(d2, d1, true);
+	m->add(d1, d1, true); // temporal link
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
-	d2->setActivation(new Tanh());
-
-	// set temporal link manually
-	{
-		Connection* con = m->getConnection(d2, d1);
-		con->setTemporal(true);
-	}
 
 	m->addInputLayer(input);
-	m->addOutputLayer(d2);
+	m->addOutputLayer(d1);
 
 	printf("total nb layers: %d\n", m->getLayers().size());
 	m->printSummary();
+	// Code crashes if not called
+	// compute clist datastructure (list of connections)
 	m->connectionOrderClean(); // no print statements
 
 	CONNECTIONS& conns = m->getConnections();
 	for (int c=0; c < conns.size(); c++) {
 		conns[c]->printSummary("connections, ");
 	}
-	CONNECTIONS& clist = m->getClist();
-	for (int c=0; c < clist.size(); c++) {
-		clist[c]->printSummary("clist, ");
+	CONNECTIONS& tconns = m->getTemporalConnections();
+	for (int c=0; c < tconns.size(); c++) {
+		tconns[c]->printSummary("temporal connections, ");
 	}
 
 	#if 1
 	// FREEEZE weights and biases
 
+	#if 1
+	// FREEEZE weights  (if unfrozen, code does not run. Nans arise.)
     CONNECTIONS& cons = m->getConnections();
 	for (int i=0; i < cons.size(); i++) {
 		Connection* con = cons[i];
@@ -70,57 +59,34 @@ void testDiffEq4(Model* m)
 		con->freeze();
 	}
 
-	CONNECTIONS& tcons = m->getTemporalConnections();
+    CONNECTIONS& tcons = m->getTemporalConnections();
 	for (int i=0; i < tcons.size(); i++) {
 		Connection* con = tcons[i];
 		con->printSummary();
 		con->freeze();
 	}
+	#endif
 
-
-
-	// recurrent connection
 	input->setIsBiasFrozen(true);
 	d1->setIsBiasFrozen(true);
-	d2->setIsBiasFrozen(true);
-
-	// scan through temporal  connections, and freeze weights
-	CONNECTIONS& ttcons = m->getTemporalConnections();
-	for (int c=0; c < ttcons.size(); c++) {
-		ttcons[c]->freeze();
-		printf("xxx\n"); ttcons[c]->printSummary();
-	}
-
-	CONNECTIONS& ccons = m->getConnections();
-	for (int c=0; c < ccons.size(); c++) {
-		ccons[c]->printSummary();
-	}
-	//exit(0);
-
 	#endif
 	//********************** END MODEL *****************************
 
 	m->initializeWeights();
-	//m->initializeBiases();
 	BIAS& bias1 = input->getBias();
 	BIAS& bias2 =    d1->getBias();
-	BIAS& bias3 =    d2->getBias();
 	bias1.zeros();
 	bias2.zeros();
-	bias3.zeros();
 
-	// Set the weights of the two connections that input into Layer d1 to 1/2
+	// Set the weights of the two connection that input into Layer d1 to 1/2
 	// This should create a stable numerical scheme
-
-	// SET THE WEIGHTS PROPERLY
-	WEIGHT& w = m->getConnection(input, d1)->getWeight(); 
+	WEIGHT& w = m->getConnection(input, d1)->getWeight();
 	w[0,0] *= 0.5;
-	//Connection* cc = m->getConnection(d2, d1);
-	//printf("cc= %ld\n", cc); exit(0);
-	WEIGHT& wr = m->getConnection(d2, d1)->getWeight();
+	WEIGHT& wr = m->getConnection(d1, d1)->getWeight();
 	wr[0,0] *= 0.5;
 
-	m->setLearningRate(10.);
+	m->setLearningRate(20.);
+	//m->setLearningRate(.01);
 	//m->setLearningRate(2.);
 
 	//------------------------------------------------------------------
@@ -161,7 +127,7 @@ void testDiffEq4(Model* m)
 		Layer* layer = layers[l];
 		//printf("l= %d\n", l);
 		// layers without parameters will ignore this call
-		layer->getActivation().setParam(0, alpha_initial);
+		layer->getActivation().setParam(0, alpha_initial); // 1st parameter
 		layer->getActivation().setDt(m->dt);
 	}
 
@@ -172,7 +138,7 @@ void testDiffEq4(Model* m)
 	// 
 
 	int nb_samples = npts / seq_len; 
-	std::vector<VF2D_F> net_inputs;
+	std::vector<VF2D_F> net_inputs, net_exact;
 	VF2D_F vf2d;
 	U::createMat(vf2d, nb_batch, 1, seq_len);
 
@@ -180,12 +146,17 @@ void testDiffEq4(Model* m)
 	U::createMat(vf2d_exact, nb_batch, 1, seq_len);
 
 	// Assumes nb_batch = 1 and input dimensionality = 1
-	for (int i=0; i < nb_samples; i++) {
+	for (int i=0; i < nb_samples-1; i++) {
 		for (int j=0; j < seq_len; j++) {
-			vf2d[0](0, j) = ytarget(j + seq_len*i);
-			net_inputs.push_back(vf2d);
+			vf2d[0](0, j)       = ytarget(j + seq_len*i);
+			vf2d_exact[0](0, j) = ytarget(j + seq_len*i + 1);
 		}
+		net_inputs.push_back(vf2d);
+		net_exact.push_back(vf2d_exact);
 	}
+	//net_inputs[0].print("net_inputs");
+	//net_exact[0].print("net_exact");
+	//exit(0);
 
 	//net_inputs[0].print("net_inputs[0]");
 	//net_inputs[1].print("net_inputs[1]");
@@ -194,40 +165,67 @@ void testDiffEq4(Model* m)
 	m->setStateful(true);
 	m->resetState();
 
-	#if 0
-	U::printWeights(m);
-	U::printRecurrentLayerLoopInputs(m);
-	U::printInputs(m);
-	U::printLayerInputs(m);
-	U::printLayerOutputs(m);
-	exit(0);
-	#endif
-
 	// manually set input from recurrent node to be nonzero at the first iteration
-	VF2D_F& in = d1->getLoopInput();   // **** REPLACE BY WHAT? FOR GENERAL TEMPORAL CONNECTION?  MUST FIX
+	// Might have to adjust in case there are multiple temporal inputs one day. 
+	VF2D_F& in = d1->getLoopInput();
 	//in.print("loop"); exit(0);
 
 	int nb_epochs;
 	nb_epochs = 2;
-	nb_epochs = 200;
+	nb_epochs = 400;
 
 	for (int e=0; e < nb_epochs; e++) {
-		in[0] = 0.5 * net_inputs[0][0];  // MUST FIX  in[0] is not what I think
+
+		// alpha converges for seq > 1. Why? 
+		//in[0][0,0] = wr[0,0] * net_inputs[0][0][0,0];
+		// alpha no longer converges for seq > 1. Why? 
+		//in[0][0,0] = 0.; // more general. I would expect problems. 
+
+		// First iteration, make effective weight from input to d1 equal to one
+		net_inputs[0][0][0,0] *= 2.;
+
 		printf("**** Epoch %d ****\n", e);
 		for (int i=0; i < nb_samples-1; i++) {
-		//for (int i=0; i < 10; i++) {     
 			if (m->getStateful() == false) {
 				m->resetState();
 			}
-			//U::printRecurrentLayerLoopInputs(m);
-			m->trainOneBatch(net_inputs[i][0], net_inputs[i+1][0]);
-			//U::printWeights(m);
+			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
+			// deal with weight constraints (weights are frozon, but update by hand)
+			// in this case, sum of two weights is unity
+			// w1 + w2 = 1 ==> delta(w1) + delta(w2) = 0. 
+			// call w1 = w and w2 = 1-w. Compute delta(w)
+			// Compute  delta(w) = delta(w1) - delta(w2)
+			// w1 -= lr * delta(w)
+			// w2 += lr * delta(w)
+			WEIGHT& deltaw1 = m->getConnection(input, d1)->getDelta();
+			WEIGHT& deltaw2 = m->getConnection(d1, d1)->getDelta();
+			WEIGHT delta = deltaw1 - deltaw2;
+			WEIGHT& w1 = m->getConnection(input, d1)->getWeight();
+			WEIGHT& w2 = m->getConnection(d1, d1)->getWeight();
+			REAL lr = m->getLearningRate();
+			delta.print("delta");
+			w1 -= 0.001 * lr * delta;
+			w2 += 0.001 * lr * delta;
+			printf("w1, w2= %f, %f\n", w1[0,0], w2[0,0]);
 		}
 		m->resetState();
+
+		// Must reset net_inputs to original value
+		net_inputs[0][0][0,0] /= 2.;
 	}
 	//------------------------------------------------------------------
 
-	//U::printLayerBiases(m);
+	#if 1
+	U::printWeights(m);
+	U::printLayerBiases(m);
+	//U::printRecurrentLayerLoopInputs(m);
+	//U::printInputs(m);
+	//U::printLayerInputs(m);
+	//U::printLayerOutputs(m);
+	printf("XXX gordon XXX\n");
+	exit(0);
+	#endif
+
 	exit(0);
 }
 //----------------------------------------------------------------------
@@ -236,6 +234,6 @@ int main(int argc, char* argv[])
 // arguments: -b nb_batch, -l layer_size, -s seq_len, -s is_recursive
 
 	Model* m = processArguments(argc, argv);
-	testDiffEq4(m);
+	testDiffEq3(m);
 }
 
