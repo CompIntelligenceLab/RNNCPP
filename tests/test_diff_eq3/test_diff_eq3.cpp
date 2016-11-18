@@ -186,15 +186,27 @@ void testDiffEq3(Model* m)
 
 		printf("**** Epoch %d ****\n", e);
 		for (int i=0; i < nb_samples-1; i++) {
-		//for (int i=0; i < 10; i++) {     
 			if (m->getStateful() == false) {
 				m->resetState();
 			}
-			//U::printRecurrentLayerLoopInputs(m);
-			//net_inputs[i][0].raw_print(cout, "net_inputs"); 
-			//net_exact[i][0].raw_print(cout, "net_exact"); 
 			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
-			//U::printWeights(m);
+			// deal with weight constraints (weights are frozon, but update by hand)
+			// in this case, sum of two weights is unity
+			// w1 + w2 = 1 ==> delta(w1) + delta(w2) = 0. 
+			// call w1 = w and w2 = 1-w. Compute delta(w)
+			// Compute  delta(w) = delta(w1) - delta(w2)
+			// w1 -= lr * delta(w)
+			// w2 += lr * delta(w)
+			WEIGHT& deltaw1 = m->getConnection(input, d1)->getDelta();
+			WEIGHT& deltaw2 = m->getConnection(d1, d1)->getDelta();
+			WEIGHT delta = deltaw1 - deltaw2;
+			WEIGHT& w1 = m->getConnection(input, d1)->getWeight();
+			WEIGHT& w2 = m->getConnection(d1, d1)->getWeight();
+			REAL lr = m->getLearningRate();
+			delta.print("delta");
+			w1 -= 0.001 * lr * delta;
+			w2 += 0.001 * lr * delta;
+			printf("w1, w2= %f, %f\n", w1[0,0], w2[0,0]);
 		}
 		m->resetState();
 
