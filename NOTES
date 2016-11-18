@@ -452,7 +452,15 @@ seq_len=4 (x(0)=0.5 ==> alpha->5, x(0)=1 ==> alpha => 6.64...
 For some reason, I must start with with 
 	for (int e=0; e < nb_epochs; e++) {
 		in[0][0,0] = 0.5 * net_inputs[0][0][0,0]; // <<<<< NOTE: 0.5 coefficient. WHY?  Weight is already 1/2
-		Reason is that I am multiplying by the fixed weight of 1/2 manually. 
+		Reason is that I am multiplying by the fixed weight of 1/2 manually. (as opposed to the code doing it. I 
+		am effectively imposing state from a fictitious previous step. I should probably multiply by the weight instead
+		of 1/2 in case the weight changes one day.)
 		printf("**** Epoch %d ****\n", e);
 ----------------------------------------------------------------------
+November 18
+Learn Rate: 20. 
+seq_len=5: 36 epochs needed for alpha to go from 1.0 to 1.99
+seq_len=10: 18 epochs needed for alpha to go from 1.0 to 1.99
+seq_len=20: 9 epochs needed for alpha to go from 1.0 to 1.99
+seq_len=40: 2 epochs needed for alpha to go from 1.0 to 1.99
 ----------------------------------------------------------------------

@@ -166,6 +166,7 @@ void testDiffEq3(Model* m)
 	m->resetState();
 
 	// manually set input from recurrent node to be nonzero at the first iteration
+	// Might have to adjust in case there are multiple temporal inputs one day. 
 	VF2D_F& in = d1->getLoopInput();
 	//in.print("loop"); exit(0);
 
@@ -174,7 +175,15 @@ void testDiffEq3(Model* m)
 	nb_epochs = 400;
 
 	for (int e=0; e < nb_epochs; e++) {
-		in[0][0,0] = 0.5 * net_inputs[0][0][0,0];
+
+		// alpha converges for seq > 1. Why? 
+		//in[0][0,0] = wr[0,0] * net_inputs[0][0][0,0];
+		// alpha no longer converges for seq > 1. Why? 
+		//in[0][0,0] = 0.; // more general. I would expect problems. 
+
+		// First iteration, make effective weight from input to d1 equal to one
+		net_inputs[0][0][0,0] *= 2.;
+
 		printf("**** Epoch %d ****\n", e);
 		for (int i=0; i < nb_samples-1; i++) {
 		//for (int i=0; i < 10; i++) {     
@@ -188,6 +197,9 @@ void testDiffEq3(Model* m)
 			//U::printWeights(m);
 		}
 		m->resetState();
+
+		// Must reset net_inputs to original value
+		net_inputs[0][0][0,0] /= 2.;
 	}
 	//------------------------------------------------------------------
 
