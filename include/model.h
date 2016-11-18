@@ -168,7 +168,9 @@ public:
   void resetState();
   Connection* getConnection(Layer* layer1, Layer* layer2);
   void initializeWeights();
-  void initializeBiases();
+
+  // might need in the future
+  //void initializeBiases();
 
   // Ultimately, this should probably go into another polymorphic clas sequence
   void weightUpdate();

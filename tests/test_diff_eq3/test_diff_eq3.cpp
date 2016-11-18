@@ -5,16 +5,10 @@
 
 
 //----------------------------------------------------------------------
-//void testRecurrentModelBias1(Model* m, int layer_size, int is_recurrent, Activation* activation, REAL inc) 
 void testDiffEq3(Model* m)
 {
-	//testRecurrentModelBias1(m, layer_size, is_recurrent, activation, inc);
 	int layer_size = m->layer_size;
 	int is_recurrent = m->is_recurrent;
-	//REAL inc = m->inc;
-	//int nb_serial_layers = m->nb_serial_layers;
-	//int nb_parallel_layers = m->nb_parallel_layers;
-
 
 	printf("\n\n\n");
 	printf("=============== BEGIN test_recurrent_model_bias2  =======================\n");
@@ -28,7 +22,6 @@ void testDiffEq3(Model* m)
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(input_dim, "input_layer");
-	//Layer* d1    = new RecurrentLayer(layer_size, "rdense");
 	Layer* d1    = new DenseLayer(layer_size, "rdense");
 	m->add(0, input);
 	m->add(input, d1);
@@ -77,7 +70,6 @@ void testDiffEq3(Model* m)
 	//********************** END MODEL *****************************
 
 	m->initializeWeights();
-	//m->initializeBiases();
 	BIAS& bias1 = input->getBias();
 	BIAS& bias2 =    d1->getBias();
 	bias1.zeros();
@@ -131,7 +123,7 @@ void testDiffEq3(Model* m)
 		Layer* layer = layers[l];
 		//printf("l= %d\n", l);
 		// layers without parameters will ignore this call
-		layer->getActivation().setParam(0, alpha_initial);
+		layer->getActivation().setParam(0, alpha_initial); // 1st parameter
 		layer->getActivation().setDt(m->dt);
 	}
 
