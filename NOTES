@@ -466,6 +466,21 @@ seq_len=10: 18 epochs needed for alpha to go from 1.0 to 1.99
 seq_len=20: 9 epochs needed for alpha to go from 1.0 to 1.99
 seq_len=40: 2 epochs needed for alpha to go from 1.0 to 1.99
 ----------------------------------------------------------------------
-Nov. 18
+Nov. 18, 2016
 Trying layer=2. There is a problem with matrix incompatibility. 
+----------------------------------------------------------------------
+Nov. 21, 2016
+diff_eq5: with Tanh on the 2nd node. 
+seq_len = 5 and 10: the alpha goes to 2.04 and 1.857, respectively. Why isn't the 
+convergence to the same value? But why should it be since the network is different, and 
+does not match the discretization of a differential equation. 
+
+When I freeze only the two weights that have constraints on them, the weight from first to second
+node converges to 66, which is rather large. Do not know why. I need to visualize the intermediate inputs. 
+Note that the tanh squashes the solution, removing the effect of the large weihgt. so in Neural 
+networks, what prevents the weights from growing too large? 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
 ----------------------------------------------------------------------

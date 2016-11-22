@@ -33,3 +33,6 @@ add_subdirectory(test_diff_eq3)
 # Experiment with multiple layers and layers with multiple nodes. 
 add_subdirectory(test_diff_eq4)
 
+# return to tanh recurrent node following the first dense node with forward Euler activation. 
+add_subdirectory(test_diff_eq5)
+

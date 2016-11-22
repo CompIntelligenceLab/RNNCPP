@@ -952,7 +952,7 @@ void Model::activationUpdate()
 
 		for (int p=0; p < nb_params; p++) {
 			if (activation.isFrozen(p)) continue;
-			//printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
+			printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
 			REAL param = activation.getParam(p) - learning_rate * delta[p];
 			activation.setParam(p, param);
 			printf("aft param= %21.14f\n", param);

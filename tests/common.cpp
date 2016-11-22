@@ -1,4 +1,102 @@
 
+void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer* e2)
+{
+	// Sum of weights (d1,d2) + (e1,e2) = constant
+	// deal with weight constraints (weights are frozon, but update by hand)
+	// in this case, sum of two weights is unity
+	// w1 + w2 = 1 ==> delta(w1) + delta(w2) = 0. 
+	// call w1 = w and w2 = 1-w. Compute delta(w)
+	// Compute  delta(w) = delta(w1) - delta(w2)
+	// w1 -= lr * delta(w)
+	// w2 += lr * delta(w)
+
+	WEIGHT& deltaw1 = m->getConnection(d1, d2)->getDelta();
+	deltaw1.print("deltaw1");
+	WEIGHT& deltaw2 = m->getConnection(e1, e2)->getDelta();
+	deltaw2.print("deltaw2");
+	WEIGHT delta = deltaw1 - deltaw2;
+	WEIGHT& w1 = m->getConnection(d1, d2)->getWeight();
+	WEIGHT& w2 = m->getConnection(e1, e2)->getWeight();
+	REAL lr = m->getLearningRate();
+	delta.print("delta");
+	w1 -= 0.001 * lr * delta;
+	w2 += 0.001 * lr * delta;
+	printf("w1, w2= %f, %f\n", w1[0,0], w2[0,0]);
+}
+//----------------------------------------------------------------------
+int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_exact)
+{
+	//------------------------------------------------------------------
+	// SOLVE ODE  dy/dt = -alpha y
+	// Determine alpha, given a curve YT (y target) = exp(-2 t)
+	// Initial condition on alpha: alpha(0) = 1.0
+	// I expect the neural net to return alpha=2 when the loss function is minimized. 
+
+	int seq_len = m->getSeqLen();
+	int nb_batch = m->getBatchSize();
+	int input_dim  = 1;
+
+	int npts = 600;
+	printf("npts= %d\n", npts); 
+	printf("seq_len= %d\n", seq_len); 
+
+	// npts should be a multiple of seq_len
+	npts = (npts / seq_len) * seq_len; 
+
+	VF1D ytarget(npts);
+	VF1D x(npts);   // abscissa
+	REAL delx = .005;  // will this work for uneven time steps? dt = .1, but there is a multiplier: alpha in front of it. 
+	                 // Some form of normalization will probably be necessary to scale out effect of dt (discrete time step)
+	m->dt = delx;
+	REAL alpha_target = 2.;
+	REAL alpha_initial = 1.;  // should evolve towards alpha_target
+
+	// this works (duplicates Mark Lambert's case)
+	//REAL alpha_target = 1.;
+	//REAL alpha_initial = 2.;  // should evolve towards alpha_target
+
+	for (int i=0; i < npts; i++) {
+		x[i] = i*delx;
+		ytarget[i] = 0.5 * exp(-alpha_target * x[i]);
+		//printf("x: %21.14f, target: %21.14f\n", x[i], ytarget[i]);
+	}
+
+	// set all alphas to alpha_initial
+	LAYERS layers = m->getLayers();
+
+	for (int l=0; l < layers.size(); l++) {
+		Layer* layer = layers[l];
+		//printf("l= %d\n", l);
+		// layers without parameters will ignore this call
+		layer->getActivation().setParam(0, alpha_initial); // 1st parameter
+		layer->getActivation().setDt(m->dt);
+	}
+	// Assume nb_batch=1 for now. Extract a sequence of seq_len elements to input
+	// input into prediction followed by backprop followed by parameter updates.
+	// What I want is a data structure: 
+	//  VF2D_F[nb_batch][nb_inputs, seq_len] = VF2D_F[1][1, seq_len]
+	// 
+
+	int nb_samples = npts / seq_len; 
+	//std::vector<VF2D_F> net_inputs, net_exact;
+	VF2D_F vf2d;
+	U::createMat(vf2d, nb_batch, 1, seq_len);
+
+	VF2D_F vf2d_exact;
+	U::createMat(vf2d_exact, nb_batch, 1, seq_len);
+
+	// Assumes nb_batch = 1 and input dimensionality = 1
+	for (int i=0; i < nb_samples-1; i++) {
+		for (int j=0; j < seq_len; j++) {
+			vf2d[0](0, j)       = ytarget(j + seq_len*i);
+			vf2d_exact[0](0, j) = ytarget(j + seq_len*i + 1);
+		}
+		net_inputs.push_back(vf2d);
+		net_exact.push_back(vf2d_exact);
+	}
+
+	return nb_samples;
+}
 //----------------------------------------------------------------------
 #ifdef DEBUG
 void printDerivativeBreakdown(Model* m) 

@@ -62,7 +62,7 @@ void Activation::setParam(int which, REAL value)
 		params[which] = value; 
 		//printf("set parameter\n");
 	} else {
-		printf("params argument out of range\n");
+		printf("params argument out of range, which= %d, value= %f\n", which, value);
 		//exit(1);
 	}
 }
