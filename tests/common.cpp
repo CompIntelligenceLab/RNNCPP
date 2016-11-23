@@ -479,12 +479,15 @@ Model* processArguments(int argc, char** argv)
 {
 // arguments: -b nb_batch, -l layer_size, -s seq_len, -s is_recursive
 
+    int nb_epochs = 10;
     int nb_batch = 1;
     int layer_size = 1;
     int seq_len = 1;
     int is_recurrent = 1;
 	int nb_serial_layers = 1; // do not count input layer
 	int nb_parallel_layers = 1; // do not count input layer
+	REAL learning_rate = 1.e-2; 
+
 	REAL inc;
 	string activation_type;
 	Activation* activation = new Identity(); 
@@ -507,8 +510,14 @@ Model* processArguments(int argc, char** argv)
 		} else if (arg == "-r") {
 			is_recurrent = atoi(argv[1]);
 			argc -= 2; argv += 2;
+		} else if (arg == "-lr") {
+			learning_rate = atof(argv[1]);
+			argc -= 2; argv += 2;
 		} else if (arg == "-i") {
 			inc = atof(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-e") {
+			nb_epochs = atof(argv[1]);
 			argc -= 2; argv += 2;
 		} else if (arg == "-w") {
 			initialization_type = argv[1];
@@ -554,6 +563,8 @@ Model* processArguments(int argc, char** argv)
 	m->inc = inc;
 	m->nb_serial_layers =   nb_serial_layers;
 	m->nb_parallel_layers = nb_parallel_layers;
+	m->nb_epochs = nb_epochs;
+	m->setLearningRate(1.e-2); // default lr
 
 	for (int j=0; j < nb_parallel_layers; j++) {
 	for (int i=0; i < nb_serial_layers; i++) {

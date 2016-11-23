@@ -51,10 +51,13 @@ void testDiffEq3(Model* m)
 		tconns[c]->printSummary("temporal connections, ");
 	}
 
-	#if 1
+	//m->freezeWeights();
+	//m->freezeBiases();
+
+	#if 0
 	// FREEEZE weights and biases
 
-	#if 1
+	#if 0
 	// FREEEZE weights  (if unfrozen, code does not run. Nans arise.)
     CONNECTIONS& cons = m->getConnections();
 	for (int i=0; i < cons.size(); i++) {

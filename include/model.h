@@ -29,6 +29,7 @@ public:
 	int nb_serial_layers;
 	int nb_parallel_layers;
 	REAL dt;
+  	int nb_epochs;
 
 	// Parameter histories
 	// true: save history every iteration (each iteration is sequence length of seq_len)
@@ -37,6 +38,7 @@ public:
 	// assume input has dimension 1. Else, one should store VF2D (if nb_batch = 1) or else VF2D_F
 	std::vector<REAL> x_in_history;
 	std::vector<REAL> x_out_history;
+	std::vector<LOSS> loss_history;
 	std::vector<WEIGHT> weights;
 
 private:
@@ -53,7 +55,6 @@ private:
 	Objective* objective;
 	int input_dim;   // dimensional input into the model
 	int batch_size;  // batch_size used for training, etc.
-  	int nb_epochs;
 	int seq_len;     // sequence length (should not be a layer property)
 	                // represents the number of times to unroll
 	bool print_verbose;
@@ -77,6 +78,7 @@ public:
 
   /** print connections, connection type, weight matrix size, layers, layer types */
   void printSummary();
+  void printAllConnections();
 
   // Use pointer instead of reference to avoid including layers.h
   /** update layer list. check for layer compatibility with previous layer */
@@ -177,6 +179,7 @@ public:
   void resetState();
   Connection* getConnection(Layer* layer1, Layer* layer2);
   void initializeWeights();
+  void printHistories();
 
   // might need in the future
   //void initializeBiases();
@@ -186,6 +189,8 @@ public:
   void biasUpdate();
   void activationUpdate();
   void parameterUpdate();
+  void freezeWeights();
+  void freezeBiases();
 
 private:
   void checkIntegrity(LAYERS& layer_list);

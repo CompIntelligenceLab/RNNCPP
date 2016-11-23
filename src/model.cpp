@@ -621,7 +621,9 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	objective->computeLoss(exact, pred);
 
 	const LOSS& loss = objective->getLoss();
-	LOSS ll = loss;
+	loss_history.push_back(loss);
+
+	//LOSS ll = loss;
 	//printf("loss= %21.14f\n", loss[0][0]);
 
 	backPropagationViaConnectionsRecursion(exact, pred);
@@ -984,5 +986,64 @@ void Model::initializeWeights()
 	for (int c=0; c < tconn.size(); c++) {
 		tconn[c]->initialize(getInitializationType());
 	}
+}
+//----------------------------------------------------------------------
+void Model::printAllConnections()
+{
+	CONNECTIONS& conns = getConnections();
+	for (int c=0; c < conns.size(); c++) {
+		conns[c]->printSummary("connections, ");
+	}
+	CONNECTIONS& tconns = getTemporalConnections();
+	for (int c=0; c < tconns.size(); c++) {
+		tconns[c]->printSummary("temporal connections, ");
+	}
+}
+//----------------------------------------------------------------------
+void Model::freezeBiases()
+{
+	const LAYERS& layers = getLayers();
+	for (int i=0; i < layers.size(); i++) {
+		layers[i]->setIsBiasFrozen(true);
+	}
+}
+//----------------------------------------------------------------------
+void Model::freezeWeights()
+{
+	// FREEEZE weights  (if unfrozen, code does not run. Nans arise.)
+    CONNECTIONS& cons = getConnections();
+	for (int i=0; i < cons.size(); i++) {
+		Connection* con = cons[i];
+		//con->printSummary();
+		con->freeze();
+	}
+
+    CONNECTIONS& tcons = getTemporalConnections();
+	for (int i=0; i < tcons.size(); i++) {
+		Connection* con = tcons[i];
+		//con->printSummary();
+		con->freeze();
+	}
+}
+//----------------------------------------------------------------------
+void Model::printHistories()
+{
+	FILE* fd;
+
+	// Parameter history
+	fd = fopen("params.out", "w");
+	for (int i=0; i < params_history.size(); i++) {
+		fprintf(fd, "%d %f\n", i, params_history[i]);
+	}
+	fclose(fd);
+
+	fd = fopen("loss.out", "w");
+	// Assumes batch of size 1
+	for (int i=0; i < loss_history.size(); i++) {
+		for (int j=0; j < seq_len; ++j) {
+			fprintf(fd, "%d %f\n", i*seq_len+j, loss_history[i][0][j]);
+		}
+	}
+	fclose(fd);
 }
 //----------------------------------------------------------------------
