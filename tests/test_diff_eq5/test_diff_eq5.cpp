@@ -63,29 +63,25 @@ void testDiffEq5(Model* m)
 
 	m->setStateful(false);
 	m->setStateful(true);
-	m->resetState();
 
 	// allow these weights 
 	m->getConnection(input, d1)->freeze();
 	m->getConnection(d2, d1)->freeze();
 
 	for (int e=0; e < nb_epochs; e++) {
-
+		m->resetState();
 		// First iteration, make effective weight from input to d1 equal to one
-		net_inputs[0][0][0,0] *= 2.;
+		net_inputs[0][0][0,0] *= 2.;  // only once per epoch
 
 		printf("**** Epoch %d ****\n", e);
 		for (int i=0; i < nb_samples-1; i++) {
-			if (m->getStateful() == false) {
-				m->resetState();
-			}
 			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
 			updateWeightsSumConstraint(m, input, d1, d2, d1);
 		}
-		m->resetState();
 
 		// Must reset net_inputs to original value
-		net_inputs[0][0][0,0] /= 2.;
+		//if (e == 0) 
+			net_inputs[0][0][0,0] /= 2.;
 	}
 
 	//****************

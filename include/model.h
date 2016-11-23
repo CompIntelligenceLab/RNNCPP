@@ -34,12 +34,13 @@ public:
 	// Parameter histories
 	// true: save history every iteration (each iteration is sequence length of seq_len)
 	bool params_hist, x_in_hist, x_out_hist;  
-	std::vector<REAL> params_history;
+	std::vector<REAL>   params_history;
 	// assume input has dimension 1. Else, one should store VF2D (if nb_batch = 1) or else VF2D_F
-	std::vector<REAL> x_in_history;
-	std::vector<REAL> x_out_history;
-	std::vector<LOSS> loss_history;
-	std::vector<WEIGHT> weights;
+	std::vector<REAL>   x_in_history;
+	std::vector<REAL>   x_out_history;
+	std::vector<LOSS>   loss_history;
+	std::vector<std::vector<WEIGHT>> weights_to_print;  // need better approach. For large networks, we
+	                                                    // cannot save all weights. 
 
 private:
 	int nb_batch;
@@ -180,6 +181,8 @@ public:
   Connection* getConnection(Layer* layer1, Layer* layer2);
   void initializeWeights();
   void printHistories();
+  void printWeightHistories();
+  void addWeightHistory(Layer* l1, Layer* l2);
 
   // might need in the future
   //void initializeBiases();

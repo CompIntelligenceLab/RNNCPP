@@ -612,6 +612,11 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	//printf("ENTER trainOneBatch ******************************\n");
 	cout.precision(11);
 
+	//printf("stateful: %d\n", stateful); //exit(0);
+	if (stateful == false) {
+		resetState();
+	}
+
 	VF2D_F x(1); x[0] = x_;
 	VF2D_F exact(1); exact[0] = exact_;
 
@@ -1024,6 +1029,34 @@ void Model::freezeWeights()
 		//con->printSummary();
 		con->freeze();
 	}
+}
+//----------------------------------------------------------------------
+void Model::addWeightHistory(Layer* l1, Layer* l2)
+{
+    std::vector<WEIGHT>& hist  = getConnection(l1, l2)->weight_history;
+	weights_to_print.push_back(hist);
+}
+//----------------------------------------------------------------------
+void Model::printWeightHistories()
+{
+    FILE* fd = fopen("weights.out", "w");
+
+	if (weights_to_print.size() == 0) return;
+	int nb_weights = weights_to_print.size();
+	int hist_size  = weights_to_print[0].size();
+
+	#if 1
+    for (int i=0; i < hist_size; i++) {
+        fprintf(fd, "%d\n", i);
+		// For now, assume that all links have only a single weight
+		for (int j=0; j < nb_weights; j++) {
+			const WEIGHT& w = weights_to_print[j][i];
+			fprintf(fd, " %f\n", w[0,0]);
+		}
+        //fprintf(fd, "%d %f %f\n", i, v1[i][0,0], vr2[i][0,0]);
+    }
+    fclose(fd);
+	#endif
 }
 //----------------------------------------------------------------------
 void Model::printHistories()

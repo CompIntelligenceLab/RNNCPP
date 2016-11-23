@@ -483,6 +483,8 @@ networks, what prevents the weights from growing too large?
 Nov. 22, 2016
 Added parameter history (in Model.h) and weight histories (in Connection.h)
 ----------------------------------------------------------------------
+Nov. 22, 2016
+test_diff_eq3 no longer working properly. Do not know why. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

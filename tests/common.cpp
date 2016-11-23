@@ -1,4 +1,3 @@
-
 void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer* e2)
 {
 	// Sum of weights (d1,d2) + (e1,e2) = constant
@@ -60,7 +59,7 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 
 	for (int i=0; i < npts; i++) {
 		x[i] = i*delx;
-		ytarget[i] = 0.5 * exp(-alpha_target * x[i]);
+		ytarget[i] = exp(-alpha_target * x[i]);
 		//printf("x: %21.14f, target: %21.14f\n", x[i], ytarget[i]);
 	}
 
@@ -564,7 +563,7 @@ Model* processArguments(int argc, char** argv)
 	m->nb_serial_layers =   nb_serial_layers;
 	m->nb_parallel_layers = nb_parallel_layers;
 	m->nb_epochs = nb_epochs;
-	m->setLearningRate(1.e-2); // default lr
+	m->setLearningRate(learning_rate); // default lr
 
 	for (int j=0; j < nb_parallel_layers; j++) {
 	for (int i=0; i < nb_serial_layers; i++) {
