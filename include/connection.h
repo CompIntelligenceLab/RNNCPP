@@ -34,6 +34,7 @@ public:
 	// At the moment, time passes at the same rate in all connections. That might change in the future. 
 	int t_from, t_to;
 	int t_clock;
+	std::vector<WEIGHT> weight_history;
 
 #ifdef DEBUG
 	std::vector<WEIGHT> deltas; // one delta per sequence time (they add up to delta). For debugging. 

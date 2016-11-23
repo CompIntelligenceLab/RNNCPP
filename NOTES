@@ -480,6 +480,8 @@ node converges to 66, which is rather large. Do not know why. I need to visualiz
 Note that the tanh squashes the solution, removing the effect of the large weihgt. so in Neural 
 networks, what prevents the weights from growing too large? 
 ----------------------------------------------------------------------
+Nov. 22, 2016
+Added parameter history (in Model.h) and weight histories (in Connection.h)
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

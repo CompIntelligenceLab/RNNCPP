@@ -11,17 +11,20 @@ void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer
 	// w2 += lr * delta(w)
 
 	WEIGHT& deltaw1 = m->getConnection(d1, d2)->getDelta();
-	deltaw1.print("deltaw1");
+	//deltaw1.print("deltaw1");
 	WEIGHT& deltaw2 = m->getConnection(e1, e2)->getDelta();
-	deltaw2.print("deltaw2");
+	//deltaw2.print("deltaw2");
 	WEIGHT delta = deltaw1 - deltaw2;
 	WEIGHT& w1 = m->getConnection(d1, d2)->getWeight();
 	WEIGHT& w2 = m->getConnection(e1, e2)->getWeight();
 	REAL lr = m->getLearningRate();
-	delta.print("delta");
+	//delta.print("delta");
 	w1 -= 0.001 * lr * delta;
 	w2 += 0.001 * lr * delta;
-	printf("w1, w2= %f, %f\n", w1[0,0], w2[0,0]);
+	//printf("w1, w2= %f, %f\n", w1[0,0], w2[0,0]);
+
+	m->getConnection(d1, d2)->weight_history.push_back(w1);
+	m->getConnection(e1, e2)->weight_history.push_back(w2);
 }
 //----------------------------------------------------------------------
 int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_exact)

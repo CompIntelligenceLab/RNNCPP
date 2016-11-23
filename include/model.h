@@ -30,6 +30,15 @@ public:
 	int nb_parallel_layers;
 	REAL dt;
 
+	// Parameter histories
+	// true: save history every iteration (each iteration is sequence length of seq_len)
+	bool params_hist, x_in_hist, x_out_hist;  
+	std::vector<REAL> params_history;
+	// assume input has dimension 1. Else, one should store VF2D (if nb_batch = 1) or else VF2D_F
+	std::vector<REAL> x_in_history;
+	std::vector<REAL> x_out_history;
+	std::vector<WEIGHT> weights;
+
 private:
 	int nb_batch;
 	// order in which connections should be handled, computed by connectionOrderClean()

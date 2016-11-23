@@ -586,7 +586,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	for (int c=0; c < clist_temporal.size(); c++) {  // WILL THIS CHANGE eq3 test? 
 		Connection* conn  = clist_temporal[c];
 		Layer* to_layer   = conn->to;
-		printf("before forwardLoops\n");
+		//printf("before forwardLoops\n");
 		//conn->printSummary();
 		//to_layer->printSummary();
 		to_layer->forwardLoops(conn, seq_len-1, 0);
@@ -920,6 +920,8 @@ void Model::weightUpdate()
 		WEIGHT& wght = con->getWeight();
 		if (con->frozen) continue;
 		wght = wght - learning_rate * con->getDelta();
+		con->weight_history.push_back(wght);
+		//con->printSummary();
 	}
 
 	// temporal connections 
@@ -929,6 +931,8 @@ void Model::weightUpdate()
 		//printf("con= %ld\n", con);
 		if (con->frozen) continue;
 		wght = wght - learning_rate * con->getDelta();
+		con->weight_history.push_back(wght);
+		//con->printSummary();
 	}
 }
 //----------------------------------------------------------------------
@@ -952,10 +956,11 @@ void Model::activationUpdate()
 
 		for (int p=0; p < nb_params; p++) {
 			if (activation.isFrozen(p)) continue;
-			printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
+			//printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
 			REAL param = activation.getParam(p) - learning_rate * delta[p];
 			activation.setParam(p, param);
-			printf("aft param= %21.14f\n", param);
+			//printf("aft param= %21.14f\n", param);
+			params_history.push_back(param);
 		}
 	}
 }

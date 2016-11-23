@@ -104,6 +104,7 @@ void testDiffEq5(Model* m)
 	int nb_epochs;
 	nb_epochs = 20;
 	nb_epochs = 2000;
+	nb_epochs = 100;
 
 	// allow these weights 
 	m->getConnection(input, d1)->freeze();
@@ -119,7 +120,7 @@ void testDiffEq5(Model* m)
 			if (m->getStateful() == false) {
 				m->resetState();
 			}
-			net_inputs[i][0].print("net_inputs");
+			//net_inputs[i][0].print("net_inputs");
 			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
 			updateWeightsSumConstraint(m, input, d1, d2, d1);
 		}
@@ -127,12 +128,34 @@ void testDiffEq5(Model* m)
 
 		// Must reset net_inputs to original value
 		net_inputs[0][0][0,0] /= 2.;
+
 	}
+
+	// Parameter history
+	FILE* fd = fopen("params.out", "w");
+	for (int i=0; i < m->params_history.size(); i++) {
+		fprintf(fd, "%d %f\n", i, m->params_history[i]);
+	}
+	fclose(fd);
+
+	fd = fopen("weights.out", "w");
+	std::vector<WEIGHT>& v1  = m->getConnection(input, d1)->weight_history;
+	std::vector<WEIGHT>& vr2 = m->getConnection(d2, d1)->weight_history;
+	printf("v1.size, vr2.size= %d, %d\n", v1.size(), vr2.size());
+
+	for (int i=0; i < v1.size(); i++) {
+		fprintf(fd, "%d %f %f\n", i, v1[i][0,0], vr2[i][0,0]);
+	}
+	fclose(fd);
+
+	// Run prediction. How to do prediction: stateful with seq_len=1. Wonder what I'll get. 
+
+
 	//------------------------------------------------------------------
 
-	U::printWeights(m);
-	U::printLayerBiases(m);
-	printf("XXX gordon XXX\n");
+	//U::printWeights(m);
+	//U::printLayerBiases(m);
+	printf("XXX END PROGRAM\n");
 
 	exit(0);
 }
