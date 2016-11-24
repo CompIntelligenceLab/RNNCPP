@@ -159,8 +159,8 @@ void LogMeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 	for (int b=0; b < nb_batch; b++) {
 		tmp = exact[b] - predict[b];  // check size compatibility
 		tmp = arma::square(tmp);  // sum of output dimensions
-		output = arma::clamp(tmp, NEAR_ZERO, 1.-NEAR_ZERO); 
-		loss[b] = arma::sum(output, 0);  // sum over 1st index (dimension)
+		output = arma::clamp(tmp, NEAR_ZERO, 1000.-NEAR_ZERO); 
+		loss[b] = arma::sum(arma::log(output), 0);  // sum over 1st index (dimension)
 	}
 }
 
@@ -177,7 +177,7 @@ void LogMeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& pred
 	for (int b=0; b < nb_batch; b++) {
 		tmp = predict[b] - exact[b];
 		tmp = arma::abs(tmp);
-		output = arma::clamp(tmp, NEAR_ZERO, 1.-NEAR_ZERO); 
+		output = arma::clamp(tmp, NEAR_ZERO, 1000.-NEAR_ZERO); 
 		gradient[b] = 2. / output;  // element by element division
 	}
 }

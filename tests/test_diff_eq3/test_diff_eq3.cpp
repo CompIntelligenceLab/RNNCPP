@@ -18,6 +18,7 @@ void testDiffEq3(Model* m)
 	int seq_len = m->getSeqLen();
 	int nb_batch = m->getBatchSize();
 	int input_dim  = 1;
+	m->setObjective(new LogMeanSquareError()); // NEW
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data

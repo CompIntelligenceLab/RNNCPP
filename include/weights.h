@@ -45,8 +45,8 @@ public:
 	Weights operator+(const Weights&); // not needed, check dimensionality
 	Weights operator*(const Weights&); // not needed, check dimensionality
 	VF2D_F operator*(const VF2D_F&);
-	float& operator()(const int i, const int j) { return weights(i,j); }
-	//float& operator()(const int b, const int i, const int j) { return weights[b](i,j); }
+	REAL& operator()(const int i, const int j) { return weights(i,j); }
+	//REAL& operator()(const int b, const int i, const int j) { return weights[b](i,j); }
 };
 
 //----------------------------------------------------------------------

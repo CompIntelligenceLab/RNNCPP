@@ -49,7 +49,7 @@ private:
 	CONNECTIONS clist_temporal;  // temporal connections
 	std::string name;
 	bool   stateful;
-	float learning_rate;
+	REAL learning_rate;
 	bool return_sequences;
 	Optimizer* optimizer;
 	// More general models would have several loss functions running concurrently
@@ -81,6 +81,9 @@ public:
   void printSummary();
   void printAllConnections();
 
+  void setObjective(Objective* obj) { objective = obj; }
+  Objective* getObjective() { return objective; }
+
   // Use pointer instead of reference to avoid including layers.h
   /** update layer list. check for layer compatibility with previous layer */
 
@@ -109,8 +112,8 @@ public:
   bool getStateful() const {return stateful;}
   void setReturnSequences(bool ret_seq) {return_sequences = ret_seq;}
   bool getReturnSequences() const {return return_sequences;}
-  void setLearningRate(float lr) {learning_rate = lr;}
-  float getLearningRate() const {return learning_rate;}
+  void setLearningRate(REAL lr) {learning_rate = lr;}
+  REAL getLearningRate() const {return learning_rate;}
   int getInputDim() const {return input_dim;}
   int getBatchSize() const {return batch_size;}
   int getSeqLen() const {return seq_len;}

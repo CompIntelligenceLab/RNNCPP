@@ -67,7 +67,7 @@ VF2D Input::loadFromCSV(const std::string& filename)
 {
     std::ifstream       file( filename.c_str() );
     std::vector< std::vector<std::string> >   matrix;
-    std::vector< std::vector<float> >   matrix_f;
+    std::vector< std::vector<REAL> >   matrix_f;
     std::vector<std::string>   row;
     std::string                line;
     std::string                cell;
@@ -104,7 +104,7 @@ VF2D Input::loadFromCSV(const std::string& filename)
 		for (int j=0; j < nb_cols; j++) {
 			const char* st = matrix[i][j].c_str();
 			//printf("st= %s\n", st);
-			float f = strtof(st, 0);
+			REAL f = strtof(st, 0);
 			//printf("f= %f\n", f);
 			(*table)(i,j) = f; //strtof(st, 0);
 			//t(i,j) = f; //strtof(st, 0);
@@ -119,8 +119,8 @@ VF2D Input::loadFromCSV(const std::string& filename)
 
 VF2D Input::load1DSine(int nb_pts, int nb_periods, int nb_pts_per_period)
 {
-	float pi2 = 2.*acos(-1.);
-	float dx = 1. / nb_pts_per_period;
+	REAL pi2 = 2.*acos(-1.);
+	REAL dx = 1. / nb_pts_per_period;
 	int dim = 2;
 	VF2D data(nb_pts, dim);  
 

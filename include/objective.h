@@ -7,7 +7,7 @@
 class Objective
 {
 protected:
-	float learning_rate;
+	REAL learning_rate;
 	std::string name;
 	LOSS loss;  // One loss per batch and per sequence (use field for consistency)
 	VF2D_F gradient; // One gradient with respect to argument 

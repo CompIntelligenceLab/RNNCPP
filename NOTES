@@ -494,6 +494,8 @@ in the network: DecayDE and Tanh). So ultimately, I believe that after reaching 
 increases and the system goes into some other steady state, that is not consistent with the desired solution of 
 the differential equation. To confirm this, I must run the prediction routine (with seq_len=1 and stateful=True). 
 ----------------------------------------------------------------------
+Nov. 23, 2016
+Using log(MSE) as an objective function failed miserably. Perhaps lr too high? 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

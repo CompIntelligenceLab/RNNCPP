@@ -7,7 +7,7 @@
 class Optimizer
 {
 protected:
-	float learning_rate;
+	REAL learning_rate;
 	std::string name;
 	VF loss;  // allows for batches, with dimensionality of 1.  
 	static int counter;
@@ -22,8 +22,8 @@ public:
 	virtual void print(const std::string msg=std::string());
 	virtual void setName(std::string name) { this->name = name; }
 	virtual const std::string getName() const { return name; }
-	virtual void setLearningRate(float lr) {learning_rate = lr; }
-	virtual float getLearningRate() {return learning_rate; }
+	virtual void setLearningRate(REAL lr) {learning_rate = lr; }
+	virtual REAL getLearningRate() {return learning_rate; }
 	virtual VF getLoss() {return loss; }
 };
 
