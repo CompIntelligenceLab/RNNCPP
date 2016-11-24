@@ -486,5 +486,17 @@ Added parameter history (in Model.h) and weight histories (in Connection.h)
 Nov. 22, 2016
 test_diff_eq3 no longer working properly. Do not know why. 
 ----------------------------------------------------------------------
+Nov. 23, 2016
+I do get convergence for the two-node case, but the loss function is not decreasing. 
+
+The loss function goes down during an epoch, but then goes up before decreasing again (when there are two nodes
+in the network: DecayDE and Tanh). So ultimately, I believe that after reaching some minimum, the loss function
+increases and the system goes into some other steady state, that is not consistent with the desired solution of 
+the differential equation. To confirm this, I must run the prediction routine (with seq_len=1 and stateful=True). 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

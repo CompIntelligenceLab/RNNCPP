@@ -51,7 +51,6 @@ void Objective::print(std::string msg /* "" */)
 }
 
 //----------------------------------------------------------------------
-
 MeanSquareError::MeanSquareError(std::string name /* mse */) 
 {
 	char cname[80];
@@ -88,23 +87,12 @@ void MeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 	loss.set_size(nb_batch); // needed
 	VF2D tmp;
 
-	//U::print(exact, "1 exact");
-	//U::print(exact(0), "2 exact(0)");
-	//U::print(predict, "3 predict");
-
 	// LOSS is a row vector. One value per sequence element
 
 	for (int b=0; b < nb_batch; b++) {
-		//U::print(loss(b), "4 loss(b)");  
-		//exact[b].print("5 exact(b)");
-		//predict[b].print("6 predict(b)");
-
 		tmp = exact[b] - predict[b];  // check size compatibility
-		//tmp.print("tmp");
 		tmp = arma::square(tmp);  // sum of output dimensions
-		//tmp.print("tmp");
 		loss[b] = arma::sum(tmp, 0);  // sum over 1st index (dimension)
-		//tmp.print("tmp");
 	}
 	#if 0
 	for (int b=0; b < nb_batch; b++) {
@@ -136,7 +124,63 @@ void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict
 		gradient[b] = 2.* (predict[b] - exact[b]); // check size compatibility
 	}
 }
+//----------------------------------------------------------------------
+LogMeanSquareError::LogMeanSquareError(std::string name /* logmse */) 
+{
+	char cname[80];
+	if (strlen(cname) > 80) {
+		printf("LogMeanSquare::LogMeanSquare : cname array too small\n");
+		exit(1);
+	}
+	sprintf(cname, "%s%d", name.c_str(), counter);
+	this->name = cname;
+	//printf("LogMeanSquareError constructor (%s)\n", this->name.c_str());
+	counter++;
+}
 
+LogMeanSquareError::~LogMeanSquareError()
+{
+	printf("LogMeanSquareError destructor (%s)\n", name.c_str());
+}
+
+LogMeanSquareError::LogMeanSquareError(const LogMeanSquareError& mse) : Objective(mse)
+{
+}
+
+void LogMeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
+{
+	int nb_batch = exact.n_rows;
+	loss.set_size(nb_batch); // needed
+	VF2D tmp;
+	VF2D output(size(predict[0]));
+
+	// LOSS is a row vector. One value per sequence element
+
+	for (int b=0; b < nb_batch; b++) {
+		tmp = exact[b] - predict[b];  // check size compatibility
+		tmp = arma::square(tmp);  // sum of output dimensions
+		output = arma::clamp(tmp, NEAR_ZERO, 1.-NEAR_ZERO); 
+		loss[b] = arma::sum(output, 0);  // sum over 1st index (dimension)
+	}
+}
+
+void LogMeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
+{
+	// compute the gradient of L with respect to all outputs for every sequence element
+
+	int nb_batch = exact.n_rows;
+	gradient.set_size(nb_batch);
+	VF2D output(size(predict[0]));
+	VF2D tmp;
+
+
+	for (int b=0; b < nb_batch; b++) {
+		tmp = predict[b] - exact[b];
+		tmp = arma::abs(tmp);
+		output = arma::clamp(tmp, NEAR_ZERO, 1.-NEAR_ZERO); 
+		gradient[b] = 2. / output;  // element by element division
+	}
+}
 //----------------------------------------------------------------------
 BinaryCrossEntropy::BinaryCrossEntropy(std::string name /* bce */) 
 {

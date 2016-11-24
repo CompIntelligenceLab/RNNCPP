@@ -1047,11 +1047,11 @@ void Model::printWeightHistories()
 
 	#if 1
     for (int i=0; i < hist_size; i++) {
-        fprintf(fd, "%d\n", i);
+        fprintf(fd, "\n%d ", i);
 		// For now, assume that all links have only a single weight
 		for (int j=0; j < nb_weights; j++) {
 			const WEIGHT& w = weights_to_print[j][i];
-			fprintf(fd, " %f\n", w[0,0]);
+			fprintf(fd, "%f ", w[0,0]);
 		}
         //fprintf(fd, "%d %f %f\n", i, v1[i][0,0], vr2[i][0,0]);
     }

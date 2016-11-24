@@ -74,11 +74,9 @@ void testDiffEq3(Model* m)
 		net_inputs[0][0][0,0] *= 2.;
 
 		printf("**** Epoch %d ****\n", e);
+
 		for (int i=0; i < nb_samples-1; i++) {
-			if (m->getStateful() == false) {
-				m->resetState();
-			}
-			net_inputs[i][0].print("input");
+			if (m->getStateful() == false)  m->resetState();
 			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
 			updateWeightsSumConstraint(m, input, d1, d1, d1);
 		}

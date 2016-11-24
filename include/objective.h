@@ -50,6 +50,23 @@ public:
 	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
 };
 //----------------------------------------------------------------------
+class LogMeanSquareError : public Objective
+{
+// Logarithm of mean square error
+private:
+public:
+	LogMeanSquareError(std::string name="logmse");
+	~LogMeanSquareError();
+	LogMeanSquareError(const LogMeanSquareError&);
+
+	// Use default assignment (works fine because there are no pointers among member variables)
+	//const MeanSquareError& MeanSquareError=(const MeanSquareError&);
+
+	/** sum_{batches} (predict - exact)^2 */
+	void computeLoss(const VF2D_F& exact, const VF2D_F& predict);
+	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
+};
+//----------------------------------------------------------------------
 class BinaryCrossEntropy : public Objective
 {
 private:

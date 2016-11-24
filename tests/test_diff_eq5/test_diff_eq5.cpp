@@ -9,12 +9,12 @@ void testDiffEq5(Model* m)
 {
 	int layer_size = m->layer_size;
 	int is_recurrent = m->is_recurrent;
+	int nb_epochs = m->nb_epochs;
 
 	//********************** BEGIN MODEL *****************************
 	int seq_len = m->getSeqLen();
 	int nb_batch = m->getBatchSize();
 	int input_dim  = 1;
-	int nb_epochs = m->nb_epochs;
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
@@ -41,11 +41,10 @@ void testDiffEq5(Model* m)
 	m->connectionOrderClean(); // no print statements
 
 	m->initializeWeights(); // be initialized after freezing
-	// prevent automatic bias and weight updates
 	m->freezeBiases();
 	m->freezeWeights();
-	//********************** END MODEL *****************************
 
+	//********************** END MODEL *****************************
 
 	BIAS& bias1 = input->getBias(); 	bias1.zeros();
 	BIAS& bias2 =    d1->getBias(); 	bias2.zeros();
@@ -58,15 +57,17 @@ void testDiffEq5(Model* m)
 	WEIGHT& wr2 = m->getConnection(d2, d1)->getWeight();
 	wr2[0,0]   *= 0.5;
 
+    //------------------------------------------------------------------
+    // SOLVE ODE  dy/dt = -alpha y
+    // Determine alpha, given a curve YT (y target) = exp(-2 t)
+    // Initial condition on alpha: alpha(0) = 1.0
+    // I expect the neural net to return alpha=2 when the loss function is minimized.
+
 	std::vector<VF2D_F> net_inputs, net_exact;
 	int nb_samples = getData(m, net_inputs, net_exact);
 
-	m->setStateful(false);
 	m->setStateful(true);
-
-	// allow these weights 
-	m->getConnection(input, d1)->freeze();
-	m->getConnection(d2, d1)->freeze();
+	m->resetState();
 
 	for (int e=0; e < nb_epochs; e++) {
 		m->resetState();
@@ -74,30 +75,22 @@ void testDiffEq5(Model* m)
 		net_inputs[0][0][0,0] *= 2.;  // only once per epoch
 
 		printf("**** Epoch %d ****\n", e);
+
 		for (int i=0; i < nb_samples-1; i++) {
+			if (m->getStateful() == false) m->resetState();
 			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
 			updateWeightsSumConstraint(m, input, d1, d2, d1);
 		}
 
 		// Must reset net_inputs to original value
-		//if (e == 0) 
-			net_inputs[0][0][0,0] /= 2.;
+		net_inputs[0][0][0,0] /= 2.;
 	}
 
 	//****************
 	m->printHistories();
-
-	// Hard to abstract away since I am only printing specific weights
-	FILE* fd = fopen("weights.out", "w");
-	std::vector<WEIGHT>& v1  = m->getConnection(input, d1)->weight_history;
-	std::vector<WEIGHT>& vr2 = m->getConnection(d2, d1)->weight_history;
-	printf("v1.size, vr2.size= %d, %d\n", v1.size(), vr2.size());
-
-	for (int i=0; i < v1.size(); i++) {
-		fprintf(fd, "%d %f %f\n", i, v1[i][0,0], vr2[i][0,0]);
-	}
-	fclose(fd);
-	//****************
+	m->addWeightHistory(input, d1);
+	m->addWeightHistory(d2, d1);
+	m->printWeightHistories();
 
 	// Run prediction. How to do prediction: stateful with seq_len=1. Wonder what I'll get. 
 
