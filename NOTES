@@ -503,6 +503,8 @@ seq_len is defined, all the arrays must be redimensioned the way we do things.
 
 test_diff_eq4.cpp: two DecayDE nodes. 
 seq_len affects results. seq_len=60 slows down convergence. Do not know why. 
+
+Merged temporal branch into development branch. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
