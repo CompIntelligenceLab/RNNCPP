@@ -261,7 +261,10 @@ void Model::checkIntegrity()
 {
 	LAYERS layer_list;  // should be a linked list
 	LAYERS layers = getLayers();
-	assert(layers.size() > 1);  // need at least an input layer connected to an output layer
+
+	//assert(layers.size() > 1);  // need at least an input layer connected to an output layer
+	if (layers.size() < 2) return;
+
 	printf("layers size: %ld\n", layers.size());
 
 	// set all batch_sizes in layers to the model batch_layer
@@ -593,7 +596,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		//exit(0);
 	}
 
-	//prod[0].raw_print(cout, "prod");
+	//prod[0].raw_print(cout, "prod"); exit(0);
 	return prod;
 }
 //----------------------------------------------------------------------
@@ -1035,6 +1038,7 @@ void Model::addWeightHistory(Layer* l1, Layer* l2)
 {
     std::vector<WEIGHT>& hist  = getConnection(l1, l2)->weight_history;
 	weights_to_print.push_back(hist);
+	printf("weights_to_print size: %d\n", weights_to_print.size());
 }
 //----------------------------------------------------------------------
 void Model::printWeightHistories()
@@ -1053,7 +1057,6 @@ void Model::printWeightHistories()
 			const WEIGHT& w = weights_to_print[j][i];
 			fprintf(fd, "%f ", w[0,0]);
 		}
-        //fprintf(fd, "%d %f %f\n", i, v1[i][0,0], vr2[i][0,0]);
     }
     fclose(fd);
 	#endif
@@ -1078,5 +1081,26 @@ void Model::printHistories()
 		}
 	}
 	fclose(fd);
+
+	fd = fopen("x.out", "w");
+	for (int i=0; i < x_in_history.size(); i++) {
+		fprintf(fd, "%d %f %f\n", i, x_in_history[i], x_out_history[i]);
+	}
+	fclose(fd);
+}
+//----------------------------------------------------------------------
+void Model::setSeqLen(int seq_len) 
+{ 
+// change sequence, and also change integrity of 
+
+	this->seq_len = seq_len;
+
+	const LAYERS& layers = getLayers();
+	for (int l=0; l  < layers.size(); l++) {
+		layers[l]->setSeqLen(seq_len);
+		layers[l]->initVars(batch_size);
+	}
+
+	checkIntegrity();
 }
 //----------------------------------------------------------------------

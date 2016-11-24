@@ -64,7 +64,8 @@ void testDiffEq5(Model* m)
     // I expect the neural net to return alpha=2 when the loss function is minimized.
 
 	std::vector<VF2D_F> net_inputs, net_exact;
-	int nb_samples = getData(m, net_inputs, net_exact);
+	VF1D xabsc, ytarget;
+	int nb_samples = getData(m, net_inputs, net_exact, xabsc, ytarget);
 
 	m->setStateful(true);
 	m->resetState();
@@ -85,8 +86,28 @@ void testDiffEq5(Model* m)
 		// Must reset net_inputs to original value
 		net_inputs[0][0][0,0] /= 2.;
 	}
+	//------------------------------------------------------------------
+	// Starting from initial condition, recreate the solution. 
+	{
+		VF2D_F x; 
+		m->setSeqLen(1); 
+		//printf("seq len: %d\n", m->getSeqLen()); exit(0);
+		U::createMat(x, nb_batch, 1, m->getSeqLen());
+		x[0][0,0] = net_inputs[0][0][0,0];
 
-	//****************
+		// Done since weights are 1/2 (due to recursion and consistency) and there is no data
+		// on the recurrent weight initially. Somewhat artificial. 
+		x[0][0,0] *= 2.;
+
+		m->resetState();
+
+		for (int e=0; e < 500; e++) {
+			m->x_in_history.push_back(ytarget[e]);
+			m->x_out_history.push_back(x[0][0,0]);
+			x = m->predictViaConnectionsBias(x);
+		}
+	}
+	//------------------------------------------------------------------
 	m->printHistories();
 	m->addWeightHistory(input, d1);
 	m->addWeightHistory(d2, d1);

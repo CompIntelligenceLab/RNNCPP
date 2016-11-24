@@ -18,7 +18,8 @@ void testDiffEq3(Model* m)
 	int seq_len = m->getSeqLen();
 	int nb_batch = m->getBatchSize();
 	int input_dim  = 1;
-	m->setObjective(new LogMeanSquareError()); // NEW
+	//m->setObjective(new LogMeanSquareError()); // NEW
+	m->setObjective(new MeanSquareError()); 
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
@@ -64,7 +65,8 @@ void testDiffEq3(Model* m)
 	// I expect the neural net to return alpha=2 when the loss function is minimized. 
 
 	std::vector<VF2D_F> net_inputs, net_exact;
-	int nb_samples = getData(m, net_inputs, net_exact);
+	VF1D xabsc, ytarget;
+	int nb_samples = getData(m, net_inputs, net_exact, xabsc, ytarget);
 
 	m->setStateful(true);
 	m->resetState();
@@ -85,6 +87,25 @@ void testDiffEq3(Model* m)
 
 		// Must reset net_inputs to original value
 		net_inputs[0][0][0,0] /= 2.;
+	}
+	//------------------------------------------------------------------
+	// Starting from initial condition, recreate the solution. 
+	{
+		VF2D_F x; 
+		m->setSeqLen(1); 
+		//printf("seq len: %d\n", m->getSeqLen()); exit(0);
+		U::createMat(x, nb_batch, 1, m->getSeqLen());
+		x[0][0,0] = net_inputs[0][0][0,0];
+
+		// Done since weights are 1/2 (due to recursion and consistency) and there is no data
+		// on the recurrent weight initially. Somewhat artificial. 
+		x[0][0,0] *= 2.;
+
+		for (int e=0; e < 500; e++) {
+			m->x_in_history.push_back(ytarget[e]);
+			m->x_out_history.push_back(x[0][0,0]);
+			x = m->predictViaConnectionsBias(x);
+		}
 	}
 	//------------------------------------------------------------------
     m->printHistories();

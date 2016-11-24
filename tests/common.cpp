@@ -26,7 +26,7 @@ void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer
 	m->getConnection(e1, e2)->weight_history.push_back(w2);
 }
 //----------------------------------------------------------------------
-int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_exact)
+int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_exact, VF1D& x, VF1D& ytarget)
 {
 	//------------------------------------------------------------------
 	// SOLVE ODE  dy/dt = -alpha y
@@ -44,9 +44,11 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 
 	// npts should be a multiple of seq_len
 	npts = (npts / seq_len) * seq_len; 
+	x.resize(npts);
+	ytarget.resize(npts);
 
-	VF1D ytarget(npts);
-	VF1D x(npts);   // abscissa
+	//VF1D ytarget(npts);
+	//VF1D x(npts);   // abscissa
 	REAL delx = .005;  // will this work for uneven time steps? dt = .1, but there is a multiplier: alpha in front of it. 
 	                 // Some form of normalization will probably be necessary to scale out effect of dt (discrete time step)
 	m->dt = delx;
