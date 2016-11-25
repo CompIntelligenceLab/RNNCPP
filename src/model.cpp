@@ -959,19 +959,25 @@ void Model::biasUpdate()
 //----------------------------------------------------------------------
 void Model::activationUpdate()
 {
+
 	for (int l=0; l < layers.size(); l++) {
 		Activation& activation = layers[l]->getActivation();
 		int nb_params = activation.getNbParams();
+		if (nb_params == 0) continue;
 		const VF1D& delta = layers[l]->getActivationDelta();
+
+		std::vector<REAL> params;
+		layers[l]->printSummary("activationUpdate");
 
 		for (int p=0; p < nb_params; p++) {
 			if (activation.isFrozen(p)) continue;
-			//printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
+			printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
 			REAL param = activation.getParam(p) - learning_rate * delta[p];
 			activation.setParam(p, param);
 			//printf("aft param= %21.14f\n", param);
-			params_history.push_back(param);
+			params.push_back(param);
 		}
+		layers[l]->params_history.push_back(params);
 	}
 }
 //----------------------------------------------------------------------
@@ -1038,7 +1044,14 @@ void Model::addWeightHistory(Layer* l1, Layer* l2)
 {
     std::vector<WEIGHT>& hist  = getConnection(l1, l2)->weight_history;
 	weights_to_print.push_back(hist);
-	printf("weights_to_print size: %d\n", weights_to_print.size());
+	//printf("weights_to_print size: %d\n", weights_to_print.size());
+}
+//----------------------------------------------------------------------
+void Model::addParamsHistory(Layer* l1)
+{
+	printf("addParamsHistory, layer name: %s\n", l1->getName().c_str());
+	std::vector<std::vector<REAL> >& hist = l1->params_history; // MUST FIX
+	params_to_print.push_back(hist);
 }
 //----------------------------------------------------------------------
 void Model::printWeightHistories()
@@ -1055,6 +1068,7 @@ void Model::printWeightHistories()
 		// For now, assume that all links have only a single weight
 		for (int j=0; j < nb_weights; j++) {
 			const WEIGHT& w = weights_to_print[j][i];
+			U::print(w, "w");
 			fprintf(fd, "%f ", w[0,0]);
 		}
     }
@@ -1068,8 +1082,25 @@ void Model::printHistories()
 
 	// Parameter history
 	fd = fopen("params.out", "w");
-	for (int i=0; i < params_history.size(); i++) {
-		fprintf(fd, "%d %f\n", i, params_history[i]);
+	int sz = params_to_print.size();
+	const LAYERS& layers = getLayers();
+	if (sz == 0) return;
+
+	printf("params_to_print size: %d\n", sz); // 2
+
+	std::vector<std::vector<REAL> > hi = params_to_print[0];
+	if (sz > 0) {
+		printf("nb_to_print: %d\n", hi.size()); // 5900
+	}
+	int nb_to_print = hi.size();
+
+	for (int i=0; i < nb_to_print; i++) {    // ERROR
+		fprintf(fd, "%d ", i);
+		for (int s=0; s < sz; s++) {
+			std::vector<std::vector<REAL> >& pms = params_to_print[s];
+			fprintf(fd, "%f ", pms[i][0]); // but an activation could have more than 1 parameter
+		}
+		fprintf(fd, "\n");
 	}
 	fclose(fd);
 

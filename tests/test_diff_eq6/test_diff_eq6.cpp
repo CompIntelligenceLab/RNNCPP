@@ -4,11 +4,8 @@
 #include <cstdlib>
 
 
-//#include "testDiffEq4.h"
-//#include "testDiffEq6.h"
-
 //----------------------------------------------------------------------
-void testDiffEq4(Model* m)
+void testDiffEq6(Model* m)
 {
 	int layer_size = m->layer_size;
 	int is_recurrent = m->is_recurrent;
@@ -28,17 +25,21 @@ void testDiffEq4(Model* m)
 	Layer* input = new InputLayer(input_dim, "input_layer");
 	Layer* d1    = new DenseLayer(layer_size, "rdense");
 	Layer* d2    = new DenseLayer(layer_size, "rdense");
+	Layer* d3    = new DenseLayer(1, "rdense");
 	m->add(0, input);
 	m->add(input, d1);
-	m->add(d1, d2);
+	m->add(input, d2);
 	m->add(d1, d1, true); // temporal link
 	m->add(d2, d2, true); // temporal link
+	m->add(d1, d3);
+	m->add(d2, d3);
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
 	d2->setActivation(new DecayDE());
+	d3->setActivation(new Identity());
 
 	m->addInputLayer(input);
-	m->addOutputLayer(d2);
+	m->addOutputLayer(d3);
 
 	printf("total nb layers: %d\n", m->getLayers().size());
 	m->printSummary();
@@ -50,6 +51,10 @@ void testDiffEq4(Model* m)
 	m->freezeBiases();
 	m->freezeWeights();
 
+	// Unfreeze weights (d1,d3) and (d2,d3)
+	//m->getConnection(d1,d3)->unfreeze();
+	//m->getConnection(d2,d3)->unfreeze();
+
 	//********************** END MODEL *****************************
 
 	m->initializeWeights();
@@ -60,11 +65,14 @@ void testDiffEq4(Model* m)
 
 	// Set the weights of the two connection that input into Layer d1 to 1/2
 	// This should create a stable numerical scheme
-	WEIGHT& w1  = m->getConnection(input, d1)->getWeight();	w1[0,0]    *= 0.5;
-	WEIGHT& wr1 = m->getConnection(d1, d1)->getWeight();    wr1[0,0]   *= 0.5;
+	WEIGHT& w1  = m->getConnection(input, d1)->getWeight();	w1[0,0]  *= 0.4;
+	WEIGHT& wr1 = m->getConnection(d1, d1)->getWeight();    wr1[0,0] *= 0.6;
 
-	WEIGHT& w2  = m->getConnection(d1, d2)->getWeight();	w2[0,0]    *= 0.5;
-	WEIGHT& wr2 = m->getConnection(d2, d2)->getWeight();	 wr2[0,0]   *= 0.5;
+	WEIGHT& w2  = m->getConnection(input, d2)->getWeight();	w2[0,0]  *= 0.6; // introduce slight asymmetry
+	WEIGHT& wr2 = m->getConnection(d2, d2)->getWeight();	wr2[0,0] *= 0.4;
+
+	WEIGHT& w3  = m->getConnection(d2, d3)->getWeight();	w3[0,0]  *= 0.5;
+	WEIGHT& wr3 = m->getConnection(d1, d3)->getWeight();	wr3[0,0] *= 0.5;
 
 	//------------------------------------------------------------------
 	// SOLVE ODE  dy/dt = -alpha y
@@ -79,6 +87,9 @@ void testDiffEq4(Model* m)
 	m->setStateful(true);
 	m->resetState();
 
+	d1->getActivation().setParam(0, 1.); // 1st parameter
+	d2->getActivation().setParam(0, 1.); // 1st parameter
+
 	//------------------------------------------------------
 	for (int e=0; e < nb_epochs; e++) {
 		m->resetState();
@@ -91,7 +102,8 @@ void testDiffEq4(Model* m)
 			if (m->getStateful() == false) m->resetState();
 			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
 			updateWeightsSumConstraint(m, input, d1, d1, d1);
-			updateWeightsSumConstraint(m, d1, d2, d2, d2);
+			updateWeightsSumConstraint(m, input, d2, d2, d2);
+			updateWeightsSumConstraint(m, d1, d3, d2, d3);
 		}
 
 		// Must reset net_inputs to original value
@@ -118,11 +130,23 @@ void testDiffEq4(Model* m)
 		}
 	}
 	//------------------------------------------------------------------
-	m->printHistories();
 	m->addWeightHistory(input, d1);
 	m->addWeightHistory(d1, d1);
-	m->addWeightHistory(d1, d2);
+	m->addWeightHistory(input, d2);
 	m->addWeightHistory(d2, d2);
+
+	m->addParamsHistory(d1);
+	m->addParamsHistory(d2);
+
+	std::vector<std::vector<REAL> > h1 = d1->params_history;
+	std::vector<std::vector<REAL> > h2 = d2->params_history;
+	for (int i=0; i < 5; i++) {
+		printf("param history: %f, %f\n", h1[i][0], h2[i][0]);
+	}
+
+	m->printHistories();
+	//m->addWeightHistory(d1, d3); // SOMETHING WRONG
+	//m->addWeightHistory(d2, d3);
 	m->printWeightHistories();
 	//------------------------------------------------------------------
 
@@ -133,14 +157,9 @@ void testDiffEq4(Model* m)
 //----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-// arguments: -b nb_batch, -l layer_size, -s seq_len, -s is_recursive
+// arguments: -b nb_batch, -l layer_size, -s seq_len, -r is_recursive
 
 	Model* m = processArguments(argc, argv);
-
-	// two equation nodes in series
-	testDiffEq4(m);
-
-	// two equation nodes in parallel
-	//testDiffEq6(m);
+	testDiffEq6(m);
 }
-
+//----------------------------------------------------------------------

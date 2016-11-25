@@ -1,11 +1,3 @@
-#include <math.h>
-#include "../common.h"
-#include <string>
-#include <cstdlib>
-
-
-//#include "testDiffEq4.h"
-//#include "testDiffEq6.h"
 
 //----------------------------------------------------------------------
 void testDiffEq4(Model* m)
@@ -131,16 +123,3 @@ void testDiffEq4(Model* m)
 	exit(0);
 }
 //----------------------------------------------------------------------
-int main(int argc, char* argv[])
-{
-// arguments: -b nb_batch, -l layer_size, -s seq_len, -s is_recursive
-
-	Model* m = processArguments(argc, argv);
-
-	// two equation nodes in series
-	testDiffEq4(m);
-
-	// two equation nodes in parallel
-	//testDiffEq6(m);
-}
-

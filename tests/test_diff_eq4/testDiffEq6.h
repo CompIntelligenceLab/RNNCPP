@@ -1,14 +1,6 @@
-#include <math.h>
-#include "../common.h"
-#include <string>
-#include <cstdlib>
-
-
-//#include "testDiffEq4.h"
-//#include "testDiffEq6.h"
 
 //----------------------------------------------------------------------
-void testDiffEq4(Model* m)
+void testDiffEq6(Model* m)
 {
 	int layer_size = m->layer_size;
 	int is_recurrent = m->is_recurrent;
@@ -28,17 +20,21 @@ void testDiffEq4(Model* m)
 	Layer* input = new InputLayer(input_dim, "input_layer");
 	Layer* d1    = new DenseLayer(layer_size, "rdense");
 	Layer* d2    = new DenseLayer(layer_size, "rdense");
+	Layer* d3    = new DenseLayer(1, "rdense");
 	m->add(0, input);
 	m->add(input, d1);
-	m->add(d1, d2);
+	m->add(input, d2);
 	m->add(d1, d1, true); // temporal link
 	m->add(d2, d2, true); // temporal link
+	m->add(d1, d3);
+	m->add(d2, d3);
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
 	d2->setActivation(new DecayDE());
+	d3->setActivation(new Identity());
 
 	m->addInputLayer(input);
-	m->addOutputLayer(d2);
+	m->addOutputLayer(d3);
 
 	printf("total nb layers: %d\n", m->getLayers().size());
 	m->printSummary();
@@ -131,16 +127,3 @@ void testDiffEq4(Model* m)
 	exit(0);
 }
 //----------------------------------------------------------------------
-int main(int argc, char* argv[])
-{
-// arguments: -b nb_batch, -l layer_size, -s seq_len, -s is_recursive
-
-	Model* m = processArguments(argc, argv);
-
-	// two equation nodes in series
-	testDiffEq4(m);
-
-	// two equation nodes in parallel
-	//testDiffEq6(m);
-}
-

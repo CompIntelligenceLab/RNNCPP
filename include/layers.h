@@ -29,6 +29,7 @@ public:
 	// more than one layer hits a downstream layer
 	std::vector<VF2D_F> layer_inputs;
 	std::vector<VF2D_F> layer_deltas; 
+	std::vector<std::vector<REAL> > params_history; // params_history[index][layer_parameters]
 
 #ifdef DEBUG
     //  DELTA: VF2D_F: (batch)(layer_size, seq_len)
