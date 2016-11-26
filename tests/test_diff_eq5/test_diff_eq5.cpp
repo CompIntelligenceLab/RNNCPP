@@ -108,10 +108,13 @@ void testDiffEq5(Model* m)
 		}
 	}
 	//------------------------------------------------------------------
-	m->printHistories();
 	m->addWeightHistory(input, d1);
 	m->addWeightHistory(d2, d1);
+	m->addParamsHistory(d1);
+
+    m->printHistories();
 	m->printWeightHistories();
+
 
 	// Run prediction. How to do prediction: stateful with seq_len=1. Wonder what I'll get. 
 

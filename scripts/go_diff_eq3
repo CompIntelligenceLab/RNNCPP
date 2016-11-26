@@ -3,7 +3,7 @@
 # nsl 0 means there is no nodes in the series section of the network
 # this network will have a single recurrent node 
 
-build/tests/test_diff_eq3/test_diff_eq3 -l 1 -npl 1 -nsl 0  -b 1 -s 20 -a "decayde" -r 1 -w "identity" -i 1.e-2 -e 2000 -lr .05
+build/tests/test_diff_eq3/test_diff_eq3 -l 1 -npl 1 -nsl 0  -b 1 -s 20 -a "decayde" -r 1 -w "identity" -i 1.e-2 -e 100 -lr .05
 
 #build/tests/test_diff_eq3/test_diff_eq3 -l 1 -npl 1 -nsl 0  -b 1 -s 20 -a "decayde" -r 1 -w "identity" -i 1.e-2 -e 400 -lr 50
 

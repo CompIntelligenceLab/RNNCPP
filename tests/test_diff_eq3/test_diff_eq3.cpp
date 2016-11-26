@@ -108,12 +108,14 @@ void testDiffEq3(Model* m)
 		}
 	}
 	//------------------------------------------------------------------
-    m->printHistories();
 
     // Hard to abstract away since I am only printing specific weights 
 	// Must find a way to only print specified weights or weight statistics
 	m->addWeightHistory(input, d1);
 	m->addWeightHistory(d1, d1);
+	m->addParamsHistory(d1);
+
+    m->printHistories();
 	m->printWeightHistories();
 
 	printf("XXX END XXX\n");
