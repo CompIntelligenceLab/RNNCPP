@@ -497,7 +497,7 @@ the differential equation. To confirm this, I must run the prediction routine (w
 Nov. 23, 2016
 Using log(MSE) as an objective function failed miserably. Perhaps lr too high? 
 ----------------------------------------------------------------------
-Nov. 24, 2015
+Nov. 24, 2016
 m->setSeqLen(5): sets model sequence length. But sequence length is also defined in the layers. If 
 seq_len is defined, all the arrays must be redimensioned the way we do things. 
 
@@ -506,7 +506,21 @@ seq_len affects results. seq_len=60 slows down convergence. Do not know why.
 
 Merged temporal branch into development branch. 
 ----------------------------------------------------------------------
+Nov. 24, 2016
+- 2 nodes in parallel. (test_diff_eq6.cpp). Works. I get the same alph for both nodes. That makes sense. 
+So I should try this with two different kinds of equations. 
+
+I tried a function to fit: exp(alpha1*x) + exp(alpha2*x), and got no success in figuring out the equation. 
+Perhaps my equations are too simple? 
+
+I cannot get any kind of convergence. Rather bothersome. S
+	ExpFunc ==> REAL operator()(REAL x) { return exp(-alpha*x); }
+	Func& fun1 = *(new ExpFunc(2.));
+	Func& fun2 = *(new ExpFunc(-.3));
+	fun = fun1 + fun2;
 ----------------------------------------------------------------------
+Nov. 26, 2016
+- Test batch mode. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

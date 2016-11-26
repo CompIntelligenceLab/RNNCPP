@@ -1,3 +1,16 @@
+class Func { 
+public:
+	REAL alpha;
+	Func(REAL alpha) { this->alpha = alpha; }
+	virtual REAL operator()(REAL x) = 0;
+};
+class ExpFunc : public Func { 
+public:
+	ExpFunc(REAL alpha) : Func(alpha) {;}
+	REAL operator()(REAL x) { return exp(-alpha*x); }
+};
+
+
 void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer* e2)
 {
 	// Sum of weights (d1,d2) + (e1,e2) = constant
@@ -59,10 +72,16 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 	//REAL alpha_target = 1.;
 	//REAL alpha_initial = 2.;  // should evolve towards alpha_target
 
+	Func& fun1 = *(new ExpFunc(alpha_target));
+	Func& fun2 = *(new ExpFunc(1.2));
+
+	// Choose the function to use to determine differential equation
+
 	for (int i=0; i < npts; i++) {
 		x[i] = i*delx;
-		ytarget[i] = exp(-alpha_target * x[i]);
-		//printf("x: %21.14f, target: %21.14f\n", x[i], ytarget[i]);
+		//ytarget[i] = fun1(x[i]);
+		ytarget[i] = fun1(x[i]) + fun2(x[i]);
+		//ytarget[i] = fun2(x[i]);
 	}
 
 	// set all alphas to alpha_initial

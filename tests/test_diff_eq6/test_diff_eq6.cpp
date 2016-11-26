@@ -5,7 +5,7 @@
 
 
 //----------------------------------------------------------------------
-void testDiffEq3(Model* m)
+void testDiffEq6(Model* m)
 {
 	int layer_size = m->layer_size;
 	int is_recurrent = m->is_recurrent;
@@ -18,45 +18,61 @@ void testDiffEq3(Model* m)
 	int seq_len = m->getSeqLen();
 	int nb_batch = m->getBatchSize();
 	int input_dim  = 1;
-	//m->setObjective(new LogMeanSquareError()); // NEW
-	m->setObjective(new MeanSquareError()); 
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(input_dim, "input_layer");
 	Layer* d1    = new DenseLayer(layer_size, "rdense");
+	Layer* d2    = new DenseLayer(layer_size, "rdense");
+	Layer* d3    = new DenseLayer(1, "rdense");
 	m->add(0, input);
 	m->add(input, d1);
+	m->add(input, d2);
 	m->add(d1, d1, true); // temporal link
+	m->add(d2, d2, true); // temporal link
+	m->add(d1, d3);
+	m->add(d2, d3);
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
+	d2->setActivation(new DecayDE());
+	d3->setActivation(new Identity());
 
 	m->addInputLayer(input);
-	m->addOutputLayer(d1);
+	m->addOutputLayer(d3);
 
+	printf("total nb layers: %d\n", m->getLayers().size());
 	m->printSummary();
 	// Code crashes if not called
 	// compute clist datastructure (list of connections)
 	m->connectionOrderClean(); // no print statements
 
-    m->initializeWeights();
+	m->initializeWeights(); // be initialized after freezing
 	m->freezeBiases();
-    m->freezeWeights();
+	m->freezeWeights();
+
+	// Unfreeze weights (d1,d3) and (d2,d3)
+	//m->getConnection(d1,d3)->unfreeze();
+	//m->getConnection(d2,d3)->unfreeze();
 
 	//********************** END MODEL *****************************
 
-	BIAS& bias1 = input->getBias();
-	BIAS& bias2 =    d1->getBias();
-	bias1.zeros();
-	bias2.zeros();
+	m->initializeWeights();
+
+	BIAS& bias1 = input->getBias(); 	bias1.zeros();
+	BIAS& bias2 =    d1->getBias(); 	bias2.zeros();
+	BIAS& bias3 =    d2->getBias(); 	bias3.zeros();
 
 	// Set the weights of the two connection that input into Layer d1 to 1/2
 	// This should create a stable numerical scheme
-	WEIGHT& w = m->getConnection(input, d1)->getWeight();
-	w[0,0] *= 0.5;
-	WEIGHT& wr = m->getConnection(d1, d1)->getWeight();
-	wr[0,0] *= 0.5;
+	WEIGHT& w1  = m->getConnection(input, d1)->getWeight();	w1[0,0]  *= 0.4;
+	WEIGHT& wr1 = m->getConnection(d1, d1)->getWeight();    wr1[0,0] *= 0.6;
+
+	WEIGHT& w2  = m->getConnection(input, d2)->getWeight();	w2[0,0]  *= 0.6; // introduce slight asymmetry
+	WEIGHT& wr2 = m->getConnection(d2, d2)->getWeight();	wr2[0,0] *= 0.4;
+
+	WEIGHT& w3  = m->getConnection(d2, d3)->getWeight();	w3[0,0]  *= 0.5;
+	WEIGHT& wr3 = m->getConnection(d1, d3)->getWeight();	wr3[0,0] *= 0.5;
 
 	//------------------------------------------------------------------
 	// SOLVE ODE  dy/dt = -alpha y
@@ -71,19 +87,24 @@ void testDiffEq3(Model* m)
 	m->setStateful(true);
 	m->resetState();
 
-	for (int e=0; e < nb_epochs; e++) {
+	d1->getActivation().setParam(0, 1.); // 1st parameter
+	d2->getActivation().setParam(0, 1.); // 1st parameter
 
+	//------------------------------------------------------
+	for (int e=0; e < nb_epochs; e++) {
+		m->resetState();
 		// First iteration, make effective weight from input to d1 equal to one
-		net_inputs[0][0][0,0] *= 2.;
+		net_inputs[0][0][0,0] *= 2.;  // only once per epoch
 
 		printf("**** Epoch %d ****\n", e);
 
 		for (int i=0; i < nb_samples-1; i++) {
-			if (m->getStateful() == false)  m->resetState();
+			if (m->getStateful() == false) m->resetState();
 			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
 			updateWeightsSumConstraint(m, input, d1, d1, d1);
+			updateWeightsSumConstraint(m, input, d2, d2, d2);
+			updateWeightsSumConstraint(m, d1, d3, d2, d3);
 		}
-		m->resetState();
 
 		// Must reset net_inputs to original value
 		net_inputs[0][0][0,0] /= 2.;
@@ -93,13 +114,14 @@ void testDiffEq3(Model* m)
 	{
 		VF2D_F x; 
 		m->setSeqLen(1); 
-		//printf("seq len: %d\n", m->getSeqLen()); exit(0);
 		U::createMat(x, nb_batch, 1, m->getSeqLen());
 		x[0][0,0] = net_inputs[0][0][0,0];
 
 		// Done since weights are 1/2 (due to recursion and consistency) and there is no data
 		// on the recurrent weight initially. Somewhat artificial. 
 		x[0][0,0] *= 2.;
+
+		m->resetState();
 
 		for (int e=0; e < 500; e++) {
 			m->x_in_history.push_back(ytarget[e]);
@@ -108,26 +130,36 @@ void testDiffEq3(Model* m)
 		}
 	}
 	//------------------------------------------------------------------
-
-    // Hard to abstract away since I am only printing specific weights 
-	// Must find a way to only print specified weights or weight statistics
 	m->addWeightHistory(input, d1);
 	m->addWeightHistory(d1, d1);
+	m->addWeightHistory(input, d2);
+	m->addWeightHistory(d2, d2);
+
 	m->addParamsHistory(d1);
+	m->addParamsHistory(d2);
 
-    m->printHistories();
+	std::vector<std::vector<REAL> > h1 = d1->params_history;
+	std::vector<std::vector<REAL> > h2 = d2->params_history;
+	for (int i=0; i < 5; i++) {
+		printf("param history: %f, %f\n", h1[i][0], h2[i][0]);
+	}
+
+	m->printHistories();
+	//m->addWeightHistory(d1, d3); // SOMETHING WRONG
+	//m->addWeightHistory(d2, d3);
 	m->printWeightHistories();
+	//------------------------------------------------------------------
 
-	printf("XXX END XXX\n");
+	printf("XXX gordon XXX\n");
 
 	exit(0);
 }
 //----------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-// arguments: -b nb_batch, -l layer_size, -s seq_len, -s is_recursive
+// arguments: -b nb_batch, -l layer_size, -s seq_len, -r is_recursive
 
 	Model* m = processArguments(argc, argv);
-	testDiffEq3(m);
+	testDiffEq6(m);
 }
-
+//----------------------------------------------------------------------

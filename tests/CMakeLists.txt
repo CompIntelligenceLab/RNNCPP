@@ -36,3 +36,6 @@ add_subdirectory(test_diff_eq4)
 # return to tanh recurrent node following the first dense node with forward Euler activation. 
 add_subdirectory(test_diff_eq5)
 
+# Create two DecayEQ in parallel
+add_subdirectory(test_diff_eq6)
+
