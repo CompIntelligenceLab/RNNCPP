@@ -57,6 +57,8 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 
 	// npts should be a multiple of seq_len
 	npts = (npts / seq_len) * seq_len; 
+	// npts should be a multiple of nb_batch
+	npts = (npts / nb_batch) * nb_batch;
 	x.resize(npts);
 	ytarget.resize(npts);
 
@@ -69,7 +71,7 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 	REAL alpha_initial = 1.;  // should evolve towards alpha_target
 
 	// this works (duplicates Mark Lambert's case)
-	//REAL alpha_target = 1.;
+	//REAL alpha_target  = 1.;
 	//REAL alpha_initial = 2.;  // should evolve towards alpha_target
 
 	Func& fun1 = *(new ExpFunc(alpha_target));
@@ -79,8 +81,8 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 
 	for (int i=0; i < npts; i++) {
 		x[i] = i*delx;
-		//ytarget[i] = fun1(x[i]);
-		ytarget[i] = fun1(x[i]) + fun2(x[i]);
+		ytarget[i] = fun1(x[i]);
+		//ytarget[i] = fun1(x[i]) + fun2(x[i]);
 		//ytarget[i] = fun2(x[i]);
 	}
 
@@ -94,20 +96,22 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 		layer->getActivation().setParam(0, alpha_initial); // 1st parameter
 		layer->getActivation().setDt(m->dt);
 	}
+
 	// Assume nb_batch=1 for now. Extract a sequence of seq_len elements to input
 	// input into prediction followed by backprop followed by parameter updates.
 	// What I want is a data structure: 
-	//  VF2D_F[nb_batch][nb_inputs, seq_len] = VF2D_F[1][1, seq_len]
-	// 
+	// VF2D_F[nb_batch][nb_inputs, seq_len] = VF2D_F[1][1, seq_len]
 
 	int nb_samples = npts / seq_len; 
 	//std::vector<VF2D_F> net_inputs, net_exact;
 	VF2D_F vf2d;
+	//printf("nb_batch= %d\n", nb_batch); exit(0);
 	U::createMat(vf2d, nb_batch, 1, seq_len);
 
 	VF2D_F vf2d_exact;
 	U::createMat(vf2d_exact, nb_batch, 1, seq_len);
 
+	#if 0
 	// Assumes nb_batch = 1 and input dimensionality = 1
 	for (int i=0; i < nb_samples-1; i++) {
 		for (int j=0; j < seq_len; j++) {
@@ -117,6 +121,38 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 		net_inputs.push_back(vf2d);
 		net_exact.push_back(vf2d_exact);
 	}
+	#endif
+
+	// Assumes nb_batch >= 0, and input dimensionality = 1
+	//printf("nb_batch= %d\n",nb_batch); exit(0);
+
+	// nb_samples must be a multiple of the batch size
+	nb_samples = npts / (nb_batch * seq_len); 
+	U::print(vf2d_exact, "vf2d_exact");
+	U::print(vf2d, "vf2d");
+	U::print(ytarget, "ytarget");
+	//exit(0);
+
+printf("nb_samples= %d\n",nb_samples);
+printf("seq_len= %d\n",seq_len);
+printf("nb_batch= ", nb_batch);
+
+for (int i=0; i < nb_samples-1; i++) {
+  for (int b=0; b < nb_batch; b++) {
+	int base = b * seq_len * nb_samples;
+		for (int j=0; j < seq_len; j++) {
+			//printf("b,i,j= %d, %d, %d\n", b, i, j);
+			//printf("1, base+j+seq_len*i = %d\n", base+j+seq_len*i);
+			vf2d[b](0, j)       = ytarget(base + j + seq_len*i);
+			vf2d_exact[b](0, j) = ytarget(base + j + seq_len*i + 1); // wasteful of memory
+		}
+	}
+	net_inputs.push_back(vf2d);
+	net_exact.push_back(vf2d_exact);
+}
+//exit(0);
+
+
 
 	return nb_samples;
 }

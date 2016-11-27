@@ -607,6 +607,38 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 // the arrays would be computed inside the function
 // results to begin implementing the backprop. Should be reevaluated
 
+void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
+{
+	// MUST REWRITE THIS PROPERLY
+	// DEAL WITH BATCH and SEQUENCES CORRECTLY
+	// FOR NOW, ASSUME BATCH=1
+	//printf("ENTER trainOneBatch ******************************\n");
+	cout.precision(11);
+
+	//printf("stateful: %d\n", stateful); //exit(0);
+	if (stateful == false) {
+		resetState();
+	}
+
+	//VF2D_F x(1); x[0] = x_;
+	// WRONG IN GENERAL. Only good for batch == 1
+	//VF2D_F exact(1); exact[0] = exact_;
+
+	VF2D_F pred = predictViaConnectionsBias(x);
+	//pred[0].raw_print(cout, "pred");
+	//exact[0].raw_print(cout, "exact");
+	objective->computeLoss(exact, pred);
+
+	const LOSS& loss = objective->getLoss();
+	loss_history.push_back(loss);
+
+	//LOSS ll = loss;
+	//printf("loss= %21.14f\n", loss[0][0]);
+
+	backPropagationViaConnectionsRecursion(exact, pred);
+	parameterUpdate();
+}
+//----------------------------------------------------------------------
 void Model::trainOneBatch(VF2D x_, VF2D exact_)
 {
 	// MUST REWRITE THIS PROPERLY
@@ -621,6 +653,7 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	}
 
 	VF2D_F x(1); x[0] = x_;
+	// WRONG IN GENERAL. Only good for batch == 1
 	VF2D_F exact(1); exact[0] = exact_;
 
 	VF2D_F pred = predictViaConnectionsBias(x);
@@ -712,6 +745,7 @@ void Model::storeDactivationDoutputInLayersRecCon(int t)
 		conn->gradMulDLda(t, t-1);
 	}
 }
+//----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -873,10 +907,16 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 
 	resetDeltas();
 
+
     objective->computeGradient(exact, pred);
-    VF2D_F& grad = objective->getGradient();
+	//U::print(exact, "exact");
+	//U::print(pred, "pred");
+    VF2D_F& grad = objective->getGradient(); // Check on gradient
 	// assumes single output layer. Set for all sequences. 
-	getOutputLayers()[0]->setDelta(grad);  
+	//getLayers()[1]->reset(); 
+	//U::print(grad, "grad");  // grad has batch_size 1, which is wrong. What is grad? 
+	getOutputLayers()[0]->setDelta(grad);       // SOMEHOW RESETS BATCH_SIZE to 1!!! ERROR!
+	//getLayers()[1]->reset(); exit(0);
 
 	//printf("++++++++++++++++++++++++++++\n");
 	//printf("   GRADIENT \n");
@@ -967,11 +1007,11 @@ void Model::activationUpdate()
 		const VF1D& delta = layers[l]->getActivationDelta();
 
 		std::vector<REAL> params;
-		layers[l]->printSummary("activationUpdate");
+		//layers[l]->printSummary("activationUpdate");
 
 		for (int p=0; p < nb_params; p++) {
 			if (activation.isFrozen(p)) continue;
-			printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
+			//printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
 			REAL param = activation.getParam(p) - learning_rate * delta[p];
 			activation.setParam(p, param);
 			//printf("aft param= %21.14f\n", param);
@@ -1068,7 +1108,6 @@ void Model::printWeightHistories()
 		// For now, assume that all links have only a single weight
 		for (int j=0; j < nb_weights; j++) {
 			const WEIGHT& w = weights_to_print[j][i];
-			U::print(w, "w");
 			fprintf(fd, "%f ", w[0,0]);
 		}
     }

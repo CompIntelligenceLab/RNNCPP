@@ -518,7 +518,8 @@ I cannot get any kind of convergence. Rather bothersome. S
 	fun = fun1 + fun2;
 ----------------------------------------------------------------------
 Nov. 26, 2016
-- Test batch mode. 
+- Test batch mode. Batch size of some layers get reset to 1. 
+- Problem: the gradient of the objective function somehow has the incorrect batch size. Check this. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
