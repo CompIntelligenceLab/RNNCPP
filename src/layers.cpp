@@ -382,6 +382,7 @@ void Layer::reset() // Must I reset recurrent connection?
 	U::zeros(delta);
 	U::zeros(gradient);
 	clock = 0;
+	//printf("Layer (%s), delta size: %d\n", name.c_str(), delta.n_rows);
 }
 
 void Layer::resetBackprop()

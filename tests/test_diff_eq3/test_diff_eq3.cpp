@@ -32,6 +32,8 @@ void testDiffEq3(Model* m)
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
 
+	printf("d1->batchsize: %d\n", d1->getNbBatch()); 
+
 	m->addInputLayer(input);
 	m->addOutputLayer(d1);
 
@@ -67,6 +69,9 @@ void testDiffEq3(Model* m)
 	std::vector<VF2D_F> net_inputs, net_exact;
 	VF1D xabsc, ytarget;
 	int nb_samples = getData(m, net_inputs, net_exact, xabsc, ytarget);
+	//U::print(net_inputs[0], "net_inputs");
+	//U::print(net_exact[0], "net_exact");
+	//exit(0);
 
 	m->setStateful(true);
 	m->resetState();
@@ -78,9 +83,13 @@ void testDiffEq3(Model* m)
 
 		printf("**** Epoch %d ****\n", e);
 
+	//d1->reset();
+	//exit(0);
+
 		for (int i=0; i < nb_samples-1; i++) {
 			if (m->getStateful() == false)  m->resetState();
-			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
+			//m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
+			m->trainOneBatch(net_inputs[i], net_exact[i]);
 			updateWeightsSumConstraint(m, input, d1, d1, d1);
 		}
 		m->resetState();

@@ -160,6 +160,7 @@ public:
   // x are predicted values, y are exact labels
   void train(VF2D_F x, VF2D_F y, int batch_size=0, int nb_epochs=1);
   // train a single batch. x[input_size, seq_len], exact[last_layer_size, seq_len]
+  void trainOneBatch(VF2D_F& x, VF2D_F& y);
   void trainOneBatch(VF2D x, VF2D y);
   void backPropagation(VF2D_F y, VF2D_F prep);
   // networks that have multiple layers leaving a layer arriving at a layer
