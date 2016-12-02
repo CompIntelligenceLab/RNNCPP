@@ -39,3 +39,7 @@ add_subdirectory(test_diff_eq5)
 # Create two DecayEQ in parallel
 add_subdirectory(test_diff_eq6)
 
+# Create two DecayEQ in parallel, but cross link them. 
+# In principle, I should be able to get oscillatory behavior.
+add_subdirectory(test_diff_eq7)
+
