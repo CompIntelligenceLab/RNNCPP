@@ -521,5 +521,11 @@ Nov. 26, 2016
 - Test batch mode. Batch size of some layers get reset to 1. 
 - Problem: the gradient of the objective function somehow has the incorrect batch size. Check this. 
 ----------------------------------------------------------------------
+Dec. 1, 2016
+- WeightedMeanSquareError not working. Some kind of col error. Why? 
+- MeanSquareError : try pure relative error
+
+Must find a way to choose relative vs absolute error for objective function. Relative error runs much faster. 
+Add new variable in objective.h and in model.h: error_type (abs, rel)
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

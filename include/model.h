@@ -30,6 +30,7 @@ public:
 	int nb_parallel_layers;
 	REAL dt;
   	int nb_epochs;
+	std::string obj_err_type;
 
 	// Parameter histories
 	// true: save history every iteration (each iteration is sequence length of seq_len)

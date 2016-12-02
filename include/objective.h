@@ -7,11 +7,14 @@
 class Objective
 {
 protected:
+	// equal to average of exact over sequence and dimensions
+	VF1D weight; // factor by which to multiply the objective function
 	REAL learning_rate;
 	std::string name;
 	LOSS loss;  // One loss per batch and per sequence (use field for consistency)
 	VF2D_F gradient; // One gradient with respect to argument 
 	static int counter;
+	std::string error_type; // absolute or relative error for least mean square
 
 public:
 	Objective(std::string name="objective");
@@ -24,6 +27,10 @@ public:
 	virtual void setLoss(LOSS loss) { this->loss = loss; }
 	virtual const LOSS& getLoss() const { return loss; }
 	virtual VF2D_F& getGradient() { return gradient; }
+	virtual void setWeight(VF1D weight) { this->weight = weight; }
+	virtual VF1D& getWeight() { return this->weight; }
+	virtual void setErrorType(std::string error_type) { this->error_type = error_type; }
+	virtual std::string getErrorType() { return(error_type); }
 	
 	virtual void computeLoss(const VF2D_F& exact, const VF2D_F& predict) = 0;
 	virtual void computeGradient(const VF2D_F& exact, const VF2D_F& predict) = 0;
@@ -41,6 +48,22 @@ public:
 	MeanSquareError(std::string name="mse");
 	~MeanSquareError();
 	MeanSquareError(const MeanSquareError&);
+
+	// Use default assignment (works fine because there are no pointers among member variables)
+	//const MeanSquareError& MeanSquareError=(const MeanSquareError&);
+
+	/** sum_{batches} (predict - exact)^2 */
+	void computeLoss(const VF2D_F& exact, const VF2D_F& predict);
+	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
+};
+//----------------------------------------------------------------------
+class WeightedMeanSquareError : public Objective
+{
+private:
+public:
+	WeightedMeanSquareError(std::string name="wmse");
+	~WeightedMeanSquareError();
+	WeightedMeanSquareError(const WeightedMeanSquareError&);
 
 	// Use default assignment (works fine because there are no pointers among member variables)
 	//const MeanSquareError& MeanSquareError=(const MeanSquareError&);

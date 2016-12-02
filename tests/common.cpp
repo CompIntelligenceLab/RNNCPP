@@ -39,6 +39,25 @@ void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer
 	m->getConnection(e1, e2)->weight_history.push_back(w2);
 }
 //----------------------------------------------------------------------
+void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer* e2, Layer* f1, Layer* f2)
+{
+	// Let w1, w2 and w3 = 1 - w1 - w2
+	// dL/dw1 = -dL/dw3 
+	// dL/dw2 = -dL/dw3 
+	// dL/dw = 
+	// delta3 = -delta1 - delta2 = 0
+	WEIGHT& dd1 = m->getConnection(d1, d2)->getDelta();
+	WEIGHT& dd2 = m->getConnection(e1, e2)->getDelta();
+	WEIGHT& dd3 = m->getConnection(f1, f2)->getDelta();
+	WEIGHT& w1 = m->getConnection(d1, d2)->getWeight();
+	WEIGHT& w2 = m->getConnection(e1, e2)->getWeight();
+	WEIGHT& w3 = m->getConnection(f1, f2)->getWeight();
+	REAL lr = m->getLearningRate();
+	w1 -= .001 * lr * dd1;
+	w2 -= .001 * lr * dd2;
+	w3 -= .001 * lr * (-dd1-dd2);
+}
+//----------------------------------------------------------------------
 int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_exact, VF1D& x, VF1D& ytarget)
 {
 	//------------------------------------------------------------------
@@ -75,14 +94,16 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 	//REAL alpha_initial = 2.;  // should evolve towards alpha_target
 
 	Func& fun1 = *(new ExpFunc(alpha_target));
-	Func& fun2 = *(new ExpFunc(1.2));
+	Func& fun2 = *(new ExpFunc(-.1));
 
 	// Choose the function to use to determine differential equation
 
 	for (int i=0; i < npts; i++) {
 		x[i] = i*delx;
-		ytarget[i] = fun1(x[i]);
-		//ytarget[i] = fun1(x[i]) + fun2(x[i]);
+		//ytarget[i] = fun1(x[i]);
+		// scheme has problems with this function. I cannot find an equation that works. 
+		// I tried 3 nodes in parallel. Did not work. 
+		ytarget[i] = 0.5 * (fun1(x[i]) + fun2(x[i]));
 		//ytarget[i] = fun2(x[i]);
 	}
 
@@ -137,9 +158,10 @@ printf("nb_samples= %d\n",nb_samples);
 printf("seq_len= %d\n",seq_len);
 printf("nb_batch= ", nb_batch);
 
+
 for (int i=0; i < nb_samples-1; i++) {
   for (int b=0; b < nb_batch; b++) {
-	int base = b * seq_len * nb_samples;
+	int base = b * seq_len * input_dim; //  ideally, need loop on input_dim
 		for (int j=0; j < seq_len; j++) {
 			//printf("b,i,j= %d, %d, %d\n", b, i, j);
 			//printf("1, base+j+seq_len*i = %d\n", base+j+seq_len*i);
@@ -542,6 +564,7 @@ Model* processArguments(int argc, char** argv)
     int is_recurrent = 1;
 	int nb_serial_layers = 1; // do not count input layer
 	int nb_parallel_layers = 1; // do not count input layer
+	std::string obj_err_type = "abs";
 	REAL learning_rate = 1.e-2; 
 
 	REAL inc;
@@ -589,18 +612,21 @@ Model* processArguments(int argc, char** argv)
 		} else if (arg == "-l") {
 			layer_size = atoi(argv[1]);
 			argc -= 2; argv += 2;
+		} else if (arg == "-oe") {  // rel/abs error_type for objective least squares function
+			obj_err_type = argv[1];
+			argc -= 2; argv += 2;
 		} else if (arg == "-a") {
 			std::string name = argv[1];
 			activation_type = name;
-			//printf("name= %s\n", name.c_str());
 
 			// NEED an ACTIVATION FACTORY
 
 			argc -= 2; argv += 2;
 		} else { //if (arg == "-h") 
-			printf("Argument usage: \n");
+			printf("Argument not found. \nArgument usage: \n");
 			printf("  -b <nb_batch>  -s <seq_len> -nb <nb_layers> -l <layer_size> -a <activation> -w <weight_initialization>\n");
 			printf("  Activations: \"tanh\"|\"sigmoid\"|\"iden\"|\"relu\"\n");
+			exit(0);
 		}
 	}
 
@@ -621,6 +647,7 @@ Model* processArguments(int argc, char** argv)
 	m->nb_parallel_layers = nb_parallel_layers;
 	m->nb_epochs = nb_epochs;
 	m->setLearningRate(learning_rate); // default lr
+	m->obj_err_type = obj_err_type;
 
 	for (int j=0; j < nb_parallel_layers; j++) {
 	for (int i=0; i < nb_serial_layers; i++) {

@@ -19,27 +19,35 @@ void testDiffEq6(Model* m)
 	int nb_batch = m->getBatchSize();
 	int input_dim  = 1;
 
+	m->setObjective(new MeanSquareError()); 
+	m->getObjective()->setErrorType(m->obj_err_type);
+
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
 	Layer* input = new InputLayer(input_dim, "input_layer");
 	Layer* d1    = new DenseLayer(layer_size, "rdense");
 	Layer* d2    = new DenseLayer(layer_size, "rdense");
-	Layer* d3    = new DenseLayer(1, "rdense");
+	Layer* d3    = new DenseLayer(layer_size, "rdense");
+	Layer* dsum    = new DenseLayer(1, "rdense");
 	m->add(0, input);
 	m->add(input, d1);
 	m->add(input, d2);
+	m->add(input, d3);
 	m->add(d1, d1, true); // temporal link
 	m->add(d2, d2, true); // temporal link
-	m->add(d1, d3);
-	m->add(d2, d3);
+	m->add(d3, d3, true); // temporal link
+	m->add(d1, dsum);
+	m->add(d2, dsum);
+	m->add(d3, dsum);
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
 	d2->setActivation(new DecayDE());
-	d3->setActivation(new Identity());
+	d3->setActivation(new DecayDE());
+	dsum->setActivation(new Identity());
 
 	m->addInputLayer(input);
-	m->addOutputLayer(d3);
+	m->addOutputLayer(dsum);
 
 	printf("total nb layers: %d\n", m->getLayers().size());
 	m->printSummary();
@@ -51,17 +59,20 @@ void testDiffEq6(Model* m)
 	m->freezeBiases();
 	m->freezeWeights();
 
-	// Unfreeze weights (d1,d3) and (d2,d3)
-	//m->getConnection(d1,d3)->unfreeze();
-	//m->getConnection(d2,d3)->unfreeze();
+	// Unfreeze weights (d1,dsum) and (d2,dsum)
+	//m->getConnection(d1,dsum)->unfreeze();
+	//m->getConnection(d2,dsum)->unfreeze();
+	//m->getConnection(d3,dsum)->unfreeze();
 
 	//********************** END MODEL *****************************
 
 	m->initializeWeights();
 
-	BIAS& bias1 = input->getBias(); 	bias1.zeros();
-	BIAS& bias2 =    d1->getBias(); 	bias2.zeros();
-	BIAS& bias3 =    d2->getBias(); 	bias3.zeros();
+	BIAS& bias0 = input->getBias(); 	bias0.zeros();
+	BIAS& bias1 =    d1->getBias(); 	bias1.zeros();
+	BIAS& bias2 =    d2->getBias(); 	bias2.zeros();
+	BIAS& bias3 =    d3->getBias(); 	bias3.zeros();
+	BIAS& biasdsum =    dsum->getBias(); 	biasdsum.zeros();  // should biasdsum be frozen? 
 
 	// Set the weights of the two connection that input into Layer d1 to 1/2
 	// This should create a stable numerical scheme
@@ -71,8 +82,16 @@ void testDiffEq6(Model* m)
 	WEIGHT& w2  = m->getConnection(input, d2)->getWeight();	w2[0,0]  *= 0.6; // introduce slight asymmetry
 	WEIGHT& wr2 = m->getConnection(d2, d2)->getWeight();	wr2[0,0] *= 0.4;
 
-	WEIGHT& w3  = m->getConnection(d2, d3)->getWeight();	w3[0,0]  *= 0.5;
-	WEIGHT& wr3 = m->getConnection(d1, d3)->getWeight();	wr3[0,0] *= 0.5;
+	WEIGHT& w3  = m->getConnection(input, d3)->getWeight();	w3[0,0]  *= 0.55; // introduce slight asymmetry
+	WEIGHT& wr3 = m->getConnection(d3, d3)->getWeight();	wr3[0,0] *= 0.45;
+
+	// Ideally, these weights should be able to vary and sum to 1
+	// One way to do this is to have three weights in the network, connect to a softmax, and make the three output weights
+	// the softmax coefficients. Since the weights could be negative, we do not need a softmax: w1 / (w1 + w2 + w3). 
+	// If they initially sum to one, it is unlikely they will ever sum to zero if learning rate is sufficiently small
+	WEIGHT& wrs1 = m->getConnection(d1, dsum)->getWeight();	wrs1[0,0] *= 0.25;
+	WEIGHT& wrs2 = m->getConnection(d2, dsum)->getWeight();	wrs2[0,0] *= 0.35;
+	WEIGHT& wrs3 = m->getConnection(d3, dsum)->getWeight();	wrs3[0,0] *= 0.40;
 
 	//------------------------------------------------------------------
 	// SOLVE ODE  dy/dt = -alpha y
@@ -89,11 +108,14 @@ void testDiffEq6(Model* m)
 
 	d1->getActivation().setParam(0, 1.); // 1st parameter
 	d2->getActivation().setParam(0, 1.); // 1st parameter
+	d3->getActivation().setParam(0, 1.); // 1st parameter
 
 	//------------------------------------------------------
 	for (int e=0; e < nb_epochs; e++) {
 		m->resetState();
+
 		// First iteration, make effective weight from input to d1 equal to one
+		// PROBABLY INCORRECT WITH MORE THAN ONE NODE PER LAYER. NEED SOME SORT OF INTELLIGENT SPLITTER
 		net_inputs[0][0][0,0] *= 2.;  // only once per epoch
 
 		printf("**** Epoch %d ****\n", e);
@@ -103,7 +125,9 @@ void testDiffEq6(Model* m)
 			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
 			updateWeightsSumConstraint(m, input, d1, d1, d1);
 			updateWeightsSumConstraint(m, input, d2, d2, d2);
-			updateWeightsSumConstraint(m, d1, d3, d2, d3);
+			updateWeightsSumConstraint(m, input, d3, d3, d3);
+			updateWeightsSumConstraint(m, d1, dsum, d2, dsum, d3, dsum);
+			// The sum of the weights between d1-dsum, d2-dsum, d3-dsum should add to 1. Not implemented. So freeze these weights
 		}
 
 		// Must reset net_inputs to original value
@@ -134,19 +158,24 @@ void testDiffEq6(Model* m)
 	m->addWeightHistory(d1, d1);
 	m->addWeightHistory(input, d2);
 	m->addWeightHistory(d2, d2);
+	m->addWeightHistory(input, d3);
+	m->addWeightHistory(d3, d3);
+	m->addWeightHistory(d1, dsum);
+	m->addWeightHistory(d2, dsum);
+	m->addWeightHistory(d3, dsum);
 
 	m->addParamsHistory(d1);
 	m->addParamsHistory(d2);
+	m->addParamsHistory(d3);
 
 	std::vector<std::vector<REAL> > h1 = d1->params_history;
 	std::vector<std::vector<REAL> > h2 = d2->params_history;
+	std::vector<std::vector<REAL> > h3 = d3->params_history;
 	for (int i=0; i < 5; i++) {
-		printf("param history: %f, %f\n", h1[i][0], h2[i][0]);
+		printf("param history: %f, %f\n", h1[i][0], h2[i][0], h3[i][0]);
 	}
 
 	m->printHistories();
-	//m->addWeightHistory(d1, d3); // SOMETHING WRONG
-	//m->addWeightHistory(d2, d3);
 	m->printWeightHistories();
 	//------------------------------------------------------------------
 

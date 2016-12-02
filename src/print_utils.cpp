@@ -105,7 +105,7 @@ void U::print(VF1D_F x, int val1, std::string msg)
 	}
 
 	cout << buf << ", field size: " << x.n_rows << ", shape: (" << x[0].n_rows <<  ")" 
-	     << same_size << endl;
+	     << ", " << same_size << endl;
 }
 //----------------------------------------------------------------------
 void U::print(VF1D_F x, std::string msg /*""*/)
@@ -126,7 +126,7 @@ void U::print(VF1D_F x, std::string msg /*""*/)
 	}
 
 	cout << msg << ", field size: " << x.n_rows << ", shape: (" << x[0].n_rows <<  ")" 
-	     << same_size << endl;
+	     << ", " << same_size << endl;
 }
 //----------------------------------------------------------------------
 // Efficiency is not the purpose. 
@@ -168,6 +168,15 @@ void U::createMat(VF2D_F& mat, int nb_batch, int nb_rows, int nb_cols)
 
 	for (int b=0; b < nb_batch; b++) {
 		mat(b) = VF2D(nb_rows, nb_cols);
+	}
+}
+//----------------------------------------------------------------------
+void U::createMat(VF1D_F& mat, int nb_batch, int nb_rows)
+{
+	mat.set_size(nb_batch);
+
+	for (int b=0; b < nb_batch; b++) {
+		mat(b) = VF1D(nb_rows);
 	}
 }
 //----------------------------------------------------------------------
