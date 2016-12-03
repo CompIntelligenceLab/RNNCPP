@@ -528,4 +528,12 @@ Dec. 1, 2016
 Must find a way to choose relative vs absolute error for objective function. Relative error runs much faster. 
 Add new variable in objective.h and in model.h: error_type (abs, rel)
 ----------------------------------------------------------------------
+Dec. 2, 2016
+Problem: I am not convinced that predict works properly. I will have to do this by hand. Why? Because different initial 
+values of the parameters seem to give the same solution predictions (with seq_len=1), and simply running trainOne over and 
+over again. That is not reasonable. 
+----------------------------------------------------------------------
+Dec. 3, 2016
+Implement char-rnn and Gaussian Mixture Model. 
+Then I can go back to work on predicting signals. 
 ----------------------------------------------------------------------

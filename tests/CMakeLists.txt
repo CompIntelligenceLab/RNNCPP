@@ -43,3 +43,5 @@ add_subdirectory(test_diff_eq6)
 # In principle, I should be able to get oscillatory behavior.
 add_subdirectory(test_diff_eq7)
 
+add_subdirectory(char-rnn)
+

@@ -3,6 +3,14 @@
 #include <string>
 #include <cstdlib>
 
+/**
+z1 = a1*xT(n) + a2*x(n) + a3*y(n)
+z1 = a1*xT(n) + a2*x(n) + a3*y(n)
+x1(n+1) = a1 * [x(n) + dt * (-alpha1*x(n))] + a2 * x2
+x2 = x(n) + dt * (-alpha2*x(n))
+x(n+1) = w1*x1 + w2*x2
+**/
+
 
 //----------------------------------------------------------------------
 void testDiffEq7(Model* m)
@@ -34,8 +42,8 @@ void testDiffEq7(Model* m)
 	m->add(0, input);
 	m->add(input, d1);
 	m->add(input, d2);
-	m->add(d1, d1, true); // temporal link
-	m->add(d2, d2, true); // temporal link
+	//m->add(d1, d1, true); // temporal link
+	//m->add(d2, d2, true); // temporal link
 	m->add(d2, d1, true); // temporal link  (link between parallel nodes)
 	m->add(d1, d2, true); // temporal link
 	m->add(d1, dsum);
@@ -74,13 +82,13 @@ void testDiffEq7(Model* m)
 
 	// Set the weights of the two connection that input into Layer d1 to 1/2
 	// This should create a stable numerical scheme
-	WEIGHT& w1  = m->getConnection(input, d1)->getWeight();	w1[0,0]  *= 0.27;
-	WEIGHT& w11 = m->getConnection(d1, d1)->getWeight();    w11[0,0] *= 0.35;
-	WEIGHT& w21 = m->getConnection(d2, d1)->getWeight();    w21[0,0] *= 0.38;
+	WEIGHT& w1  = m->getConnection(input, d1)->getWeight();	w1[0,0]  *= 0.5;
+	//WEIGHT& w11 = m->getConnection(d1, d1)->getWeight();    w11[0,0] *= 0.35;
+	WEIGHT& w21 = m->getConnection(d2, d1)->getWeight();    w21[0,0] *= 0.5;
 
-	WEIGHT& w2  = m->getConnection(input, d2)->getWeight();	w2[0,0]  *= 0.27; // introduce slight asymmetry
-	WEIGHT& w22 = m->getConnection(d2, d2)->getWeight();	w22[0,0] *= 0.35;
-	WEIGHT& w12 = m->getConnection(d1, d2)->getWeight();	w12[0,0] *= 0.38;
+	WEIGHT& w2  = m->getConnection(input, d2)->getWeight();	w2[0,0]  *= 0.5; // introduce slight asymmetry
+	//WEIGHT& w22 = m->getConnection(d2, d2)->getWeight();	w22[0,0] *= 0.35;
+	WEIGHT& w12 = m->getConnection(d1, d2)->getWeight();	w12[0,0] *= 0.5;
 
 	// Ideally, these weights should be able to vary and sum to 1
 	// One way to do this is to have three weights in the network, connect to a softmax, and make the three output weights
@@ -102,8 +110,10 @@ void testDiffEq7(Model* m)
 	m->setStateful(true);
 	m->resetState();
 
-	d1->getActivation().setParam(0, 1.); // 1st parameter
-	d2->getActivation().setParam(0, 1.); // 1st parameter
+	//d1->getActivation().setParam(0,  .15); // 1st parameter
+	//d2->getActivation().setParam(0, -.15); // 1st parameter
+	d1->getActivation().setParam(0,  .75); // 1st parameter
+	d2->getActivation().setParam(0, -.75); // 1st parameter
 
 	//------------------------------------------------------
 	for (int e=0; e < nb_epochs; e++) {
@@ -118,8 +128,10 @@ void testDiffEq7(Model* m)
 		for (int i=0; i < nb_samples-1; i++) {
 			if (m->getStateful() == false) m->resetState();
 			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
-			updateWeightsSumConstraint(m, input, d1, d1, d1, d2, d1);
-			updateWeightsSumConstraint(m, input, d2, d2, d2, d1, d2);
+			updateWeightsSumConstraint(m, input, d1, d2, d1);
+			updateWeightsSumConstraint(m, input, d2, d1, d2);
+			//updateWeightsSumConstraint(m, input, d1, d1, d1, d2, d1);
+			//updateWeightsSumConstraint(m, input, d2, d2, d2, d1, d2);
 			updateWeightsSumConstraint(m, d1, dsum, d2, dsum);
 			// The sum of the weights between d1-dsum, d2-dsum, d3-dsum should add to 1. Not implemented. So freeze these weights
 		}
@@ -149,14 +161,15 @@ void testDiffEq7(Model* m)
 	}
 	//------------------------------------------------------------------
 	m->addWeightHistory(input, d1);
-	m->addWeightHistory(d1, d1);
+	//m->addWeightHistory(d1, d1);
 	m->addWeightHistory(d2, d1);
 	m->addWeightHistory(input, d2);
-	m->addWeightHistory(d2, d2);
+	//m->addWeightHistory(d2, d2);
 	m->addWeightHistory(d1, d2);
 	m->addWeightHistory(d1, dsum);
 	m->addWeightHistory(d2, dsum);
 
+	//printf("YYY\n"); exit(0);
 	m->addParamsHistory(d1);
 	m->addParamsHistory(d2);
 

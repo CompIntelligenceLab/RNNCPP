@@ -1083,6 +1083,7 @@ void Model::freezeWeights()
 void Model::addWeightHistory(Layer* l1, Layer* l2)
 {
     std::vector<WEIGHT>& hist  = getConnection(l1, l2)->weight_history;
+	//hist[0].print("hist");
 	weights_to_print.push_back(hist);
 	//printf("weights_to_print size: %d\n", weights_to_print.size());
 }
@@ -1103,11 +1104,14 @@ void Model::printWeightHistories()
 	int hist_size  = weights_to_print[0].size();
 
 	#if 1
+	printf("*** print weight histories ***\n");
     for (int i=0; i < hist_size; i++) {
         fprintf(fd, "\n%d ", i);
 		// For now, assume that all links have only a single weight
+		printf("nb_weights= %d\n", nb_weights);
 		for (int j=0; j < nb_weights; j++) {
 			const WEIGHT& w = weights_to_print[j][i];
+			printf("w[0,0] = %f\n", w[0,0]);
 			fprintf(fd, "%f ", w[0,0]);
 		}
     }
@@ -1122,6 +1126,7 @@ void Model::printHistories()
 	// Parameter history
 	fd = fopen("params.out", "w");
 	int sz = params_to_print.size();
+	//printf("params_to_print size: %d\n"< param_to_print.size()); exit(0);
 	const LAYERS& layers = getLayers();
 	if (sz == 0) return;
 

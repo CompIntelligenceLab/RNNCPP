@@ -52,10 +52,13 @@ void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer
 	WEIGHT& w1 = m->getConnection(d1, d2)->getWeight();
 	WEIGHT& w2 = m->getConnection(e1, e2)->getWeight();
 	WEIGHT& w3 = m->getConnection(f1, f2)->getWeight();
+	// weights are w1, w2, 1-w1-w2
+	WEIGHT delta13 = dd1 - dd3;
+	WEIGHT delta23 = dd2 - dd3;
 	REAL lr = m->getLearningRate();
-	w1 -= .001 * lr * dd1;
-	w2 -= .001 * lr * dd2;
-	w3 -= .001 * lr * (-dd1-dd2);
+	w1 -= .001 * lr * delta13;
+	w2 -= .001 * lr * delta23;
+	w3 -= .001 * lr * (-delta13-delta23);
 }
 //----------------------------------------------------------------------
 int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_exact, VF1D& x, VF1D& ytarget)
@@ -83,7 +86,9 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 
 	//VF1D ytarget(npts);
 	//VF1D x(npts);   // abscissa
-	REAL delx = .005;  // will this work for uneven time steps? dt = .1, but there is a multiplier: alpha in front of it. 
+	REAL delx;
+	delx = 0.005; // orig
+	//delx = .001;  // will this work for uneven time steps? dt = .1, but there is a multiplier: alpha in front of it. 
 	                 // Some form of normalization will probably be necessary to scale out effect of dt (discrete time step)
 	m->dt = delx;
 	REAL alpha_target = 2.;
