@@ -537,3 +537,10 @@ Dec. 3, 2016
 Implement char-rnn and Gaussian Mixture Model. 
 Then I can go back to work on predicting signals. 
 ----------------------------------------------------------------------
+Dec. 4, 2016
+- Never tested coupled derivatives of Jacobian activation function. 
+- Never tested back propagation with softmax (I should create simple network with 2 inputs and 2 outputs)
+  Input(2) --> softmax(2) --> Least squares or cross-entropy
+  Input(2) --> softmax(3) --> Least squares or cross-entropy
+  Input(3) --> softmax(3) --> Least squares or cross-entropy
+----------------------------------------------------------------------

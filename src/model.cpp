@@ -616,10 +616,9 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	// MUST REWRITE THIS PROPERLY
 	// DEAL WITH BATCH and SEQUENCES CORRECTLY
 	// FOR NOW, ASSUME BATCH=1
-	//printf("ENTER trainOneBatch ******************************\n");
+	printf("ENTER trainOneBatch ******************************\n");
 	cout.precision(11);
 
-	//printf("stateful: %d\n", stateful); //exit(0);
 	if (stateful == false) {
 		resetState();
 	}
@@ -627,9 +626,10 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	//VF2D_F x(1); x[0] = x_;
 	// WRONG IN GENERAL. Only good for batch == 1
 	//VF2D_F exact(1); exact[0] = exact_;
+	//U::print(x);
 
 	VF2D_F pred = predictViaConnectionsBias(x);
-	//pred[0].raw_print(cout, "pred");
+	pred[0].raw_print(cout, "pred");
 	//exact[0].raw_print(cout, "exact");
 	objective->computeLoss(exact, pred);
 

@@ -174,6 +174,8 @@ VF1D Softmax::derivative(const VF1D& x)
 VF2D Softmax::jacobian(const VF1D& x, const VF1D& y)
 {
 	VF2D jac(x.n_rows, x.n_rows);
+	deriv_type = "coupled";  // never tested
+
 	// jac(i,j) = dsoft[i]/dx[j]
 	//printf("IN JACOBIAN\n");
 	//x.print("x");

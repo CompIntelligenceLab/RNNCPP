@@ -59,6 +59,8 @@ void getNextGroupOfChars(Model* m, bool reset, std::string input_data,
 		//net_exact.push_back(vf2d_exact);
 	base += seq_len * nb_chars;
 	printf("base= %d\n", base);
+	net_inputs.push_back(vf2d);
+	net_exact.push_back(vf2d_exact);
 }
 //----------------------------------------------------------------------
 
@@ -164,9 +166,9 @@ void charRNN(Model* m)
 		for (int i=0; i < nb_samples-1; i++) {
 			printf("before train\n");
     		getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
-			//m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
-			exit(0);
 			reset = false;
+			m->trainOneBatch(net_inputs[i], net_exact[i]);
+			exit(0); // CHECK backprop
 		}
 	}
 }
