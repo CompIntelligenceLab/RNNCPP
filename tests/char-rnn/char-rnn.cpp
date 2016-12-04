@@ -1,9 +1,9 @@
 #include <math.h>
-#include "../common.h"
+#include <unordered_map>
 #include <string>
 #include <cstdlib>
-#include <unordered_map>
 #include <set>
+#include "../common.h"
 
 /* implementation of Karpathy's char-rnn. 
    Need on-hot vectors. 
@@ -18,8 +18,56 @@
 
 */
 
+//----------------------------------------------------------------------
+void getNextGroupOfChars(Model* m, bool reset, std::string input_data,
+        std::vector<VF2D_F>& net_inputs, 
+		std::vector<VF2D_F>& net_exact,
+		std::unordered_map<char, int>& c_int,
+		std::vector<char>& int_c,
+		arma::field<VI>& hot)
+{
+	static int base; // keep value across invocations
+	if (reset) base = 0;
+
+	int nb_batch = m->getBatchSize();
+	int input_dim = m->getInputDim();
+	int seq_len = m->getSeqLen();
+	printf("input_dim= %d (=65?)\n", input_dim);
+
+	VF2D_F vf2d; 
+	VF2D_F vf2d_exact;
+
+	int nb_chars = input_dim;
+
+	U::createMat(vf2d, nb_batch, input_dim, seq_len);
+	U::createMat(vf2d_exact, nb_batch, input_dim, seq_len);
+
+	// Assume nb_batch = 1
+	if (nb_batch != 1) { printf("nb_batch should be 1\n"); exit(1); }
+
+	printf("input_data.size= %d\n", input_data.size());
+
+			for (int s=0; s < seq_len; s++) {
+				for (int i=0; i < nb_chars; i++) {   // one-hot vectors
+					int ii = c_int.at(input_data[base + s*nb_chars]);
+					vf2d[0](i, s)       = hot[ii][i];
+					ii = c_int.at(input_data[base + s*nb_chars+1]);
+					vf2d_exact[0](i, s) = hot[ii][i];
+				}
+			}
+		//net_inputs.push_back(vf2d);
+		//net_exact.push_back(vf2d_exact);
+	base += seq_len * nb_chars;
+	printf("base= %d\n", base);
+}
+//----------------------------------------------------------------------
+
 void charRNN(Model* m) 
 {
+	int layer_size = m->layer_size;
+	int is_recurrent = m->is_recurrent;
+	int nb_epochs = m->nb_epochs;
+
 // Read Input Data
 	//FILE* fd = fopen("input.txt", "r");
 	ifstream fd;
@@ -38,11 +86,28 @@ void charRNN(Model* m)
 	}
 	printf("set size: %d\n", char_set.size());
 
-
 	int nb_chars = char_set.size();
-	arma::field<VI> hot(nb_chars);  // VI: 
+	std::set<char>::iterator si;
 	std::unordered_map<char, int> c_int;
-	std::unordered_map<int, char> int_c;
+	std::vector<char> int_c; //, char> int_c;
+	int_c.resize(nb_chars);
+
+	int i=0; 
+	for (si=char_set.begin(); si != char_set.end(); si++) {
+		//printf("char_set = %c\n", *si);
+		c_int[*si] = i;
+		int_c[i] = *si;
+		i++;
+	}
+
+	arma::field<VI> hot(nb_chars);  // VI: 
+
+	i=0; 
+	for (si=char_set.begin(); si != char_set.end(); si++) {
+		c_int.at(*si) = i;
+		int_c[i] = *si;
+		i++; 
+	}
 	//   hot[3] = 0010000...0000;
 
 	for (int i=0; i < nb_chars; i++) {
@@ -57,11 +122,10 @@ void charRNN(Model* m)
 
 	// CONSTRUCT MODEL
 
-	m->setObjective(new MeanSquareError()); 
-	m->getObjective()->setErrorType(m->obj_err_type);
+	m->setObjective(new CrossEntropy()); 
 
-	int layer_size = 100;
-	int input_dim = 1;
+	m->setInputDim(nb_chars);
+	int input_dim = nb_chars;
 	Layer* input = new InputLayer(input_dim, "input_layer");
 	Layer* d1    = new DenseLayer(layer_size, "rdense");
 	Layer* d2    = new DenseLayer(nb_chars, "rdense");
@@ -69,7 +133,7 @@ void charRNN(Model* m)
 	m->add(0, input);
 	m->add(input, d1);
 	m->add(d1, d1, true);
-	m->add(d1, d2, true);
+	m->add(d1, d2);
 
 	input->setActivation(new Identity());
 	d1->setActivation(new Tanh());
@@ -84,6 +148,27 @@ void charRNN(Model* m)
 	m->initializeWeights(); // be initialized after freezing
 
 	// End of model
+	// ----------
+	// Run model
+	std::vector<VF2D_F> net_inputs, net_exact;
+	//int nb_samples = getCharData(m, net_inputs, net_exact, input_data, c_int, int_c, hot);
+	//printf("nb_samples= %d\n", nb_samples);
+
+	bool reset;
+	int nb_samples = 2;
+
+	for (int e=0; e < nb_epochs; e++) {
+		m->resetState();
+		reset = true;
+
+		for (int i=0; i < nb_samples-1; i++) {
+			printf("before train\n");
+    		getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
+			//m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
+			exit(0);
+			reset = false;
+		}
+	}
 }
 
 //----------------------------------------------------------------------

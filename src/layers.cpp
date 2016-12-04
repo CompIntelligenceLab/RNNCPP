@@ -354,8 +354,11 @@ void Layer::forwardLoops(Connection* con, int t)
 	const WEIGHT& wght = con->getWeight();
 	//wght.printSummary("wght"); 
 	//wght.print("wght"); printf("row/col= %d, %d\n", wght.n_rows, wght.n_cols);
+	//this->printSummary();
+	//U::print(wght, "wght");
 	//U::print(loop_input, "loop_input"); //loop_input.print("loop_input");
 	//U::print(outputs, "outputs"); //outputs.print("outputs");
+	//printf("loop_input[b].col[t+1] = wght * outputs[b].col[t]\n");
 	//outputs[0].raw_print(cout, "loop, outputs");
 
 	// loop_input = wght * outputs

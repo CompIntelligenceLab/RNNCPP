@@ -1,3 +1,5 @@
+#include <unordered_map>
+
 class Func { 
 public:
 	REAL alpha;
@@ -59,6 +61,72 @@ void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer
 	w1 -= .001 * lr * delta13;
 	w2 -= .001 * lr * delta23;
 	w3 -= .001 * lr * (-delta13-delta23);
+}
+//----------------------------------------------------------------------
+int getCharData(Model* m, 
+        std::vector<VF2D_F>& net_inputs, 
+		std::vector<VF2D_F>& net_exact, 
+    	std::string& input_data,
+		std::unordered_map<char, int>& c_int,
+		std::vector<char>& int_c,
+		arma::field<VI>& hot)
+{
+	int nb_chars = input_data.size();
+	printf("nb_characters = %d\n", nb_chars);
+	printf("seq_len= %d\n", m->getSeqLen());
+	printf("nb_batch= %d\n", m->getBatchSize());
+	printf("input_dim= %d\n", m->getInputDim());
+	int nb_batch = m->getBatchSize();
+	int input_dim = m->getInputDim();
+	int seq_len = m->getSeqLen();
+
+	VF2D_F vf2d;
+	//printf("nb_batch= %d\n", nb_batch); exit(0);
+	U::createMat(vf2d, nb_batch, input_dim, seq_len);
+
+	VF2D_F vf2d_exact;
+	U::createMat(vf2d_exact, nb_batch, input_dim, seq_len);
+
+	int nb_samples = (input_data.size() / (input_dim * nb_batch * seq_len));
+	printf("nb_samples= %d\n", nb_samples);
+
+	#if 1
+	for (int i=0; i < 65; i++) {
+		printf("c_int.at: %d\n", c_int.at(input_data[i]));
+	}
+
+	// vf2d[batch](nb_chars, seq_len)
+
+	// Assume nb batches is 1 for now. Write code and debug it. 
+
+	// We will write a function to extract the next batch
+
+	printf("input_data.size= %d\n", input_data.size());
+	for (int i=0; i < nb_samples-1; i++) {
+  	for (int b=0; b < nb_batch; b++) {
+		int base = b * seq_len * input_dim; //  ideally, need loop on input_dim
+			for (int s=0; s < seq_len; s++) {
+				//printf("b,i,j= %d, %d, %d\n", b, i, j);
+				//printf("1, base+j+seq_len*i = %d\n", base+s+seq_len*i);
+				// NEED A LOOP OVER INPUTS  (one-hot)
+				printf("base= %d\n", base+s+seq_len*i);
+				printf("input_data: %c\n", input_data[base+s+seq_len*i]);
+				vf2d[b](0, s)       = c_int.at(input_data[base + s + seq_len*i]);
+				printf("vf2d: %d\n", vf2d[b](0,s));
+				vf2d_exact[b](0, s) = c_int.at(input_data[base + s + seq_len*i + 1]); // wasteful of memory
+				exit(0);
+			}
+		}
+		net_inputs.push_back(vf2d);
+		net_exact.push_back(vf2d_exact);
+	}
+
+	for (int s=0; s < 10; s++) {
+		printf("input, exact: %d, %d\n", vf2d[0](0, s), vf2d_exact[0](0, s));
+	}
+	exit(0);
+	#endif
+	return nb_samples;
 }
 //----------------------------------------------------------------------
 int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_exact, VF1D& x, VF1D& ytarget)
@@ -581,7 +649,6 @@ Model* processArguments(int argc, char** argv)
 	argv++; 
 	argc--; 
 
-	printf("argc= %d\n", argc);
 	while (argc > 0) {
 		std::string arg = std::string(argv[0]);
 		printf("arg= %s\n", arg.c_str());
@@ -628,7 +695,7 @@ Model* processArguments(int argc, char** argv)
 
 			argc -= 2; argv += 2;
 		} else { //if (arg == "-h") 
-			printf("Argument not found. \nArgument usage: \n");
+			printf("Argument (%s) not found. \nArgument usage: \n", arg.c_str());
 			printf("  -b <nb_batch>  -s <seq_len> -nb <nb_layers> -l <layer_size> -a <activation> -w <weight_initialization>\n");
 			printf("  Activations: \"tanh\"|\"sigmoid\"|\"iden\"|\"relu\"\n");
 			exit(0);

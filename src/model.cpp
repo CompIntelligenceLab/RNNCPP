@@ -489,6 +489,7 @@ void Model::printSummary()
 			sprintf(buf, "   - prev[%d]: ", p);
 			pl->printSummary(std::string(buf));
 			pc->printSummary(std::string(buf));
+			printf("\n");
 		}
 		for (int n=0; n < next.size(); n++) {
 			Layer* nl = next[n].first;
@@ -497,6 +498,7 @@ void Model::printSummary()
 			sprintf(buf, "   - next[%d]: ", n);
 			nl->printSummary(buf);
 			nc->printSummary(buf);
+			printf("\n");
 		}
 
 		prev = layer->prev_temporal;
@@ -509,6 +511,7 @@ void Model::printSummary()
 			sprintf(buf, "   - prev[%d]: ", p);
 			pl->printSummary(std::string(buf));
 			pc->printSummary(std::string(buf));
+			printf("\n");
 		}
 		for (int n=0; n < next.size(); n++) {
 			Layer* nl = next[n].first;
@@ -517,6 +520,7 @@ void Model::printSummary()
 			sprintf(buf, "   - next[%d]: ", n);
 			nl->printSummary(buf);
 			nc->printSummary(buf);
+			printf("\n");
 		}
 	}
 	printf("\n------ END MODEL SUMMARY ------------------------------------\n\n");

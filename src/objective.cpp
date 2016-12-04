@@ -354,13 +354,25 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 	int nb_batch = exact.n_rows;
 	loss.set_size(nb_batch); // needed
 	VF2D output(size(predict[0]));
+	int seq_len = exact[0].n_cols;
+	int input_dim = exact[0].n_rows;
+	//printf("cross-entropy: input_dim= %d\n", input_dim);
+	//printf("cross-entropy: seq_len= %d\n", seq_len);
 
+	// LOSS[batch][sequence]
 	for (int b=0; b < nb_batch; b++) {
 		// if predict is 0 or 1, loss goes to infinity. So clip. 
+		// output[layer_size, seq_len]
 		output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO); 
-		loss[b] = exact[b]*arma::log(output) + (1.-exact[b]) * arma::log(1.-output); // check size compatibility
-		loss[b] = arma::sum(loss[b], 0);  // sum over 1st index (dimension)
+		U::print(output, "output");
+		U::print(exact, "exact");
+		for (int s=0; s < seq_len; s++) {
+		    //output[   ,s]
+			//loss[b][s] = arma::log(output[s]);
+			;
+		}
 	}
+	//printf("end of crossentropy::computeLoss\n"); exit(0); 
 }
 
 

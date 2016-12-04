@@ -98,7 +98,7 @@ void Connection::print(std::string msg /* "" */)
 
 void Connection::printSummary(std::string msg) 
 {
-	printf("enter Connection::printSummary\n");
+	//printf("enter Connection::printSummary\n");
 	//printf("Connection::temporal= %d\n", temporal);
 	std::string type = (temporal) ? "temporal" : "spatial";
 

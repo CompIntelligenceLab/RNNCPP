@@ -169,7 +169,6 @@ void testDiffEq7(Model* m)
 	m->addWeightHistory(d1, dsum);
 	m->addWeightHistory(d2, dsum);
 
-	//printf("YYY\n"); exit(0);
 	m->addParamsHistory(d1);
 	m->addParamsHistory(d2);
 
