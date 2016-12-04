@@ -327,4 +327,52 @@ void WeightedMeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F&
 	//exit(0);
 }
 //----------------------------------------------------------------------
+CrossEntropy::CrossEntropy(std::string name /* bce */) 
+{
+	char cname[80];
+	if (strlen(cname) > 80) {
+		printf("MeanSquare::MeanSquare : cname array too small\n");
+		exit(1);
+	}
+	sprintf(cname, "%s%d", name.c_str(), counter);
+	this->name = cname;
+	//printf("CrossEntropy constructor (%s)\n", this->name.c_str());
+	counter++;
+}
+
+CrossEntropy::~CrossEntropy()
+{
+	printf("CrossEntropy destructor (%s)\n", name.c_str());
+}
+
+CrossEntropy::CrossEntropy(const CrossEntropy& bce) : Objective(bce)
+{
+}
+
+void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
+{
+	int nb_batch = exact.n_rows;
+	loss.set_size(nb_batch); // needed
+	VF2D output(size(predict[0]));
+
+	for (int b=0; b < nb_batch; b++) {
+		// if predict is 0 or 1, loss goes to infinity. So clip. 
+		output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO); 
+		loss[b] = exact[b]*arma::log(output) + (1.-exact[b]) * arma::log(1.-output); // check size compatibility
+		loss[b] = arma::sum(loss[b], 0);  // sum over 1st index (dimension)
+	}
+}
+
+
+void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
+{
+	int nb_batch = exact.n_rows;
+	gradient.set_size(nb_batch);
+	VF2D output(size(predict[0]));
+
+	for (int b=0; b < nb_batch; b++) {
+		output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO);  // prevent next line from going to infinity
+		gradient[b] = exact[b] / output + (1-exact[b]) /(1-output);
+	}
+}
 //----------------------------------------------------------------------

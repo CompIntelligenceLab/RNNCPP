@@ -105,5 +105,22 @@ public:
 	void computeLoss(const VF2D_F& exact, const VF2D_F& predict);
 	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
 };
+//----------------------------------------------------------------------
+class CrossEntropy : public Objective
+{
+private:
+public:
+	CrossEntropy(std::string name="mse");
+	~CrossEntropy();
+	CrossEntropy(const CrossEntropy&);
+
+	// Use default assignment (works fine because there are no pointers among member variables)
+	//const CrossEntropy& CrossEntropy=(const CrossEntropy&);
+
+	/** sum_{batches} (predict - exact)^2 */
+	void computeLoss(const VF2D_F& exact, const VF2D_F& predict);
+	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
+};
 
 #endif
+
