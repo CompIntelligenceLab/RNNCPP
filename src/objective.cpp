@@ -336,7 +336,6 @@ CrossEntropy::CrossEntropy(std::string name /* bce */)
 	}
 	sprintf(cname, "%s%d", name.c_str(), counter);
 	this->name = cname;
-	//printf("CrossEntropy constructor (%s)\n", this->name.c_str());
 	counter++;
 }
 
@@ -349,42 +348,58 @@ CrossEntropy::CrossEntropy(const CrossEntropy& bce) : Objective(bce)
 {
 }
 
+//----------------------------------------------------------------------
 void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 {
-	int nb_batch = exact.n_rows;
-	loss.set_size(nb_batch); // needed
-	VF2D output(size(predict[0]));
+// First compute softmax of prediction to transform the to probabilities
+
 	int seq_len = exact[0].n_cols;
 	int input_dim = exact[0].n_rows;
-	//printf("cross-entropy: input_dim= %d\n", input_dim);
-	//printf("cross-entropy: seq_len= %d\n", seq_len);
+	int nb_batch = exact.n_rows;
+
+	VF2D ex = exact[0];
+	VF2D_F y(predict);
+
+
+	// softmax over the dimension index of VF2D (first index)
+	for (int b=0; b < nb_batch; b++) {
+		float mx = arma::max(arma::max(predict[b]));
+	    for (int s=0; s < seq_len; s++) {
+		    y(b).col(s) = arma::exp(y(b).col(s)-mx);
+			// trick to avoid overflows
+			float ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
+			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
+		}
+	}
+
+	loss.set_size(nb_batch); // needed
+	VF2D output(size(predict[0]));
 
 	// LOSS[batch][sequence]
 	for (int b=0; b < nb_batch; b++) {
-		// if predict is 0 or 1, loss goes to infinity. So clip. 
-		// output[layer_size, seq_len]
 		output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO); 
-		U::print(output, "output");
-		U::print(exact, "exact");
+
 		for (int s=0; s < seq_len; s++) {
-		    //output[   ,s]
-			//loss[b][s] = arma::log(output[s]);
-			;
+			loss[b].zeros(seq_len);
+
+			// Sum over input_dim (most terms are zero)
+			for (int i=0; i < input_dim; i++) {
+				loss[b](s) -= exact[b](i,s) * log(output[i,s]);
+			}
 		}
 	}
-	//printf("end of crossentropy::computeLoss\n"); exit(0); 
 }
 
-
+//----------------------------------------------------------------------
 void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 {
 	int nb_batch = exact.n_rows;
+	int seq_len  = exact[0].n_cols;
 	gradient.set_size(nb_batch);
 	VF2D output(size(predict[0]));
 
 	for (int b=0; b < nb_batch; b++) {
-		output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO);  // prevent next line from going to infinity
-		gradient[b] = exact[b] / output + (1-exact[b]) /(1-output);
+		gradient[b] = (predict[b] - exact[b]) / seq_len; // average gradient
 	}
 }
 //----------------------------------------------------------------------

@@ -629,7 +629,7 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	//U::print(x);
 
 	VF2D_F pred = predictViaConnectionsBias(x);
-	pred[0].raw_print(cout, "pred");
+	//pred[0].raw_print(cout, "pred");
 	//exact[0].raw_print(cout, "exact");
 	objective->computeLoss(exact, pred);
 

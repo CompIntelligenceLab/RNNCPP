@@ -32,7 +32,7 @@ void getNextGroupOfChars(Model* m, bool reset, std::string input_data,
 	int nb_batch = m->getBatchSize();
 	int input_dim = m->getInputDim();
 	int seq_len = m->getSeqLen();
-	printf("input_dim= %d (=65?)\n", input_dim);
+	//printf("input_dim= %d (=65?)\n", input_dim);
 
 	VF2D_F vf2d; 
 	VF2D_F vf2d_exact;
@@ -45,7 +45,7 @@ void getNextGroupOfChars(Model* m, bool reset, std::string input_data,
 	// Assume nb_batch = 1
 	if (nb_batch != 1) { printf("nb_batch should be 1\n"); exit(1); }
 
-	printf("input_data.size= %d\n", input_data.size());
+	//printf("input_data.size= %d\n", input_data.size());
 
 			for (int s=0; s < seq_len; s++) {
 				for (int i=0; i < nb_chars; i++) {   // one-hot vectors
@@ -58,7 +58,7 @@ void getNextGroupOfChars(Model* m, bool reset, std::string input_data,
 		//net_inputs.push_back(vf2d);
 		//net_exact.push_back(vf2d_exact);
 	base += seq_len * nb_chars;
-	printf("base= %d\n", base);
+	//printf("base= %d\n", base);
 	net_inputs.push_back(vf2d);
 	net_exact.push_back(vf2d_exact);
 }
@@ -130,7 +130,11 @@ void charRNN(Model* m)
 	int input_dim = nb_chars;
 	Layer* input = new InputLayer(input_dim, "input_layer");
 	Layer* d1    = new DenseLayer(layer_size, "rdense");
-	Layer* d2    = new DenseLayer(nb_chars, "rdense");
+	Layer* d2    = new DenseLayer(input_dim, "rdense");
+
+	// Perhaps I should include the softmax in the calculation of the cross-entropy, 
+	// which will simplify the derivative calculation. In that case, d2 is not required. 
+	//Layer* d2    = new DenseLayer(nb_chars, "rdense");
 
 	m->add(0, input);
 	m->add(input, d1);
@@ -139,7 +143,7 @@ void charRNN(Model* m)
 
 	input->setActivation(new Identity());
 	d1->setActivation(new Tanh());
-	d2->setActivation(new Softmax());
+	d2->setActivation(new Identity());
 
 	m->addInputLayer(input);
 	m->addOutputLayer(d2);
@@ -148,27 +152,27 @@ void charRNN(Model* m)
 	m->connectionOrderClean(); // no print statements
 
 	m->initializeWeights(); // be initialized after freezing
+	m->setStateful(true);
 
 	// End of model
-	// ----------
+	// -----------------------------
 	// Run model
 	std::vector<VF2D_F> net_inputs, net_exact;
-	//int nb_samples = getCharData(m, net_inputs, net_exact, input_data, c_int, int_c, hot);
-	//printf("nb_samples= %d\n", nb_samples);
 
 	bool reset;
-	int nb_samples = 2;
+	int nb_samples = 500;
+	nb_epochs = 20;
 
 	for (int e=0; e < nb_epochs; e++) {
+		printf("*** epoch %d ****\n", e);
 		m->resetState();
 		reset = true;
 
 		for (int i=0; i < nb_samples-1; i++) {
-			printf("before train\n");
     		getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
+			// Need a way to exit getNext... when all characters are processed
 			reset = false;
-			m->trainOneBatch(net_inputs[i], net_exact[i]);
-			exit(0); // CHECK backprop
+			m->trainOneBatch(net_inputs[0], net_exact[0]);
 		}
 	}
 }
