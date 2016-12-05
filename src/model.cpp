@@ -35,8 +35,14 @@ Model::~Model()
 	printf("Model destructor (%s)\n", name.c_str());
 
 	for (int i=0; i < layers.size(); i++) {
-		if (layers[i]) {delete layers[i]; layers[i] = 0;}
+		if (layers[i]) {delete layers[i];} 
 	}
+	layers.resize(0);
+
+	for (int i=0; i < activations.size(); i++) {
+		if (activations[i]) {delete activations[i];}
+	}
+	activations.resize(0);
 
 	if (optimizer) {
 		delete optimizer;

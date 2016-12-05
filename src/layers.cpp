@@ -10,21 +10,6 @@ int Layer::counter = 0;
 
 Layer::Layer(int layer_size, std::string name /* "layer" */)
 {
-	char cname[80];
-	if (strlen(cname) > 80) {
-		printf("Activation::Activation : cname array too small\n");
-		exit(1);
-	}
-	sprintf(cname, "%s%d", name.c_str(), counter);
-	this->name = cname;
-	printf("Layer constructor (%s)\n", this->name.c_str());
-	loop_input.set_size(nb_batch);
-
-	counter++;
-
-	// Input dimension has no significance if the layer is connected to several upstream layers
-	// How to access connection to previous layer if this is the first layer? 
-
 	this->layer_size = layer_size;
 	input_dim   = -1; // no assignment yet. 
 	nb_batch    =  1;   // HOW TO SET BATCH FOR LAYERS? 
@@ -33,11 +18,33 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	clock = 0;
 	recurrent_conn = 0;
 
+	char cname[80];
+	if (strlen(cname) > 80) {
+		printf("Activation::Activation : cname array too small\n");
+		exit(1);
+	}
+	sprintf(cname, "%s%d", name.c_str(), counter);
+	this->name = cname;
+	//printf("Layer constructor (%s)\n", this->name.c_str());
+	//printf("nb_batch= %d\n", nb_batch);
+
+	// Not sure this is still needed
+	loop_input.set_size(nb_batch);    // <<<< SOMETHING WRONG? 
+
+	//print("xyz\n");exit(0);
+
+	counter++;
+
+	// Input dimension has no significance if the layer is connected to several upstream layers
+	// How to access connection to previous layer if this is the first layer? 
+
+
 	initVars(nb_batch);
 
 	// Default activation: tanh
 	activation = new Tanh("tanh");
 }
+//----------------------------------------------------------------------
 
 void Layer::initVars(int nb_batch)
 {
@@ -82,6 +89,8 @@ Layer::~Layer()
 	printf("Layer destructor (%s)\n", name.c_str());
 	if (activation) delete activation;
 	activation = 0;
+	if (recurrent_conn) delete recurrent_conn;
+	recurrent_conn = 0;
 }
 
 Layer::Layer(const Layer& l) : layer_size(l.layer_size), input_dim(l.input_dim),

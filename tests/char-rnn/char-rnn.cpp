@@ -132,6 +132,7 @@ void charRNN(Model* m)
 	Layer* d1    = new DenseLayer(layer_size, "rdense");
 	Layer* d2    = new DenseLayer(input_dim, "rdense");
 
+
 	// Perhaps I should include the softmax in the calculation of the cross-entropy, 
 	// which will simplify the derivative calculation. In that case, d2 is not required. 
 	//Layer* d2    = new DenseLayer(nb_chars, "rdense");
@@ -160,8 +161,8 @@ void charRNN(Model* m)
 	std::vector<VF2D_F> net_inputs, net_exact;
 
 	bool reset;
-	int nb_samples = 500;
-	nb_epochs = 20;
+	int nb_samples = 5;
+	nb_epochs = 10;
 
 	for (int e=0; e < nb_epochs; e++) {
 		printf("*** epoch %d ****\n", e);
@@ -175,6 +176,10 @@ void charRNN(Model* m)
 			m->trainOneBatch(net_inputs[0], net_exact[0]);
 		}
 	}
+
+	delete input;
+	delete d1;
+	delete d2;
 }
 
 //----------------------------------------------------------------------

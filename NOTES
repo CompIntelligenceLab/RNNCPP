@@ -544,3 +544,61 @@ Dec. 4, 2016
   Input(2) --> softmax(3) --> Least squares or cross-entropy
   Input(3) --> softmax(3) --> Least squares or cross-entropy
 ----------------------------------------------------------------------
+Memory leaks
+Use valgrind
+==25294== 80 (64 direct, 16 indirect) bytes in 1 blocks are definitely lost in loss record 67 of 236
+==25294== 104 (56 direct, 48 indirect) bytes in 1 blocks are definitely lost in loss record 68 of 236
+==25294== 176 bytes in 1 blocks are definitely lost in loss record 99 of 236
+==25294== 176 bytes in 1 blocks are definitely lost in loss record 100 of 236
+==25294== 176 bytes in 1 blocks are definitely lost in loss record 101 of 236
+==25294== 176 bytes in 1 blocks are definitely lost in loss record 102 of 236
+==25294== 232 (64 direct, 168 indirect) bytes in 1 blocks are definitely lost in loss record 108 of 236
+==25294== 272 bytes in 1 blocks are definitely lost in loss record 115 of 236
+==25294== 272 bytes in 1 blocks are definitely lost in loss record 116 of 236
+==25294== 272 bytes in 1 blocks are definitely lost in loss record 117 of 236
+==25294== 608 bytes in 1 blocks are definitely lost in loss record 138 of 236
+==25294== 2,064 (1,600 direct, 464 indirect) bytes in 25 blocks are definitely lost in loss record 165 of 236
+==25294== 2,800 (1,600 direct, 1,200 indirect) bytes in 25 blocks are definitely lost in loss record 169 of 236
+==25294== 4,096 bytes in 1 blocks are definitely lost in loss record 173 of 236
+==25294== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 215 of 236
+==25294== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 216 of 236
+==25294== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 217 of 236
+==25294== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 218 of 236
+==25294== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 224 of 236
+==25294== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 225 of 236
+==25294== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 226 of 236
+==25294== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 227 of 236
+==25294== 25,236,576 (544 direct, 25,236,032 indirect) bytes in 1 blocks are definitely lost in loss record 236 of 236
+==25294==    definitely lost: 44,648 bytes in 259 blocks
+
+==25390== 80 (64 direct, 16 indirect) bytes in 1 blocks are definitely lost in loss record 60 of 176
+==25390== 104 (56 direct, 48 indirect) bytes in 1 blocks are definitely lost in loss record 61 of 176
+==25390== 176 bytes in 1 blocks are definitely lost in loss record 74 of 176
+==25390== 176 bytes in 1 blocks are definitely lost in loss record 75 of 176
+==25390== 176 bytes in 1 blocks are definitely lost in loss record 76 of 176
+==25390== 176 bytes in 1 blocks are definitely lost in loss record 77 of 176
+==25390== 232 (64 direct, 168 indirect) bytes in 1 blocks are definitely lost in loss record 83 of 176
+==25390== 272 bytes in 1 blocks are definitely lost in loss record 87 of 176
+==25390== 272 bytes in 1 blocks are definitely lost in loss record 88 of 176
+==25390== 272 bytes in 1 blocks are definitely lost in loss record 89 of 176
+==25390== 608 bytes in 1 blocks are definitely lost in loss record 102 of 176
+==25390== 2,064 (1,600 direct, 464 indirect) bytes in 25 blocks are definitely lost in loss record 126 of 176
+==25390== 2,800 (1,600 direct, 1,200 indirect) bytes in 25 blocks are definitely lost in loss record 127 of 176
+==25390== 4,096 bytes in 1 blocks are definitely lost in loss record 130 of 176
+==25390== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 158 of 176
+==25390== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 159 of 176
+==25390== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 160 of 176
+==25390== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 161 of 176
+==25390== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 166 of 176
+==25390== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 167 of 176
+==25390== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 168 of 176
+==25390== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 169 of 176
+==25390== 19,559,152 (544 direct, 19,558,608 indirect) bytes in 1 blocks are definitely lost in loss record 176 of 176
+==25390==    definitely lost: 44,648 bytes in 259 blocks
+----------------------------------------------------------------------
+Dec. 5, 2016
+Clip gradient of cross-entropy to [-5,5]. Same as char-rnn. 
+Perhaps I need ReLU instead of Tanh? 
+
+I have a problem starting char-rnn. It blocks. 
+----------------------------------------------------------------------

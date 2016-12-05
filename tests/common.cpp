@@ -169,6 +169,7 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 	Func& fun1 = *(new ExpFunc(alpha_target));
 	Func& fun2 = *(new ExpFunc(-.1));
 
+
 	// Choose the function to use to determine differential equation
 
 	for (int i=0; i < npts; i++) {
@@ -249,6 +250,8 @@ for (int i=0; i < nb_samples-1; i++) {
 
 
 
+	delete &fun1;
+	delete &fun2;
 	return nb_samples;
 }
 //----------------------------------------------------------------------
@@ -322,6 +325,8 @@ WEIGHT weightDerivative(Model* m, Connection& con, REAL fd_inc, VF2D_F& xf, VF2D
 			dLdw(rr, cc) += (arma::sum(loss_n(b)) - arma::sum(loss_p(b))) / (2.*fd_inc);
 		}
 	}}
+
+	delete mse;
 	return dLdw;
 }
 //----------------------------------------------------------------------
@@ -358,6 +363,7 @@ BIAS biasFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& xf, VF2D_F& e
 			dLdb(rr) += (arma::sum(loss_n(b)) - arma::sum(loss_p(b))) / (2.*fd_inc);
 		}
 	}
+	delete mse;
 	return dLdb;
 }
 //----------------------------------------------------------------------
@@ -428,6 +434,7 @@ VF1D activationParamsFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& x
 		dLdp.print("dLdp");
 	}
 	printf("activationParamsFDDerivative\n"); //exit(0);
+	delete mse;
 	return dLdp;
 }
 //----------------------------------------------------------------------
@@ -642,7 +649,7 @@ Model* processArguments(int argc, char** argv)
 
 	REAL inc;
 	string activation_type;
-	Activation* activation = new Identity(); 
+	//Activation* activation = new Identity(); 
 	std::string initialization_type;
 	initialization_type = "xavier";
 
@@ -702,8 +709,6 @@ Model* processArguments(int argc, char** argv)
 		}
 	}
 
-	//printf("nb layers: %d\n", nb_layers); exit(0);
-
 	//arma_rng::set_seed_random(); // REMOVE LATER
 	arma_rng::set_seed(100); // REMOVE LATER
 
@@ -739,8 +744,6 @@ Model* processArguments(int argc, char** argv)
 		}
 	}}
 
-
+	//delete activation;
 	return m;
-
-	//testRecurrentModelBias1(m, layer_size, is_recurrent, activation, inc);
 }

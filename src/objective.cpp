@@ -385,8 +385,11 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 			// Sum over input_dim (most terms are zero)
 			for (int i=0; i < input_dim; i++) {
 				loss[b](s) -= exact[b](i,s) * log(output[i,s]);
+				// I should not have to do the sum, since exact is all zeros except one element, and 
+				// I know which one
 			}
 		}
+		// Really need the average
 	}
 }
 
@@ -400,6 +403,11 @@ void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 
 	for (int b=0; b < nb_batch; b++) {
 		gradient[b] = (predict[b] - exact[b]) / seq_len; // average gradient
+		// although all exact are zero except one (for a given sequence index), predict are all non-zero.
+		// So I do not think there is a faster procedulre to evaluate
+
+		// Clip to [-5,5] to avoid exploding gradients
+		gradient[b] = arma::clamp(gradient[b], -5., 5.);
 	}
 }
 //----------------------------------------------------------------------
