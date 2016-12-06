@@ -539,11 +539,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	}
 
 	//printf("****************** ENTER predictViaConnections ***************\n");
-	//x[0].raw_print(cout, "x");
-	//layers[1]->getOutputs()[0].raw_print(cout, "getOutputs"); // XXX
 
-	//U::printLayerInputs(this);
-	//U::printLayerOutputs(this);
 
 	VF2D_F prod(x.n_rows);
 
@@ -584,11 +580,8 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
-			//conn->printSummary(""); conn->getWeight().print("spatial weights");
 			Layer* to_layer   = conn->to;
-			// Responsible for memory leak
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
-			//prod[0].raw_print("prod[0]");
 		}
  	}
 
@@ -601,16 +594,9 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	for (int c=0; c < clist_temporal.size(); c++) {  // WILL THIS CHANGE eq3 test? 
 		Connection* conn  = clist_temporal[c];
 		Layer* to_layer   = conn->to;
-		//printf("before forwardLoops\n");
-		//conn->printSummary();
-		//to_layer->printSummary();
 		to_layer->forwardLoops(conn, seq_len-1, 0);
-		//exit(0);
 	}
 
-	//prod[0].raw_print(cout, "prod"); exit(0);
-	// I should do prod.reset(), but cannot or else I cannot return the data. 
-	// Therefore, pass prod via argument. 
 	return prod;
 }
 //----------------------------------------------------------------------
@@ -659,7 +645,6 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
-			//conn->printSummary(""); conn->getWeight().print("spatial weights");
 			Layer* to_layer   = conn->to;
 			// Responsible for memory leak
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
@@ -670,16 +655,10 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 	// update all other temporal connections coming into the layers (arbitrary order, I think)
 	// ...........
 
-	//printf("before last for in predict\n");
-	//for (int c=0; c < clist.size(); c++) { // }
 	for (int c=0; c < clist_temporal.size(); c++) {  // WILL THIS CHANGE eq3 test? 
 		Connection* conn  = clist_temporal[c];
 		Layer* to_layer   = conn->to;
-		//printf("before forwardLoops\n");
-		//conn->printSummary();
-		//to_layer->printSummary();
 		to_layer->forwardLoops(conn, seq_len-1, 0);
-		//exit(0);
 	}
 
 	//prod[0].raw_print(cout, "prod"); exit(0);
@@ -715,18 +694,15 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	//VF2D_F pred = predictViaConnectionsBias(x); // orig
 	VF2D_F pred; //new
 	predictViaConnectionsBias(x, pred); // new
-	//pred[0].raw_print(cout, "pred");
-	//exact[0].raw_print(cout, "exact");
-	//printf("objective->computeLoss\n");
-	//U::print(pred, "pred");
-	//return; // no leaks
 	objective->computeLoss(exact, pred);
 
 	const LOSS& loss = objective->getLoss();
+	REAL rloss = arma::sum(loss[0]);
+	printf("rloss= %f\n", rloss);
+
+	// If save loss, ...
 	//loss_history.push_back(loss); // slight leak (should print out every n iterations
 
-	//LOSS ll = loss;
-	//printf("loss= %21.14f\n", loss[0][0]);
 
 	backPropagationViaConnectionsRecursion(exact, pred);
 	//return; // leaks

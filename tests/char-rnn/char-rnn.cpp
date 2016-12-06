@@ -48,20 +48,16 @@ void getNextGroupOfChars(Model* m, bool reset, std::string input_data,
 	// Assume nb_batch = 1
 	if (nb_batch != 1) { printf("nb_batch should be 1\n"); exit(1); }
 
-	//printf("input_data.size= %d\n", input_data.size());
 
-			for (int s=0; s < seq_len; s++) {
-				for (int i=0; i < nb_chars; i++) {   // one-hot vectors
-					int ii = c_int.at(input_data[base + s*nb_chars]);
-					vf2d[0](i, s)       = hot[ii][i];
-					ii = c_int.at(input_data[base + s*nb_chars+1]);
-					vf2d_exact[0](i, s) = hot[ii][i];
-				}
-			}
-		//net_inputs.push_back(vf2d);
-		//net_exact.push_back(vf2d_exact);
+	for (int s=0; s < seq_len; s++) {
+		for (int i=0; i < nb_chars; i++) {   // one-hot vectors
+			int ii = c_int.at(input_data[base + s*nb_chars]);
+			vf2d[0](i, s)       = hot[ii][i];
+			ii = c_int.at(input_data[base + (s+1)*nb_chars]);
+			vf2d_exact[0](i, s) = hot[ii][i];
+		}
+	}
 	base += seq_len * nb_chars;
-	//printf("base= %d\n", base);
 	net_inputs.resize(0);
 	net_exact.resize(0);
 	net_inputs.push_back(vf2d);

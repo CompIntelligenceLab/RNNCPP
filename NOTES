@@ -602,3 +602,6 @@ Perhaps I need ReLU instead of Tanh?
 
 I have a problem starting char-rnn. It blocks. 
 ----------------------------------------------------------------------
+Dec. 6, 2016
+Loss function appears incorrect in char-rnn. 
+----------------------------------------------------------------------

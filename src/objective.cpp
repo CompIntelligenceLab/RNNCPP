@@ -376,8 +376,8 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 	for (int b=0; b < nb_batch; b++) {
 		output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO); 
 
+		loss[b].zeros(seq_len);
 		for (int s=0; s < seq_len; s++) {
-			loss[b].zeros(seq_len);
 
 			// Sum over input_dim (most terms are zero)
 			for (int i=0; i < input_dim; i++) {
@@ -386,8 +386,10 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 				// I know which one
 			}
 		}
-		// Really need the average
+		// Really need the average over the sequence
+		loss[b] = loss[b] / seq_len;
 	}
+	loss.print("exit loss");
 }
 
 //----------------------------------------------------------------------
