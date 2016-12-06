@@ -13,6 +13,11 @@ void U::print(VF3D x, std::string msg /*""*/)
 //----------------------------------------------------------------------
 void U::print(VF2D_F x, std::string msg /*""*/)
 {
+	if (x.n_rows == 0) {
+		printf("\n%s is empty\n", msg.c_str());
+		return;
+	}
+
 	int n_rows = (int) x[0].n_rows;
 	int n_cols = (int) x[0].n_cols;
 

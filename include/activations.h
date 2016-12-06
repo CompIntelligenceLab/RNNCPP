@@ -53,7 +53,7 @@ public:
 	virtual VF2D jacobian(const VF1D& x, const VF1D& y) { ; // different variables are coupled, Jacobian
 		return VF2D(1,1);  // not really used, but a placeholder 
 	}
-	virtual VF2D_F operator()(const VF2D_F& x) = 0;
+	virtual VF2D_F operator()(const VF2D_F& x) = 0; // Memory leak
 	virtual void print(std::string name= "");
 	virtual std::string getName() { return name; }
 	virtual const std::string getDerivType() const { return deriv_type; }
@@ -73,12 +73,15 @@ public:
 class Identity : public Activation
 {
 public:
-	Identity(std::string name="Identity") : Activation(name) {;}
+	Identity(std::string name="Identity") : Activation(name) 
+	{ printf("identity copy constructor\n"); }
 	~Identity();
+	//Identity(Identity&& w);
     Identity(const Identity&);
     const Identity& operator=(const Identity&);
  
 	VF2D_F operator()(const VF2D_F& x) {
+		//printf("inside identity operator()\n");
 		return x;
 	}
 

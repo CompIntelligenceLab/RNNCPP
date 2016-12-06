@@ -146,6 +146,7 @@ public:
   VF2D_F predictViaConnections(VF2D_F x); 
   // Same as predictviaConnections, but take bias into account
   VF2D_F predictViaConnectionsBias(VF2D_F x);
+  void predictViaConnectionsBias(VF2D_F x, VF2D_F& prod);
   void  storeGradientsInLayers();
   void  storeDactivationDoutputInLayers();
   void 	storeDLossDweightInConnections();

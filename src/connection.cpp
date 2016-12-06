@@ -136,15 +136,14 @@ Connection Connection::operator*(const Connection& w)
 
 VF2D_F Connection::operator*(const VF2D_F& x)
 {
+	// Routine does not appear to be used. So not complicit in memory leaks.
+
     // w * x  ==> w(layer[k], layer[k-1]) * x[batch](dim, seq)
 	int nb_batch = x.n_rows;
 	int dim      = x[0].n_rows;   // if x[0] exists
 	int nb_seq   = x[0].n_cols;   // if x[0] exists
 
 	VF2D_F tmp(nb_batch);  // Ideally, this should initialize all components
-	//x[0].print("x[i]");
-	//weight.print("weight");
-	//exit(0);
 
 	for (int i=0; i < nb_batch; i++) {
 		tmp[i] = this->weight * x[i]; // benchmark for large arrays
@@ -259,6 +258,7 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 		}
 		const WEIGHT& wght_t = getWeightTranspose();
 		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to);  // dL/da
+		//return; // no leak
 		//this->printSummary();
 		//printf("Connection::gradMulDLda, "); prod.print("prod = dL/da");
 	} else { // "coupled"
@@ -275,7 +275,9 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 		}
 	}
 
+		//return; // no leak
 	if (ti_from == ti_to) {
+		//return; // leak
 		layer_from->incrDelta(prod, ti_from);   // spatial
 		#ifdef DEBUG
 		layer_from->deltas.push_back(prod);
@@ -288,6 +290,7 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 			#endif
 		}
 	}
+	prod.reset();
 }
 //----------------------------------------------------------------------
 void Connection::dLdaMulGrad(int t)
@@ -300,6 +303,7 @@ void Connection::dLdaMulGrad(int t)
 	const VF2D_F& old_deriv = layer_to->getDelta();
 	const VF2D_F& out = layer_from->getOutputs();
 	Activation& activation = layer_to->getActivation();
+
 	WEIGHT delta = VF2D(size(weight));
 
 	if (activation.getDerivType() == "decoupled") {

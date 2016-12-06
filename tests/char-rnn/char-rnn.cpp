@@ -37,10 +37,13 @@ void getNextGroupOfChars(Model* m, bool reset, std::string input_data,
 	VF2D_F vf2d; 
 	VF2D_F vf2d_exact;
 
+
 	int nb_chars = input_dim;
 
+	// does memory get released? 
 	U::createMat(vf2d, nb_batch, input_dim, seq_len);
 	U::createMat(vf2d_exact, nb_batch, input_dim, seq_len);
+
 
 	// Assume nb_batch = 1
 	if (nb_batch != 1) { printf("nb_batch should be 1\n"); exit(1); }
@@ -59,8 +62,13 @@ void getNextGroupOfChars(Model* m, bool reset, std::string input_data,
 		//net_exact.push_back(vf2d_exact);
 	base += seq_len * nb_chars;
 	//printf("base= %d\n", base);
+	net_inputs.resize(0);
+	net_exact.resize(0);
 	net_inputs.push_back(vf2d);
 	net_exact.push_back(vf2d_exact);
+	vf2d.reset();
+	vf2d_exact.reset();
+	return;
 }
 //----------------------------------------------------------------------
 
@@ -142,9 +150,12 @@ void charRNN(Model* m)
 	m->add(d1, d1, true);
 	m->add(d1, d2);
 
-	input->setActivation(new Identity());
-	d1->setActivation(new Tanh());
-	d2->setActivation(new Identity());
+	input->setActivation(new Identity());// Original
+	//input->setActivation(new Tanh());
+	//d1->setActivation(new Tanh());
+	//d1->setActivation(new Identity()); // original
+	d2->setActivation(new Tanh());
+	d2->setActivation(new Identity()); // original
 
 	m->addInputLayer(input);
 	m->addOutputLayer(d2);
@@ -155,14 +166,45 @@ void charRNN(Model* m)
 	m->initializeWeights(); // be initialized after freezing
 	m->setStateful(true);
 
+	#if 0
+	VF2D_F xx(2);
+	VF2D_F yy;
+	xx(0) = VF2D(100,30);
+	xx(1) = VF2D(100,30);
+	xx(0)(3,4) = 45.;
+	xx(0)(3,5) = 57.;
+	xx(1)(3,5) = 72.;
+	for (int j=0; j < 1000; ++j) {
+	for (int i=0; i < 100000; i++) {
+		yy = xx;  // works as expected with fields // no leak
+	}}
+	exit(0);
+	printf("yy(0)(3,5)= %f\n", yy(0)(3,5));
+	printf("yy(0)(3.4)= %f\n", yy(0)(3,4));
+	printf("yy(1)(3.5)= %f\n", yy(1)(3,5));
+	xx(0)(3,4) = 35.;
+	printf("yy(0)(3,4)= %f\n", yy(0)(3,4));
+	exit(0);
+	Activation& act = d1->getActivation();
+	for (int j=0; j < 1000; j++) {
+	for (int i=0; i < 100000; i++) {
+		printf("j,i= %d, %d\n", j, i);
+		yy = act(xx);
+		yy.reset(); // removes leak
+		//yy(0).reset(); // memory leak still there, but grows more slowly. 
+	}}
+	exit(0);
+	#endif
+
+
 	// End of model
 	// -----------------------------
 	// Run model
 	std::vector<VF2D_F> net_inputs, net_exact;
 
 	bool reset;
-	int nb_samples = 5;
-	nb_epochs = 10;
+	int nb_samples = 200;
+	nb_epochs = 5000;
 
 	for (int e=0; e < nb_epochs; e++) {
 		printf("*** epoch %d ****\n", e);
@@ -170,11 +212,15 @@ void charRNN(Model* m)
 		reset = true;
 
 		for (int i=0; i < nb_samples-1; i++) {
+			printf("%d ", i);
     		getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 			m->trainOneBatch(net_inputs[0], net_exact[0]);
+			net_inputs[0].reset();
+			net_exact[0].reset();
 		}
+		printf("\n\n");
 	}
 
 	delete input;

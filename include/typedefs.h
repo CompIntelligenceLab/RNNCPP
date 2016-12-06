@@ -2,7 +2,8 @@
 #define __TYPEDEFS__H_
 
 // set to use extra memory and diagnotics for debugging. 
-#define DEBUG 
+// Generates leaks? Many push_back
+//#define DEBUG 
 
 #include <vector>
 

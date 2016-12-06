@@ -25,19 +25,14 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	}
 	sprintf(cname, "%s%d", name.c_str(), counter);
 	this->name = cname;
-	//printf("Layer constructor (%s)\n", this->name.c_str());
-	//printf("nb_batch= %d\n", nb_batch);
 
 	// Not sure this is still needed
 	loop_input.set_size(nb_batch);    // <<<< SOMETHING WRONG? 
-
-	//print("xyz\n");exit(0);
 
 	counter++;
 
 	// Input dimension has no significance if the layer is connected to several upstream layers
 	// How to access connection to previous layer if this is the first layer? 
-
 
 	initVars(nb_batch);
 
@@ -329,9 +324,13 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 
 		 // Add layer biases. must loop over batch and over sequence size. 
 		 addBiasToInput(t);
+
+		 prod.reset();  // Should avoid memory leaks
 		 prod = getActivation()(getInputs());
-		 setOutputs(prod);
+
+		 setOutputs(prod); 
 	}
+	return;
 }
 //----------------------------------------------------------------------
 void Layer::processData(Connection* conn, VF2D_F& prod)
@@ -344,6 +343,7 @@ void Layer::processData(Connection* conn, VF2D_F& prod)
 		// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
 
 		if (areIncomingLayerConnectionsComplete()) {
+			 prod.reset(); 
 			 prod = getActivation()(prod);
 			 setOutputs(prod);
 		}

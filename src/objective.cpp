@@ -100,9 +100,6 @@ void MeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 			loss[b] = arma::sum(tmp, 0);  // sum over 1st index (dimension)
 		}
 	}
-	U::print(loss, "computeLoss, MeanSquareError");
-	loss.print("loss gradient");
-	//exit(0);
 }
 
 void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
@@ -301,8 +298,8 @@ void WeightedMeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& pre
 			}
 		}
 	}
-	U::print(loss, "computeLoss, WeightedMeanSquareError");
-	loss.print("MeanSquareError loss");
+	//U::print(loss, "computeLoss, WeightedMeanSquareError");
+	//loss.print("MeanSquareError loss");
 	//exit(0);
 }
 

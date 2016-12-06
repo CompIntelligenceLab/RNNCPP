@@ -38,6 +38,7 @@ void Activation::print(std::string msg /* "" */)
 Activation::Activation(const Activation& a)
 {
 	char cname[80];
+	printf("activation copy constructor\n");
 
 	if (strlen(cname) > 80) {
 		printf("Activation::Activation : cname array too small\n");
@@ -50,6 +51,7 @@ Activation::Activation(const Activation& a)
 
 const Activation& Activation::operator=(const Activation& a)
 {
+	printf("activation operator=\n");
 	if (this != &a) {
 		name = a.name;
 	}
@@ -112,15 +114,19 @@ const Sigmoid& Sigmoid::operator=(const Sigmoid& s)
 //----------------------------------------------------------------------
 Identity::~Identity()
 {
+	printf("identity destructor\n");
 }
+
+//Identity::Identity(Identity&& w) = 0;
  
 Identity::Identity(const Identity& s) : Activation(s)
 {
-	printf("Identity constructor (%s)\n", this->name.c_str());
+	printf("Identity copy constructor (%s)\n", this->name.c_str());
 }
 
 const Identity& Identity::operator=(const Identity& s)
 {
+	printf("identity operator=\n");
 	if (this != &s) {
 		name = s.name + '=';
 	}
@@ -145,6 +151,7 @@ VF2D_F Softmax::operator()(const VF2D_F& x)
 	}
 }
 
+//----------------------------------------------------------------------
 //f = 1 / (1 + exp(-x)) = 1/D
 //f' = -1/D^2 * (-exp(-x)-1 + 1) = -1/D^2 * (-D + 1) = 1/D - 1/D^2 = f (1-f)
 VF2D_F Softmax::derivative(const VF2D_F& x)
