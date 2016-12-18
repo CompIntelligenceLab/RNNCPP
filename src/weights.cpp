@@ -69,9 +69,9 @@ void Weights::initializeWeights(std::string initialize_type /* "uniform" */)
 		for (int i=0; i < weights_f.size(); i++) {
 			WEIGHTS& w = weights_f[0];
 			w = arma::randu<WEIGHTS>(arma::size(w)); //arma::size(*weights));
-			printf("weights: %f\n", w[0,0]);
+			printf("weights: %f\n", w(0,0));
 			w = arma::randu<WEIGHTS>(arma::size(w)); //arma::size(*weights));
-			printf("weights: %f\n", w[0,0]);
+			printf("weights: %f\n", w(0,0));
 			printf("weights size: %d\n", w.size());
 			printf("rows, col= %d, %d\n", w.n_rows, w.n_cols);
 		}

@@ -36,5 +36,6 @@ public:
 	~RMSProp();
 	RMSProp(const RMSProp&);
 };
+//-------------------------------------------
 
 #endif

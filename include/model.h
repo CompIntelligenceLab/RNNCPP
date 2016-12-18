@@ -30,6 +30,7 @@ public:
 	int nb_parallel_layers;
 	REAL dt;
   	int nb_epochs;
+	std::string obj_err_type;
 
 	// Parameter histories
 	// true: save history every iteration (each iteration is sequence length of seq_len)
@@ -145,6 +146,7 @@ public:
   VF2D_F predictViaConnections(VF2D_F x); 
   // Same as predictviaConnections, but take bias into account
   VF2D_F predictViaConnectionsBias(VF2D_F x);
+  void predictViaConnectionsBias(VF2D_F x, VF2D_F& prod);
   void  storeGradientsInLayers();
   void  storeDactivationDoutputInLayers();
   void 	storeDLossDweightInConnections();

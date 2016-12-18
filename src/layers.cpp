@@ -10,21 +10,6 @@ int Layer::counter = 0;
 
 Layer::Layer(int layer_size, std::string name /* "layer" */)
 {
-	char cname[80];
-	if (strlen(cname) > 80) {
-		printf("Activation::Activation : cname array too small\n");
-		exit(1);
-	}
-	sprintf(cname, "%s%d", name.c_str(), counter);
-	this->name = cname;
-	printf("Layer constructor (%s)\n", this->name.c_str());
-	loop_input.set_size(nb_batch);
-
-	counter++;
-
-	// Input dimension has no significance if the layer is connected to several upstream layers
-	// How to access connection to previous layer if this is the first layer? 
-
 	this->layer_size = layer_size;
 	input_dim   = -1; // no assignment yet. 
 	nb_batch    =  1;   // HOW TO SET BATCH FOR LAYERS? 
@@ -33,11 +18,28 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	clock = 0;
 	recurrent_conn = 0;
 
+	char cname[80];
+	if (strlen(cname) > 80) {
+		printf("Activation::Activation : cname array too small\n");
+		exit(1);
+	}
+	sprintf(cname, "%s%d", name.c_str(), counter);
+	this->name = cname;
+
+	// Not sure this is still needed
+	loop_input.set_size(nb_batch);    // <<<< SOMETHING WRONG? 
+
+	counter++;
+
+	// Input dimension has no significance if the layer is connected to several upstream layers
+	// How to access connection to previous layer if this is the first layer? 
+
 	initVars(nb_batch);
 
 	// Default activation: tanh
 	activation = new Tanh("tanh");
 }
+//----------------------------------------------------------------------
 
 void Layer::initVars(int nb_batch)
 {
@@ -82,6 +84,8 @@ Layer::~Layer()
 	printf("Layer destructor (%s)\n", name.c_str());
 	if (activation) delete activation;
 	activation = 0;
+	if (recurrent_conn) delete recurrent_conn;
+	recurrent_conn = 0;
 }
 
 Layer::Layer(const Layer& l) : layer_size(l.layer_size), input_dim(l.input_dim),
@@ -320,9 +324,13 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 
 		 // Add layer biases. must loop over batch and over sequence size. 
 		 addBiasToInput(t);
+
+		 prod.reset();  // Should avoid memory leaks
 		 prod = getActivation()(getInputs());
-		 setOutputs(prod);
+
+		 setOutputs(prod); 
 	}
+	return;
 }
 //----------------------------------------------------------------------
 void Layer::processData(Connection* conn, VF2D_F& prod)
@@ -335,6 +343,7 @@ void Layer::processData(Connection* conn, VF2D_F& prod)
 		// Where are the various inputs added up? So derivatives will work if layer_size=1, but not otherwise. 
 
 		if (areIncomingLayerConnectionsComplete()) {
+			 prod.reset(); 
 			 prod = getActivation()(prod);
 			 setOutputs(prod);
 		}
@@ -354,8 +363,11 @@ void Layer::forwardLoops(Connection* con, int t)
 	const WEIGHT& wght = con->getWeight();
 	//wght.printSummary("wght"); 
 	//wght.print("wght"); printf("row/col= %d, %d\n", wght.n_rows, wght.n_cols);
+	//this->printSummary();
+	//U::print(wght, "wght");
 	//U::print(loop_input, "loop_input"); //loop_input.print("loop_input");
 	//U::print(outputs, "outputs"); //outputs.print("outputs");
+	//printf("loop_input[b].col[t+1] = wght * outputs[b].col[t]\n");
 	//outputs[0].raw_print(cout, "loop, outputs");
 
 	// loop_input = wght * outputs

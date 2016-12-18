@@ -98,7 +98,7 @@ void Connection::print(std::string msg /* "" */)
 
 void Connection::printSummary(std::string msg) 
 {
-	printf("enter Connection::printSummary\n");
+	//printf("enter Connection::printSummary\n");
 	//printf("Connection::temporal= %d\n", temporal);
 	std::string type = (temporal) ? "temporal" : "spatial";
 
@@ -136,15 +136,14 @@ Connection Connection::operator*(const Connection& w)
 
 VF2D_F Connection::operator*(const VF2D_F& x)
 {
+	// Routine does not appear to be used. So not complicit in memory leaks.
+
     // w * x  ==> w(layer[k], layer[k-1]) * x[batch](dim, seq)
 	int nb_batch = x.n_rows;
 	int dim      = x[0].n_rows;   // if x[0] exists
 	int nb_seq   = x[0].n_cols;   // if x[0] exists
 
 	VF2D_F tmp(nb_batch);  // Ideally, this should initialize all components
-	//x[0].print("x[i]");
-	//weight.print("weight");
-	//exit(0);
 
 	for (int i=0; i < nb_batch; i++) {
 		tmp[i] = this->weight * x[i]; // benchmark for large arrays
@@ -170,7 +169,7 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 		if (!temporal) {
 			// IMPLEMENT XAVIER with UNIFORM DISTRIBUTION 
 			//weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
-			weight = arma::randu<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
+			weight = arma::randu<WEIGHT>(arma::size(weight)); //Uniform N(0,1)
 			// I want the standard deviation to be 1/n
 			REAL n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
 			REAL n_ins  = weight.n_cols;
@@ -182,6 +181,11 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 			//weight.print("weight temporal");
 	    //printf("***\n");exit(0);
 		}
+	} else if (initialize_type == "xavier-char-rnn") {
+	// initialization identical to char-rnn.py code by Karpathy
+		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
+		// I want the standard deviation to be 1/n
+		weight = weight * .1;
 	} else if (initialize_type == "xavier_iden") {   // initialize recurrent weights to identity matrix
 		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
 		printf("inside Connection::initialize()\n");
@@ -259,6 +263,7 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 		}
 		const WEIGHT& wght_t = getWeightTranspose();
 		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to);  // dL/da
+		//return; // no leak
 		//this->printSummary();
 		//printf("Connection::gradMulDLda, "); prod.print("prod = dL/da");
 	} else { // "coupled"
@@ -275,7 +280,9 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 		}
 	}
 
+		//return; // no leak
 	if (ti_from == ti_to) {
+		//return; // leak
 		layer_from->incrDelta(prod, ti_from);   // spatial
 		#ifdef DEBUG
 		layer_from->deltas.push_back(prod);
@@ -288,6 +295,7 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 			#endif
 		}
 	}
+	prod.reset();
 }
 //----------------------------------------------------------------------
 void Connection::dLdaMulGrad(int t)
@@ -300,6 +308,7 @@ void Connection::dLdaMulGrad(int t)
 	const VF2D_F& old_deriv = layer_to->getDelta();
 	const VF2D_F& out = layer_from->getOutputs();
 	Activation& activation = layer_to->getActivation();
+
 	WEIGHT delta = VF2D(size(weight));
 
 	if (activation.getDerivType() == "decoupled") {

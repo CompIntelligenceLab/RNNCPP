@@ -20,6 +20,7 @@ public:
 	static void print(LOSS x, std::string msg="");
 
 	static void createMat(VF2D_F& mat, int nb_batch, int nb_rows, int nb_cols);
+    static void createMat(VF1D_F& mat, int nb_batch, int nb_rows);
 	static void matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec);
 	static void matmul(VF2D_F& prod, const VF2D& mat, const VF2D_F& vec, int seq);
 	static void matmul(VF2D& prod, const VF2D& mat, const VF2D_F& vec, int seq);

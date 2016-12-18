@@ -1,3 +1,5 @@
+#include <unordered_map>
+
 class Func { 
 public:
 	REAL alpha;
@@ -33,10 +35,97 @@ void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer
 	//delta.print("delta");
 	w1 -= 0.001 * lr * delta;
 	w2 += 0.001 * lr * delta;
-	//printf("w1, w2= %f, %f\n", w1[0,0], w2[0,0]);
 
 	m->getConnection(d1, d2)->weight_history.push_back(w1);
 	m->getConnection(e1, e2)->weight_history.push_back(w2);
+}
+//----------------------------------------------------------------------
+void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer* e2, Layer* f1, Layer* f2)
+{
+	// Let w1, w2 and w3 = 1 - w1 - w2
+	// dL/dw1 = -dL/dw3 
+	// dL/dw2 = -dL/dw3 
+	// dL/dw = 
+	// delta3 = -delta1 - delta2 = 0
+	WEIGHT& dd1 = m->getConnection(d1, d2)->getDelta();
+	WEIGHT& dd2 = m->getConnection(e1, e2)->getDelta();
+	WEIGHT& dd3 = m->getConnection(f1, f2)->getDelta();
+	WEIGHT& w1 = m->getConnection(d1, d2)->getWeight();
+	WEIGHT& w2 = m->getConnection(e1, e2)->getWeight();
+	WEIGHT& w3 = m->getConnection(f1, f2)->getWeight();
+	// weights are w1, w2, 1-w1-w2
+	WEIGHT delta13 = dd1 - dd3;
+	WEIGHT delta23 = dd2 - dd3;
+	REAL lr = m->getLearningRate();
+	w1 -= .001 * lr * delta13;
+	w2 -= .001 * lr * delta23;
+	w3 -= .001 * lr * (-delta13-delta23);
+}
+//----------------------------------------------------------------------
+int getCharData(Model* m, 
+        std::vector<VF2D_F>& net_inputs, 
+		std::vector<VF2D_F>& net_exact, 
+    	std::string& input_data,
+		std::unordered_map<char, int>& c_int,
+		std::vector<char>& int_c,
+		arma::field<VI>& hot)
+{
+	int nb_chars = input_data.size();
+	printf("nb_characters = %d\n", nb_chars);
+	printf("seq_len= %d\n", m->getSeqLen());
+	printf("nb_batch= %d\n", m->getBatchSize());
+	printf("input_dim= %d\n", m->getInputDim());
+	int nb_batch = m->getBatchSize();
+	int input_dim = m->getInputDim();
+	int seq_len = m->getSeqLen();
+
+	VF2D_F vf2d;
+	//printf("nb_batch= %d\n", nb_batch); exit(0);
+	U::createMat(vf2d, nb_batch, input_dim, seq_len);
+
+	VF2D_F vf2d_exact;
+	U::createMat(vf2d_exact, nb_batch, input_dim, seq_len);
+
+	int nb_samples = (input_data.size() / (input_dim * nb_batch * seq_len));
+	printf("nb_samples= %d\n", nb_samples);
+
+	#if 1
+	for (int i=0; i < 65; i++) {
+		printf("c_int.at: %d\n", c_int.at(input_data[i]));
+	}
+
+	// vf2d[batch](nb_chars, seq_len)
+
+	// Assume nb batches is 1 for now. Write code and debug it. 
+
+	// We will write a function to extract the next batch
+
+	printf("input_data.size= %d\n", input_data.size());
+	for (int i=0; i < nb_samples-1; i++) {
+  	for (int b=0; b < nb_batch; b++) {
+		int base = b * seq_len * input_dim; //  ideally, need loop on input_dim
+			for (int s=0; s < seq_len; s++) {
+				//printf("b,i,j= %d, %d, %d\n", b, i, j);
+				//printf("1, base+j+seq_len*i = %d\n", base+s+seq_len*i);
+				// NEED A LOOP OVER INPUTS  (one-hot)
+				printf("base= %d\n", base+s+seq_len*i);
+				printf("input_data: %c\n", input_data[base+s+seq_len*i]);
+				vf2d[b](0, s)       = c_int.at(input_data[base + s + seq_len*i]);
+				printf("vf2d: %d\n", vf2d[b](0,s));
+				vf2d_exact[b](0, s) = c_int.at(input_data[base + s + seq_len*i + 1]); // wasteful of memory
+				exit(0);
+			}
+		}
+		net_inputs.push_back(vf2d);
+		net_exact.push_back(vf2d_exact);
+	}
+
+	for (int s=0; s < 10; s++) {
+		printf("input, exact: %d, %d\n", vf2d[0](0, s), vf2d_exact[0](0, s));
+	}
+	exit(0);
+	#endif
+	return nb_samples;
 }
 //----------------------------------------------------------------------
 int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_exact, VF1D& x, VF1D& ytarget)
@@ -64,7 +153,9 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 
 	//VF1D ytarget(npts);
 	//VF1D x(npts);   // abscissa
-	REAL delx = .005;  // will this work for uneven time steps? dt = .1, but there is a multiplier: alpha in front of it. 
+	REAL delx;
+	delx = 0.005; // orig
+	//delx = .001;  // will this work for uneven time steps? dt = .1, but there is a multiplier: alpha in front of it. 
 	                 // Some form of normalization will probably be necessary to scale out effect of dt (discrete time step)
 	m->dt = delx;
 	REAL alpha_target = 2.;
@@ -75,14 +166,17 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 	//REAL alpha_initial = 2.;  // should evolve towards alpha_target
 
 	Func& fun1 = *(new ExpFunc(alpha_target));
-	Func& fun2 = *(new ExpFunc(1.2));
+	Func& fun2 = *(new ExpFunc(-.1));
+
 
 	// Choose the function to use to determine differential equation
 
 	for (int i=0; i < npts; i++) {
 		x[i] = i*delx;
-		ytarget[i] = fun1(x[i]);
-		//ytarget[i] = fun1(x[i]) + fun2(x[i]);
+		//ytarget[i] = fun1(x[i]);
+		// scheme has problems with this function. I cannot find an equation that works. 
+		// I tried 3 nodes in parallel. Did not work. 
+		ytarget[i] = 0.5 * (fun1(x[i]) + fun2(x[i]));
 		//ytarget[i] = fun2(x[i]);
 	}
 
@@ -100,7 +194,6 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 	// Assume nb_batch=1 for now. Extract a sequence of seq_len elements to input
 	// input into prediction followed by backprop followed by parameter updates.
 	// What I want is a data structure: 
-	// VF2D_F[nb_batch][nb_inputs, seq_len] = VF2D_F[1][1, seq_len]
 
 	int nb_samples = npts / seq_len; 
 	//std::vector<VF2D_F> net_inputs, net_exact;
@@ -137,9 +230,10 @@ printf("nb_samples= %d\n",nb_samples);
 printf("seq_len= %d\n",seq_len);
 printf("nb_batch= ", nb_batch);
 
+
 for (int i=0; i < nb_samples-1; i++) {
   for (int b=0; b < nb_batch; b++) {
-	int base = b * seq_len * nb_samples;
+	int base = b * seq_len * input_dim; //  ideally, need loop on input_dim
 		for (int j=0; j < seq_len; j++) {
 			//printf("b,i,j= %d, %d, %d\n", b, i, j);
 			//printf("1, base+j+seq_len*i = %d\n", base+j+seq_len*i);
@@ -154,6 +248,8 @@ for (int i=0; i < nb_samples-1; i++) {
 
 
 
+	delete &fun1;
+	delete &fun2;
 	return nb_samples;
 }
 //----------------------------------------------------------------------
@@ -227,6 +323,8 @@ WEIGHT weightDerivative(Model* m, Connection& con, REAL fd_inc, VF2D_F& xf, VF2D
 			dLdw(rr, cc) += (arma::sum(loss_n(b)) - arma::sum(loss_p(b))) / (2.*fd_inc);
 		}
 	}}
+
+	delete mse;
 	return dLdw;
 }
 //----------------------------------------------------------------------
@@ -263,6 +361,7 @@ BIAS biasFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& xf, VF2D_F& e
 			dLdb(rr) += (arma::sum(loss_n(b)) - arma::sum(loss_p(b))) / (2.*fd_inc);
 		}
 	}
+	delete mse;
 	return dLdb;
 }
 //----------------------------------------------------------------------
@@ -278,20 +377,6 @@ VF1D activationParamsFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& x
 	Objective* mse = new MeanSquareError();
 	printf("layer name: %s\n", layer.getName().c_str());
 	const VF1D& params = activation.getParams();
-	//for (int i=0; i < 10; i++) { printf("x params[%d]= %f\n", i, params[i]); }
-	//exit(0);
-	//ppp[0] = 3.;
-	//ppp.resize(10);
-	/*
-	printf("params.size()= %d\n", params.size());
-	printf("params.n_rows= %d\n", params.n_rows);
-	printf("params.n_cols= %d\n", params.n_cols);
-	printf("params: %f\n", params[0,0]);
-	printf("params: %f\n", params[0]);
-	printf("params: %f\n", params[1]);
-	U::print(params, "params"); // ERROR Why does not work? 
-	params.print("params");
-	*/
 
 	printf("************ activationParamsFDDerivative ****************\n");
 	for (int rr=0; rr < activation.getNbParams(); rr++)
@@ -333,6 +418,7 @@ VF1D activationParamsFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& x
 		dLdp.print("dLdp");
 	}
 	printf("activationParamsFDDerivative\n"); //exit(0);
+	delete mse;
 	return dLdp;
 }
 //----------------------------------------------------------------------
@@ -542,18 +628,18 @@ Model* processArguments(int argc, char** argv)
     int is_recurrent = 1;
 	int nb_serial_layers = 1; // do not count input layer
 	int nb_parallel_layers = 1; // do not count input layer
+	std::string obj_err_type = "abs";
 	REAL learning_rate = 1.e-2; 
 
 	REAL inc;
 	string activation_type;
-	Activation* activation = new Identity(); 
+	//Activation* activation = new Identity(); 
 	std::string initialization_type;
 	initialization_type = "xavier";
 
 	argv++; 
 	argc--; 
 
-	printf("argc= %d\n", argc);
 	while (argc > 0) {
 		std::string arg = std::string(argv[0]);
 		printf("arg= %s\n", arg.c_str());
@@ -589,22 +675,23 @@ Model* processArguments(int argc, char** argv)
 		} else if (arg == "-l") {
 			layer_size = atoi(argv[1]);
 			argc -= 2; argv += 2;
+		} else if (arg == "-oe") {  // rel/abs error_type for objective least squares function
+			obj_err_type = argv[1];
+			argc -= 2; argv += 2;
 		} else if (arg == "-a") {
 			std::string name = argv[1];
 			activation_type = name;
-			//printf("name= %s\n", name.c_str());
 
 			// NEED an ACTIVATION FACTORY
 
 			argc -= 2; argv += 2;
 		} else { //if (arg == "-h") 
-			printf("Argument usage: \n");
+			printf("Argument (%s) not found. \nArgument usage: \n", arg.c_str());
 			printf("  -b <nb_batch>  -s <seq_len> -nb <nb_layers> -l <layer_size> -a <activation> -w <weight_initialization>\n");
 			printf("  Activations: \"tanh\"|\"sigmoid\"|\"iden\"|\"relu\"\n");
+			exit(0);
 		}
 	}
-
-	//printf("nb layers: %d\n", nb_layers); exit(0);
 
 	//arma_rng::set_seed_random(); // REMOVE LATER
 	arma_rng::set_seed(100); // REMOVE LATER
@@ -621,6 +708,7 @@ Model* processArguments(int argc, char** argv)
 	m->nb_parallel_layers = nb_parallel_layers;
 	m->nb_epochs = nb_epochs;
 	m->setLearningRate(learning_rate); // default lr
+	m->obj_err_type = obj_err_type;
 
 	for (int j=0; j < nb_parallel_layers; j++) {
 	for (int i=0; i < nb_serial_layers; i++) {
@@ -640,8 +728,6 @@ Model* processArguments(int argc, char** argv)
 		}
 	}}
 
-
+	//delete activation;
 	return m;
-
-	//testRecurrentModelBias1(m, layer_size, is_recurrent, activation, inc);
 }

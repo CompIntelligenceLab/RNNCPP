@@ -3,10 +3,20 @@
 #include <string>
 #include <cstdlib>
 
+/**
+z1 = a1*xT(n) + a2*x(n) + a3*y(n)
+z1 = a1*xT(n) + a2*x(n) + a3*y(n)
+x1(n+1) = a1 * [x(n) + dt * (-alpha1*x(n))] + a2 * x2
+x2 = x(n) + dt * (-alpha2*x(n))
+x(n+1) = w1*x1 + w2*x2
+**/
+
 
 //----------------------------------------------------------------------
-void testDiffEq6(Model* m)
+void testDiffEq7(Model* m)
 {
+// Two DecayEQ nodes in parallel, and cross-linked
+
 	int layer_size = m->layer_size;
 	int is_recurrent = m->is_recurrent;
 	int nb_epochs = m->nb_epochs;
@@ -28,22 +38,19 @@ void testDiffEq6(Model* m)
 	Layer* input = new InputLayer(input_dim, "input_layer");
 	Layer* d1    = new DenseLayer(layer_size, "rdense");
 	Layer* d2    = new DenseLayer(layer_size, "rdense");
-	Layer* d3    = new DenseLayer(layer_size, "rdense");
 	Layer* dsum    = new DenseLayer(1, "rdense");
 	m->add(0, input);
 	m->add(input, d1);
 	m->add(input, d2);
-	m->add(input, d3);
-	m->add(d1, d1, true); // temporal link
-	m->add(d2, d2, true); // temporal link
-	m->add(d3, d3, true); // temporal link
+	//m->add(d1, d1, true); // temporal link
+	//m->add(d2, d2, true); // temporal link
+	m->add(d2, d1, true); // temporal link  (link between parallel nodes)
+	m->add(d1, d2, true); // temporal link
 	m->add(d1, dsum);
 	m->add(d2, dsum);
-	m->add(d3, dsum);
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
 	d2->setActivation(new DecayDE());
-	d3->setActivation(new DecayDE());
 	dsum->setActivation(new Identity());
 
 	m->addInputLayer(input);
@@ -71,27 +78,24 @@ void testDiffEq6(Model* m)
 	BIAS& bias0 = input->getBias(); 	bias0.zeros();
 	BIAS& bias1 =    d1->getBias(); 	bias1.zeros();
 	BIAS& bias2 =    d2->getBias(); 	bias2.zeros();
-	BIAS& bias3 =    d3->getBias(); 	bias3.zeros();
 	BIAS& biasdsum =    dsum->getBias(); 	biasdsum.zeros();  // should biasdsum be frozen? 
 
 	// Set the weights of the two connection that input into Layer d1 to 1/2
 	// This should create a stable numerical scheme
-	WEIGHT& w1  = m->getConnection(input, d1)->getWeight();	w1[0,0]  *= 0.4;
-	WEIGHT& wr1 = m->getConnection(d1, d1)->getWeight();    wr1[0,0] *= 0.6;
+	WEIGHT& w1  = m->getConnection(input, d1)->getWeight();	w1[0,0]  *= 0.5;
+	//WEIGHT& w11 = m->getConnection(d1, d1)->getWeight();    w11[0,0] *= 0.35;
+	WEIGHT& w21 = m->getConnection(d2, d1)->getWeight();    w21[0,0] *= 0.5;
 
-	WEIGHT& w2  = m->getConnection(input, d2)->getWeight();	w2[0,0]  *= 0.6; // introduce slight asymmetry
-	WEIGHT& wr2 = m->getConnection(d2, d2)->getWeight();	wr2[0,0] *= 0.4;
-
-	WEIGHT& w3  = m->getConnection(input, d3)->getWeight();	w3[0,0]  *= 0.55; // introduce slight asymmetry
-	WEIGHT& wr3 = m->getConnection(d3, d3)->getWeight();	wr3[0,0] *= 0.45;
+	WEIGHT& w2  = m->getConnection(input, d2)->getWeight();	w2[0,0]  *= 0.5; // introduce slight asymmetry
+	//WEIGHT& w22 = m->getConnection(d2, d2)->getWeight();	w22[0,0] *= 0.35;
+	WEIGHT& w12 = m->getConnection(d1, d2)->getWeight();	w12[0,0] *= 0.5;
 
 	// Ideally, these weights should be able to vary and sum to 1
 	// One way to do this is to have three weights in the network, connect to a softmax, and make the three output weights
 	// the softmax coefficients. Since the weights could be negative, we do not need a softmax: w1 / (w1 + w2 + w3). 
 	// If they initially sum to one, it is unlikely they will ever sum to zero if learning rate is sufficiently small
-	WEIGHT& wrs1 = m->getConnection(d1, dsum)->getWeight();	wrs1[0,0] *= 0.25;
-	WEIGHT& wrs2 = m->getConnection(d2, dsum)->getWeight();	wrs2[0,0] *= 0.35;
-	WEIGHT& wrs3 = m->getConnection(d3, dsum)->getWeight();	wrs3[0,0] *= 0.40;
+	WEIGHT& wrs1 = m->getConnection(d1, dsum)->getWeight();	wrs1[0,0] *= 0.45;
+	WEIGHT& wrs2 = m->getConnection(d2, dsum)->getWeight();	wrs2[0,0] *= 0.55;
 
 	//------------------------------------------------------------------
 	// SOLVE ODE  dy/dt = -alpha y
@@ -106,9 +110,10 @@ void testDiffEq6(Model* m)
 	m->setStateful(true);
 	m->resetState();
 
-	d1->getActivation().setParam(0, 1.); // 1st parameter
-	d2->getActivation().setParam(0, 1.); // 1st parameter
-	d3->getActivation().setParam(0, 1.); // 1st parameter
+	//d1->getActivation().setParam(0,  .15); // 1st parameter
+	//d2->getActivation().setParam(0, -.15); // 1st parameter
+	d1->getActivation().setParam(0,  .75); // 1st parameter
+	d2->getActivation().setParam(0, -.75); // 1st parameter
 
 	//------------------------------------------------------
 	for (int e=0; e < nb_epochs; e++) {
@@ -123,10 +128,11 @@ void testDiffEq6(Model* m)
 		for (int i=0; i < nb_samples-1; i++) {
 			if (m->getStateful() == false) m->resetState();
 			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
-			updateWeightsSumConstraint(m, input, d1, d1, d1);
-			updateWeightsSumConstraint(m, input, d2, d2, d2);
-			updateWeightsSumConstraint(m, input, d3, d3, d3);
-			updateWeightsSumConstraint(m, d1, dsum, d2, dsum, d3, dsum);
+			updateWeightsSumConstraint(m, input, d1, d2, d1);
+			updateWeightsSumConstraint(m, input, d2, d1, d2);
+			//updateWeightsSumConstraint(m, input, d1, d1, d1, d2, d1);
+			//updateWeightsSumConstraint(m, input, d2, d2, d2, d1, d2);
+			updateWeightsSumConstraint(m, d1, dsum, d2, dsum);
 			// The sum of the weights between d1-dsum, d2-dsum, d3-dsum should add to 1. Not implemented. So freeze these weights
 		}
 
@@ -155,24 +161,21 @@ void testDiffEq6(Model* m)
 	}
 	//------------------------------------------------------------------
 	m->addWeightHistory(input, d1);
-	m->addWeightHistory(d1, d1);
+	//m->addWeightHistory(d1, d1);
+	m->addWeightHistory(d2, d1);
 	m->addWeightHistory(input, d2);
-	m->addWeightHistory(d2, d2);
-	m->addWeightHistory(input, d3);
-	m->addWeightHistory(d3, d3);
+	//m->addWeightHistory(d2, d2);
+	m->addWeightHistory(d1, d2);
 	m->addWeightHistory(d1, dsum);
 	m->addWeightHistory(d2, dsum);
-	m->addWeightHistory(d3, dsum);
 
 	m->addParamsHistory(d1);
 	m->addParamsHistory(d2);
-	m->addParamsHistory(d3);
 
 	std::vector<std::vector<REAL> > h1 = d1->params_history;
 	std::vector<std::vector<REAL> > h2 = d2->params_history;
-	std::vector<std::vector<REAL> > h3 = d3->params_history;
 	for (int i=0; i < 5; i++) {
-		printf("param history: %f, %f\n", h1[i][0], h2[i][0], h3[i][0]);
+		printf("param history: %f, %f\n", h1[i][0], h2[i][0]);
 	}
 
 	m->printHistories();
@@ -189,6 +192,6 @@ int main(int argc, char* argv[])
 // arguments: -b nb_batch, -l layer_size, -s seq_len, -r is_recursive
 
 	Model* m = processArguments(argc, argv);
-	testDiffEq6(m);
+	testDiffEq7(m);
 }
 //----------------------------------------------------------------------

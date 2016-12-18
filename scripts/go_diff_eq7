@@ -4,7 +4,7 @@
 # this network will have a single recurrent node 
 
 # copy from eq3
-build/tests/test_diff_eq6/test_diff_eq6 -l 1 -npl 1 -nsl 0  -b 1 -s 10 -a "decayde" -r 1 -w "identity" -i 1.e-2 -e 400 -lr 1 -oe "rel"
+build/tests/test_diff_eq7/test_diff_eq7 -l 1 -npl 1 -nsl 0  -b 1 -s 10 -a "decayde" -r 1 -w "identity" -i 1.e-2 -e 10 -lr 1 -oe "rel"
 #build/tests/test_diff_eq6/test_diff_eq6 -l 1 -npl 1 -nsl 0  -b 1 -s 10 -a "decayde" -r 1 -w "identity" -i 1.e-2 -e 2000 -lr .1 -oe "rel"
 
 #build/tests/test_diff_eq6/test_diff_eq6 -l 1 -npl 1 -nsl 0  -b 1 -s 20 -a "decayde" -r 1 -w "identity" -i 1.e-2 -e 5000 -lr .01

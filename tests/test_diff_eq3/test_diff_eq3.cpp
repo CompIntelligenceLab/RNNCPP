@@ -19,7 +19,9 @@ void testDiffEq3(Model* m)
 	int nb_batch = m->getBatchSize();
 	int input_dim  = 1;
 	//m->setObjective(new LogMeanSquareError()); // NEW
+	//m->setObjective(new WeightedMeanSquareError()); 
 	m->setObjective(new MeanSquareError()); 
+	m->getObjective()->setErrorType(m->obj_err_type);
 
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
@@ -31,8 +33,6 @@ void testDiffEq3(Model* m)
 	m->add(d1, d1, true); // temporal link
 	input->setActivation(new Identity()); 
 	d1->setActivation(new DecayDE());
-
-	printf("d1->batchsize: %d\n", d1->getNbBatch()); 
 
 	m->addInputLayer(input);
 	m->addOutputLayer(d1);
@@ -69,9 +69,8 @@ void testDiffEq3(Model* m)
 	std::vector<VF2D_F> net_inputs, net_exact;
 	VF1D xabsc, ytarget;
 	int nb_samples = getData(m, net_inputs, net_exact, xabsc, ytarget);
-	//U::print(net_inputs[0], "net_inputs");
-	//U::print(net_exact[0], "net_exact");
-	//exit(0);
+	printf("nb_samples= %d\n", nb_samples);
+	//printf("net_inputs size: %d\n", net_inputs.size()); exit(0);
 
 	m->setStateful(true);
 	m->resetState();
@@ -79,12 +78,11 @@ void testDiffEq3(Model* m)
 	for (int e=0; e < nb_epochs; e++) {
 
 		// First iteration, make effective weight from input to d1 equal to one
+		//U::print(net_inputs[0]);
+		//exit(0);
 		net_inputs[0][0][0,0] *= 2.;
 
 		printf("**** Epoch %d ****\n", e);
-
-	//d1->reset();
-	//exit(0);
 
 		for (int i=0; i < nb_samples-1; i++) {
 			if (m->getStateful() == false)  m->resetState();
@@ -110,7 +108,7 @@ void testDiffEq3(Model* m)
 		// on the recurrent weight initially. Somewhat artificial. 
 		x[0][0,0] *= 2.;
 
-		for (int e=0; e < 500; e++) {
+		for (int e=0; e < 500; e++) {  
 			m->x_in_history.push_back(ytarget[e]);
 			m->x_out_history.push_back(x[0][0,0]);
 			x = m->predictViaConnectionsBias(x);
@@ -126,8 +124,6 @@ void testDiffEq3(Model* m)
 
     m->printHistories();
 	m->printWeightHistories();
-
-	printf("XXX END XXX\n");
 
 	exit(0);
 }

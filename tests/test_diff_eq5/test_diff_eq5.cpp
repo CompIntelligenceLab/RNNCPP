@@ -16,6 +16,9 @@ void testDiffEq5(Model* m)
 	int nb_batch = m->getBatchSize();
 	int input_dim  = 1;
 
+	m->setObjective(new WeightedMeanSquareError()); 
+	m->setObjective(new MeanSquareError()); 
+
 	// Layers automatically adjust ther input_dim to match the output_dim of the previous layer
 	// 2 is the dimensionality of the data
 	// the names have a counter value attached to it, so there is no duplication. 
@@ -79,7 +82,7 @@ void testDiffEq5(Model* m)
 
 		for (int i=0; i < nb_samples-1; i++) {
 			if (m->getStateful() == false) m->resetState();
-			m->trainOneBatch(net_inputs[i][0], net_exact[i][0]);
+			m->trainOneBatch(net_inputs[i], net_exact[i]);
 			updateWeightsSumConstraint(m, input, d1, d2, d1);
 		}
 

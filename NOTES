@@ -523,5 +523,104 @@ Nov. 26, 2016
 - Test batch mode. Batch size of some layers get reset to 1. 
 - Problem: the gradient of the objective function somehow has the incorrect batch size. Check this. 
 ----------------------------------------------------------------------
+Dec. 1, 2016
+- WeightedMeanSquareError not working. Some kind of col error. Why? 
+- MeanSquareError : try pure relative error
+
+Must find a way to choose relative vs absolute error for objective function. Relative error runs much faster. 
+Add new variable in objective.h and in model.h: error_type (abs, rel)
 ----------------------------------------------------------------------
+Dec. 2, 2016
+Problem: I am not convinced that predict works properly. I will have to do this by hand. Why? Because different initial 
+values of the parameters seem to give the same solution predictions (with seq_len=1), and simply running trainOne over and 
+over again. That is not reasonable. 
+----------------------------------------------------------------------
+Dec. 3, 2016
+Implement char-rnn and Gaussian Mixture Model. 
+Then I can go back to work on predicting signals. 
+----------------------------------------------------------------------
+Dec. 4, 2016
+- Never tested coupled derivatives of Jacobian activation function. 
+- Never tested back propagation with softmax (I should create simple network with 2 inputs and 2 outputs)
+  Input(2) --> softmax(2) --> Least squares or cross-entropy
+  Input(2) --> softmax(3) --> Least squares or cross-entropy
+  Input(3) --> softmax(3) --> Least squares or cross-entropy
+----------------------------------------------------------------------
+Memory leaks
+Use valgrind
+==25294== 80 (64 direct, 16 indirect) bytes in 1 blocks are definitely lost in loss record 67 of 236
+==25294== 104 (56 direct, 48 indirect) bytes in 1 blocks are definitely lost in loss record 68 of 236
+==25294== 176 bytes in 1 blocks are definitely lost in loss record 99 of 236
+==25294== 176 bytes in 1 blocks are definitely lost in loss record 100 of 236
+==25294== 176 bytes in 1 blocks are definitely lost in loss record 101 of 236
+==25294== 176 bytes in 1 blocks are definitely lost in loss record 102 of 236
+==25294== 232 (64 direct, 168 indirect) bytes in 1 blocks are definitely lost in loss record 108 of 236
+==25294== 272 bytes in 1 blocks are definitely lost in loss record 115 of 236
+==25294== 272 bytes in 1 blocks are definitely lost in loss record 116 of 236
+==25294== 272 bytes in 1 blocks are definitely lost in loss record 117 of 236
+==25294== 608 bytes in 1 blocks are definitely lost in loss record 138 of 236
+==25294== 2,064 (1,600 direct, 464 indirect) bytes in 25 blocks are definitely lost in loss record 165 of 236
+==25294== 2,800 (1,600 direct, 1,200 indirect) bytes in 25 blocks are definitely lost in loss record 169 of 236
+==25294== 4,096 bytes in 1 blocks are definitely lost in loss record 173 of 236
+==25294== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 215 of 236
+==25294== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 216 of 236
+==25294== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 217 of 236
+==25294== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 218 of 236
+==25294== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 224 of 236
+==25294== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 225 of 236
+==25294== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 226 of 236
+==25294== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 227 of 236
+==25294== 25,236,576 (544 direct, 25,236,032 indirect) bytes in 1 blocks are definitely lost in loss record 236 of 236
+==25294==    definitely lost: 44,648 bytes in 259 blocks
+
+==25390== 80 (64 direct, 16 indirect) bytes in 1 blocks are definitely lost in loss record 60 of 176
+==25390== 104 (56 direct, 48 indirect) bytes in 1 blocks are definitely lost in loss record 61 of 176
+==25390== 176 bytes in 1 blocks are definitely lost in loss record 74 of 176
+==25390== 176 bytes in 1 blocks are definitely lost in loss record 75 of 176
+==25390== 176 bytes in 1 blocks are definitely lost in loss record 76 of 176
+==25390== 176 bytes in 1 blocks are definitely lost in loss record 77 of 176
+==25390== 232 (64 direct, 168 indirect) bytes in 1 blocks are definitely lost in loss record 83 of 176
+==25390== 272 bytes in 1 blocks are definitely lost in loss record 87 of 176
+==25390== 272 bytes in 1 blocks are definitely lost in loss record 88 of 176
+==25390== 272 bytes in 1 blocks are definitely lost in loss record 89 of 176
+==25390== 608 bytes in 1 blocks are definitely lost in loss record 102 of 176
+==25390== 2,064 (1,600 direct, 464 indirect) bytes in 25 blocks are definitely lost in loss record 126 of 176
+==25390== 2,800 (1,600 direct, 1,200 indirect) bytes in 25 blocks are definitely lost in loss record 127 of 176
+==25390== 4,096 bytes in 1 blocks are definitely lost in loss record 130 of 176
+==25390== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 158 of 176
+==25390== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 159 of 176
+==25390== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 160 of 176
+==25390== 316,224 (4,224 direct, 312,000 indirect) bytes in 24 blocks are definitely lost in loss record 161 of 176
+==25390== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 166 of 176
+==25390== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 167 of 176
+==25390== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 168 of 176
+==25390== 504,400 (4,400 direct, 500,000 indirect) bytes in 25 blocks are definitely lost in loss record 169 of 176
+==25390== 19,559,152 (544 direct, 19,558,608 indirect) bytes in 1 blocks are definitely lost in loss record 176 of 176
+==25390==    definitely lost: 44,648 bytes in 259 blocks
+----------------------------------------------------------------------
+Dec. 5, 2016
+Clip gradient of cross-entropy to [-5,5]. Same as char-rnn. 
+Perhaps I need ReLU instead of Tanh? 
+
+I have a problem starting char-rnn. It blocks. 
+----------------------------------------------------------------------
+Dec. 6, 2016
+Loss function appears incorrect in char-rnn. 
+----------------------------------------------------------------------
+Dec. 17, 2016
+I cannot share activations between layers because they are deleted by the layer destructor. 
+Better solution is to use auto_ptrs or something like that. 
+
+I am running category classification with 2 classes. I find that the loss function first decreases from 9 to 0.001 in a few 
+epochs, then returns back to its original value and oscillations. The lr is constant = 0.01. Still, kind of strange. 
+
+A lr of 0.1 makes the loss oscillate. A loss of 0.01 makes loss go from 2.26 to 0.40 and then stays at 0.4 .  A loss of 0.001 makes loss
+go towards 4.04 monotonically. Batch = 400
+
+Batch = 32: loss (lr=0.001) eventually oscillates between 1.04 and 0.43 . So minimum is different than with larger batch. 
+
+Initial Weight rms = .01  did not work
+Initial Weight rms = .1  worked. 
+
+Will now save to git. 
 ----------------------------------------------------------------------

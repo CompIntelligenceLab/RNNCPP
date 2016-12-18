@@ -35,8 +35,14 @@ Model::~Model()
 	printf("Model destructor (%s)\n", name.c_str());
 
 	for (int i=0; i < layers.size(); i++) {
-		if (layers[i]) {delete layers[i]; layers[i] = 0;}
+		if (layers[i]) {delete layers[i];} 
 	}
+	layers.resize(0);
+
+	for (int i=0; i < activations.size(); i++) {
+		if (activations[i]) {delete activations[i];}
+	}
+	activations.resize(0);
 
 	if (optimizer) {
 		delete optimizer;
@@ -489,6 +495,7 @@ void Model::printSummary()
 			sprintf(buf, "   - prev[%d]: ", p);
 			pl->printSummary(std::string(buf));
 			pc->printSummary(std::string(buf));
+			printf("\n");
 		}
 		for (int n=0; n < next.size(); n++) {
 			Layer* nl = next[n].first;
@@ -497,6 +504,7 @@ void Model::printSummary()
 			sprintf(buf, "   - next[%d]: ", n);
 			nl->printSummary(buf);
 			nc->printSummary(buf);
+			printf("\n");
 		}
 
 		prev = layer->prev_temporal;
@@ -509,6 +517,7 @@ void Model::printSummary()
 			sprintf(buf, "   - prev[%d]: ", p);
 			pl->printSummary(std::string(buf));
 			pc->printSummary(std::string(buf));
+			printf("\n");
 		}
 		for (int n=0; n < next.size(); n++) {
 			Layer* nl = next[n].first;
@@ -517,6 +526,7 @@ void Model::printSummary()
 			sprintf(buf, "   - next[%d]: ", n);
 			nl->printSummary(buf);
 			nc->printSummary(buf);
+			printf("\n");
 		}
 	}
 	printf("\n------ END MODEL SUMMARY ------------------------------------\n\n");
@@ -529,13 +539,9 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	}
 
 	//printf("****************** ENTER predictViaConnections ***************\n");
-	//x[0].raw_print(cout, "x");
-	//layers[1]->getOutputs()[0].raw_print(cout, "getOutputs"); // XXX
 
-	//U::printLayerInputs(this);
-	//U::printLayerOutputs(this);
 
-	VF2D_F prod(x.size());
+	VF2D_F prod(x.n_rows);
 
 	Layer* input_layer = getInputLayers()[0];
 	input_layer->layer_inputs[0] = x; 
@@ -574,30 +580,91 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
-			//conn->printSummary(""); conn->getWeight().print("spatial weights");
 			Layer* to_layer   = conn->to;
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
-			//prod[0].raw_print("prod[0]");
 		}
  	}
+
 
 	// update all other temporal connections coming into the layers (arbitrary order, I think)
 	// ...........
 
 	//printf("before last for in predict\n");
-	//for (int c=0; c < clist.size(); c++) {
+	//for (int c=0; c < clist.size(); c++) { // }
 	for (int c=0; c < clist_temporal.size(); c++) {  // WILL THIS CHANGE eq3 test? 
 		Connection* conn  = clist_temporal[c];
 		Layer* to_layer   = conn->to;
-		//printf("before forwardLoops\n");
-		//conn->printSummary();
-		//to_layer->printSummary();
 		to_layer->forwardLoops(conn, seq_len-1, 0);
-		//exit(0);
+	}
+
+	return prod;
+}
+//----------------------------------------------------------------------
+void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
+{
+	if (stateful == false) {
+		resetState(); 
+	}
+
+	//printf("****************** ENTER predictViaConnections ***************\n");
+
+	Layer* input_layer = getInputLayers()[0];
+	input_layer->layer_inputs[0] = x; 
+	input_layer->setOutputs(x);  // although input layer "could" have a nonlinear activation function (maybe)
+
+ 	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
+		for (int l=0; l < layers.size(); l++) {
+			layers[l]->nb_hit = 0;
+		}
+
+		// go through all the layers and update the temporal connections
+		// On the first pass, connections are empty
+		// TEMPORARY: should be #if 0
+		#if 0    
+		for (int l=0; l < layers.size(); l++) {
+			layers[l]->forwardLoops(t-1);    // does not change with biases (empty functions it seems)
+		}
+		#endif
+
+		// update all other temporal connections coming into the layers (arbitrary order, I think)
+		// ...........
+		// go through all the layers and update the temporal connections
+		// On the first pass, connections are empty
+		// Added Nov. 14. 
+		// Temporary: should be #if 1
+		#if 1
+		//printf("clist_temporal size: %d\n", clist_temporal.size());
+		// I FORGOT TO PUT RECURRENT LINKS WITH clist_temporal
+		for (int c=0; c < clist_temporal.size(); c++) {
+			Connection* conn = clist_temporal[c];
+			//conn->printSummary(""); conn->getWeight().print("temporal weights");
+			Layer* to_layer = conn->to;
+			to_layer->forwardLoops(conn, t-1);
+		}
+		#endif
+		
+		for (int c=0; c < clist.size(); c++) {
+			Connection* conn  = clist[c];
+			Layer* to_layer   = conn->to;
+			// Responsible for memory leak
+			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
+		}
+ 	}
+
+
+	// update all other temporal connections coming into the layers (arbitrary order, I think)
+	// ...........
+
+	for (int c=0; c < clist_temporal.size(); c++) {  // WILL THIS CHANGE eq3 test? 
+		Connection* conn  = clist_temporal[c];
+		Layer* to_layer   = conn->to;
+		to_layer->forwardLoops(conn, seq_len-1, 0);
 	}
 
 	//prod[0].raw_print(cout, "prod"); exit(0);
-	return prod;
+	// I should do prod.reset(), but cannot or else I cannot return the data. 
+	// Therefore, pass prod via argument. 
+	return;
 }
 //----------------------------------------------------------------------
 // Treat a single batch. x has dimesions [batch][input_dim, seq_len]
@@ -612,10 +679,9 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	// MUST REWRITE THIS PROPERLY
 	// DEAL WITH BATCH and SEQUENCES CORRECTLY
 	// FOR NOW, ASSUME BATCH=1
-	//printf("ENTER trainOneBatch ******************************\n");
+	printf("ENTER trainOneBatch ******************************\n");
 	cout.precision(11);
 
-	//printf("stateful: %d\n", stateful); //exit(0);
 	if (stateful == false) {
 		resetState();
 	}
@@ -623,20 +689,26 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	//VF2D_F x(1); x[0] = x_;
 	// WRONG IN GENERAL. Only good for batch == 1
 	//VF2D_F exact(1); exact[0] = exact_;
+	//U::print(x);
 
-	VF2D_F pred = predictViaConnectionsBias(x);
-	//pred[0].raw_print(cout, "pred");
-	//exact[0].raw_print(cout, "exact");
+	//VF2D_F pred = predictViaConnectionsBias(x); // orig
+	VF2D_F pred; //new
+	predictViaConnectionsBias(x, pred); // new
 	objective->computeLoss(exact, pred);
 
 	const LOSS& loss = objective->getLoss();
-	loss_history.push_back(loss);
+	REAL rloss = arma::sum(loss[0]);
+	printf("rloss= %f\n", rloss);
 
-	//LOSS ll = loss;
-	//printf("loss= %21.14f\n", loss[0][0]);
+	// If save loss, ...
+	//loss_history.push_back(loss); // slight leak (should print out every n iterations
+
 
 	backPropagationViaConnectionsRecursion(exact, pred);
+	//return; // leaks
 	parameterUpdate();
+
+	pred.reset(); // handle memory leaks
 }
 //----------------------------------------------------------------------
 void Model::trainOneBatch(VF2D x_, VF2D exact_)
@@ -662,7 +734,7 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	objective->computeLoss(exact, pred);
 
 	const LOSS& loss = objective->getLoss();
-	loss_history.push_back(loss);
+	//loss_history.push_back(loss);
 
 	//LOSS ll = loss;
 	//printf("loss= %21.14f\n", loss[0][0]);
@@ -699,6 +771,7 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 		//ll(0).raw_print(std::cout, "loss");
 		backPropagationViaConnectionsRecursion(exact, pred);
 		parameterUpdate();
+		pred.reset();
 	}
 }
 //----------------------------------------------------------------------
@@ -722,12 +795,13 @@ void Model::storeDactivationDoutputInLayersRecCon(int t)
 	// Run connections backwards
 
 	// Memory allocated in gradMulDLda)(
-	//VF2D_F prod(nb_batch);
+	//return; // no leaks
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* conn = (*it);
 		conn->gradMulDLda(t, t);
 	}
+	//return;  // leak
 
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
 	// Answer: yes, and I must increment the delta
@@ -869,6 +943,7 @@ void Model::storeDLossDactivationParamsInLayer(int t)
 			;
 		}
 	}
+	g.reset();
 }
 //----------------------------------------------------------------------
 void Model::resetDeltas()
@@ -923,6 +998,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeGradientsInLayersRec(t);
 	}
+	//return; // no leaks
 	//printf("++++++++++++++++++++++++++++\n");
 	//printf("   d(loss)/da   (# CHECK IN) \n");    
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
@@ -970,7 +1046,7 @@ void Model::weightUpdate()
 		WEIGHT& wght = con->getWeight();
 		if (con->frozen) continue;
 		wght = wght - learning_rate * con->getDelta();
-		con->weight_history.push_back(wght);
+		//con->weight_history.push_back(wght);
 		//con->printSummary();
 	}
 
@@ -981,7 +1057,7 @@ void Model::weightUpdate()
 		//printf("con= %ld\n", con);
 		if (con->frozen) continue;
 		wght = wght - learning_rate * con->getDelta();
-		con->weight_history.push_back(wght);
+		//con->weight_history.push_back(wght);
 		//con->printSummary();
 	}
 }
@@ -1015,9 +1091,9 @@ void Model::activationUpdate()
 			REAL param = activation.getParam(p) - learning_rate * delta[p];
 			activation.setParam(p, param);
 			//printf("aft param= %21.14f\n", param);
-			params.push_back(param);
+			//params.push_back(param);
 		}
-		layers[l]->params_history.push_back(params);
+		//layers[l]->params_history.push_back(params);
 	}
 }
 //----------------------------------------------------------------------
@@ -1083,6 +1159,7 @@ void Model::freezeWeights()
 void Model::addWeightHistory(Layer* l1, Layer* l2)
 {
     std::vector<WEIGHT>& hist  = getConnection(l1, l2)->weight_history;
+	//hist[0].print("hist");
 	weights_to_print.push_back(hist);
 	//printf("weights_to_print size: %d\n", weights_to_print.size());
 }
@@ -1103,12 +1180,15 @@ void Model::printWeightHistories()
 	int hist_size  = weights_to_print[0].size();
 
 	#if 1
+	printf("*** print weight histories ***\n");
     for (int i=0; i < hist_size; i++) {
         fprintf(fd, "\n%d ", i);
 		// For now, assume that all links have only a single weight
+		printf("nb_weights= %d\n", nb_weights);
 		for (int j=0; j < nb_weights; j++) {
 			const WEIGHT& w = weights_to_print[j][i];
-			fprintf(fd, "%f ", w[0,0]);
+			printf("w[0,0] = %f\n", w(0,0));
+			fprintf(fd, "%f ", w(0,0));
 		}
     }
     fclose(fd);
@@ -1122,6 +1202,7 @@ void Model::printHistories()
 	// Parameter history
 	fd = fopen("params.out", "w");
 	int sz = params_to_print.size();
+	//printf("params_to_print size: %d\n"< param_to_print.size()); exit(0);
 	const LAYERS& layers = getLayers();
 	if (sz == 0) return;
 
