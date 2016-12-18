@@ -1187,8 +1187,8 @@ void Model::printWeightHistories()
 		printf("nb_weights= %d\n", nb_weights);
 		for (int j=0; j < nb_weights; j++) {
 			const WEIGHT& w = weights_to_print[j][i];
-			printf("w[0,0] = %f\n", w[0,0]);
-			fprintf(fd, "%f ", w[0,0]);
+			printf("w[0,0] = %f\n", w(0,0));
+			fprintf(fd, "%f ", w(0,0));
 		}
     }
     fclose(fd);

@@ -35,7 +35,6 @@ void updateWeightsSumConstraint(Model* m, Layer* d1, Layer* d2, Layer* e1, Layer
 	//delta.print("delta");
 	w1 -= 0.001 * lr * delta;
 	w2 += 0.001 * lr * delta;
-	//printf("w1, w2= %f, %f\n", w1[0,0], w2[0,0]);
 
 	m->getConnection(d1, d2)->weight_history.push_back(w1);
 	m->getConnection(e1, e2)->weight_history.push_back(w2);
@@ -195,7 +194,6 @@ int getData(Model* m, std::vector<VF2D_F>& net_inputs, std::vector<VF2D_F>& net_
 	// Assume nb_batch=1 for now. Extract a sequence of seq_len elements to input
 	// input into prediction followed by backprop followed by parameter updates.
 	// What I want is a data structure: 
-	// VF2D_F[nb_batch][nb_inputs, seq_len] = VF2D_F[1][1, seq_len]
 
 	int nb_samples = npts / seq_len; 
 	//std::vector<VF2D_F> net_inputs, net_exact;
@@ -379,20 +377,6 @@ VF1D activationParamsFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& x
 	Objective* mse = new MeanSquareError();
 	printf("layer name: %s\n", layer.getName().c_str());
 	const VF1D& params = activation.getParams();
-	//for (int i=0; i < 10; i++) { printf("x params[%d]= %f\n", i, params[i]); }
-	//exit(0);
-	//ppp[0] = 3.;
-	//ppp.resize(10);
-	/*
-	printf("params.size()= %d\n", params.size());
-	printf("params.n_rows= %d\n", params.n_rows);
-	printf("params.n_cols= %d\n", params.n_cols);
-	printf("params: %f\n", params[0,0]);
-	printf("params: %f\n", params[0]);
-	printf("params: %f\n", params[1]);
-	U::print(params, "params"); // ERROR Why does not work? 
-	params.print("params");
-	*/
 
 	printf("************ activationParamsFDDerivative ****************\n");
 	for (int rr=0; rr < activation.getNbParams(); rr++)

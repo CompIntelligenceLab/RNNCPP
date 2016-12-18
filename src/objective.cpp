@@ -118,7 +118,7 @@ void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict
 			gradient[b] = 2.* (predict[b] - exact[b]); // check size compatibility
 		}
 	}
-	U::print(gradient, "computeGradient, MeanSquareError");
+	//U::print(gradient, "computeGradient, MeanSquareError");
 	gradient.print("loss gradient");
 	//exit(0);
 }
@@ -270,7 +270,7 @@ void WeightedMeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& pre
 	for (int b=0; b < nb_batch; b++) {
 		for (int i=0; i < input_dim; i++) {
 			for (int s=0; s < seq_len; s++) {
-				weight[b] += exact[b][s,i];
+				weight[b] += exact[b](s,i);
 			}
 			weight[b] /= (seq_len*input_dim);
 			weight[b] = 1. / (weight[b] + .05);
@@ -294,7 +294,7 @@ void WeightedMeanSquareError::computeLoss(const VF2D_F& exact, const VF2D_F& pre
 		//printf("in= %d\n", in);
 		//exit(0);
 		//U::print(loss, "loss");
-				loss[b][in,s] = weight[b] * loss[b][in,s];
+				loss[b](in,s) = weight[b] * loss[b](in,s);
 			}
 		}
 	}
@@ -314,12 +314,12 @@ void WeightedMeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F&
 		gradient[b] = VF2D(exact[0]);
 		for (int s=0; s < gradient[0].n_cols; s++) {
 			for (int in=0; in < gradient[0].n_rows; in++) {
-				gradient[b][in,s] = 2. * weight[b] * (predict[b][in,s] - exact[b][in,s]); // check size compatibility
+				gradient[b](in,s) = 2. * weight[b] * (predict[b](in,s) - exact[b](in,s)); // check size compatibility
 			}
 		}
 	}
 	// ERROR: gradient is zero size. DO NOT KNOW WHY. 
-	U::print(gradient, "computeGradient, WeightedMeanSquareError");
+	//U::print(gradient, "computeGradient, WeightedMeanSquareError");
 	gradient.print("WeightedMeanSquareError gradient");
 	//exit(0);
 }
@@ -381,7 +381,7 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 
 			// Sum over input_dim (most terms are zero)
 			for (int i=0; i < input_dim; i++) {
-				loss[b](s) -= exact[b](i,s) * log(output[i,s]);
+				loss[b](s) -= exact[b](i,s) * log(output(i,s));
 				// I should not have to do the sum, since exact is all zeros except one element, and 
 				// I know which one
 			}
@@ -401,6 +401,8 @@ void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 	VF2D output(size(predict[0]));
 
 	for (int b=0; b < nb_batch; b++) {
+		//U::print(predict, "predict");
+		//U::print(exact, "exact");
 		gradient[b] = (predict[b] - exact[b]) / seq_len; // average gradient
 		// although all exact are zero except one (for a given sequence index), predict are all non-zero.
 		// So I do not think there is a faster procedulre to evaluate

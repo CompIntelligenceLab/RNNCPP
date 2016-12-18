@@ -605,3 +605,7 @@ I have a problem starting char-rnn. It blocks.
 Dec. 6, 2016
 Loss function appears incorrect in char-rnn. 
 ----------------------------------------------------------------------
+Dec. 17, 2016
+I cannot share activations between layers because they are deleted by the layer destructor. 
+Better solution is to use auto_ptrs or something like that. 
+----------------------------------------------------------------------

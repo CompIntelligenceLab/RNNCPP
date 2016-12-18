@@ -61,7 +61,7 @@ void getNextGroupOfChars(Model* m, bool reset, std::string input_data,
 	base += seq_len * nb_chars;
 	net_inputs.resize(0);
 	net_exact.resize(0);
-	net_inputs.push_back(vf2d);
+	net_inputs.push_back(vf2d); // something wrong with this approach
 	net_exact.push_back(vf2d_exact);
 	vf2d.reset();
 	vf2d_exact.reset();
@@ -138,9 +138,7 @@ void charRNN(Model* m)
 	Layer* d2    = new DenseLayer(input_dim, "rdense");
 
 
-	// Perhaps I should include the softmax in the calculation of the cross-entropy, 
-	// which will simplify the derivative calculation. In that case, d2 is not required. 
-	//Layer* d2    = new DenseLayer(nb_chars, "rdense");
+	// Softmax is included in the calculation of the cross-entropy
 
 	m->add(0, input);
 	m->add(input, d1);

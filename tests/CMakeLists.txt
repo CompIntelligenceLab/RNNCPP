@@ -45,3 +45,7 @@ add_subdirectory(test_diff_eq7)
 
 add_subdirectory(char-rnn)
 
+# two-class classification with cross-entropy objective
+# compare against program written in keras
+add_subdirectory(categorical_classification)
+
