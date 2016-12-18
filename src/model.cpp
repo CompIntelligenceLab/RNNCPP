@@ -28,6 +28,7 @@ Model::Model(std::string name /* "model" */)
     stateful = false;  // all layers are stateful or not stateful
 	seq_len = 1; // should be equivalent to feedforward (no time to unroll)
 	initialization_type = "xavier";  // can also choose Gaussian
+	init_weight_rms = .1;  // default
 }
 //----------------------------------------------------------------------
 Model::~Model()
@@ -172,6 +173,7 @@ void Model::add(Layer* layer_from, Layer* layer_to, bool is_temporal, std::strin
 	//}
 	connection->from = layer_from;
 	connection->to = layer_to;
+	connection->setWeightRMS(init_weight_rms); 
 	connection->initialize(initialization_type); // must be called after layer_to definition
 
 	// update prev and next lists in Layers class
@@ -229,6 +231,7 @@ void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all
 	//}
 	connection->from = layer_from;
 	connection->to = layer_to;
+	connection->setWeightRMS(init_weight_rms); 
 	connection->initialize(initialization_type); // must be called after layer_to definition
 
 	// update prev and next lists in Layers class

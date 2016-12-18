@@ -185,7 +185,7 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 	// initialization identical to char-rnn.py code by Karpathy
 		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
 		// I want the standard deviation to be 1/n
-		weight = weight * .1;
+		weight = weight * init_weight_rms;
 	} else if (initialize_type == "xavier_iden") {   // initialize recurrent weights to identity matrix
 		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
 		printf("inside Connection::initialize()\n");

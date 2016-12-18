@@ -31,6 +31,7 @@ public:
 	REAL dt;
   	int nb_epochs;
 	std::string obj_err_type;
+	REAL init_weight_rms;
 
 	// Parameter histories
 	// true: save history every iteration (each iteration is sequence length of seq_len)

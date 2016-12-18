@@ -41,6 +41,7 @@ public:
 #endif
 
 protected:
+	REAL init_weight_rms;  // obtained via model
 	static int counter;
 	std::string name;
 	WEIGHT weight;
@@ -95,6 +96,7 @@ public:
 	virtual int getTTo() { return t_to; }
 	virtual void gradMulDLda(int ti_from, int ti_to);
 	virtual void dLdaMulGrad(int t);
+	virtual void setWeightRMS(REAL weight_rms) { this->init_weight_rms = weight_rms; }
 	//virtual void gradMulDLda(VF2D_F& prod, int ti_from, int ti_to);
 
 

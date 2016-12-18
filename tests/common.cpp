@@ -630,6 +630,7 @@ Model* processArguments(int argc, char** argv)
 	int nb_parallel_layers = 1; // do not count input layer
 	std::string obj_err_type = "abs";
 	REAL learning_rate = 1.e-2; 
+	REAL init_weight_rms = 0.1;
 
 	REAL inc;
 	string activation_type;
@@ -666,6 +667,10 @@ Model* processArguments(int argc, char** argv)
 			argc -= 2; argv += 2;
 			printf("init type: %s\n", initialization_type.c_str());
 			// "xavier", "xavier_iden", "unity", "gaussian", 
+		} else if (arg == "-wght_rms") { // weight rms for initialization
+			init_weight_rms = atof(argv[1]);
+			argc -= 2; argv +=2 ;
+			printf("weight rms: %f\n", init_weight_rms);
 		} else if (arg == "-nsl") { // number serial layers
 			nb_serial_layers = atoi(argv[1]);
 			argc -= 2; argv += 2;
@@ -709,6 +714,7 @@ Model* processArguments(int argc, char** argv)
 	m->nb_epochs = nb_epochs;
 	m->setLearningRate(learning_rate); // default lr
 	m->obj_err_type = obj_err_type;
+	m->init_weight_rms = init_weight_rms;
 
 	for (int j=0; j < nb_parallel_layers; j++) {
 	for (int i=0; i < nb_serial_layers; i++) {

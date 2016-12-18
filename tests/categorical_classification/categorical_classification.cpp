@@ -159,7 +159,7 @@ void categoricalClassification(Model* m)
 
 	bool reset;
 	nb_epochs = 100;
-	nb_epochs = 5000;
+	nb_epochs = 500;
 
 	VF2D* X_train; 
 	VF2D* Y_train;

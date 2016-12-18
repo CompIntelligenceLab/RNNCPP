@@ -622,5 +622,9 @@ Batch = 32: loss (lr=0.001) eventually oscillates between 1.04 and 0.43 . So min
 Initial Weight rms = .01  did not work
 Initial Weight rms = .1  worked. 
 
-Will now save to git. 
+----
+build/tests/categorical_classification/categorical_classification -l 8 -b 450 -a "tanh" -r 1 -w "xavier-char-rnn" -i 1.e-2 -e 10 -lr .001 -oe "rel"
+Batch = 450
+lr = .01: too large: # nb of errors does not decrease
+lr = .001: works: # nb of errors go to zero. 
 ----------------------------------------------------------------------
