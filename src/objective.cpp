@@ -369,9 +369,9 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 	}
 
 	printf("(%d, %d) CrossEntropy::computeLoss\n", seq_len, input_dim);
-	U::print(exact, "exact");
-	U::print(predict, "predict");
-	for (int b=0; b < 10; b++) {
+	//U::print(exact, "exact");
+	//U::print(predict, "predict");
+	for (int b=0; b < 20; b++) {
 		printf("exact[%d]= %f, %f, pred[%d]= %f, %f, soft= %f, %f\n", b, exact[b](0,0), exact[b](1,0), b, predict[b](0,0), predict[b](1,0), y[b](0,0), y[b](1,0)); 
 	}
 
@@ -404,6 +404,7 @@ void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 {
 	int nb_batch = exact.n_rows;
 	int seq_len  = exact[0].n_cols;
+	gradient.reset(); // empty the datastructure
 	gradient.set_size(nb_batch);
 	VF2D output(size(predict[0]));
 
@@ -412,7 +413,7 @@ void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 		//U::print(exact, "exact");
 		gradient[b] = (predict[b] - exact[b]) / seq_len; // average gradient
 		// although all exact are zero except one (for a given sequence index), predict are all non-zero.
-		// So I do not think there is a faster procedulre to evaluate
+		// So I do not think there is a faster procedure to evaluate the gradient. 
 
 		// Clip to [-5,5] to avoid exploding gradients
 		gradient[b] = arma::clamp(gradient[b], -5., 5.);

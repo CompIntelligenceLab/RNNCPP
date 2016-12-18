@@ -616,4 +616,9 @@ A lr of 0.1 makes the loss oscillate. A loss of 0.01 makes loss go from 2.26 to 
 go towards 4.04 monotonically. Batch = 400
 
 Batch = 32: loss (lr=0.001) eventually oscillates between 1.04 and 0.43 . So minimum is different than with larger batch. 
+
+Initial Weight rms = .01  did not work
+Initial Weight rms = .1  worked. 
+
+Will now save to git. 
 ----------------------------------------------------------------------
