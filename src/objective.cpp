@@ -357,7 +357,6 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 	VF2D ex = exact[0];
 	VF2D_F y(predict);
 
-
 	// softmax over the dimension index of VF2D (first index)
 	for (int b=0; b < nb_batch; b++) {
 		float mx = arma::max(arma::max(predict[b]));
@@ -368,6 +367,14 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
 		}
 	}
+
+	printf("(%d, %d) CrossEntropy::computeLoss\n", seq_len, input_dim);
+	U::print(exact, "exact");
+	U::print(predict, "predict");
+	for (int b=0; b < 10; b++) {
+		printf("exact[%d]= %f, %f, pred[%d]= %f, %f, soft= %f, %f\n", b, exact[b](0,0), exact[b](1,0), b, predict[b](0,0), predict[b](1,0), y[b](0,0), y[b](1,0)); 
+	}
+
 
 	loss.set_size(nb_batch); // needed
 	VF2D output(size(predict[0]));

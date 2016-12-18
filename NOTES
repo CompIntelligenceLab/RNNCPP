@@ -608,4 +608,12 @@ Loss function appears incorrect in char-rnn.
 Dec. 17, 2016
 I cannot share activations between layers because they are deleted by the layer destructor. 
 Better solution is to use auto_ptrs or something like that. 
+
+I am running category classification with 2 classes. I find that the loss function first decreases from 9 to 0.001 in a few 
+epochs, then returns back to its original value and oscillations. The lr is constant = 0.01. Still, kind of strange. 
+
+A lr of 0.1 makes the loss oscillate. A loss of 0.01 makes loss go from 2.26 to 0.40 and then stays at 0.4 .  A loss of 0.001 makes loss
+go towards 4.04 monotonically. Batch = 400
+
+Batch = 32: loss (lr=0.001) eventually oscillates between 1.04 and 0.43 . So minimum is different than with larger batch. 
 ----------------------------------------------------------------------

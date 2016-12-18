@@ -679,7 +679,7 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	// MUST REWRITE THIS PROPERLY
 	// DEAL WITH BATCH and SEQUENCES CORRECTLY
 	// FOR NOW, ASSUME BATCH=1
-	//printf("ENTER trainOneBatch ******************************\n");
+	printf("ENTER trainOneBatch ******************************\n");
 	cout.precision(11);
 
 	if (stateful == false) {
