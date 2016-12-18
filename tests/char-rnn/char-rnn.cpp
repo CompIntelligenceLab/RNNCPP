@@ -54,6 +54,7 @@ void getNextGroupOfChars(Model* m, bool reset, std::string input_data,
 			int ii = c_int.at(input_data[base + s*nb_chars]);
 			vf2d[0](i, s)       = hot[ii][i];
 			ii = c_int.at(input_data[base + (s+1)*nb_chars]);
+			// hot vectors not really required, if I take shortcuts to compute loss function
 			vf2d_exact[0](i, s) = hot[ii][i];
 		}
 	}

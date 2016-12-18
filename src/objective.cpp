@@ -389,7 +389,7 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 		// Really need the average over the sequence
 		loss[b] = loss[b] / seq_len;
 	}
-	loss.print("exit loss");
+	//loss.print("exit loss");
 }
 
 //----------------------------------------------------------------------

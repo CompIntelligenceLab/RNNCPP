@@ -169,7 +169,7 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 		if (!temporal) {
 			// IMPLEMENT XAVIER with UNIFORM DISTRIBUTION 
 			//weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
-			weight = arma::randu<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
+			weight = arma::randu<WEIGHT>(arma::size(weight)); //Uniform N(0,1)
 			// I want the standard deviation to be 1/n
 			REAL n_outs = weight.n_rows;   // inputs to layer: connection->to->getLayerSize()
 			REAL n_ins  = weight.n_cols;
@@ -181,6 +181,11 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 			//weight.print("weight temporal");
 	    //printf("***\n");exit(0);
 		}
+	} else if (initialize_type == "xavier-char-rnn") {
+	// initialization identical to char-rnn.py code by Karpathy
+		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
+		// I want the standard deviation to be 1/n
+		weight = weight * .01;
 	} else if (initialize_type == "xavier_iden") {   // initialize recurrent weights to identity matrix
 		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
 		printf("inside Connection::initialize()\n");
