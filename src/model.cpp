@@ -682,7 +682,7 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	// MUST REWRITE THIS PROPERLY
 	// DEAL WITH BATCH and SEQUENCES CORRECTLY
 	// FOR NOW, ASSUME BATCH=1
-	printf("ENTER trainOneBatch ******************************\n");
+	//printf("ENTER trainOneBatch ******************************\n");
 	cout.precision(11);
 
 	if (stateful == false) {
@@ -699,13 +699,14 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	predictViaConnectionsBias(x, pred); // new
 	objective->computeLoss(exact, pred);
 
+	#if 0
 	const LOSS& loss = objective->getLoss();
 	REAL rloss = arma::sum(loss[0]);
 	printf("rloss= %f\n", rloss);
+	#endif
 
 	// If save loss, ...
 	//loss_history.push_back(loss); // slight leak (should print out every n iterations
-
 
 	backPropagationViaConnectionsRecursion(exact, pred);
 	//return; // leaks

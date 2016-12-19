@@ -28,7 +28,6 @@ int checkErrors(Model* m, VF2D_F& pred, VF2D_F& exact)
 	for (int b=0; b < batch_size; b++) {
 		int label = pred[b](0,0) > pred[b](1,0) ? 1 : 0;
 		int exact_label = exact[b](0,0) > exact[b](1,0) ? 1 : 0;
-		//printf("label= %d, exact_label= %d\n", label, exact_label);
 		if (exact_label != label) nb_errors++;
 	}
 
@@ -61,6 +60,38 @@ void getNextGroupOfData(Model* m, bool reset, VF2D& X_train, VF2D& Y_train,
 	}
 
 	base += batch_size;
+}
+//----------------------------------------------------------------------
+REAL computeFullLossFunction(Model* m, int nb_samples, VF2D& X_train, VF2D& Y_train, 
+	VF2D_F& net_inputs, VF2D_F& net_exact)
+{
+	LOSS loss;
+	Objective* objective = m->getObjective();
+
+	REAL sum = 0.;
+	int batch_size = m->getBatchSize();
+	int seq_len = m->getSeqLen();
+	int total_nb_errors = 0;
+
+	for (int i=0; i < nb_samples; i++) {
+		bool base_reset = true; 
+		getNextGroupOfData(m, base_reset, X_train, Y_train, net_inputs, net_exact);
+		VF2D_F pred = m->predictViaConnectionsBias(net_inputs);
+		objective->computeLoss(net_exact, pred);
+		loss = objective->getLoss();
+		//printf("loss.n_rows= %d\n", loss.n_rows);
+		//printf("loss[0].n_rows= %d\n", loss[0].n_rows);
+		//printf("loss[0].n_cols= %d\n", loss[0].n_cols);
+		for (int b=0; b < batch_size; b++) {
+			for (int s=0; s < seq_len; s++) {
+				sum += loss[b](s);
+			}
+		}
+		int nb_errors = checkErrors(m, pred, net_exact);
+		total_nb_errors += nb_errors;
+	}
+	printf("x sum= %f, total_nb_errors= %d\n", sum, total_nb_errors);
+	return 0.;
 }
 //----------------------------------------------------------------------
 void getDataset(Model* m, VF2D*& X_train, VF2D*& Y_train)
@@ -159,7 +190,7 @@ void categoricalClassification(Model* m)
 
 	bool reset;
 	nb_epochs = 100;
-	nb_epochs = 500;
+	nb_epochs = 2000;
 
 	VF2D* X_train; 
 	VF2D* Y_train;
@@ -177,27 +208,25 @@ void categoricalClassification(Model* m)
 		printf("*** epoch %d ****\n", e);
 		reset = true;
 
-		for (int i=0; i < nb_samples; i++) {
-			printf("%d ", i);
-			//U::print(net_inputs, "net_inputs");
-    		getNextGroupOfData(m, reset, *X_train, *Y_train, net_inputs, net_exact);
-			//net_inputs.print("net_inputs");
-			//net_exact.print("net_exact");
-			// Need a way to exit getNext... when all characters are processed
-			m->trainOneBatch(net_inputs, net_exact);
-			reset = false;
-		}
-
 		if (e % 10 == 0) {
 			reset = true;
+			REAL loss = computeFullLossFunction(m, nb_samples, *X_train, *Y_train, net_inputs, net_exact);
+			#if 0
 			for (int i=0; i < nb_samples; i++) {
-				//U::print(net_inputs, "net_inputs");
     			getNextGroupOfData(m, reset, *X_train, *Y_train, net_inputs, net_exact);
 				VF2D_F pred = m->predictViaConnectionsBias(net_inputs);
-		        int nb_errors = checkErrors(m, pred, net_exact);
+		        //int nb_errors = checkErrors(m, pred, net_exact);
 				printf("nb_errors= %d\n", nb_errors);
 				//exit(0);
 			}
+			#endif
+		}
+
+		for (int i=0; i < nb_samples; i++) {
+    		getNextGroupOfData(m, reset, *X_train, *Y_train, net_inputs, net_exact);
+			// Need a way to exit getNext... when all characters are processed
+			m->trainOneBatch(net_inputs, net_exact);
+			reset = false;
 		}
 
 		printf("\n\n");

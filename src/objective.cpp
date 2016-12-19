@@ -320,7 +320,7 @@ void WeightedMeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F&
 	}
 	// ERROR: gradient is zero size. DO NOT KNOW WHY. 
 	//U::print(gradient, "computeGradient, WeightedMeanSquareError");
-	gradient.print("WeightedMeanSquareError gradient");
+	//gradient.print("WeightedMeanSquareError gradient");
 	//exit(0);
 }
 //----------------------------------------------------------------------
@@ -368,12 +368,12 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 		}
 	}
 
-	printf("(%d, %d) CrossEntropy::computeLoss\n", seq_len, input_dim);
+	//printf("(%d, %d) CrossEntropy::computeLoss\n", seq_len, input_dim);
 	//U::print(exact, "exact");
 	//U::print(predict, "predict");
-	for (int b=0; b < 20; b++) {
-		printf("exact[%d]= %f, %f, pred[%d]= %f, %f, soft= %f, %f\n", b, exact[b](0,0), exact[b](1,0), b, predict[b](0,0), predict[b](1,0), y[b](0,0), y[b](1,0)); 
-	}
+	//for (int b=0; b < 20; b++) {
+		//printf("exact[%d]= %f, %f, pred[%d]= %f, %f, soft= %f, %f\n", b, exact[b](0,0), exact[b](1,0), b, predict[b](0,0), predict[b](1,0), y[b](0,0), y[b](1,0)); 
+	//}
 
 
 	loss.set_size(nb_batch); // needed

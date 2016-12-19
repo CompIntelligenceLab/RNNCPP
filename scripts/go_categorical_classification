@@ -4,4 +4,4 @@
 # this network will have a single recurrent node 
 
 # copy from eq3
-build/tests/categorical_classification/categorical_classification -l 8 -b 450 -a "tanh" -r 1 -w "xavier-char-rnn" -e 10 -lr .001 -wght_rms .1 -oe "rel"
+build/tests/categorical_classification/categorical_classification -l 8 -b 16 -a "tanh" -r 1 -w "xavier-char-rnn" -e 10 -lr .001 -wght_rms .1 -oe "rel"

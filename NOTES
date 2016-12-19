@@ -607,7 +607,7 @@ I have a problem starting char-rnn. It blocks.
 Dec. 6, 2016
 Loss function appears incorrect in char-rnn. 
 ----------------------------------------------------------------------
-Dec. 17, 2016
+Dec. 18, 2016
 I cannot share activations between layers because they are deleted by the layer destructor. 
 Better solution is to use auto_ptrs or something like that. 
 
@@ -627,4 +627,44 @@ build/tests/categorical_classification/categorical_classification -l 8 -b 450 -a
 Batch = 450
 lr = .01: too large: # nb of errors does not decrease
 lr = .001: works: # nb of errors go to zero. 
+----------------------------------------------------------------------
+Dec. 18, 2016
+nb_errors (using entire training set) goes to zero rather fast when batch_size = 32
+Printed every 10 epochs: 
+build/tests/categorical_classification/categorical_classification -l 8 -b 32 -a "tanh" -r 1 -w "xavier-char-rnn" -e 10 -lr .001 -wght_rms .1 -oe "rel"
+batch=32
+Results printed every 10 epochs
+x sum= 890.332176, total_nb_errors= 360
+x sum= 630.306079, total_nb_errors= 360
+x sum= 604.087115, total_nb_errors= 360
+x sum= 545.726275, total_nb_errors= 240
+x sum= 446.670999, total_nb_errors= 60
+x sum= 328.674433, total_nb_errors= 0
+then stays at zero. sum represents the total loss. The loss then eventually keeps decreasing until it reaches 135 (2000 epochs)
+and keeps going down after that. 
+
+batch_size=16
+x sum= 654.726381, total_nb_errors= 427
+x sum= 626.359976, total_nb_errors= 427
+x sum= 562.559733, total_nb_errors= 305
+x sum= 455.345255, total_nb_errors= 122
+x sum= 331.006582, total_nb_errors= 61
+x sum= 256.324787, total_nb_errors= 0
+
+batch_size=8
+x sum= 881.131759, total_nb_errors= 248
+x sum= 617.257606, total_nb_errors= 248
+x sum= 589.179550, total_nb_errors= 248
+x sum= 527.573510, total_nb_errors= 124
+x sum= 427.091788, total_nb_errors= 124
+x sum= 313.838084, total_nb_errors= 0
+
+batch_size=4
+x sum= 886.144911, total_nb_errors= 249
+x sum= 624.652892, total_nb_errors= 249
+x sum= 602.810397, total_nb_errors= 249
+x sum= 553.898300, total_nb_errors= 0
+
+batch_size = 2
+nb_errors = 0 after 10 epochs
 ----------------------------------------------------------------------
