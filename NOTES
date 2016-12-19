@@ -677,6 +677,7 @@ Some notes: Using ReLU, seq_len=25, batch=1: with lr=.1 and lr=.001 (using char-
     Convergence is much faster with lr=.1 as expected
 Using ReLU, seq_len=25, batch=64: with lr=.001 (code convergences slowly)
 Using ReLU, seq_len=25, batch=64: with lr=.1 (NaNs develop rather quickly)
+Stored under runs1_dec19_2016
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
