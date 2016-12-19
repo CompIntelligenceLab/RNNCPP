@@ -215,8 +215,11 @@ public:
 
 	VF2D_F operator()(const VF2D_F& x) {
 		VF2D_F y(x.n_rows);
+		VF2D zeros = arma::zeros(size(x[0]));
 		for (int i=0; i < x.n_rows; i++) {
-			y[i] = arma::clamp(x[i], 0., x[i].max()); 
+			//y[i] = arma::clamp(x[i], 0., x[i].max()); 
+			//y[i] = arma::max(0., x[i]); 
+			y[i] = arma::max(zeros, x[i]); 
 		}
 		return y;
 	}

@@ -668,3 +668,17 @@ x sum= 553.898300, total_nb_errors= 0
 batch_size = 2
 nb_errors = 0 after 10 epochs
 ----------------------------------------------------------------------
+Dec. 18, 2016
+char-rnn only works with batch = 1. Fix this. 
+----------------------------------------------------------------------
+Dec. 19, 2016
+char-rnn seems to converge (loss function decreasing). 
+Some notes: Using ReLU, seq_len=25, batch=1: with lr=.1 and lr=.001 (using char-rnn.py from Karpathy as reference)
+    Convergence is much faster with lr=.1 as expected
+Using ReLU, seq_len=25, batch=64: with lr=.001 (code convergences slowly)
+Using ReLU, seq_len=25, batch=64: with lr=.1 (NaNs develop rather quickly)
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------

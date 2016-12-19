@@ -694,12 +694,12 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	//VF2D_F exact(1); exact[0] = exact_;
 	//U::print(x);
 
-	//VF2D_F pred = predictViaConnectionsBias(x); // orig
+	#if 1
+	printf("turn of in Model::trainOneBatch\n");
 	VF2D_F pred; //new
 	predictViaConnectionsBias(x, pred); // new
 	objective->computeLoss(exact, pred);
 
-	#if 0
 	const LOSS& loss = objective->getLoss();
 	REAL rloss = arma::sum(loss[0]);
 	printf("rloss= %f\n", rloss);

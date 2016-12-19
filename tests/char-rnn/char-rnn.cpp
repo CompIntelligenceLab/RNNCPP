@@ -19,53 +19,81 @@
 */
 
 //----------------------------------------------------------------------
-void getNextGroupOfChars(Model* m, bool reset, std::string input_data,
-        std::vector<VF2D_F>& net_inputs, 
-		std::vector<VF2D_F>& net_exact,
+void getNextGroupOfChars(Model* m, bool& reset, std::string input_data,
+        VF2D_F& net_inputs, VF2D_F& net_exact,
 		std::unordered_map<char, int>& c_int,
 		std::vector<char>& int_c,
-		arma::field<VI>& hot)
+		VF1D_F& hot)
 {
+	//printf("reset=%d\n", reset);
 	static int base; // keep value across invocations
 	if (reset) base = 0;
 
-	int nb_batch = m->getBatchSize();
+	int batch_size = m->getBatchSize();
 	int input_dim = m->getInputDim();
 	int seq_len = m->getSeqLen();
-	//printf("input_dim= %d (=65?)\n", input_dim);
 
 	VF2D_F vf2d; 
 	VF2D_F vf2d_exact;
 
-
 	int nb_chars = input_dim;
 
-	// does memory get released? 
-	U::createMat(vf2d, nb_batch, input_dim, seq_len);
-	U::createMat(vf2d_exact, nb_batch, input_dim, seq_len);
+	// Assume batch_size = 1
+	//if (batch_size != 1) { printf("batch_size should be 1! batch_size=1 is untested! \n"); }
 
 
-	// Assume nb_batch = 1
-	if (nb_batch != 1) { printf("nb_batch should be 1\n"); exit(1); }
-
-
-	for (int s=0; s < seq_len; s++) {
-		for (int i=0; i < nb_chars; i++) {   // one-hot vectors
-			int ii = c_int.at(input_data[base + s*nb_chars]);
-			vf2d[0](i, s)       = hot[ii][i];
-			ii = c_int.at(input_data[base + (s+1)*nb_chars]);
-			// hot vectors not really required, if I take shortcuts to compute loss function
-			vf2d_exact[0](i, s) = hot[ii][i];
+	for (int b=0; b < batch_size; b++) {
+		for (int s=0; s < seq_len; s++) {
+			//printf("base+s*nb_chars, input_data: %d, %d\n", base+s*nb_chars, input_data.size());
+			//printf("      nb_chars= %d\n", nb_chars);
+			int which_char = c_int.at(input_data[base + s*nb_chars]);
+			for (int i=0; i < nb_chars; i++) {   // one-hot vectors
+				net_inputs[b](i, s)       = hot[which_char][i];
+			}
+			which_char = c_int.at(input_data[base + (s+1)*nb_chars]);
+			for (int i=0; i < nb_chars; i++) {   // one-hot vectors
+				// hot vectors not really required, if I take shortcuts to compute loss function
+				net_exact[b](i, s) = hot[which_char][i];
+			}
 		}
 	}
-	base += seq_len * nb_chars;
-	net_inputs.resize(0);
-	net_exact.resize(0);
-	net_inputs.push_back(vf2d); // something wrong with this approach
-	net_exact.push_back(vf2d_exact);
-	vf2d.reset();
-	vf2d_exact.reset();
+	//printf("enter: base= %d\n", base);
+	base += seq_len * nb_chars * batch_size;
+	//printf("exit: base= %d\n", base);
+	//printf("input_data size: %d\n", input_data.size());
 	return;
+}
+//----------------------------------------------------------------------
+REAL computeFullLossFunction(Model* m, int nb_samples, VF2D& X_train, VF2D& Y_train, 
+	VF2D_F& net_inputs, VF2D_F& net_exact)
+{
+	LOSS loss;
+	Objective* objective = m->getObjective();
+
+	REAL sum = 0.;
+	int batch_size = m->getBatchSize();
+	int seq_len = m->getSeqLen();
+	int total_nb_errors = 0;
+
+	for (int i=0; i < nb_samples; i++) {
+		bool base_reset = true; 
+		//getNextGroupOfData(m, base_reset, X_train, Y_train, net_inputs, net_exact);
+		VF2D_F pred = m->predictViaConnectionsBias(net_inputs);
+		objective->computeLoss(net_exact, pred);
+		loss = objective->getLoss();
+		//printf("loss.n_rows= %d\n", loss.n_rows);
+		//printf("loss[0].n_rows= %d\n", loss[0].n_rows);
+		//printf("loss[0].n_cols= %d\n", loss[0].n_cols);
+		for (int b=0; b < batch_size; b++) {
+			for (int s=0; s < seq_len; s++) {
+				sum += loss[b](s);
+			}
+		}
+		//int nb_errors = checkErrors(m, pred, net_exact);
+		//total_nb_errors += nb_errors;
+	}
+	//printf("x sum= %f, total_nb_errors= %d\n", sum, total_nb_errors);
+	return 0.;
 }
 //----------------------------------------------------------------------
 
@@ -107,8 +135,6 @@ void charRNN(Model* m)
 		i++;
 	}
 
-	arma::field<VI> hot(nb_chars);  // VI: 
-
 	i=0; 
 	for (si=char_set.begin(); si != char_set.end(); si++) {
 		c_int.at(*si) = i;
@@ -117,14 +143,16 @@ void charRNN(Model* m)
 	}
 	//   hot[3] = 0010000...0000;
 
+	VF1D_F hot(nb_chars);  // VI: 
+
 	for (int i=0; i < nb_chars; i++) {
-		hot[i] = VI(nb_chars);
+		hot[i] = VF1D(nb_chars);
 		hot[i].zeros();
-		hot[i][i] = 1;
+		hot[i][i] = 1.;
 	}
-	for (int i=0; i < nb_chars; i++) {
-		printf("%d\n", hot[13][i]);
-	}
+	//for (int i=0; i < nb_chars; i++) {
+		//printf("%d\n", hot[13][i]);
+	//}
 	//--------------------------------------
 
 	// CONSTRUCT MODEL
@@ -148,8 +176,8 @@ void charRNN(Model* m)
 	input->setActivation(new Identity());// Original
 	//input->setActivation(new Tanh());
 	//d1->setActivation(new Tanh());
-	//d1->setActivation(new Identity()); // original
-	d2->setActivation(new Tanh());
+	d1->setActivation(new ReLU());
+	//d1->setActivation(new Tanh());
 	d2->setActivation(new Identity()); // original
 
 	m->addInputLayer(input);
@@ -159,63 +187,48 @@ void charRNN(Model* m)
 	m->connectionOrderClean(); // no print statements
 
 	m->initializeWeights(); // be initialized after freezing
-	m->setStateful(true);
+	BIAS& b1 = d1->getBias();
+	BIAS& b2 = d2->getBias();
+	// b1 = 0.1 generates a single scalar. Do not know why. 
+	b1 = 0.1 * arma::ones<BIAS>(size(b1));
+	b2 = 0.1 * arma::ones<BIAS>(size(b2));
 
-	#if 0
-	VF2D_F xx(2);
-	VF2D_F yy;
-	xx(0) = VF2D(100,30);
-	xx(1) = VF2D(100,30);
-	xx(0)(3,4) = 45.;
-	xx(0)(3,5) = 57.;
-	xx(1)(3,5) = 72.;
-	for (int j=0; j < 1000; ++j) {
-	for (int i=0; i < 100000; i++) {
-		yy = xx;  // works as expected with fields // no leak
-	}}
-	exit(0);
-	printf("yy(0)(3,5)= %f\n", yy(0)(3,5));
-	printf("yy(0)(3.4)= %f\n", yy(0)(3,4));
-	printf("yy(1)(3.5)= %f\n", yy(1)(3,5));
-	xx(0)(3,4) = 35.;
-	printf("yy(0)(3,4)= %f\n", yy(0)(3,4));
-	exit(0);
-	Activation& act = d1->getActivation();
-	for (int j=0; j < 1000; j++) {
-	for (int i=0; i < 100000; i++) {
-		printf("j,i= %d, %d\n", j, i);
-		yy = act(xx);
-		yy.reset(); // removes leak
-		//yy(0).reset(); // memory leak still there, but grows more slowly. 
-	}}
-	exit(0);
-	#endif
+	m->setStateful(true);
 
 
 	// End of model
 	// -----------------------------
 	// Run model
-	std::vector<VF2D_F> net_inputs, net_exact;
 
 	bool reset;
-	int nb_samples = 200;
-	nb_epochs = 5000;
+	int nb_samples;
+	int seq_len = m->getSeqLen();
+	int batch_size = m->getBatchSize();
+	nb_samples = input_data.size() / (batch_size * seq_len * nb_chars);
+	printf("nb_samples= %d\n", nb_samples); //exit(0);
+	printf("batch_size= %d, seq_len= %d, nb_chars= %d\n", batch_size, seq_len, nb_chars);
+	//nb_samples = 200;
+	//nb_epochs = 100;
+	Objective* objective = m->getObjective();
+
+	VF2D_F net_inputs, net_exact;
+	U::createMat(net_inputs, batch_size, input_dim, seq_len);
+	U::createMat(net_exact, batch_size, input_dim, seq_len);
 
 	for (int e=0; e < nb_epochs; e++) {
 		printf("*** epoch %d ****\n", e);
 		m->resetState();
 		reset = true;
 
-		for (int i=0; i < nb_samples-1; i++) {
-			printf("%d ", i);
+		for (int i=0; i < nb_samples; i++) {
+			//printf("sample %d ", i+1);
     		getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
-			m->trainOneBatch(net_inputs[0], net_exact[0]);
-			net_inputs[0].reset();
-			net_exact[0].reset();
+			m->trainOneBatch(net_inputs, net_exact);
 		}
 		printf("\n\n");
+		//exit(0);
 	}
 
 	delete input;
