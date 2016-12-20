@@ -12,7 +12,7 @@ add_subdirectory(activations)
 
 #add_subdirectory(test_recurrent_model4)
 #add_subdirectory(test_recurrent_model5)
-add_subdirectory(test_recurrent_model_bias1)
+#add_subdirectory(test_recurrent_model_bias1)
 #add_subdirectory(test_recurrent_model_bias2)
 #add_subdirectory(test_recurrent_model_bias5)
 
@@ -27,25 +27,25 @@ add_subdirectory(test_recurrent_model_bias1)
 #add_subdirectory(test_diff_eq2)
 
 # solve for simplest equation dy/dy = -alpha y with simplest network (recurrent, seq=1)
-add_subdirectory(test_diff_eq3)
+#add_subdirectory(test_diff_eq3)
 
 # solve for simplest equation dy/dy = -alpha y (recurrent, seq=1)
 # Experiment with multiple layers and layers with multiple nodes. 
-add_subdirectory(test_diff_eq4)
+#add_subdirectory(test_diff_eq4)
 
 # return to tanh recurrent node following the first dense node with forward Euler activation. 
-add_subdirectory(test_diff_eq5)
+#add_subdirectory(test_diff_eq5)
 
 # Create two DecayEQ in parallel
-add_subdirectory(test_diff_eq6)
+#add_subdirectory(test_diff_eq6)
 
 # Create two DecayEQ in parallel, but cross link them. 
 # In principle, I should be able to get oscillatory behavior.
-add_subdirectory(test_diff_eq7)
+#add_subdirectory(test_diff_eq7)
 
 add_subdirectory(char-rnn)
 
 # two-class classification with cross-entropy objective
 # compare against program written in keras
-add_subdirectory(categorical_classification)
+#add_subdirectory(categorical_classification)
 

@@ -678,8 +678,15 @@ Some notes: Using ReLU, seq_len=25, batch=1: with lr=.1 and lr=.001 (using char-
 Using ReLU, seq_len=25, batch=64: with lr=.001 (code convergences slowly)
 Using ReLU, seq_len=25, batch=64: with lr=.1 (NaNs develop rather quickly)
 Stored under runs1_dec19_2016
+
 ----------------------------------------------------------------------
+Dec. 19, 2016
+Make sure learning_rate in Objective.h and other classes, matches that of model (by default)
+
+MUST FIX BUG THAT PREVENTS Creation of 2 models!!!
 ----------------------------------------------------------------------
+Dec. 20, 2016
+char-rnn: ReLU: nans. Tanh: no Nans. Do not follow. I am using one recursive layer. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

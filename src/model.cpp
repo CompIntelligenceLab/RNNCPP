@@ -16,6 +16,16 @@ Model::Model(std::string name /* "model" */)
 	this->name = name;
 	learning_rate = 0.001;
 	return_sequences = false;
+
+	connections.resize(0);
+	order_eval.resize(0);
+	//clist.resize(0);
+	//clist_temporal.resize(0);
+	x_in_history.resize(0);
+	x_out_history.resize(0);
+	loss_history.resize(0);
+	weights_to_print.resize(0);  // need better approach. For large networks, we
+
 	print_verbose = true;
 	printf("Model constructor (%s)\n", this->name.c_str());
 	optimizer = new RMSProp();
@@ -134,7 +144,7 @@ void Model::add(Layer* layer_from, Layer* layer_to, bool is_temporal, std::strin
 {
 	// I AM ADDING A Layer if the layer doesn't already exit. Otherwise, I am adding a connection
 
-	printf("add(layer_from, layer)\n");
+	printf("add(layer_from, layer, temporal)\n");
 	// Layers should only require layer_size 
 
 	if (layer_from) {
@@ -165,6 +175,7 @@ void Model::add(Layer* layer_from, Layer* layer_to, bool is_temporal, std::strin
 	// Later on, we might create different kinds of connection. This would require a rework of 
 	// the interface. 
 	Connection* connection = Connection::ConnectionFactory(in_dim, out_dim, conn_type);
+	printf("add temporal connection= %ld\n", connection);
 	connection->setTemporal(is_temporal);  // not in other add() routine
 
 	// connections must contain all connections (to allow retrieval of the connection given the layers)
@@ -226,6 +237,7 @@ void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all
 	// Later on, we might create different kinds of connection. This would require a rework of 
 	// the interface. 
 	Connection* connection = Connection::ConnectionFactory(in_dim, out_dim, conn_type);
+	printf("add connection= %ld\n", connection);
 	//if (connection->getTemporal() == false) {
 		connections.push_back(connection);
 	//}
@@ -245,7 +257,7 @@ void Model::add(Layer* layer_from, Layer* layer_to, std::string conn_type /*"all
 //----------------------------------------------------------------------
 void Model::print(std::string msg /* "" */)
 {
-	printf("*** Model printout: ***\n");
+	printf("----BEGIN MODEL PRINTOUT -----------------\n");
     if (msg != "") printf("%s\n", msg.c_str());
 	printf("name: %s\n", name.c_str());
 	printf("stateful: %d\n", stateful);
@@ -264,6 +276,7 @@ void Model::print(std::string msg /* "" */)
 	for (int i=0; i < layers.size(); i++) {
 		layers[i]->print();
 	}
+	printf("----END MODEL PRINTOUT -----------------\n");
 }
 //----------------------------------------------------------------------
 void Model::checkIntegrity()
@@ -494,6 +507,7 @@ void Model::printSummary()
 		for (int p=0; p < prev.size(); p++) {
 			Layer* pl = prev[p].first;
 			Connection* pc = prev[p].second;
+	printf("pc1= %ld\n", pc);
 			conn_type = (pc->getTemporal()) ? "temporal" : "spatial";
 			sprintf(buf, "   - prev[%d]: ", p);
 			pl->printSummary(std::string(buf));
@@ -503,6 +517,7 @@ void Model::printSummary()
 		for (int n=0; n < next.size(); n++) {
 			Layer* nl = next[n].first;
 			Connection* nc = next[n].second;
+	printf("nc1= %ld\n", nc);
 			conn_type = (nc->getTemporal()) ? "temporal" : "spatial";
 			sprintf(buf, "   - next[%d]: ", n);
 			nl->printSummary(buf);
@@ -516,6 +531,7 @@ void Model::printSummary()
 		for (int p=0; p < prev.size(); p++) {
 			Layer* pl = prev[p].first;
 			Connection* pc = prev[p].second;
+	printf("pc2= %ld\n", pc);
 			conn_type = (pc->getTemporal()) ? "temporal" : "spatial";
 			sprintf(buf, "   - prev[%d]: ", p);
 			pl->printSummary(std::string(buf));
@@ -525,6 +541,7 @@ void Model::printSummary()
 		for (int n=0; n < next.size(); n++) {
 			Layer* nl = next[n].first;
 			Connection* nc = next[n].second;
+	printf("nc2= %ld\n", nc);
 			conn_type = (nc->getTemporal()) ? "temporal" : "spatial";
 			sprintf(buf, "   - next[%d]: ", n);
 			nl->printSummary(buf);
@@ -1257,5 +1274,36 @@ void Model::setSeqLen(int seq_len)
 	}
 
 	checkIntegrity();
+}
+//----------------------------------------------------------------------
+void Model::setWeightsAndBiases(Model* mfrom)
+{
+	CONNECTIONS::iterator c;
+	CONNECTIONS& clist_from = mfrom->getClist();
+	CONNECTIONS& clist_to   =  this->getClist();
+	//CONNECTIONS::iterator ct;
+
+	// ignore weight transposes
+
+	for (int i=0; i < clist_from.size(); i++) {
+		WEIGHT& w_from = clist_from[i]->getWeight();
+		clist_to[i]->setWeight(w_from);
+	}
+
+	CONNECTIONS& clist_temporal_from = mfrom->getTemporalConnections();
+	CONNECTIONS& clist_temporal_to   =  this->getTemporalConnections();
+
+	for (int i=0; i < clist_temporal_from.size(); i++) {
+		WEIGHT& w_from = clist_temporal_from[i]->getWeight();
+		clist_temporal_to[i]->setWeight(w_from);
+	}
+
+	const LAYERS& layers_from = mfrom->getLayers();
+	const LAYERS& layers_to   =  this->getLayers();
+
+	//LAYERS::iterator la;
+	for (int i=0; i < layers_from.size(); i++) {
+		BIAS& bias = layers[i]->getBias();
+	}
 }
 //----------------------------------------------------------------------

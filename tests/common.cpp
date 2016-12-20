@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include "globals.h"
 
 class Func { 
 public:
@@ -617,7 +618,7 @@ void predictAndBackProp(Model* m, VF2D_F& xf, VF2D_F& exact)
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 }
 //----------------------------------------------------------------------
-Model* processArguments(int argc, char** argv)
+Globals* processArguments(int argc, char** argv)
 {
 // arguments: -b nb_batch, -l layer_size, -s seq_len, -s is_recursive
 
@@ -702,32 +703,34 @@ Model* processArguments(int argc, char** argv)
 	arma_rng::set_seed(100); // REMOVE LATER
 
 	Model* m  = new Model(); // argument is input_dim of model
-	m->setBatchSize(nb_batch);
-	m->setSeqLen(seq_len);
-	m->setInitializationType(initialization_type);
+	Globals* g = new Globals();
 
-	m->layer_size = layer_size;
-	m->is_recurrent = is_recurrent;
-	m->inc = inc;
-	m->nb_serial_layers =   nb_serial_layers;
-	m->nb_parallel_layers = nb_parallel_layers;
-	m->nb_epochs = nb_epochs;
-	m->setLearningRate(learning_rate); // default lr
-	m->obj_err_type = obj_err_type;
-	m->init_weight_rms = init_weight_rms;
+	g->batch_size = nb_batch;
+	g->seq_len = seq_len;
+	g->initialization_type = initialization_type;
+
+	g->layer_size = layer_size;
+	g->is_recurrent = is_recurrent;
+	g->inc = inc;
+	g->nb_serial_layers =   nb_serial_layers;
+	g->nb_parallel_layers = nb_parallel_layers;
+	g->nb_epochs = nb_epochs;
+	g->learning_rate = learning_rate; 
+	g->obj_err_type = obj_err_type;
+	g->init_weight_rms = init_weight_rms;
 
 	for (int j=0; j < nb_parallel_layers; j++) {
 	for (int i=0; i < nb_serial_layers; i++) {
 		if (activation_type == "tanh") {
-			m->activations.push_back(new Tanh());
+			g->activations.push_back(new Tanh());
 		} else if (activation_type == "iden") {
-			m->activations.push_back(new Identity());
+			g->activations.push_back(new Identity());
 		} else if (activation_type == "sigmoid") {
-			m->activations.push_back(new Sigmoid());
+			g->activations.push_back(new Sigmoid());
 		} else if (activation_type == "relu") {
-			m->activations.push_back(new ReLU());
+			g->activations.push_back(new ReLU());
 		} else if (activation_type == "decayde") {
-			m->activations.push_back(new DecayDE());
+			g->activations.push_back(new DecayDE());
 		} else {
 			printf("(%s) unknown activation\n", activation_type.c_str());
 			exit(1);
@@ -735,5 +738,5 @@ Model* processArguments(int argc, char** argv)
 	}}
 
 	//delete activation;
-	return m;
+	return g;
 }

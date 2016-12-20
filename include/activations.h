@@ -256,6 +256,7 @@ class Softmax : public Activation
 public:
 	Softmax(std::string name="softmax") : Activation(name) 
 	{ 
+		printf("softmax constructor\n");
 		deriv_type = "coupled";
 	}
 	~Softmax() {;}

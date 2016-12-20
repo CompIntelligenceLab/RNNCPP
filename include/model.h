@@ -45,7 +45,7 @@ public:
 	std::vector<std::vector<std::vector<REAL> > > params_to_print;  
 
 private:
-	int nb_batch;
+	int nb_batch; // equal to batch_size?
 	// order in which connections should be handled, computed by connectionOrderClean()
 	CONNECTIONS clist;  // spatial connections
 	CONNECTIONS clist_temporal;  // temporal connections
@@ -202,6 +202,10 @@ public:
   void parameterUpdate();
   void freezeWeights();
   void freezeBiases();
+
+  // take weights and biases from model m and copy them to current model
+  // assume the model sizes and architecture are identical. 
+  void setWeightsAndBiases(Model* m);
 
 private:
   void checkIntegrity(LAYERS& layer_list);

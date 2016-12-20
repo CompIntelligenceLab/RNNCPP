@@ -142,6 +142,7 @@ public:
 
    // gradient of loss function with respect to weights
    GRADIENTS getGradient() const {return gradient;}
+   void setBias(BIAS& bias) {this->bias = bias;}  // return  reference or const ref? 
    BIAS& getBias() {return bias;}  // return  reference or const ref? 
    const BIAS& getBias() const {return bias;}  // return  reference or const ref? 
    BIAS& getBiasDelta() { return bias_delta; }
