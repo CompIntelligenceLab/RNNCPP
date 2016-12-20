@@ -9,7 +9,7 @@ Activation::Activation(std::string name /* "activation" */)
 	deriv_type = "decoupled";  // default
 
 	dt = .10;   // Discrete time step
-	printf("RESET dt to a small value!!!\n");
+	//printf("RESET dt to a small value!!!\n");
 
 	if (strlen(cname) > 80) {
 		printf("Activation::Activation : cname array too small\n");
@@ -17,7 +17,7 @@ Activation::Activation(std::string name /* "activation" */)
 	}
 	sprintf(cname, "%s%d", name.c_str(), counter);
 	this->name = cname;
-	printf("Activation constructor (%s)\n", this->name.c_str());
+	//printf("Activation constructor (%s)\n", this->name.c_str());
 	counter++;
 
 	// allow for a maximum of 10 parameters
@@ -26,7 +26,8 @@ Activation::Activation(std::string name /* "activation" */)
 //----------------------------------------------------------------------
 Activation::~Activation() 
 {
-	printf("Activation destructor (%s)\n", name.c_str());
+	//printf("Activation destructor (%s)\n", name.c_str());
+	;
 }
 //----------------------------------------------------------------------
 void Activation::print(std::string msg /* "" */)

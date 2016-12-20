@@ -5,7 +5,8 @@ BSD License
 import numpy as np
 
 # data I/O
-data = open('input.txt', 'r').read() # should be simple plain text file
+#data = open('input.txt', 'r').read() # should be simple plain text file
+data = open('fox.txt', 'r').read() # should be simple plain text file
 chars = list(set(data))
 data_size, vocab_size = len(data), len(chars)
 print 'data has %d characters, %d unique.' % (data_size, vocab_size)
@@ -13,16 +14,19 @@ char_to_ix = { ch:i for i,ch in enumerate(chars) }
 ix_to_char = { i:ch for i,ch in enumerate(chars) }
 
 # hyperparameters
-hidden_size = 100 # size of hidden layer of neurons
-seq_length = 25 # number of steps to unroll the RNN for
-learning_rate = 1e-1
+hidden_size = 20 # size of hidden layer of neurons # orig 100
+seq_length = 5 # number of steps to unroll the RNN for # orig 25
+learning_rate = 1e-1 # orig .1
 
 # model parameters
-Wxh = np.random.randn(hidden_size, vocab_size)*0.01 # input to hidden
-Whh = np.random.randn(hidden_size, hidden_size)*0.01 # hidden to hidden
-Why = np.random.randn(vocab_size, hidden_size)*0.01 # hidden to output
-bh = np.zeros((hidden_size, 1)) # hidden bias
-by = np.zeros((vocab_size, 1)) # output bias
+rms = .01 # orig .01  (.1 and .01 work)
+Wxh = np.random.randn(hidden_size, vocab_size)*rms # input to hidden
+Whh = np.random.randn(hidden_size, hidden_size)*rms # hidden to hidden
+Why = np.random.randn(vocab_size, hidden_size)*rms # hidden to output
+bh = np.zeros((hidden_size, 1)) # hidden bias # orig
+by = np.zeros((vocab_size, 1)) # output bias # orig
+#bh = np.ones((hidden_size, 1)) # hidden bias
+#by = np.ones((vocab_size, 1)) # output bias
 
 def lossFun(inputs, targets, hprev):
   """

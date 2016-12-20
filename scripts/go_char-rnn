@@ -1,0 +1,7 @@
+# Real test of parameter estimation to determine differential equation from a network. 
+
+# nsl 0 means there is no nodes in the series section of the network
+# this network will have a single recurrent node 
+
+# copy from eq3
+build/tests/char-rnn/char-rnn -l 20 -b 1 -s 5 -a "tanh" -w "xavier-char-rnn" -e 1000 -lr .1 -wght_rms .1 

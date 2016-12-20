@@ -62,7 +62,6 @@ void sample(Model* mi, int which_char,
 		std::unordered_map<char, int>& c_int,
 		std::vector<char>& int_c, VF1D_F& hot)
 {
-//VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	VF2D_F x(1), y(1);
 	std::vector<int> message;
 
@@ -213,8 +212,8 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	BIAS& b2 = d2->getBias();
 
 	// b1 = 0.1 generates a single scalar. Do not know why. 
-	b1 = 0.1 * arma::ones<BIAS>(size(b1));
-	b2 = 0.1 * arma::ones<BIAS>(size(b2));
+	b1 = 0.0 * arma::ones<BIAS>(size(b1));
+	b2 = 0.0 * arma::ones<BIAS>(size(b2));
 
 	m->print("MODEL PRINTOUT\n");
 	printf("====   after print ====\n");
