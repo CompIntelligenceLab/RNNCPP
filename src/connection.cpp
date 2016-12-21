@@ -183,6 +183,7 @@ void Connection::initialize(std::string initialize_type /*"xavier"*/ )
 		}
 	} else if (initialize_type == "xavier-char-rnn") {
 	// initialization identical to char-rnn.py code by Karpathy
+		//weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
 		weight = arma::randn<WEIGHT>(arma::size(weight)); //Gaussian N(0,1)
 		// I want the standard deviation to be 1/n
 		weight = weight * init_weight_rms;

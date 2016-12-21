@@ -688,5 +688,8 @@ MUST FIX BUG THAT PREVENTS Creation of 2 models!!!
 Dec. 20, 2016
 char-rnn: ReLU: nans. Tanh: no Nans. Do not follow. I am using one recursive layer. 
 ----------------------------------------------------------------------
+Dec. 21, 2016
+Now that I fixed a bug in Cross-Entropy (I must call Softmax in both Cross-Entropy and Gradient, which I had not done), 
+the categorical 2-class classification no longer works. No idea why. Perhaps it is related to the Globals class? 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

@@ -3,6 +3,7 @@
 #include <string>
 #include <cstdlib>
 #include <set>
+#include "globals.h"
 #include "../common.h"
 
 /* implementation of Karpathy's char-rnn. 
@@ -32,7 +33,6 @@ int checkErrors(Model* m, VF2D_F& pred, VF2D_F& exact)
 	}
 
 	return nb_errors;
-	exit(0);
 }
 //----------------------------------------------------------------------
 void getNextGroupOfData(Model* m, bool reset, VF2D& X_train, VF2D& Y_train, 
@@ -127,8 +127,19 @@ void getDataset(Model* m, VF2D*& X_train, VF2D*& Y_train)
 	Y_train = new VF2D(onehot); 
 }
 //----------------------------------------------------------------------
-void categoricalClassification(Model* m) 
+void categoricalClassification(Globals* g) 
 {
+	Model* m = new Model();
+	m->setSeqLen(g->seq_len); // ignore seq_len in Globals
+	m->setInputDim(g->input_dim);
+	m->setBatchSize(g->batch_size);
+	m->nb_epochs = g->nb_epochs;
+	m->setInitializationType(g->initialization_type);
+	m->setLearningRate(g->learning_rate);
+	m->layer_size = g->layer_size;
+	m->init_weight_rms = g->init_weight_rms;
+	printf("init rms= %f\n", m->init_weight_rms);
+
 	int layer_size = m->layer_size;
 	int is_recurrent = m->is_recurrent;
 	int nb_epochs = m->nb_epochs;
@@ -165,7 +176,9 @@ void categoricalClassification(Model* m)
 	m->addInputLayer(input);
 	m->addOutputLayer(d3);
 
-	m->printSummary();
+	//m->printSummary();
+	//m->print();
+	//exit(0);
 	m->connectionOrderClean(); // no print statements
 
 	m->initializeWeights(); // be initialized after freezing
@@ -200,7 +213,7 @@ void categoricalClassification(Model* m)
 	int nb_samples = (X_train->n_rows / batch_size - 1);
 	printf("nb_samples= %d\n", nb_samples);
 
-	for (int i=0; i < 32; i++) {
+	for (int i=0; i < 16; i++) {
 		printf("X_train: %d, %f, %f,    Y_train: %%f, %f\n", i, (*X_train)(i,0), (*X_train)(i,1),  (*Y_train)(i,0), (*Y_train)(i,1));
 	}
 
@@ -208,18 +221,10 @@ void categoricalClassification(Model* m)
 		printf("*** epoch %d ****\n", e);
 		reset = true;
 
-		if (e % 10 == 0) {
+		if (e % 100 == 0) {
 			reset = true;
 			REAL loss = computeFullLossFunction(m, nb_samples, *X_train, *Y_train, net_inputs, net_exact);
-			#if 0
-			for (int i=0; i < nb_samples; i++) {
-    			getNextGroupOfData(m, reset, *X_train, *Y_train, net_inputs, net_exact);
-				VF2D_F pred = m->predictViaConnectionsBias(net_inputs);
-		        //int nb_errors = checkErrors(m, pred, net_exact);
-				printf("nb_errors= %d\n", nb_errors);
-				//exit(0);
-			}
-			#endif
+			//exit(0);
 		}
 
 		for (int i=0; i < nb_samples; i++) {
@@ -245,7 +250,7 @@ int main(int argc, char* argv[])
 {
 // arguments: -b nb_batch, -l layer_size, -s seq_len, -r is_recursive
 
-	Model* m = processArguments(argc, argv);
-	categoricalClassification(m);
+	Globals* g = processArguments(argc, argv);
+	categoricalClassification(g);
 }
 //----------------------------------------------------------------------

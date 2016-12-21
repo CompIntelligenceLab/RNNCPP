@@ -626,7 +626,7 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		resetState(); 
 	}
 
-	//printf("****************** ENTER predictViaConnections ***************\n");
+	printf("****************** ENTER predictViaConnections ***************\n");
 
 	Layer* input_layer = getInputLayers()[0];
 	input_layer->layer_inputs[0] = x; 
@@ -715,11 +715,14 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	printf("turn of in Model::trainOneBatch\n");
 	VF2D_F pred; //new
 	predictViaConnectionsBias(x, pred); // new
+	//x.print("x predict");
+	//pred.print("pred predict");
 	objective->computeLoss(exact, pred);
 
 	const LOSS& loss = objective->getLoss();
 	REAL rloss = arma::sum(loss[0]);
 	printf("rloss= %f\n", rloss);
+	//printf("trainOnBatch, gordon\n"); exit(0);
 	#endif
 
 	// If save loss, ...
@@ -1085,7 +1088,6 @@ void Model::weightUpdate()
 //----------------------------------------------------------------------
 void Model::biasUpdate()
 {
-	// temporal connections (loops)
 	for (int l=0; l < layers.size(); l++) {
 		if (layers[l]->getIsBiasFrozen() == false) {
 			BIAS& bias = layers[l]->getBias();
@@ -1096,7 +1098,6 @@ void Model::biasUpdate()
 //----------------------------------------------------------------------
 void Model::activationUpdate()
 {
-
 	for (int l=0; l < layers.size(); l++) {
 		Activation& activation = layers[l]->getActivation();
 		int nb_params = activation.getNbParams();
@@ -1111,6 +1112,7 @@ void Model::activationUpdate()
 			//printf("bef param= %21.14f, delta= %21.14f\n", activation.getParam(p), delta[p]);
 			REAL param = activation.getParam(p) - learning_rate * delta[p];
 			activation.setParam(p, param);
+			//exit(0);
 			//printf("aft param= %21.14f\n", param);
 			//params.push_back(param);
 		}

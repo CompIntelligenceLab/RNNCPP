@@ -42,11 +42,12 @@ int discrete_sample(VF2D_F& x)
     std::mt19937 gen(rd()); 
 
 	VF2D_F y = soft(x);
+	y.print("softmax");
 
     // Setup the weights (in this case linearly weighted)
 	int sz = y[0].n_rows;
     std::vector<REAL> weights(sz); // sz=65=nb_chars
-    for(int i=0; i < sz; ++i) {
+    for(int i=0; i < sz; i++) {
         weights[i] = y[0](i,0);
     }
 
@@ -65,6 +66,7 @@ void sample(Model* mi, int which_char,
 	VF2D_F x(1), y(1);
 	std::vector<int> message;
 
+	printf("ENTER SAMPLE, which_char= %d\n", which_char);
 	x(0) = hot[which_char];
 	message.push_back(which_char);
 
@@ -73,9 +75,14 @@ void sample(Model* mi, int which_char,
 	for (int i=0; i < 50; i++) {
 		x = mi->predictViaConnectionsBias(x);
 		int id;
-		id = discrete_sample(x);
-		x(0) = hot[id];
-		message.push_back(id);
+		which_char = discrete_sample(x);
+		x(0) = hot[which_char];
+		printf("id= %d\n", which_char);
+		//U::print(hot, "hot");
+		//for (int j=0; j < 6; j++) {
+			//printf("hot[%d] = %f\n", j, x(0)(j,0));
+		//}
+		message.push_back(which_char);
 	}
 
 	printf("\nmessage: ");
@@ -110,15 +117,24 @@ int getNextGroupOfChars(Model* m, bool& reset, std::string input_data,
 
 	int which_char;
 
+	// Check that we won't go beyond character string
+	printf("input_data.size= %d\n", input_data.size());
+	if (((base + seq_len*batch_size + 2)) >= input_data.size()) {
+		return -1;
+	}
+
 	for (int b=0; b < batch_size; b++) {
 		for (int s=0; s < seq_len; s++) {
 			//printf("base+s*nb_chars, input_data: %d, %d\n", base+s*nb_chars, input_data.size());
 			//printf("      nb_chars= %d\n", nb_chars);
-			which_char = c_int.at(input_data[base + s*nb_chars]);
+			which_char = c_int.at(input_data[base + s]);
+			printf("which_char= %d, ", which_char);
 			for (int i=0; i < nb_chars; i++) {   // one-hot vectors
 				net_inputs[b](i, s)       = hot[which_char][i];
 			}
-			which_char = c_int.at(input_data[base + (s+1)*nb_chars]);
+			printf("x base= %d\n", base);
+			which_char = c_int.at(input_data[base + (s+1)]);
+			printf("which_char_exact= %d\n", which_char);
 			for (int i=0; i < nb_chars; i++) {   // one-hot vectors
 				// hot vectors not really required, if I take shortcuts to compute loss function
 				net_exact[b](i, s) = hot[which_char][i];
@@ -126,42 +142,10 @@ int getNextGroupOfChars(Model* m, bool& reset, std::string input_data,
 		}
 	}
 	//printf("enter: base= %d\n", base);
-	base += seq_len * nb_chars * batch_size;
+	base += seq_len * batch_size;
 	//printf("exit: base= %d\n", base);
 	//printf("input_data size: %d\n", input_data.size());
 	return which_char;
-}
-//----------------------------------------------------------------------
-REAL computeFullLossFunction(Model* m, int nb_samples, VF2D& X_train, VF2D& Y_train, 
-	VF2D_F& net_inputs, VF2D_F& net_exact)
-{
-	LOSS loss;
-	Objective* objective = m->getObjective();
-
-	REAL sum = 0.;
-	int batch_size = m->getBatchSize();
-	int seq_len = m->getSeqLen();
-	int total_nb_errors = 0;
-
-	for (int i=0; i < nb_samples; i++) {
-		bool base_reset = true; 
-		//getNextGroupOfData(m, base_reset, X_train, Y_train, net_inputs, net_exact);
-		VF2D_F pred = m->predictViaConnectionsBias(net_inputs);
-		objective->computeLoss(net_exact, pred);
-		loss = objective->getLoss();
-		//printf("loss.n_rows= %d\n", loss.n_rows);
-		//printf("loss[0].n_rows= %d\n", loss[0].n_rows);
-		//printf("loss[0].n_cols= %d\n", loss[0].n_cols);
-		for (int b=0; b < batch_size; b++) {
-			for (int s=0; s < seq_len; s++) {
-				sum += loss[b](s);
-			}
-		}
-		//int nb_errors = checkErrors(m, pred, net_exact);
-		//total_nb_errors += nb_errors;
-	}
-	//printf("x sum= %f, total_nb_errors= %d\n", sum, total_nb_errors);
-	return 0.;
 }
 //----------------------------------------------------------------------
 Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int layer_size) 
@@ -178,12 +162,13 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	m->setInitializationType(g->initialization_type);
 	m->setLearningRate(g->learning_rate);
 	m->layer_size = g->layer_size;
-	m->setInputDim(input_dim);
+	m->init_weight_rms = g->init_weight_rms;
+	printf("init rms= %f\n", m->init_weight_rms);
 
 	m->setObjective(new CrossEntropy()); 
 
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
-	Layer* d1    = new DenseLayer(m->layer_size, "rdense");
+	Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
 	Layer* d2    = new DenseLayer(m->getInputDim(), "rdense");
 
 	// Softmax is included in the calculation of the cross-entropy
@@ -197,7 +182,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	//input->setActivation(new Tanh());
 	//d1->setActivation(new Tanh());
 	//d1->setActivation(new ReLU());
-	d1->setActivation(new Tanh());
+	d1->setActivation(new Tanh()); // as Karpathy python code
 	d2->setActivation(new Identity()); // original
 
 	m->addInputLayer(input);
@@ -243,7 +228,9 @@ void charRNN(Globals* g)
 	std::set<char> char_set;
 
 	// Collect unique characters
-	for (int i=0; i < input_data.size(); i++) {
+	// skip last character which is "\0" or some other non-printable character
+	for (int i=0; i < input_data.size()-1; i++) {
+		printf("char: %c\n", input_data[i]);
 		char_set.insert(input_data[i]);
 	}
 	printf("set size: %d\n", char_set.size());
@@ -254,12 +241,25 @@ void charRNN(Globals* g)
 	std::vector<char> int_c; //, char> int_c;
 	int_c.resize(nb_chars);
 
+	// Put the characters in a particular order: brown
+	std::string brown= "brown";
+
 	int i=0; 
+	#if 0
+	// Original
 	for (si=char_set.begin(); si != char_set.end(); si++) {
+		printf("char= %c\n", *si);
 		//printf("char_set = %c\n", *si);
 		c_int[*si] = i;
 		int_c[i] = *si;
 		i++;
+	}
+	#endif
+	// Used for testing (GE)
+	for (int i=0; i < brown.size(); i++) {
+		printf("brown[%d]= %c\n", i, brown[i]);
+		c_int[brown[i]] = i;
+		int_c[i] = brown[i];
 	}
 
 	i=0; 
@@ -277,9 +277,6 @@ void charRNN(Globals* g)
 		hot[i].zeros();
 		hot[i][i] = 1.;
 	}
-	//for (int i=0; i < nb_chars; i++) {
-		//printf("%d\n", hot[13][i]);
-	//}
 	//--------------------------------------
 
 	// CONSTRUCT MODEL
@@ -301,7 +298,7 @@ void charRNN(Globals* g)
 	int nb_samples;
 	int seq_len = m->getSeqLen();
 	int batch_size = m->getBatchSize();
-	nb_samples = input_data.size() / (batch_size * seq_len * nb_chars);
+	nb_samples = input_data.size() / (batch_size * seq_len);
 	printf("nb_samples= %d\n", nb_samples); //exit(0);
 	printf("batch_size= %d, seq_len= %d, nb_chars= %d\n", batch_size, seq_len, nb_chars);
 	//nb_samples = 200;
@@ -314,6 +311,8 @@ void charRNN(Globals* g)
 	U::createMat(net_exact, batch_size, input_dim, seq_len);
 
 	int count = 0;
+	int which_char;
+	which_char = c_int.at(input_data[0]);
 
 	for (int e=0; e < nb_epochs; e++) {
 		printf("*** epoch %d ****\n", e);
@@ -321,18 +320,27 @@ void charRNN(Globals* g)
 		reset = true;
 
 		for (int i=0; i < nb_samples; i++) {
-			//printf("sample %d ", i+1);
-    		int which_char = getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
-			// Need a way to exit getNext... when all characters are processed
-			reset = false;
-			m->trainOneBatch(net_inputs, net_exact);
-			count++;
-
-			if (count % 100 == 0) {
-				printf("TRAIN\n");
+			if (count % 10 == 0) {
+				printf("TRAIN, nb_epochs: %d, iter: %d\n", e, count);
 				m_pred->setWeightsAndBiases(m);
 				sample(m_pred, which_char, c_int, int_c, hot);
 			}
+
+			//printf("sample %d ", i+1);
+    		which_char = getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
+			if (which_char < 0) break;
+			// Need a way to exit getNext... when all characters are processed
+			reset = false;
+		#if 0
+		printf("------------\n");
+		for (int s=0; s < seq_len; s++) {
+		for (int j=0; j < 5; j++) {
+			printf("s=%d, net_inputs[%d]= %f, net_exact[%d]= %f\n", s, j, net_inputs(0)(j,s), j, net_exact(0)(j,s));
+		}}
+		#endif
+			m->trainOneBatch(net_inputs, net_exact);
+			count++;
+
 		}
 		printf("\n\n");
 	}

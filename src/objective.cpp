@@ -354,7 +354,6 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 	int input_dim = exact[0].n_rows;
 	int nb_batch = exact.n_rows;
 
-	VF2D ex = exact[0];
 	VF2D_F y(predict);
 
 	// softmax over the dimension index of VF2D (first index)
@@ -367,6 +366,10 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
 		}
 	}
+	//y.print("softmax, computeLoss");
+	//exact.print("exact");
+	//predict.print("predict");
+	//exit(0);
 
 	//printf("(%d, %d) CrossEntropy::computeLoss\n", seq_len, input_dim);
 	//U::print(exact, "exact");
@@ -381,7 +384,8 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 
 	// LOSS[batch][sequence]
 	for (int b=0; b < nb_batch; b++) {
-		output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO); 
+		//output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO); 
+		output = arma::clamp(y[b], NEAR_ZERO, 1.-NEAR_ZERO); 
 
 		loss[b].zeros(seq_len);
 		for (int s=0; s < seq_len; s++) {
@@ -389,13 +393,15 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 			// Sum over input_dim (most terms are zero)
 			for (int i=0; i < input_dim; i++) {
 				loss[b](s) -= exact[b](i,s) * log(output(i,s));
+				//printf("exact(%d,%d): %f, output(%d,%d)= %f\n", i,s,exact[b](i,s), i,s, output(i,s));
 				// I should not have to do the sum, since exact is all zeros except one element, and 
 				// I know which one
 			}
 		}
 		// Really need the average over the sequence
-		loss[b] = loss[b] / seq_len;
+		//loss[b] = loss[b] / seq_len; // orig
 	}
+	loss.print("loss in CrossEntropy computeLoss\n");
 	//loss.print("exit loss");
 }
 
@@ -406,12 +412,26 @@ void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 	int seq_len  = exact[0].n_cols;
 	gradient.reset(); // empty the datastructure
 	gradient.set_size(nb_batch);
-	VF2D output(size(predict[0]));
+
+	// WRONG: predict[b] must the the result of the softmax
+	VF2D_F y(predict); // additional copy
+
+	// softmax over the dimension index of VF2D (first index)
+	for (int b=0; b < nb_batch; b++) {
+		float mx = arma::max(arma::max(predict[b]));
+	    for (int s=0; s < seq_len; s++) {
+		    y(b).col(s) = arma::exp(y(b).col(s)-mx);
+			// trick to avoid overflows
+			float ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
+			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
+		}
+	}
 
 	for (int b=0; b < nb_batch; b++) {
 		//U::print(predict, "predict");
 		//U::print(exact, "exact");
-		gradient[b] = (predict[b] - exact[b]) / seq_len; // average gradient
+		//gradient[b] = (predict[b] - exact[b]) / seq_len; // average gradient
+		gradient[b] = (y[b] - exact[b]) / seq_len; // average gradient
 		// although all exact are zero except one (for a given sequence index), predict are all non-zero.
 		// So I do not think there is a faster procedure to evaluate the gradient. 
 

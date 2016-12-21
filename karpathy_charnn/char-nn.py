@@ -7,19 +7,23 @@ import numpy as np
 # data I/O
 #data = open('input.txt', 'r').read() # should be simple plain text file
 data = open('fox.txt', 'r').read() # should be simple plain text file
-chars = list(set(data))
+data = data.rstrip('\n'); # GE
+#chars = list(set(data)) # orig
+chars = ['b','r','o','w','n']
 data_size, vocab_size = len(data), len(chars)
 print 'data has %d characters, %d unique.' % (data_size, vocab_size)
 char_to_ix = { ch:i for i,ch in enumerate(chars) }
 ix_to_char = { i:ch for i,ch in enumerate(chars) }
+print "chars= ", chars
 
 # hyperparameters
 hidden_size = 20 # size of hidden layer of neurons # orig 100
-seq_length = 5 # number of steps to unroll the RNN for # orig 25
+seq_length = 1 # number of steps to unroll the RNN for # orig 25
 learning_rate = 1e-1 # orig .1
 
 # model parameters
 rms = .01 # orig .01  (.1 and .01 work)
+np.random.seed(0)  # GE
 Wxh = np.random.randn(hidden_size, vocab_size)*rms # input to hidden
 Whh = np.random.randn(hidden_size, hidden_size)*rms # hidden to hidden
 Why = np.random.randn(vocab_size, hidden_size)*rms # hidden to output
@@ -37,6 +41,11 @@ def lossFun(inputs, targets, hprev):
   xs, hs, ys, ps = {}, {}, {}, {}
   hs[-1] = np.copy(hprev)
   loss = 0
+  #print "Wxh= ", Wxh
+  #print "Whh= ", Whh
+  #print "Why= ", Why
+  #print "bh= ", bh
+  #print "by= ", by
   # forward pass
   for t in xrange(len(inputs)):
     xs[t] = np.zeros((vocab_size,1)) # encode in 1-of-k representation
@@ -45,6 +54,16 @@ def lossFun(inputs, targets, hprev):
     ys[t] = np.dot(Why, hs[t]) + by # unnormalized log probabilities for next chars
     ps[t] = np.exp(ys[t]) / np.sum(np.exp(ys[t])) # probabilities for next chars
     loss += -np.log(ps[t][targets[t],0]) # softmax (cross-entropy loss)
+    #print "loss +="
+  """
+  print "ps= ", ps
+  print "np.log(3.)= ", np.log(3.)
+  print "inputs= ", inputs
+  print "targets= ", targets
+  print "exit, loss= ", loss; quit();
+  print "remove quit() statement"; quit() #*****************
+  """
+
   # backward pass: compute gradients going backwards
   dWxh, dWhh, dWhy = np.zeros_like(Wxh), np.zeros_like(Whh), np.zeros_like(Why)
   dbh, dby = np.zeros_like(bh), np.zeros_like(by)
@@ -86,19 +105,25 @@ n, p = 0, 0
 mWxh, mWhh, mWhy = np.zeros_like(Wxh), np.zeros_like(Whh), np.zeros_like(Why)
 mbh, mby = np.zeros_like(bh), np.zeros_like(by) # memory variables for Adagrad
 smooth_loss = -np.log(1.0/vocab_size)*seq_length # loss at iteration 0
+nb_epochs = 0
+
+# make sure the random numbers remain the same
+
 while True:
   # prepare inputs (we're sweeping from left to right in steps seq_length long)
   if p+seq_length+1 >= len(data) or n == 0: 
     hprev = np.zeros((hidden_size,1)) # reset RNN memory
     p = 0 # go from start of data
+    nb_epochs += 1
   inputs = [char_to_ix[ch] for ch in data[p:p+seq_length]]
   targets = [char_to_ix[ch] for ch in data[p+1:p+seq_length+1]]
 
   # sample from the model now and then
-  if n % 100 == 0:
+  #if n % 100 == 0:  # orig
+  if n % 10 == 0:
     sample_ix = sample(hprev, inputs[0], 200)
     txt = ''.join(ix_to_char[ix] for ix in sample_ix)
-    print '----\n %s \n----' % (txt, )
+    print 'nb_epochs %d, iter %d, ----\n %s \n----' % (nb_epochs, n, txt )
 
   # forward seq_length characters through the net and fetch gradient
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFun(inputs, targets, hprev)
@@ -110,7 +135,9 @@ while True:
                                 [dWxh, dWhh, dWhy, dbh, dby], 
                                 [mWxh, mWhh, mWhy, mbh, mby]):
     mem += dparam * dparam
-    param += -learning_rate * dparam / np.sqrt(mem + 1e-8) # adagrad update
+    #print "mem= ", mem
+    #param += -learning_rate * dparam / np.sqrt(mem + 1e-8) # adagrad update
+    param += -learning_rate * dparam  # SGD
 
   p += seq_length # move data pointer
   n += 1 # iteration counter 
