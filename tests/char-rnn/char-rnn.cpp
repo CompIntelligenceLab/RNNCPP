@@ -42,7 +42,7 @@ int discrete_sample(VF2D_F& x)
     std::mt19937 gen(rd()); 
 
 	VF2D_F y = soft(x);
-	y.print("softmax");
+	//y.print("softmax");
 
     // Setup the weights (in this case linearly weighted)
 	int sz = y[0].n_rows;
@@ -77,7 +77,7 @@ void sample(Model* mi, int which_char,
 		int id;
 		which_char = discrete_sample(x);
 		x(0) = hot[which_char];
-		printf("id= %d\n", which_char);
+		//printf("id= %d\n", which_char);
 		//U::print(hot, "hot");
 		//for (int j=0; j < 6; j++) {
 			//printf("hot[%d] = %f\n", j, x(0)(j,0));
@@ -312,9 +312,9 @@ void charRNN(Globals* g)
 
 	int count = 0;
 	int which_char;
-	which_char = c_int.at(input_data[0]);
 
 	for (int e=0; e < nb_epochs; e++) {
+		which_char = c_int.at(input_data[0]);
 		printf("*** epoch %d ****\n", e);
 		m->resetState();
 		reset = true;
@@ -326,7 +326,6 @@ void charRNN(Globals* g)
 				sample(m_pred, which_char, c_int, int_c, hot);
 			}
 
-			//printf("sample %d ", i+1);
     		which_char = getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
 			if (which_char < 0) break;
 			// Need a way to exit getNext... when all characters are processed

@@ -23,7 +23,7 @@ learning_rate = 1e-1 # orig .1
 
 # model parameters
 rms = .01 # orig .01  (.1 and .01 work)
-np.random.seed(0)  # GE
+#np.random.seed(0)  # GE
 Wxh = np.random.randn(hidden_size, vocab_size)*rms # input to hidden
 Whh = np.random.randn(hidden_size, hidden_size)*rms # hidden to hidden
 Why = np.random.randn(vocab_size, hidden_size)*rms # hidden to output
