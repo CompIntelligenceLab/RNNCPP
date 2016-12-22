@@ -273,10 +273,14 @@ void Layer::computeGradient(int t)
 	//for (int b=0; b < inputs.n_rows; b++) {
 		//gradient[b].col(t) = activation->derivative(inputs[b].col(t));
 	//}
+	printf("ENTER Layers::computeGradient\n");
+
 	if (getActivation().getDerivType() == "decoupled") {
 		for (int b=0; b < inputs.n_rows; b++) {
 			gradient[b].col(t) = activation->derivative(inputs[b].col(t));
 		}
+		inputs.print("inputs");
+		gradient.print("gradient");
 	} else {
 		; // Do not compute the gradient. Compute Jacobian when required
 	}

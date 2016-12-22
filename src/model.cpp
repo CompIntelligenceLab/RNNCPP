@@ -889,6 +889,7 @@ void Model::storeDLossDweightInConnectionsRecCon(int t)
 void Model::storeDLossDbiasInLayersRec(int t)
 {
 	VF1D delta;
+	printf("enter storeDLossDbiasInLayerRec\n"); // ******** TEMP
 
 	for (int l=0; l < layers.size(); l++) {
 		Layer* layer = layers[l];
@@ -896,14 +897,15 @@ void Model::storeDLossDbiasInLayersRec(int t)
 		if (layer->getActivation().getDerivType() == "decoupled") {
 			const VF2D_F& grad      = layer->getGradient();
 			const VF2D_F& old_deriv = layer->getDelta();
-			//grad[0].raw_print(cout, "grad");
-			//old_deriv[0].raw_print(cout, "old_deriv");
+			grad[0].raw_print(cout, "grad"); // ok
+			old_deriv[0].raw_print(cout, "old_deriv"); // WRONG for bh?
 
 			for (int b=0; b < nb_batch; b++) {
 				delta = (old_deriv[b].col(t) % grad[b].col(t));
 				//delta.raw_print(cout, "delta");
 				layer->incrBiasDelta(delta);
 			}
+			delta.print("BiasDelta");
 
 		} else {  // coupled
 			for (int b=0; b < nb_batch; b++) {
@@ -1069,13 +1071,21 @@ Connection* Model::getConnection(Layer* layer1, Layer* layer2)
 //----------------------------------------------------------------------
 void Model::weightUpdate()
 {
+	printf("ENTER WEIGHT UPDATE");
+
 	// Assume that all connections in clist are spatial
 	// spatial connections
+	printf("clist size: %d\n", clist.size());
+	printf("clist_temporal size: %d\n", clist_temporal.size());
+
 	for (int c=0; c < clist.size(); c++) {
 		Connection* con = clist[c];
+		con->printSummary("clist[c]"); // GE
+		printf("con->frozen= %d\n", con->frozen);
 		WEIGHT& wght = con->getWeight();
 		if (con->frozen) continue;
 		wght = wght - learning_rate * con->getDelta();
+		con->getDelta().print("patial WEIGHT DELTA"); // GE
 		//con->weight_history.push_back(wght);
 		//con->printSummary();
 	}
@@ -1083,9 +1093,11 @@ void Model::weightUpdate()
 	// temporal connections 
 	for (int c=0; c < clist_temporal.size(); c++) {
 		Connection* con = clist_temporal[c];
+		con->printSummary("clist_temporal[c]"); // GE
 		WEIGHT& wght = con->getWeight();
-		//printf("con= %ld\n", con);
+		printf("con->frozen= %d\n", con->frozen);
 		if (con->frozen) continue;
+		con->getDelta().print("temporal WEIGHT DELTA"); // GE
 		wght = wght - learning_rate * con->getDelta();
 		//con->weight_history.push_back(wght);
 		//con->printSummary();
@@ -1095,10 +1107,14 @@ void Model::weightUpdate()
 void Model::biasUpdate()
 {
 	for (int l=0; l < layers.size(); l++) {
-		if (layers[l]->getIsBiasFrozen() == false) {
+	printf("************ biasUpdate, layer %d\n", l);
+	printf("frozen bias: %d\n", layers[l]->getIsBiasFrozen());
+		//if (layers[l]->getIsBiasFrozen() == false) {
 			BIAS& bias = layers[l]->getBias();
 			bias = bias - learning_rate * layers[l]->getBiasDelta();
-		}
+			layers[l]->printSummary();
+			layers[l]->getBiasDelta().print("dBias");
+		//}
 	}
 }
 //----------------------------------------------------------------------

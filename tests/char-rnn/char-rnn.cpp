@@ -200,6 +200,10 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	// initialize weights deterministically (same as Karparthy for debugging)
 	WEIGHT& w1 = m->getConnection(input, d1)->getWeight();
 	WEIGHT& w2 = m->getConnection(d1, d2)->getWeight();
+	//U::print(w1, "w1");
+	//U::print(w2, "w2");
+	printf("w1: %d,%d\n", w1.n_rows, w1.n_cols);
+	printf("w2: %d,%d\n", w2.n_rows, w2.n_cols);
 	for (int i=0; i < w1.n_rows; i++) {
 	for (int j=0; j < w1.n_cols; j++) {
 		w1(i,j) = 1. / (1.+i+j);
@@ -208,8 +212,9 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	for (int j=0; j < w2.n_cols; j++) {
 		w2(i,j) = 1. / (1.+i+j);
 	}}
+//	exit(0);
 	WEIGHT& w3 = m->getConnection(d1, d1)->getWeight();
-	//m->getConnection(d1, d1)->freeze();  // freeze w3
+	m->getConnection(d1, d1)->freeze();  // freeze w3
 	printf("w3(2,2)= %f\n", w3(2,2));
 	//w3.zeros();
 	printf("w3(2,2)= %f\n", w3(2,2));
@@ -250,7 +255,7 @@ void charRNN(Globals* g)
 	// Collect unique characters
 	// skip last character which is "\0" or some other non-printable character
 	for (int i=0; i < input_data.size()-1; i++) {
-		printf("char: %c\n", input_data[i]);
+		//printf("char: %c\n", input_data[i]);
 		char_set.insert(input_data[i]);
 	}
 	printf("set size: %d\n", char_set.size());
@@ -361,6 +366,8 @@ void charRNN(Globals* g)
 			if (which_char < 0) break;
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
+
+			if (count == 2) exit(0); // TEMPORARY
 		#if 0
 		printf("------------\n");
 		for (int s=0; s < seq_len; s++) {

@@ -71,12 +71,12 @@ def lossFun(inputs, targets, hprev):
   for t in reversed(xrange(len(inputs))):
     dy = np.copy(ps[t])
     dy[targets[t]] -= 1 # backprop into y. see http://cs231n.github.io/neural-networks-case-study/#grad if confused here
-    dWhy += np.dot(dy, hs[t].T)
+    dWhy += np.dot(dy, hs[t].T)  # dy correct (dL/dy), hs correct (fwd pass)
     dby += dy
-    dh = np.dot(Why.T, dy) + dhnext # backprop into h
+    dh = np.dot(Why.T, dy) + dhnext # backprop into h  (dh must tbe WRONG)
     dhraw = (1 - hs[t] * hs[t]) * dh # backprop through tanh nonlinearity
     dbh += dhraw
-    dWxh += np.dot(dhraw, xs[t].T)
+    dWxh += np.dot(dhraw, xs[t].T) # xs correct, dhraw wrong
     dWhh += np.dot(dhraw, hs[t-1].T)
     dhnext = np.dot(Whh.T, dhraw)
   #works without clipping

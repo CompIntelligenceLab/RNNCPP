@@ -696,4 +696,19 @@ Dec. 21, 2016
 char-rnn works with seq=1, batch=1, same parameters as Karpathy. Karpathy's converges in 400 iteration, mine in 2000 iterations. fox.txt is long enough that we stay within a single epoch. 
 
 With seq_len=5, Karpathy converges in 60 iterations (400 iterations with seq_len=1). 
+
+I find that derivative matrix dWxh differs from Karpathy, whereas, 
+dWhy does not.  WHY?
+dbh is incorrect, dby is correct (last layer)
+
+dy = dL/dy   (loss function gradient) (ok)
+dh = np.dot(Why.T, dy) (ok)
+dhraw = (1-hs[t]*hs[t]) * dh  (ok)
+dbh += dhraw (ok)
+
+POSSIBLE PROBLEMS: 
+char_rnn.cpp crashes with layer_size = 2. WHY?  (line 203?)
+ Some kind of memory problem
+dWxh and dbh are incorrect. 
+dbh -> frozen is not initialized properly. That will create problems. 
 ----------------------------------------------------------------------
