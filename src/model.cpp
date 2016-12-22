@@ -717,7 +717,13 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	predictViaConnectionsBias(x, pred); // new
 	//x.print("x predict");
 	//pred.print("pred predict");
+
+	//TEMPORARY
+	clist[0]->getWeight().print("input-d1");
+	clist[1]->getWeight().print("d1-d2");
+
 	objective->computeLoss(exact, pred);
+
 
 	const LOSS& loss = objective->getLoss();
 	REAL rloss = arma::sum(loss[0]);

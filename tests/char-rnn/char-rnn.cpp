@@ -66,7 +66,7 @@ void sample(Model* mi, int which_char,
 	VF2D_F x(1), y(1);
 	std::vector<int> message;
 
-	printf("ENTER SAMPLE, which_char= %d\n", which_char);
+	//printf("ENTER SAMPLE, which_char= %d\n", which_char);
 	x(0) = hot[which_char];
 	message.push_back(which_char);
 
@@ -85,7 +85,7 @@ void sample(Model* mi, int which_char,
 		message.push_back(which_char);
 	}
 
-	printf("\nmessage: ");
+	printf("message: ");
 	for (int i=0; i < message.size(); i++) {
 		printf("%c", int_c[message[i]]);
 	}
@@ -196,6 +196,26 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	BIAS& b1 = d1->getBias();
 	BIAS& b2 = d2->getBias();
 
+	#if 1
+	// initialize weights deterministically (same as Karparthy for debugging)
+	WEIGHT& w1 = m->getConnection(input, d1)->getWeight();
+	WEIGHT& w2 = m->getConnection(d1, d2)->getWeight();
+	for (int i=0; i < w1.n_rows; i++) {
+	for (int j=0; j < w1.n_cols; j++) {
+		w1(i,j) = 1. / (1.+i+j);
+	}}
+	for (int i=0; i < w2.n_rows; i++) {
+	for (int j=0; j < w2.n_cols; j++) {
+		w2(i,j) = 1. / (1.+i+j);
+	}}
+	WEIGHT& w3 = m->getConnection(d1, d1)->getWeight();
+	//m->getConnection(d1, d1)->freeze();  // freeze w3
+	printf("w3(2,2)= %f\n", w3(2,2));
+	//w3.zeros();
+	printf("w3(2,2)= %f\n", w3(2,2));
+	#endif
+
+
 	// b1 = 0.1 generates a single scalar. Do not know why. 
 	b1 = 0.0 * arma::ones<BIAS>(size(b1));
 	b2 = 0.0 * arma::ones<BIAS>(size(b2));
@@ -255,7 +275,10 @@ void charRNN(Globals* g)
 		i++;
 	}
 	#endif
+
 	// Used for testing (GE)
+	// I want the character order to be the same in Karpathy's code and this one. 
+	// "brown" has 5 different characters. 
 	for (int i=0; i < brown.size(); i++) {
 		printf("brown[%d]= %c\n", i, brown[i]);
 		c_int[brown[i]] = i;
@@ -263,10 +286,18 @@ void charRNN(Globals* g)
 	}
 
 	i=0; 
+	#if 0
 	for (si=char_set.begin(); si != char_set.end(); si++) {
 		c_int.at(*si) = i;
 		int_c[i] = *si;
 		i++; 
+	}
+	#endif
+
+	// Return to generic approach once code matches Karpathy's
+	for (int i=0; i < brown.size(); i++) {
+		char c = int_c[i];
+		printf("char[%d] = %c\n", i, c);
 	}
 	//   hot[3] = 0010000...0000;
 
@@ -321,7 +352,7 @@ void charRNN(Globals* g)
 
 		for (int i=0; i < nb_samples; i++) {
 			if (count % 10 == 0) {
-				printf("TRAIN, nb_epochs: %d, iter: %d\n", e, count);
+				printf("TRAIN, nb_epochs: %d, iter: %d, ", e, count);
 				m_pred->setWeightsAndBiases(m);
 				sample(m_pred, which_char, c_int, int_c, hot);
 			}

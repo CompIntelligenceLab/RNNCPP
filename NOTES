@@ -692,4 +692,8 @@ Dec. 21, 2016
 Now that I fixed a bug in Cross-Entropy (I must call Softmax in both Cross-Entropy and Gradient, which I had not done), 
 the categorical 2-class classification no longer works. No idea why. Perhaps it is related to the Globals class? 
 ----------------------------------------------------------------------
+Dec. 21, 2016
+char-rnn works with seq=1, batch=1, same parameters as Karpathy. Karpathy's converges in 400 iteration, mine in 2000 iterations. fox.txt is long enough that we stay within a single epoch. 
+
+With seq_len=5, Karpathy converges in 60 iterations (400 iterations with seq_len=1). 
 ----------------------------------------------------------------------
