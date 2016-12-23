@@ -1107,7 +1107,7 @@ void Model::weightUpdate()
 		WEIGHT& wght = con->getWeight();
 		if (con->frozen) continue;
 		wght = wght - learning_rate * con->getDelta();
-		con->getDelta().print("partial WEIGHT DELTA"); // GE
+		con->getDelta().print("spatial WEIGHT DELTA"); // GE
 		//con->weight_history.push_back(wght);
 		//con->printSummary();
 	}
@@ -1121,6 +1121,7 @@ void Model::weightUpdate()
 		//wght.print("update: w3");
 		if (con->frozen) continue;
 		//con->getDelta().print("temporal WEIGHT DELTA"); // GE
+		con->getDelta().print("temporal WEIGHT DELTA"); // GE
 		wght = wght - learning_rate * con->getDelta();
 		//con->weight_history.push_back(wght);
 		//con->printSummary();

@@ -365,6 +365,7 @@ void charRNN(Globals* g)
 		reset = true;
 
 		for (int i=0; i < nb_samples; i++) {
+		printf("========== NEW SAMPLE ===============\n");
 			if (count % 10 == 0) {
 				printf("TRAIN, nb_epochs: %d, iter: %d, ", e, count);
 				m_pred->setWeightsAndBiases(m);
@@ -376,7 +377,7 @@ void charRNN(Globals* g)
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 
-			if (count == 2) exit(0); // TEMPORARY
+			if (count == 3) exit(0); // TEMPORARY
 		#if 0
 		printf("------------\n");
 		for (int s=0; s < seq_len; s++) {

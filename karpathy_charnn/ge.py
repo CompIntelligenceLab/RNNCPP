@@ -41,7 +41,7 @@ for i in range(vocab_size):
   Why[i,j] = .3 / (i+j+1)
 # END TEMPORARY FOR DEBUGGING
 
-Whh *= 0.
+Whh = Whh * 0. #+ .3
 bh = np.zeros((hidden_size, 1)) # hidden bias # orig
 by = np.zeros((vocab_size, 1)) # output bias # orig
 #bh = np.ones((hidden_size, 1)) # hidden bias
@@ -82,6 +82,9 @@ def lossFunGE(inputs, targets, hprev):
     dy[targets[t]] -= 1 # backprop into y. see http://cs231n.github.io/neural-networks-case-study/#grad if confused here, dL/dys
     dWhy = np.dot(dy, hs[t].T)
     dby = dy
+    print "Wxh = ", Wxh
+    print "Why = ", Why
+    print "Whh = ", Whh
     print "(Cross entropy gradient:) dy= ", dy
     print "dby=dy= ", dby
     print "dWhy= ", dWhy
@@ -97,6 +100,7 @@ def lossFunGE(inputs, targets, hprev):
     dWxh = np.dot(dhraw, xs[t].T)
     dWhh += np.dot(dhraw, hs[t-1].T)
     print "dWxh= ", dWxh
+    print "dWhh= ", dWhh
 
   #works without clipping
   for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
@@ -209,6 +213,7 @@ while True:
     print 'nb_epochs %d, iter %d, ----\n %s \n----' % (nb_epochs, n, txt )
 
   # forward seq_length characters through the net and fetch gradient
+  print "ENTER LOSS FUN GE -----------------------------"
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
 

@@ -723,6 +723,18 @@ The error is in routine:
 
 I am going around in circles.The error (compared to char-nn.py) is in the last layer before the loss function. dWhy (where W is h-y connection)
 and dby are incorrect. dWxh and dbh are correct. 
+
+I did not change anything, and the codes now agree with each other. Somewhat bothersome. Now check whh. 
+
+FIGURED IT OUT: the input layer has a bias. I do not know whether this 
+impacts the results. Should not. 
+
+1st iteration works. 
+
+TODO next: figure out why there is an error on the second iteration, 
+which is not reasonable. Must have to do with the state? 
+Among other things, dWhh != 0 (even though =0 at 1st iteration).
+In my code, dWhh is zero at iteration 2. WHY? That is likely wrong. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
