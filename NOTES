@@ -735,6 +735,9 @@ TODO next: figure out why there is an error on the second iteration,
 which is not reasonable. Must have to do with the state? 
 Among other things, dWhh != 0 (even though =0 at 1st iteration).
 In my code, dWhh is zero at iteration 2. WHY? That is likely wrong. 
+
+Once the code works with seq_len=1 and multiple iterations, check 
+the code for seq_len > 1. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

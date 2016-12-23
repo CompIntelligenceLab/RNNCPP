@@ -730,6 +730,7 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	//TEMPORARY
 	clist[0]->getWeight().print("Weights: input-d1");
 	clist[1]->getWeight().print("Weights: d1-d2");
+	clist_temporal[0]->getWeight().print("Weights: d1-d1");
 
 	objective->computeLoss(exact, pred);
 
@@ -825,12 +826,12 @@ void Model::storeGradientsInLayersRec(int t)
 	//printf("---- exit storeGradientsInLayersRec ----\n");
 }
 //----------------------------------------------------------------------
-void Model::storeDactivationDoutputInLayersRecCon(int t)
+void Model::storeDactivationDOutputInLayersRecCon(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 
-	printf("ENTER storeDactivationDoutputInLayersRecCon\n");
+	printf("ENTER storeDactivationDOutputInLayersRecCon\n");
 
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
@@ -860,12 +861,12 @@ void Model::storeDactivationDoutputInLayersRecCon(int t)
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-void Model::storeDLossDweightInConnectionsRecCon(int t)
+void Model::storeDLossDWeightInConnectionsRecCon(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 
-	//printf("********** ENTER storeDLossDweightInConnections ***********\n");
+	//printf("********** ENTER storeDLossDWeightInConnections ***********\n");
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* con = (*it);
@@ -890,13 +891,13 @@ void Model::storeDLossDweightInConnectionsRecCon(int t)
 		clist_temporal[c]->dLdaMulGrad(t);
 	}
 
-	//printf("********** EXIT storeDLossDweightInConnections ***********\n");
+	//printf("********** EXIT storeDLossDWeightInConnections ***********\n");
 }
 //----------------------------------------------------------------------
-void Model::storeDLossDbiasInLayersRec(int t)
+void Model::storeDLossDBiasInLayersRec(int t)
 {
 	VF1D delta;
-	printf("\nENTER storeDLossDbiasInLayerRec\n"); // ******** TEMP
+	printf("\nENTER storeDLossDBiasInLayerRec\n"); // ******** TEMP
 
 	for (int l=0; l < layers.size(); l++) {
 		printf("---------------------------------\n");
@@ -1054,17 +1055,17 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	//printf("++++++++++++++++++++++++++++\n");
 	//printf("   d(loss)/da   (# CHECK IN) \n");    
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		storeDactivationDoutputInLayersRecCon(t);
+		storeDactivationDOutputInLayersRecCon(t);
 	}
 	//printf("++++++++++++++++++++++++++++\n");
 	//printf("   d(loss)/dw  \n");
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		storeDLossDweightInConnectionsRecCon(t);
+		storeDLossDWeightInConnectionsRecCon(t);
 	}
 	//printf("++++++++++++++++++++++++++++\n");
 	//printf("   d(loss)/dbias  \n");
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		storeDLossDbiasInLayersRec(t);
+		storeDLossDBiasInLayersRec(t);
 	}
 
 	//printf("  d(loss)/d(activation_params)
@@ -1093,7 +1094,7 @@ Connection* Model::getConnection(Layer* layer1, Layer* layer2)
 //----------------------------------------------------------------------
 void Model::weightUpdate()
 {
-	printf("ENTER WEIGHT UPDATE");
+	printf("ENTER WEIGHT UPDATE\n");
 
 	// Assume that all connections in clist are spatial
 	// spatial connections

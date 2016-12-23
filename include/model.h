@@ -156,9 +156,9 @@ public:
   void storeDLossDactivationParamsInLayer(int t);
 
   void storeGradientsInLayersRec(int t);
-  void storeDactivationDoutputInLayersRecCon(int t);
-  void storeDLossDweightInConnectionsRecCon(int t);
-  void storeDLossDbiasInLayersRec(int t);
+  void storeDactivationDOutputInLayersRecCon(int t);
+  void storeDLossDWeightInConnectionsRecCon(int t);
+  void storeDLossDBiasInLayersRec(int t);
 
   // x are predicted values, y are exact labels
   void train(VF2D_F x, VF2D_F y, int batch_size=0, int nb_epochs=1);

@@ -28,6 +28,7 @@ Wxh = np.random.randn(hidden_size, vocab_size)*rms # input to hidden
 Whh = np.random.randn(hidden_size, hidden_size)*rms # hidden to hidden
 Why = np.random.randn(vocab_size, hidden_size)*rms # hidden to output
 
+"""
 # BEGIN TEMPORARY FOR DEBUGGING
 for i in range(hidden_size):
  for j in range(vocab_size):
@@ -37,6 +38,7 @@ for i in range(vocab_size):
  for j in range(hidden_size):
   Why[i,j] = .3 / (i+j+1)
 # END TEMPORARY FOR DEBUGGING
+"""
 
 Whh *= 0.
 bh = np.zeros((hidden_size, 1)) # hidden bias # orig
@@ -154,7 +156,7 @@ def lossFun(inputs, targets, hprev):
   #works without clipping
   for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
     np.clip(dparam, -5, 5, out=dparam) # clip to mitigate exploding gradients
-  quit() ##################
+  #quit() ##################
   return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs)-1]
 
 def sample(h, seed_ix, n):

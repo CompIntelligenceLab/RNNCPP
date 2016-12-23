@@ -17,7 +17,7 @@ ix_to_char = { i:ch for i,ch in enumerate(chars) }
 print "chars= ", chars
 
 # hyperparameters
-hidden_size = 1 #20 # size of hidden layer of neurons # orig 100
+hidden_size = 1 # size of hidden layer of neurons # orig 100
 seq_length = 1 # number of steps to unroll the RNN for # orig 25
 learning_rate = 1e-1 # orig .1
 
@@ -42,6 +42,7 @@ for i in range(vocab_size):
 # END TEMPORARY FOR DEBUGGING
 
 Whh = Whh * 0. #+ .3
+
 bh = np.zeros((hidden_size, 1)) # hidden bias # orig
 by = np.zeros((vocab_size, 1)) # output bias # orig
 #bh = np.ones((hidden_size, 1)) # hidden bias
@@ -62,15 +63,16 @@ def lossFunGE(inputs, targets, hprev):
   for t in xrange(len(inputs)):
     xs[t] = np.zeros((vocab_size,1)) # encode in 1-of-k representation
     xs[t][inputs[t]] = 1
-    print "h layer input: ", np.dot(Wxh, xs[t]) + bh
     hs[t] = np.tanh(np.dot(Wxh, xs[t]) + np.dot(Whh, hs[t-1]) + bh) # hidden state # orig
+    ys[t] = np.dot(Why, hs[t]) + by # unnormalized log probabilities for next chars
+    ps[t] = np.exp(ys[t]) / np.sum(np.exp(ys[t])) # probabilities for next chars
+    loss += -np.log(ps[t][targets[t],0]) # softmax (cross-entropy loss)
+
+    print "h layer input: ", np.dot(Wxh, xs[t]) + bh
     print "h layer output: ", hs[t]
     print "y layer input: ", np.dot(Why, hs[t]) + by # 
-    ys[t] = np.dot(Why, hs[t]) + by # unnormalized log probabilities for next chars
     print "y layer output: ", ys[t]
-    ps[t] = np.exp(ys[t]) / np.sum(np.exp(ys[t])) # probabilities for next chars
     print "ps layer output: ", ps[t]
-    loss += -np.log(ps[t][targets[t],0]) # softmax (cross-entropy loss)
     print "loss= ", loss
 
   # backward pass: compute gradients going backwards
@@ -80,8 +82,8 @@ def lossFunGE(inputs, targets, hprev):
   for t in reversed(xrange(len(inputs))):
     dy = np.copy(ps[t])
     dy[targets[t]] -= 1 # backprop into y. see http://cs231n.github.io/neural-networks-case-study/#grad if confused here, dL/dys
-    dWhy = np.dot(dy, hs[t].T)
-    dby = dy
+    dWhy += np.dot(dy, hs[t].T)
+    dby += dy
     print "Wxh = ", Wxh
     print "Why = ", Why
     print "Whh = ", Whh
@@ -92,12 +94,12 @@ def lossFunGE(inputs, targets, hprev):
     # this is correct
     dh = np.dot(Why.T, dy) + dhnext # backprop into h
     dhraw = (1 - hs[t] * hs[t]) * dh # backprop through tanh nonlinearity
-    dbh = dhraw
+    dbh += dhraw
     print "dh= np.dot(Why.t,dy)= ", dh 
     print "1-hs**2= ", 1-hs[t]*hs[t]
     print "dbh=(1-hs**2)*dh ", dbh
 
-    dWxh = np.dot(dhraw, xs[t].T)
+    dWxh += np.dot(dhraw, xs[t].T)
     dWhh += np.dot(dhraw, hs[t-1].T)
     print "dWxh= ", dWxh
     print "dWhh= ", dWhh
@@ -167,7 +169,7 @@ def lossFun(inputs, targets, hprev):
   #works without clipping
   for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
     np.clip(dparam, -5, 5, out=dparam) # clip to mitigate exploding gradients
-  quit() ##################
+  #quit() ##################
   return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs)-1]
 
 def sample(h, seed_ix, n):
