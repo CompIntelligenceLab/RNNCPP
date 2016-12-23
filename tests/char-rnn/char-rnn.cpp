@@ -169,6 +169,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
 	Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
+	//wght.print("update: w3");
 	Layer* d2    = new DenseLayer(m->getInputDim(), "rdense");
 
 	// Softmax is included in the calculation of the cross-entropy
@@ -188,7 +189,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	m->addInputLayer(input);
 	m->addOutputLayer(d2);
 
-	m->printSummary();
+	//m->printSummary();
 	printf("====   after printSummary ====\n");
 	m->connectionOrderClean(); // no print statements
 
@@ -198,26 +199,34 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 
 	#if 1
 	// initialize weights deterministically (same as Karparthy for debugging)
-	WEIGHT& w1 = m->getConnection(input, d1)->getWeight();
-	WEIGHT& w2 = m->getConnection(d1, d2)->getWeight();
+
+	Connection* con = m->getConnection(input, d1);
+	WEIGHT& w1 = con->getWeight();
+	//con->printSummary("clist[c]"); // GE
 	//U::print(w1, "w1");
 	//U::print(w2, "w2");
-	printf("w1: %d,%d\n", w1.n_rows, w1.n_cols);
-	printf("w2: %d,%d\n", w2.n_rows, w2.n_cols);
+	//printf("w1: %d,%d\n", w1.n_rows, w1.n_cols);
+	//printf("w2: %d,%d\n", w2.n_rows, w2.n_cols);
 	for (int i=0; i < w1.n_rows; i++) {
 	for (int j=0; j < w1.n_cols; j++) {
-		w1(i,j) = 1. / (1.+i+j);
+		//printf("i,j= %d, %d\n", i, j);
+		w1(i,j) = .3 / (1.+i+j);
 	}}
+	con->computeWeightTranspose();
+
+	con = m->getConnection(d1, d2);
+	WEIGHT& w2 = con->getWeight();
 	for (int i=0; i < w2.n_rows; i++) {
 	for (int j=0; j < w2.n_cols; j++) {
-		w2(i,j) = 1. / (1.+i+j);
+		w2(i,j) = .3 / (1.+i+j);
 	}}
-//	exit(0);
+	con->computeWeightTranspose();
+
 	WEIGHT& w3 = m->getConnection(d1, d1)->getWeight();
-	m->getConnection(d1, d1)->freeze();  // freeze w3
-	printf("w3(2,2)= %f\n", w3(2,2));
-	//w3.zeros();
-	printf("w3(2,2)= %f\n", w3(2,2));
+	//U::print(w3,"w3");
+	//m->getConnection(d1, d1)->freeze();  // freeze w3
+	w3.zeros();
+	w3.print("w3");
 	#endif
 
 
@@ -225,8 +234,8 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	b1 = 0.0 * arma::ones<BIAS>(size(b1));
 	b2 = 0.0 * arma::ones<BIAS>(size(b2));
 
-	m->print("MODEL PRINTOUT\n");
-	printf("====   after print ====\n");
+	//m->print("MODEL PRINTOUT\n");
+	//printf("====   after print ====\n");
 
 	return m;
 }

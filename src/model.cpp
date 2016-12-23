@@ -681,6 +681,15 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		to_layer->forwardLoops(conn, seq_len-1, 0);
 	}
 
+	for (int l=0; l < layers.size(); l++) {
+		printf("---------------\n");
+		layers[l]->printSummary();
+		layers[l]->getInputs().print("inputs");
+		layers[l]->getOutputs().print("outputs");
+	}
+
+	//printf("QUIT AT END of methods::predict...()\n"); exit(0);
+
 	//prod[0].raw_print(cout, "prod"); exit(0);
 	// I should do prod.reset(), but cannot or else I cannot return the data. 
 	// Therefore, pass prod via argument. 
@@ -719,8 +728,8 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	//pred.print("pred predict");
 
 	//TEMPORARY
-	clist[0]->getWeight().print("input-d1");
-	clist[1]->getWeight().print("d1-d2");
+	clist[0]->getWeight().print("Weights: input-d1");
+	clist[1]->getWeight().print("Weights: d1-d2");
 
 	objective->computeLoss(exact, pred);
 
@@ -810,6 +819,7 @@ void Model::storeGradientsInLayersRec(int t)
 	//printf("---- enter storeGradientsInLayersRec ----\n");
 	//printf("store: t= %d\n", t);
 	for (int l=0; l < layers.size(); l++) {
+		// activation gradient
 		layers[l]->computeGradient(t);
 	}
 	//printf("---- exit storeGradientsInLayersRec ----\n");
@@ -820,18 +830,18 @@ void Model::storeDactivationDoutputInLayersRecCon(int t)
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 
+	printf("ENTER storeDactivationDoutputInLayersRecCon\n");
+
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
 	// Run connections backwards
 
-	// Memory allocated in gradMulDLda)(
-	//return; // no leaks
-
+	// ASSUMES that clist is ordered from front to back 
+	// (for the spatial connections)
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
-		Connection* conn = (*it);
-		conn->gradMulDLda(t, t);
+		(*it)->printSummary();
+		(*it)->gradMulDLda(t, t);
 	}
-	//return;  // leak
 
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
 	// Answer: yes, and I must increment the delta
@@ -841,12 +851,9 @@ void Model::storeDactivationDoutputInLayersRecCon(int t)
 	// All other temporal connections into this layer
 	// ........
 
-	//CONNECTIONS& connections = getTemporalConnections();
 	for (int c=0; c < clist_temporal.size(); c++) {
-		Connection* conn = clist_temporal[c];
-
 		if (t == 0) continue;
-		conn->gradMulDLda(t, t-1);
+		clist_temporal[c]->gradMulDLda(t, t-1);
 	}
 }
 //----------------------------------------------------------------------
@@ -889,16 +896,21 @@ void Model::storeDLossDweightInConnectionsRecCon(int t)
 void Model::storeDLossDbiasInLayersRec(int t)
 {
 	VF1D delta;
-	printf("enter storeDLossDbiasInLayerRec\n"); // ******** TEMP
+	printf("\nENTER storeDLossDbiasInLayerRec\n"); // ******** TEMP
 
 	for (int l=0; l < layers.size(); l++) {
+		printf("---------------------------------\n");
 		Layer* layer = layers[l];
 
 		if (layer->getActivation().getDerivType() == "decoupled") {
-			const VF2D_F& grad      = layer->getGradient();
-			const VF2D_F& old_deriv = layer->getDelta();
-			grad[0].raw_print(cout, "grad"); // ok
-			old_deriv[0].raw_print(cout, "old_deriv"); // WRONG for bh?
+			const VF2D_F& grad      = layer->getGradient(); // df/dz
+			const VF2D_F& old_deriv = layer->getDelta(); // dL/d(out)
+			layer->printSummary();
+			layer->getInputs().print("layer inputs");
+			layer->getOutputs().print("layer outpus");
+			grad[0].raw_print(cout, "\nbias grad"); // ok
+			// ERROR in old_derivative (layer->getDelta)
+			old_deriv[0].raw_print(cout, "\nbias old_deriv"); // WRONG for bh?
 
 			for (int b=0; b < nb_batch; b++) {
 				delta = (old_deriv[b].col(t) % grad[b].col(t));
@@ -1014,6 +1026,14 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 
 	resetDeltas();
 
+	// PRINT INPUTS AND OUTPUTS TO NETWORK (TEMP)
+	printf("\nINPUTS AND OUTPUTS TO NETWORK\n");
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->printSummary("");
+		layers[l]->getInputs().print("layer inputs");
+		layers[l]->getOutputs().print("layer outputs");
+	}
+
 
     objective->computeGradient(exact, pred);
 	//U::print(exact, "exact");
@@ -1022,7 +1042,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	// assumes single output layer. Set for all sequences. 
 	//getLayers()[1]->reset(); 
 	//U::print(grad, "grad");  // grad has batch_size 1, which is wrong. What is grad? 
-	getOutputLayers()[0]->setDelta(grad);       // SOMEHOW RESETS BATCH_SIZE to 1!!! ERROR!
+	getOutputLayers()[0]->setDelta(grad); 
 	//getLayers()[1]->reset(); exit(0);
 
 	//printf("++++++++++++++++++++++++++++\n");
@@ -1051,6 +1071,8 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeDLossDactivationParamsInLayer(t);
 	}
+
+	printf("EXIT AFTER FIRST BACK PROP\n"); //exit(0);
 }
 //----------------------------------------------------------------------
 Connection* Model::getConnection(Layer* layer1, Layer* layer2)
@@ -1075,17 +1097,17 @@ void Model::weightUpdate()
 
 	// Assume that all connections in clist are spatial
 	// spatial connections
-	printf("clist size: %d\n", clist.size());
-	printf("clist_temporal size: %d\n", clist_temporal.size());
+	//printf("clist size: %d\n", clist.size());
+	//printf("clist_temporal size: %d\n", clist_temporal.size());
 
 	for (int c=0; c < clist.size(); c++) {
 		Connection* con = clist[c];
-		con->printSummary("clist[c]"); // GE
-		printf("con->frozen= %d\n", con->frozen);
+		//con->printSummary("clist[c]"); // GE
+		//printf("con->frozen= %d\n", con->frozen);
 		WEIGHT& wght = con->getWeight();
 		if (con->frozen) continue;
 		wght = wght - learning_rate * con->getDelta();
-		con->getDelta().print("patial WEIGHT DELTA"); // GE
+		con->getDelta().print("partial WEIGHT DELTA"); // GE
 		//con->weight_history.push_back(wght);
 		//con->printSummary();
 	}
@@ -1093,11 +1115,12 @@ void Model::weightUpdate()
 	// temporal connections 
 	for (int c=0; c < clist_temporal.size(); c++) {
 		Connection* con = clist_temporal[c];
-		con->printSummary("clist_temporal[c]"); // GE
+		//con->printSummary("clist_temporal[c]"); // GE
 		WEIGHT& wght = con->getWeight();
-		printf("con->frozen= %d\n", con->frozen);
+		//printf("con->frozen= %d\n", con->frozen);
+		//wght.print("update: w3");
 		if (con->frozen) continue;
-		con->getDelta().print("temporal WEIGHT DELTA"); // GE
+		//con->getDelta().print("temporal WEIGHT DELTA"); // GE
 		wght = wght - learning_rate * con->getDelta();
 		//con->weight_history.push_back(wght);
 		//con->printSummary();

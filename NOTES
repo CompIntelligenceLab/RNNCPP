@@ -712,3 +712,24 @@ char_rnn.cpp crashes with layer_size = 2. WHY?  (line 203?)
 dWxh and dbh are incorrect. 
 dbh -> frozen is not initialized properly. That will create problems. 
 ----------------------------------------------------------------------
+Dec. 22, 2016
+It is hard to understand how RNNCPP was working before if now
+I have problems with bias and weight deltas (derivatives) in the 
+first layers (even though their values in the final layer are correct.)
+Perhaps because I was only checking special cases 
+
+The error is in routine: 
+    void Connection::gradMulDLda(int ti_from, int ti_to)
+
+I am going around in circles.The error (compared to char-nn.py) is in the last layer before the loss function. dWhy (where W is h-y connection)
+and dby are incorrect. dWxh and dbh are correct. 
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------
+----------------------------------------------------------------------

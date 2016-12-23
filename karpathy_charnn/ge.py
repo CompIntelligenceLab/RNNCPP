@@ -27,6 +27,9 @@ rms = .01 # orig .01  (.1 and .01 work)
 Wxh = np.random.randn(hidden_size, vocab_size)*rms # input to hidden
 Whh = np.random.randn(hidden_size, hidden_size)*rms # hidden to hidden
 Why = np.random.randn(vocab_size, hidden_size)*rms # hidden to output
+print "Wxh shape: ", Wxh.shape
+print "Whh shape: ", Whh.shape
+print "Why shape: ", Why.shape
 
 # BEGIN TEMPORARY FOR DEBUGGING
 for i in range(hidden_size):
@@ -60,7 +63,7 @@ def lossFunGE(inputs, targets, hprev):
     xs[t] = np.zeros((vocab_size,1)) # encode in 1-of-k representation
     xs[t][inputs[t]] = 1
     print "h layer input: ", np.dot(Wxh, xs[t]) + bh
-    hs[t] = np.tanh(np.dot(Wxh, xs[t]) + bh) # + np.dot(Whh, hs[t-1]) + bh) # hidden state # orig
+    hs[t] = np.tanh(np.dot(Wxh, xs[t]) + np.dot(Whh, hs[t-1]) + bh) # hidden state # orig
     print "h layer output: ", hs[t]
     print "y layer input: ", np.dot(Why, hs[t]) + by # 
     ys[t] = np.dot(Why, hs[t]) + by # unnormalized log probabilities for next chars
@@ -71,30 +74,36 @@ def lossFunGE(inputs, targets, hprev):
     print "loss= ", loss
 
   # backward pass: compute gradients going backwards
-  dWxh, dWhy = np.zeros_like(Wxh), np.zeros_like(Why)
+  dWxh, dWhh, dWhy = np.zeros_like(Wxh), np.zeros_like(Whh), np.zeros_like(Why)
   dbh, dby = np.zeros_like(bh), np.zeros_like(by)
-  #dhnext = np.zeros_like(hs[0])
+  dhnext = np.zeros_like(hs[0])
   for t in reversed(xrange(len(inputs))):
     dy = np.copy(ps[t])
-    dy[targets[t]] -= 1 # backprop into y. see http://cs231n.github.io/neural-networks-case-study/#grad if confused here
+    dy[targets[t]] -= 1 # backprop into y. see http://cs231n.github.io/neural-networks-case-study/#grad if confused here, dL/dys
     dWhy = np.dot(dy, hs[t].T)
     dby = dy
     print "(Cross entropy gradient:) dy= ", dy
     print "dby=dy= ", dby
+    print "dWhy= ", dWhy
 
-    dh = np.dot(Why.T, dy) #+ dhnext # backprop into h
+    # this is correct
+    dh = np.dot(Why.T, dy) + dhnext # backprop into h
     dhraw = (1 - hs[t] * hs[t]) * dh # backprop through tanh nonlinearity
     dbh = dhraw
-    print "dh= np.dot(Why.t,dy)= ", dh   # WRONG in one of the codes
+    print "dh= np.dot(Why.t,dy)= ", dh 
     print "1-hs**2= ", 1-hs[t]*hs[t]
     print "dbh=(1-hs**2)*dh ", dbh
 
     dWxh = np.dot(dhraw, xs[t].T)
+    dWhh += np.dot(dhraw, hs[t-1].T)
+    print "dWxh= ", dWxh
+
   #works without clipping
-  for dparam in [dWxh, dWhy, dbh, dby]:
+  for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
     np.clip(dparam, -5, 5, out=dparam) # clip to mitigate exploding gradients
-  quit() ##################
-  return loss, dWxh, dWhy, dbh, dby, hs[len(inputs)-1]
+  print "#################################################"
+  #quit() ##################
+  return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs)-1]
 
 #----------------------------------------------------------------------
 def lossFun(inputs, targets, hprev):
@@ -200,8 +209,11 @@ while True:
     print 'nb_epochs %d, iter %d, ----\n %s \n----' % (nb_epochs, n, txt )
 
   # forward seq_length characters through the net and fetch gradient
-  loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFun(inputs, targets, hprev)
+  loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
+
+  if (n == 1): quit()
+
   if n % 100 == 0: print 'iter %d, loss: %f' % (n, smooth_loss) # print progress
   
   # perform parameter update with Adagrad

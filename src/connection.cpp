@@ -257,8 +257,13 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 	// CHECK AGAINST EXACT, ANALYTICAL!!! 
 
 	if (activation.getDerivType() == "decoupled") {   
-		//printf("gradMulDLda, decoupled\n");
+		printf("---------------------------\n");
+		printf("gradMulDLda, decoupled\n");
+		layer_from->printSummary();
+		layer_from->getDelta().print("layer_from->getDelta");
+		layer_to->getDelta().print("layer_to->getDelta");
 		const VF2D_F& grad 		= layer_to->getGradient();
+		grad.print("activation gradient in layer_to\n");
 		for (int b=0; b < nb_batch; b++) {
 			prod(b) = VF2D(size(layer_from->getDelta()(0)));
 		}
@@ -281,10 +286,13 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 		}
 	}
 
-		//return; // no leak
+	//return; // no leak
+
 	if (ti_from == ti_to) {
+		printf("spatial link\n");
 		//return; // leak
 		layer_from->incrDelta(prod, ti_from);   // spatial
+		prod.print("gradMul... prod (layer_from->delta)");
 		#ifdef DEBUG
 		layer_from->deltas.push_back(prod);
 		#endif
