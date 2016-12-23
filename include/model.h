@@ -149,14 +149,14 @@ public:
   VF2D_F predictViaConnectionsBias(VF2D_F x);
   void predictViaConnectionsBias(VF2D_F x, VF2D_F& prod);
   void  storeGradientsInLayers();
-  void  storeDactivationDoutputInLayers();
+  void  storeDActivationDoutputInLayers();
   void 	storeDLossDweightInConnections();
   //void 	storeDLossDweightInConnectionsCon();
   // derivative of loss function wrt activation parameters
-  void storeDLossDactivationParamsInLayer(int t);
+  void storeDLossDActivationParamsInLayer(int t);
 
   void storeGradientsInLayersRec(int t);
-  void storeDactivationDOutputInLayersRecCon(int t);
+  void storeDActivationDOutputInLayersRecCon(int t);
   void storeDLossDWeightInConnectionsRecCon(int t);
   void storeDLossDBiasInLayersRec(int t);
 

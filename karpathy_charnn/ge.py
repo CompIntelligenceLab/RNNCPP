@@ -95,12 +95,17 @@ def lossFunGE(inputs, targets, hprev):
     dh = np.dot(Why.T, dy) + dhnext # backprop into h
     dhraw = (1 - hs[t] * hs[t]) * dh # backprop through tanh nonlinearity
     dbh += dhraw
-    print "dh= np.dot(Why.t,dy)= ", dh 
+    print "-- dbh --"
+    print "dhnext= ", dhnext
+    print "Why.T= ", Why.T
+    print "dy= ", dy
+    print "dh= np.dot(Why.t,dy)+dhnext= ", dh 
     print "1-hs**2= ", 1-hs[t]*hs[t]
     print "dbh=(1-hs**2)*dh ", dbh
 
     dWxh += np.dot(dhraw, xs[t].T)
     dWhh += np.dot(dhraw, hs[t-1].T)
+    dhnext = np.dot(Whh.T, dhraw)
     print "dWxh= ", dWxh
     print "dWhh= ", dWhh
 

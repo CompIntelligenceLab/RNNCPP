@@ -243,6 +243,7 @@ void Connection::computeWeightTranspose()
 //----------------------------------------------------------------------
 void Connection::gradMulDLda(int ti_from, int ti_to)
 {
+	printf("Connection::ENTER gradMulDLda\n");
 	//assert(this == conn.to);
 	Layer* layer_to   = to;
 	Layer* layer_from = from;
@@ -260,14 +261,19 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 		printf("---------------------------\n");
 		printf("gradMulDLda, decoupled\n");
 		layer_from->printSummary();
+		layer_to->printSummary();
 		layer_from->getDelta().print("layer_from->getDelta");
 		layer_to->getDelta().print("layer_to->getDelta");
 		const VF2D_F& grad 		= layer_to->getGradient();
-		grad.print("activation gradient in layer_to\n");
 		for (int b=0; b < nb_batch; b++) {
 			prod(b) = VF2D(size(layer_from->getDelta()(0)));
 		}
 		const WEIGHT& wght_t = getWeightTranspose();
+		printf("----\n");
+		printf("prod = wght_t * (grad %% old_deriv)\n");
+		wght_t.print("wght_t");
+		grad.print("grad: activation gradient in layer_to\n");
+		old_deriv.print("old_deriv, dL/dOutput, layer_to");
 		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to);  // dL/da
 		//return; // no leak
 		//this->printSummary();
@@ -289,14 +295,15 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 	//return; // no leak
 
 	if (ti_from == ti_to) {
-		printf("spatial link\n");
-		//return; // leak
+		printf("spatial link: d(L)/d(output)\n");
 		layer_from->incrDelta(prod, ti_from);   // spatial
+		layer_from->printSummary("layer_from");
 		prod.print("gradMul... prod (layer_from->delta)");
 		#ifdef DEBUG
 		layer_from->deltas.push_back(prod);
 		#endif
 	} else {
+		printf("temporal link\n");
 		if (ti_to >= 0) {  // temporal
 			layer_from->incrDelta(prod, ti_to);  // I do not like this conditional, temporal
 			#ifdef DEBUG

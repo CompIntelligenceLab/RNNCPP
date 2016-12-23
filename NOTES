@@ -739,6 +739,9 @@ In my code, dWhh is zero at iteration 2. WHY? That is likely wrong.
 Once the code works with seq_len=1 and multiple iterations, check 
 the code for seq_len > 1. 
 ----------------------------------------------------------------------
+Dec. 23, 2016
+- Fixed one error: I had forgotten to update weight transposes after the 
+weight update. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

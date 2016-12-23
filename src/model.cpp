@@ -826,12 +826,12 @@ void Model::storeGradientsInLayersRec(int t)
 	//printf("---- exit storeGradientsInLayersRec ----\n");
 }
 //----------------------------------------------------------------------
-void Model::storeDactivationDOutputInLayersRecCon(int t)
+void Model::storeDActivationDOutputInLayersRecCon(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 
-	printf("ENTER storeDactivationDOutputInLayersRecCon\n");
+	printf("ENTER storeDActivationDOutputInLayersRecCon\n");
 
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
@@ -907,18 +907,20 @@ void Model::storeDLossDBiasInLayersRec(int t)
 			const VF2D_F& grad      = layer->getGradient(); // df/dz
 			const VF2D_F& old_deriv = layer->getDelta(); // dL/d(out)
 			layer->printSummary();
-			layer->getInputs().print("layer inputs");
-			layer->getOutputs().print("layer outpus");
-			grad[0].raw_print(cout, "\nbias grad"); // ok
+			//layer->getInputs().print("layer inputs");
+			//layer->getOutputs().print("layer outpus");
 			// ERROR in old_derivative (layer->getDelta)
-			old_deriv[0].raw_print(cout, "\nbias old_deriv"); // WRONG for bh?
 
 			for (int b=0; b < nb_batch; b++) {
 				delta = (old_deriv[b].col(t) % grad[b].col(t));
 				//delta.raw_print(cout, "delta");
 				layer->incrBiasDelta(delta);
 			}
-			delta.print("BiasDelta");
+			if (l != 0) { // tanh layer
+				//grad[0].raw_print(cout, "\nbias activation grad"); // ok
+				//old_deriv[0].raw_print(cout, "\nbias old_deriv"); // WRONG for bh?
+				delta.raw_print(cout, "BiasDelta");
+			}
 
 		} else {  // coupled
 			for (int b=0; b < nb_batch; b++) {
@@ -936,9 +938,9 @@ void Model::storeDLossDBiasInLayersRec(int t)
 }
 //----------------------------------------------------------------------
 // MUST REWRITE. Use as template. 
-void Model::storeDLossDactivationParamsInLayer(int t)
+void Model::storeDLossDActivationParamsInLayer(int t)
 {
-	//printf("enter storeDLossDactivationParamsInLayer *****\n");
+	//printf("enter storeDLossDActivationParamsInLayer *****\n");
 	VF1D delta;
 	VF2D_F g;
 
@@ -1055,7 +1057,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	//printf("++++++++++++++++++++++++++++\n");
 	//printf("   d(loss)/da   (# CHECK IN) \n");    
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		storeDactivationDOutputInLayersRecCon(t);
+		storeDActivationDOutputInLayersRecCon(t);
 	}
 	//printf("++++++++++++++++++++++++++++\n");
 	//printf("   d(loss)/dw  \n");
@@ -1070,7 +1072,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 
 	//printf("  d(loss)/d(activation_params)
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
-		storeDLossDactivationParamsInLayer(t);
+		storeDLossDActivationParamsInLayer(t);
 	}
 
 	printf("EXIT AFTER FIRST BACK PROP\n"); //exit(0);
@@ -1108,7 +1110,8 @@ void Model::weightUpdate()
 		WEIGHT& wght = con->getWeight();
 		if (con->frozen) continue;
 		wght = wght - learning_rate * con->getDelta();
-		con->getDelta().print("spatial WEIGHT DELTA"); // GE
+		con->getDelta().raw_print(cout, "spatial WEIGHT DELTA"); // GE
+	    con->computeWeightTranspose();
 		//con->weight_history.push_back(wght);
 		//con->printSummary();
 	}
@@ -1122,8 +1125,9 @@ void Model::weightUpdate()
 		//wght.print("update: w3");
 		if (con->frozen) continue;
 		//con->getDelta().print("temporal WEIGHT DELTA"); // GE
-		con->getDelta().print("temporal WEIGHT DELTA"); // GE
+		con->getDelta().raw_print(cout, "temporal WEIGHT DELTA"); // GE
 		wght = wght - learning_rate * con->getDelta();
+	    con->computeWeightTranspose();
 		//con->weight_history.push_back(wght);
 		//con->printSummary();
 	}
@@ -1132,13 +1136,13 @@ void Model::weightUpdate()
 void Model::biasUpdate()
 {
 	for (int l=0; l < layers.size(); l++) {
-	printf("************ biasUpdate, layer %d\n", l);
-	printf("frozen bias: %d\n", layers[l]->getIsBiasFrozen());
+		//printf("************ biasUpdate, layer %d\n", l);
+		//printf("frozen bias: %d\n", layers[l]->getIsBiasFrozen());
 		//if (layers[l]->getIsBiasFrozen() == false) {
 			BIAS& bias = layers[l]->getBias();
 			bias = bias - learning_rate * layers[l]->getBiasDelta();
 			layers[l]->printSummary();
-			layers[l]->getBiasDelta().print("dBias");
+			//layers[l]->getBiasDelta().print("dBias");
 		//}
 	}
 }
