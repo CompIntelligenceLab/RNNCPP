@@ -59,6 +59,8 @@ def lossFunGE(inputs, targets, hprev):
   """
   xs, hs, ys, ps = {}, {}, {}, {}
   hs[-1] = np.copy(hprev)
+  print "prev state: hs[-1]= ", hs[-1]
+
   loss = 0
   for t in xrange(len(inputs)):
     xs[t] = np.zeros((vocab_size,1)) # encode in 1-of-k representation

@@ -743,6 +743,11 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	//loss_history.push_back(loss); // slight leak (should print out every n iterations
 
 	backPropagationViaConnectionsRecursion(exact, pred);
+
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->setPreviousState();
+	}
+
 	parameterUpdate();
 
 	pred.reset(); // handle memory leaks
@@ -774,6 +779,12 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	//loss_history.push_back(loss);
 
 	backPropagationViaConnectionsRecursion(exact, pred);
+
+	// Save Previous State
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->setPreviousState();
+	}
+
 	parameterUpdate();
 }
 //----------------------------------------------------------------------
@@ -834,8 +845,8 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 	// ASSUMES that clist is ordered from front to back 
 	// (for the spatial connections)
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
-		(*it)->printSummary();
-		(*it)->gradMulDLda(t, t);
+		//(*it)->printSummary();
+		(*it)->dLossDOutput(t, t);
 	}
 
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
@@ -848,7 +859,7 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 
 	for (int c=0; c < clist_temporal.size(); c++) {
 		if (t == 0) continue;
-		clist_temporal[c]->gradMulDLda(t, t-1);
+		clist_temporal[c]->dLossDOutput(t, t-1);
 	}
 }
 //----------------------------------------------------------------------
@@ -869,7 +880,6 @@ void Model::storeDLossDWeightInConnectionsRecCon(int t)
 		// Currently, only works for sequence length of 1
 		// Could work if sequence were the field index
 
-		//con->dLdaMulGrad(t);
 		con->dLossDWeight(t);
 	}
 
@@ -883,7 +893,6 @@ void Model::storeDLossDWeightInConnectionsRecCon(int t)
 	// deal with remainder temporal layers
 	// ...
 	for (int c=0; c < clist_temporal.size(); c++) {
-		//clist_temporal[c]->dLdaMulGrad(t);
 		clist_temporal[c]->dLossDWeight(t);
 	}
 

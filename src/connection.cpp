@@ -241,7 +241,7 @@ void Connection::computeWeightTranspose()
 	weight_t = weight.t();
 }
 //----------------------------------------------------------------------
-void Connection::gradMulDLda(int ti_from, int ti_to)
+void Connection::dLossDOutput(int ti_from, int ti_to)
 {
 	// Compute derivative of Loss wrt weights
 
@@ -276,6 +276,7 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 		wght_t.print("wght_t");
 		grad.print("grad: activation gradient in layer_to\n");
 		old_deriv.print("old_deriv, dL/dOutput, layer_to");
+		// prod[-1] cannot be allowed
 		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to);  // dL/da
 		//return; // no leak
 		//this->printSummary();
@@ -326,6 +327,7 @@ void Connection::dLossDWeight(int t)
 	const VF2D_F& old_deriv = layer_to->getDelta();
 	const VF2D_F& out = layer_from->getOutputs();
 	Activation& activation = layer_to->getActivation();
+	const VF2D_F& previous_state = layer_from->getPreviousState();
 
 	WEIGHT delta = VF2D(size(weight));
 
@@ -334,7 +336,7 @@ void Connection::dLossDWeight(int t)
 
 		for (int b=0; b < nb_batch; b++) {
 			const VF2D& out_t = out(b).t();
-			if (!temporal) {
+			if (!temporal) { // ERROR IN THIS PART OF THE CODE
 				delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
 				//this->printSummary("spatial connection");
 				//printf("dLossDWeight, t= %f,"); delta.print("delta");
@@ -346,20 +348,29 @@ void Connection::dLossDWeight(int t)
 				// MIGHT OR MIGHT NOT WORK, 12/24/16
 				// Does not work. Screws up iteration one compared to Karpathy. 
 				if (seq_len == 1) {
+					//U::print(previous_state, "previous_state");
+					previous_state[0].raw_print(arma::cout, "..previous_state");
+					old_deriv[0].raw_print(arma::cout, "old_deriv");
+					grad[0].raw_print(arma::cout, "grad");
+					delta = (old_deriv[b].col(t) % grad[b].col(t)) * previous_state[b];
 					//printf("GE seq_len = 1, t= %f\n", t);  // t prints as 0.000
 					//delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
-					//delta.print("TEMPORAL delta");
+					delta.raw_print(arma::cout, "TEMPORAL delta");
 					;
 				}
-				if (t+1 == seq_len) continue;    // ONLY FOR seq_len == 2
-				//printf("compute delta\n");
-				out_t.raw_print(cout, "Connection::dLossDWeight, out_t");
-				delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t);
-
-				//this->printSummary("temporal connection");
-				//printf("dLossDWeight, t= %f,"); delta.print("delta");
+				else if (t+1 == seq_len) {
+					continue;    // ONLY FOR seq_len == 2
+				} else {
+					//printf("compute delta\n");
+					out_t.raw_print(cout, "Connection::dLossDWeight, out_t");
+					delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t);
+	
+					//this->printSummary("temporal connection");
+					//printf("dLossDWeight, t= %f,"); delta.print("delta");
+				}
 			}
 			incrDelta(delta);
+			getDelta().raw_print(arma::cout, "total connection delta");
 			#ifdef DEBUG
 			deltas.push_back(delta);
 			#endif

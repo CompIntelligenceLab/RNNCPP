@@ -56,6 +56,7 @@ protected:
 	int input_dim; // size of previous layer
 	VF2D_F inputs;  // inputs to activation function (batch_sz, seq_len)  // change to input later
 	VF2D_F outputs; // outputs from activation function
+	VF2D_F previous_state; // output from last sequence of previous batch
 	DELTA delta; // d(loss) / d(layer output)  (transform to row vector)
 	BIAS bias;
 	bool is_bias_frozen;
@@ -166,7 +167,9 @@ public:
 	const VF2D_F& getLoopInput() const { return loop_input; }
 	VF2D_F& getLoopInput() { return loop_input; }
 	void setOutputs(VF2D_F& outputs) { this->outputs = outputs; }
+	void setPreviousState();
 	VF2D_F& getOutputs() { return outputs; }
+	VF2D_F& getPreviousState() { return previous_state; }
 	void incrOutputs(VF2D_F& x);
 	void incrOutputs(VF2D_F& x, int t); // for sequences
 	void incrInputs(VF2D_F& x);

@@ -47,6 +47,7 @@ void Layer::initVars(int nb_batch)
 	outputs.set_size(nb_batch);
 	delta.set_size(nb_batch);
 	gradient.set_size(nb_batch);
+	previous_state.set_size(nb_batch);
 	bias.set_size(layer_size);
 	bias_delta.set_size(layer_size);
 	//activation_delta.set_size(getActivation().getNbParams());
@@ -59,6 +60,7 @@ void Layer::initVars(int nb_batch)
 		outputs[i]  = VF2D(layer_size, seq_len);
 		gradient[i] = VF2D(layer_size, seq_len);
 		delta[i]    = VF2D(layer_size, seq_len);
+		previous_state[i] = VF2D(layer_size, 1);
 	}
 	bias.zeros();
 	bias_delta.zeros();
@@ -74,6 +76,7 @@ void Layer::initVars(int nb_batch)
         loop_delta[b] = VF2D(layer_size, seq_len);
 		loop_input[b].zeros();
 		loop_delta[b].zeros();
+		previous_state[b].zeros();
     }   
 
 	reset();
@@ -433,6 +436,13 @@ void Layer::addBiasToInput(int t)
 	}
 }
 //----------------------------------------------------------------------
+void Layer::setPreviousState()
+{
+	outputs[0].raw_print(arma::cout, "setPreviousState");
+	for (int b=0; b < nb_batch; b++) {
+		previous_state[b] = outputs[b].col(seq_len-1);
+	}
+}
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
