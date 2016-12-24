@@ -556,6 +556,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 {
 	if (stateful == false) {
 		resetState(); 
+		printf("reset state GE\n");
 	}
 
 	//printf("****************** ENTER predictViaConnections ***************\n");
@@ -684,8 +685,9 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 	for (int l=0; l < layers.size(); l++) {
 		printf("---------------\n");
 		layers[l]->printSummary();
-		layers[l]->getInputs().print("inputs");
-		layers[l]->getOutputs().print("outputs");
+		layers[l]->getInputs()[0].raw_print(cout, "inputs");
+		layers[l]->getOutputs()[0].raw_print(cout, "outputs");
+		layers[l]->getLoopInput()[0].raw_print(cout, "temporal loop input");
 	}
 
 	//printf("QUIT AT END of methods::predict...()\n"); exit(0);
@@ -720,32 +722,27 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	//VF2D_F exact(1); exact[0] = exact_;
 	//U::print(x);
 
-	#if 1
-	printf("turn of in Model::trainOneBatch\n");
 	VF2D_F pred; //new
+	printf("ENTER predict GE\n");
 	predictViaConnectionsBias(x, pred); // new
-	//x.print("x predict");
-	//pred.print("pred predict");
+	printf("EXIT predict GE\n");
 
 	//TEMPORARY
-	clist[0]->getWeight().print("Weights: input-d1");
-	clist[1]->getWeight().print("Weights: d1-d2");
-	clist_temporal[0]->getWeight().print("Weights: d1-d1");
+	clist[0]->getWeight().raw_print(cout, "Weights: input-d1");
+	clist[1]->getWeight().raw_print(cout, "Weights: d1-d2");
+	clist_temporal[0]->getWeight().raw_print(cout, "Weights: d1-d1");
 
 	objective->computeLoss(exact, pred);
 
 
 	const LOSS& loss = objective->getLoss();
 	REAL rloss = arma::sum(loss[0]);
-	printf("rloss= %f\n", rloss);
-	//printf("trainOnBatch, gordon\n"); exit(0);
-	#endif
+	printf("rloss= %21.14f\n", rloss);
 
 	// If save loss, ...
 	//loss_history.push_back(loss); // slight leak (should print out every n iterations
 
 	backPropagationViaConnectionsRecursion(exact, pred);
-	//return; // leaks
 	parameterUpdate();
 
 	pred.reset(); // handle memory leaks
@@ -775,9 +772,6 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 
 	const LOSS& loss = objective->getLoss();
 	//loss_history.push_back(loss);
-
-	//LOSS ll = loss;
-	//printf("loss= %21.14f\n", loss[0][0]);
 
 	backPropagationViaConnectionsRecursion(exact, pred);
 	parameterUpdate();
@@ -875,7 +869,8 @@ void Model::storeDLossDWeightInConnectionsRecCon(int t)
 		// Currently, only works for sequence length of 1
 		// Could work if sequence were the field index
 
-		con->dLdaMulGrad(t);
+		//con->dLdaMulGrad(t);
+		con->dLossDWeight(t);
 	}
 
 	// Needed when there are recurrent layers
@@ -888,7 +883,8 @@ void Model::storeDLossDWeightInConnectionsRecCon(int t)
 	// deal with remainder temporal layers
 	// ...
 	for (int c=0; c < clist_temporal.size(); c++) {
-		clist_temporal[c]->dLdaMulGrad(t);
+		//clist_temporal[c]->dLdaMulGrad(t);
+		clist_temporal[c]->dLossDWeight(t);
 	}
 
 	//printf("********** EXIT storeDLossDWeightInConnections ***********\n");
@@ -1020,6 +1016,7 @@ void Model::resetState()
 //----------------------------------------------------------------------
 void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF2D_F& pred)
 {
+	printf("\n**************** ENTER BACKPROPAGATION ***************\n");
 	nb_batch = pred.n_rows;
 
 	if (nb_batch == 0) {
@@ -1037,40 +1034,32 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 		layers[l]->getOutputs().print("layer outputs");
 	}
 
-
+	// derivative of loss function wrt output layer output
     objective->computeGradient(exact, pred);
-	//U::print(exact, "exact");
-	//U::print(pred, "pred");
     VF2D_F& grad = objective->getGradient(); // Check on gradient
-	// assumes single output layer. Set for all sequences. 
-	//getLayers()[1]->reset(); 
-	//U::print(grad, "grad");  // grad has batch_size 1, which is wrong. What is grad? 
 	getOutputLayers()[0]->setDelta(grad); 
-	//getLayers()[1]->reset(); exit(0);
 
-	//printf("++++++++++++++++++++++++++++\n");
-	//printf("   GRADIENT \n");
+	// gradients of activation functions
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeGradientsInLayersRec(t);
 	}
-	//return; // no leaks
-	//printf("++++++++++++++++++++++++++++\n");
-	//printf("   d(loss)/da   (# CHECK IN) \n");    
+
+	// derivative of loss wrt layer output
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeDActivationDOutputInLayersRecCon(t);
 	}
-	//printf("++++++++++++++++++++++++++++\n");
-	//printf("   d(loss)/dw  \n");
+
+	// derivative of loss wrt weights
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeDLossDWeightInConnectionsRecCon(t);
 	}
-	//printf("++++++++++++++++++++++++++++\n");
-	//printf("   d(loss)/dbias  \n");
+
+	// derivative of loss wrt bias
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeDLossDBiasInLayersRec(t);
 	}
 
-	//printf("  d(loss)/d(activation_params)
+	// derivative of loss wrt activation parameters
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeDLossDActivationParamsInLayer(t);
 	}

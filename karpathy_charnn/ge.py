@@ -69,7 +69,7 @@ def lossFunGE(inputs, targets, hprev):
     loss += -np.log(ps[t][targets[t],0]) # softmax (cross-entropy loss)
 
     print "h layer input: ", np.dot(Wxh, xs[t]) + bh
-    print "h layer output: ", hs[t]
+    print "h layer output (hs): ", hs[t]
     print "y layer input: ", np.dot(Why, hs[t]) + by # 
     print "y layer output: ", ys[t]
     print "ps layer output: ", ps[t]
@@ -224,7 +224,7 @@ while True:
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
 
-  if (n == 1): quit()
+  if (n == 5): quit()
 
   if n % 100 == 0: print 'iter %d, loss: %f' % (n, smooth_loss) # print progress
   
@@ -235,7 +235,9 @@ while True:
     mem += dparam * dparam
     #print "mem= ", mem
     #param += -learning_rate * dparam / np.sqrt(mem + 1e-8) # adagrad update
-    param += -learning_rate * dparam  # SGD
+
+	# only run prediction. Disable weight update
+    #param += -learning_rate * dparam  # SGD
 
   p += seq_length # move data pointer
   n += 1 # iteration counter 

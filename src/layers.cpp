@@ -367,20 +367,10 @@ void Layer::forwardLoops(Connection* con, int t)
 	// forward data to temporal connections
 	// handle self loop
 	const WEIGHT& wght = con->getWeight();
-	//wght.printSummary("wght"); 
-	//wght.print("wght"); printf("row/col= %d, %d\n", wght.n_rows, wght.n_cols);
-	//this->printSummary();
-	//U::print(wght, "wght");
-	//U::print(loop_input, "loop_input"); //loop_input.print("loop_input");
-	//U::print(outputs, "outputs"); //outputs.print("outputs");
-	//printf("loop_input[b].col[t+1] = wght * outputs[b].col[t]\n");
-	//outputs[0].raw_print(cout, "loop, outputs");
-
-	// loop_input = wght * outputs
 
 	// For now, assume that a layer can have a maximum of one temporal input
 	if (t >= 0) {
-		U::matmul(loop_input, wght, outputs, t, t+1); // out of bounds
+		U::matmul(loop_input, wght, outputs, t, t+1); 
 	}
 }
 void Layer::forwardLoops(Connection* con, int t1, int t2)
@@ -388,8 +378,13 @@ void Layer::forwardLoops(Connection* con, int t1, int t2)
 	//printf("inside forward loops, t=%d\n", t);
 	// forward data to temporal connections
 	// handle self loop
+	printf("-.-.-.\n");
 	const WEIGHT& wght = con->getWeight();
 	U::matmul(loop_input, wght, outputs, t1, t2); // out of bounds
+	//wght.print("wght");
+	loop_input.print("Layer::forwardLoops, loop input\n");
+	outputs.print("Layer::forwardLoops, outputs\n");
+	//exit(0);
 }
 //----------------------------------------------------------------------
 void Layer::reset() // Must I reset recurrent connection? 

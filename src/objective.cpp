@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 #include "print_utils.h"
 #include "objective.h"
 #include "typedefs.h"
@@ -442,6 +443,6 @@ void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 		// Clip to [-5,5] to avoid exploding gradients
 		gradient[b] = arma::clamp(gradient[b], -5., 5.);
 	}
-	gradient.print("Cross-Entropy Gradient");
+	gradient(0).raw_print(arma::cout, "Cross-Entropy Gradient");
 }
 //----------------------------------------------------------------------

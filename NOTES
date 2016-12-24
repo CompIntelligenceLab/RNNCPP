@@ -742,7 +742,11 @@ the code for seq_len > 1.
 Dec. 23, 2016
 - Fixed one error: I had forgotten to update weight transposes after the 
 weight update. 
+NEXT: I must fix temporal weight update, which is non-zero even if sequence = 1, at least at the 2nd iteration. 
 ----------------------------------------------------------------------
+Dec. 24, 2016
+- Prediction is correct for several iterations. 
+- Backprop somehow not taking into account incoming h(s)
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

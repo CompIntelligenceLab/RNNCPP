@@ -243,6 +243,8 @@ void Connection::computeWeightTranspose()
 //----------------------------------------------------------------------
 void Connection::gradMulDLda(int ti_from, int ti_to)
 {
+	// Compute derivative of Loss wrt weights
+
 	printf("Connection::ENTER gradMulDLda\n");
 	//assert(this == conn.to);
 	Layer* layer_to   = to;
@@ -314,7 +316,7 @@ void Connection::gradMulDLda(int ti_from, int ti_to)
 	prod.reset();
 }
 //----------------------------------------------------------------------
-void Connection::dLdaMulGrad(int t)
+void Connection::dLossDWeight(int t)
 {
 	Layer* layer_from = from;
 	Layer* layer_to   = to;
@@ -335,16 +337,27 @@ void Connection::dLdaMulGrad(int t)
 			if (!temporal) {
 				delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
 				//this->printSummary("spatial connection");
-				//printf("dLdaMulGrad, t= %f,"); delta.print("delta");
+				//printf("dLossDWeight, t= %f,"); delta.print("delta");
 			} else {
-				//printf("TEMPORAL LINK\n");
+				printf("TEMPORAL LINK\n");
 				//printf("t+1= %d\n", t+1);
+				// Added comment 12/24/16 (as a test only) (I get exception)
+				// seq_len == 1: take previous state into account
+				// MIGHT OR MIGHT NOT WORK, 12/24/16
+				// Does not work. Screws up iteration one compared to Karpathy. 
+				if (seq_len == 1) {
+					//printf("GE seq_len = 1, t= %f\n", t);  // t prints as 0.000
+					//delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
+					//delta.print("TEMPORAL delta");
+					;
+				}
 				if (t+1 == seq_len) continue;    // ONLY FOR seq_len == 2
 				//printf("compute delta\n");
+				out_t.raw_print(cout, "Connection::dLossDWeight, out_t");
 				delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t);
 
 				//this->printSummary("temporal connection");
-				//printf("dLdaMulGrad, t= %f,"); delta.print("delta");
+				//printf("dLossDWeight, t= %f,"); delta.print("delta");
 			}
 			incrDelta(delta);
 			#ifdef DEBUG

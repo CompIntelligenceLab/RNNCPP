@@ -373,12 +373,13 @@ void charRNN(Globals* g)
 				sample(m_pred, which_char, c_int, int_c, hot);
 			}
 
+			printf("Model m state: %d\n", m->getStateful());
     		which_char = getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
 			if (which_char < 0) break;
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 
-			if (count == 2) exit(0); // TEMPORARY
+			if (count == 5) exit(0); // TEMPORARY
 		#if 0
 		printf("------------\n");
 		for (int s=0; s < seq_len; s++) {
