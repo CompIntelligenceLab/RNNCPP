@@ -222,7 +222,7 @@ while True:
     print 'nb_epochs %d, iter %d, ----\n %s \n----' % (nb_epochs, n, txt )
 
   # forward seq_length characters through the net and fetch gradient
-  print "ENTER LOSS FUN GE -----------------------------"
+  print "ENTER LOSS FUN GE ---- n = ", n, " ------------"
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
 
@@ -239,7 +239,7 @@ while True:
     #param += -learning_rate * dparam / np.sqrt(mem + 1e-8) # adagrad update
 
 	# only run prediction. Disable weight update
-    #param += -learning_rate * dparam  # SGD
+    param += -learning_rate * dparam  # SGD
 
   p += seq_length # move data pointer
   n += 1 # iteration counter 

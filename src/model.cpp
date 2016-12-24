@@ -658,7 +658,7 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		// I FORGOT TO PUT RECURRENT LINKS WITH clist_temporal
 		for (int c=0; c < clist_temporal.size(); c++) {
 			Connection* conn = clist_temporal[c];
-			//conn->printSummary(""); conn->getWeight().print("temporal weights");
+			conn->printSummary(""); conn->getWeight().raw_print(arma::cout, "temporal weights");
 			Layer* to_layer = conn->to;
 			to_layer->forwardLoops(conn, t-1);
 		}
@@ -666,6 +666,7 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
+			conn->printSummary(""); conn->getWeight().raw_print(arma::cout, "spatial weights");
 			Layer* to_layer   = conn->to;
 			// Responsible for memory leak
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);

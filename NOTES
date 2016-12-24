@@ -747,6 +747,11 @@ NEXT: I must fix temporal weight update, which is non-zero even if sequence = 1,
 Dec. 24, 2016
 - Prediction is correct for several iterations. 
 - Backprop somehow not taking into account incoming h(s)
+
+Made progress. 
+iterations 0 and 1, inputs/outputs seem ok. 
+Iteration 2: h layer input: 0.0966 vs 0.0976  (SOMETHING WRONG). 
+So look at previous iteration to find error. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

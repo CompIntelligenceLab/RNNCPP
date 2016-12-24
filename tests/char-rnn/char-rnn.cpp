@@ -366,12 +366,15 @@ void charRNN(Globals* g)
 
 		for (int i=0; i < nb_samples; i++) {
 		printf("\n=====================================\n");
-		printf("========== NEW SAMPLE ===============\n");
+		printf("========== NEW SAMPLE === iter %d ======\n", i);
+			#if 0
+			// ADD BACK WHEN CODE WORKS
 			if (count % 10 == 0) {
 				printf("TRAIN, nb_epochs: %d, iter: %d, ", e, count);
 				m_pred->setWeightsAndBiases(m);
 				sample(m_pred, which_char, c_int, int_c, hot);
 			}
+			#endif
 
 			printf("Model m state: %d\n", m->getStateful());
     		which_char = getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
