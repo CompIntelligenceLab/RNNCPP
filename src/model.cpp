@@ -568,7 +568,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 	input_layer->layer_inputs[0] = x; 
 	input_layer->setOutputs(x);  // although input layer "could" have a nonlinear activation function (maybe)
 
- 	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
+ 	for (int t=0; t < seq_len; t++) {  // CHECK LOOP INDEX LIMIT
 		for (int l=0; l < layers.size(); l++) {
 			layers[l]->nb_hit = 0;
 		}
@@ -633,6 +633,8 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 	input_layer->layer_inputs[0] = x; 
 	input_layer->setOutputs(x);  // although input layer "could" have a nonlinear activation function (maybe)
 
+	// for t = 0, somehow take previous state into account
+
  	for (int t=0; t < (seq_len); t++) {  // CHECK LOOP INDEX LIMIT
 		for (int l=0; l < layers.size(); l++) {
 			layers[l]->nb_hit = 0;
@@ -658,7 +660,7 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		// I FORGOT TO PUT RECURRENT LINKS WITH clist_temporal
 		for (int c=0; c < clist_temporal.size(); c++) {
 			Connection* conn = clist_temporal[c];
-			conn->printSummary(""); conn->getWeight().raw_print(arma::cout, "temporal weights");
+			//conn->printSummary(""); conn->getWeight().raw_print(arma::cout, "temporal weights");
 			Layer* to_layer = conn->to;
 			to_layer->forwardLoops(conn, t-1);
 		}
@@ -666,7 +668,7 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
-			conn->printSummary(""); conn->getWeight().raw_print(arma::cout, "spatial weights");
+			//conn->printSummary(""); conn->getWeight().raw_print(arma::cout, "spatial weights");
 			Layer* to_layer   = conn->to;
 			// Responsible for memory leak
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
@@ -680,15 +682,14 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 	for (int c=0; c < clist_temporal.size(); c++) {  // WILL THIS CHANGE eq3 test? 
 		Connection* conn  = clist_temporal[c];
 		Layer* to_layer   = conn->to;
-		to_layer->forwardLoops(conn, seq_len-1, 0);
+		to_layer->forwardLoops(conn, seq_len-1, 0); // IS THIS OK? 
 	}
 
 	for (int l=0; l < layers.size(); l++) {
 		printf("---------------\n");
 		layers[l]->printSummary();
-		layers[l]->getInputs()[0].raw_print(cout, "inputs");
-		layers[l]->getOutputs()[0].raw_print(cout, "outputs");
-		layers[l]->getLoopInput()[0].raw_print(cout, "temporal loop input");
+		layers[l]->getInputs()[0].raw_print(cout, "in prediction, inputs");
+		layers[l]->getOutputs()[0].raw_print(cout, "in prediction, outputs");
 	}
 
 	//printf("QUIT AT END of methods::predict...()\n"); exit(0);
@@ -728,6 +729,15 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	predictViaConnectionsBias(x, pred); // new
 	printf("EXIT predict GE\n");
 
+	// PRINT INPUTS AND OUTPUTS TO NETWORK (TEMP)
+	printf("\nINPUTS AND OUTPUTS TO NETWORK\n");
+	for (int l=0; l < layers.size(); l++) {
+		if (l != 0) {
+			layers[l]->printSummary("");
+			layers[l]->getInputs()(0).raw_print(arma::cout, "layer inputs");
+		}
+	}
+
 	//TEMPORARY
 	clist[0]->getWeight().raw_print(cout, "Weights: input-d1");
 	clist[1]->getWeight().raw_print(cout, "Weights: d1-d2");
@@ -735,17 +745,21 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 
 	objective->computeLoss(exact, pred);
 
-
 	const LOSS& loss = objective->getLoss();
 	REAL rloss = arma::sum(loss[0]);
 	printf("rloss= %21.14f\n", rloss);
 
 	// If save loss, ...
 	//loss_history.push_back(loss); // slight leak (should print out every n iterations
+	for (int l=0; l < layers.size(); l++) {
+		layers[l]->getPreviousState()(0).raw_print(arma::cout, "before backprop, previous state");
+	}
 
-	backPropagationViaConnectionsRecursion(exact, pred);
+//	backPropagationViaConnectionsRecursion(exact, pred);
 
 	for (int l=0; l < layers.size(); l++) {
+		// does not appear to be necessary for prediction to work properly. 
+		// WHY? Because of forward Loops? 
 		layers[l]->setPreviousState();
 	}
 
@@ -779,6 +793,7 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	const LOSS& loss = objective->getLoss();
 	//loss_history.push_back(loss);
 
+	return;
 	backPropagationViaConnectionsRecursion(exact, pred);
 
 	// Save Previous State
@@ -859,7 +874,7 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 	// ........
 
 	for (int c=0; c < clist_temporal.size(); c++) {
-		if (t == 0) continue;
+		//if (t == 0) continue;
 		clist_temporal[c]->dLossDOutput(t, t-1);
 	}
 }
@@ -1036,13 +1051,6 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 
 	resetDeltas();
 
-	// PRINT INPUTS AND OUTPUTS TO NETWORK (TEMP)
-	printf("\nINPUTS AND OUTPUTS TO NETWORK\n");
-	for (int l=0; l < layers.size(); l++) {
-		layers[l]->printSummary("");
-		layers[l]->getInputs().print("layer inputs");
-		layers[l]->getOutputs().print("layer outputs");
-	}
 
 	// derivative of loss function wrt output layer output
     objective->computeGradient(exact, pred);

@@ -244,6 +244,8 @@ void Connection::computeWeightTranspose()
 void Connection::dLossDOutput(int ti_from, int ti_to)
 {
 	// Compute derivative of Loss wrt weights
+	// If time delay is 1,ti_to == -1 when ti_from == 0
+	if (ti_from == 0) return;  
 
 	printf("Connection::ENTER gradMulDLda\n");
 	//assert(this == conn.to);
@@ -278,9 +280,6 @@ void Connection::dLossDOutput(int ti_from, int ti_to)
 		old_deriv.print("old_deriv, dL/dOutput, layer_to");
 		// prod[-1] cannot be allowed
 		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to);  // dL/da
-		//return; // no leak
-		//this->printSummary();
-		//printf("Connection::gradMulDLda, "); prod.print("prod = dL/da");
 	} else { // "coupled"
 		//printf("gradMulDLda, coupled\n");
 		for (int b=0; b < nb_batch; b++) {

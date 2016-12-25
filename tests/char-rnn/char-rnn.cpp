@@ -226,6 +226,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	//U::print(w3,"w3");
 	//m->getConnection(d1, d1)->freeze();  // freeze w3
 	w3.zeros();
+	w3 = w3 + 0.3;
 	w3.print("w3");
 	#endif
 
@@ -382,7 +383,7 @@ void charRNN(Globals* g)
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 
-			if (count == 5) exit(0); // TEMPORARY
+			if (count == 3) exit(0); // TEMPORARY
 		#if 0
 		printf("------------\n");
 		for (int s=0; s < seq_len; s++) {

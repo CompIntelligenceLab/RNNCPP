@@ -230,19 +230,6 @@ void U::rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c
 	for (int p=0; p < b.n_rows; p++) {
 		prod(p).col(to) = a * (b(p).col(from) % c(p).col(from));    // ERROR 
 	}
-
-	#if 0
-	printf("\nrightTriad, from, to= %d, %d\n", from, to);
-	print(a, "a");
-	print(b, "b");
-	print(c, "c");
-	print(prod, "prod");
-	a.print("a");
-	b.print("b");
-	c.print("c");
-	prod.print("prod");
-	//exit(0);
-	#endif
 }
 //----------------------------------------------------------------------
 void U::printRecurrentLayerLoopInputs(Model *m)
@@ -269,7 +256,6 @@ void U::printInputs(Model *m)
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i]; 
 		layer->printSummary();
-		//layer->getInputs().print("inputs");
 		layer->getInputs()[0].raw_print(cout, "inputs");
 	}
 }
@@ -285,7 +271,6 @@ void U::printLayerInputs(Model *m)
 		std::vector<VF2D_F> inputs = layer->getLayerInputs();
 		for (int i=0; i < inputs.size(); i++) {
 			printf("layer input %d\n", i);
-			//inputs[i].print("input ");
 			inputs[i][0].raw_print(cout, "input ");
 		}
 	}

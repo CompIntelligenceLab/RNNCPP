@@ -41,7 +41,7 @@ for i in range(vocab_size):
   Why[i,j] = .3 / (i+j+1)
 # END TEMPORARY FOR DEBUGGING
 
-Whh = Whh * 0. #+ .3
+Whh = Whh * 0. + .3
 
 bh = np.zeros((hidden_size, 1)) # hidden bias # orig
 by = np.zeros((vocab_size, 1)) # output bias # orig
@@ -70,7 +70,7 @@ def lossFunGE(inputs, targets, hprev):
     ps[t] = np.exp(ys[t]) / np.sum(np.exp(ys[t])) # probabilities for next chars
     loss += -np.log(ps[t][targets[t],0]) # softmax (cross-entropy loss)
 
-    print "h layer input: ", np.dot(Wxh, xs[t]) + bh
+    print "h layer input: ", np.dot(Wxh, xs[t]) + np.dot(Whh, hs[t-1]) + bh
     print "h layer output (hs): ", hs[t]
     print "y layer input: ", np.dot(Why, hs[t]) + by # 
     print "y layer output: ", ys[t]
@@ -117,6 +117,7 @@ def lossFunGE(inputs, targets, hprev):
   print "#################################################"
   #quit() ##################
   return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs)-1]
+  return loss, dWxh, dWhh, dWhy, dbh, dby, [[0.]]
 
 #----------------------------------------------------------------------
 def lossFun(inputs, targets, hprev):
@@ -222,11 +223,11 @@ while True:
     print 'nb_epochs %d, iter %d, ----\n %s \n----' % (nb_epochs, n, txt )
 
   # forward seq_length characters through the net and fetch gradient
-  print "ENTER LOSS FUN GE ---- n = ", n, " ------------"
+  print "ENTER LOSS FUN GE ---- n =", n, " ------------"
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
 
-  if (n == 5): quit()
+  if (n == 2): quit()
 
   if n % 100 == 0: print 'iter %d, loss: %f' % (n, smooth_loss) # print progress
   
@@ -239,7 +240,7 @@ while True:
     #param += -learning_rate * dparam / np.sqrt(mem + 1e-8) # adagrad update
 
 	# only run prediction. Disable weight update
-    param += -learning_rate * dparam  # SGD
+    #param += -learning_rate * dparam  # SGD
 
   p += seq_length # move data pointer
   n += 1 # iteration counter 

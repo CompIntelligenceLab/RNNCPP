@@ -374,6 +374,12 @@ void Layer::forwardLoops(Connection* con, int t)
 	// For now, assume that a layer can have a maximum of one temporal input
 	if (t >= 0) {
 		U::matmul(loop_input, wght, outputs, t, t+1); 
+	} else {  // use previous state
+		printf("Layer::forwardLoops: use previous state\n");
+		previous_state.print("previous_state");
+		wght.print("wght");
+	    //U::matmul(loop_input, wght, previous_state, 0, 0); // perhaps last 2 args wrong?
+	    loop_input.print("loop_input, previous state\n");
 	}
 }
 void Layer::forwardLoops(Connection* con, int t1, int t2)
@@ -438,7 +444,7 @@ void Layer::addBiasToInput(int t)
 //----------------------------------------------------------------------
 void Layer::setPreviousState()
 {
-	outputs[0].raw_print(arma::cout, "setPreviousState");
+	//outputs[0].raw_print(arma::cout, "setPreviousState");
 	for (int b=0; b < nb_batch; b++) {
 		previous_state[b] = outputs[b].col(seq_len-1);
 	}

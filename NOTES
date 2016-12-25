@@ -754,7 +754,17 @@ Iteration 2: h layer input: 0.0966 vs 0.0976  (SOMETHING WRONG).
 So look at previous iteration to find error. 
 EVERYTHING looks identical between the codes for 2 iterations. 
 So why would iteration 3 be different? MAKES NO SENSE!!
+
+Last error: I must take the previous state into account in the prediction stage. 
+Layer::forwardLoop: added a condition dealing with previous_state. Did 
+not work. Something still missing. The changes were minimal. Not enough to match-up.
+
+QUESTION: when backprop is turned off: I get perfect match between me and Karpathy. WHY? And there is no difference when I turn on or off my changes to fowardLoop in Layers::forwardLoop. That does not make any sense. So my problems still lie with the backprop. 
 ----------------------------------------------------------------------
+Dec. 25, 2016
+- Even though I am saving prev_state, its effect is not felt in prediction 
+phase, and this is clearly not correct. 
+- precition works for 3 iterations. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

@@ -396,7 +396,7 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 			for (int i=0; i < input_dim; i++) {
 				//printf("i= %d\n", i);
 				loss[b](s) -= exact[b](i,s) * log(output(i,s));
-				printf("exact(%d,%d): %f, output(%d,%d)= %f\n", i,s,exact[b](i,s), i,s, output(i,s));
+				//printf("exact(%d,%d): %f, output(%d,%d)= %f\n", i,s,exact[b](i,s), i,s, output(i,s));
 				// I should not have to do the sum, since exact is all zeros except one element, and 
 				// I know which one
 			}
