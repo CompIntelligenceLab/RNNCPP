@@ -42,8 +42,9 @@ for i in range(vocab_size):
 # END TEMPORARY FOR DEBUGGING
 
 Whh = Whh * 0. + .3
+#Whh *= 0.
 #Why *= 0.
-#Wxh *= 0.
+Wxh *= 0.
 
 bh = np.zeros((hidden_size, 1)) # hidden bias # orig
 by = np.zeros((vocab_size, 1)) # output bias # orig
@@ -106,6 +107,7 @@ def lossFunGE(inputs, targets, hprev):
     print "1-hs**2= ", 1-hs[t]*hs[t]
 
     dWxh += np.dot(dhraw, xs[t].T)
+    print "hs[t-1]= ", hs[t-1]
     dWhh += np.dot(dhraw, hs[t-1].T)
     dhnext = np.dot(Whh.T, dhraw)
     print "Weight Deltas"
@@ -235,9 +237,9 @@ while True:
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
 
-  if (n == 200): quit()
+  if (n == 5): quit()
 
-  if n % 100 == 0: print 'iter %d, loss: %f' % (n, smooth_loss) # print progress
+  if n % 100 == 0: print 'iter %d, smooth_loss: %f' % (n, smooth_loss) # print progress
   
   # perform parameter update with Adagrad
   for param, dparam, mem in zip([Wxh, Whh, Why, bh, by], 

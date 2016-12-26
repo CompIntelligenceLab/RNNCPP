@@ -94,8 +94,13 @@ public:
 	virtual void incrTClock() {t_clock++;}
 	virtual void setTTo(int to) {t_to = to;}
 	virtual int getTTo() { return t_to; }
-	virtual void dLossDOutput(int ti_from, int ti_to);
-	virtual void dLossDWeight(int t);
+
+	// prt: whether or not to print diagnostics
+	virtual void dLossDOutput(int ti_from, int ti_to, bool prt=false);
+
+	/** prnt: print diagnostics or not */
+	virtual void dLossDWeight(int t, bool prnt); 
+
 	virtual void setWeightRMS(REAL weight_rms) { this->init_weight_rms = weight_rms; }
 	//virtual void gradMulDLda(VF2D_F& prod, int ti_from, int ti_to);
 

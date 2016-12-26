@@ -241,11 +241,16 @@ void Connection::computeWeightTranspose()
 	weight_t = weight.t();
 }
 //----------------------------------------------------------------------
-void Connection::dLossDOutput(int ti_from, int ti_to)
+void Connection::dLossDOutput(int ti_from, int ti_to, bool prt)
 {
 	// Compute derivative of Loss wrt weights
 	// If time delay is 1,ti_to == -1 when ti_from == 0
-	//printf("Connection::ENTER dLossDOutput ****** ti_from, ti_to= =%f, %f\n", ti_from, ti_to);
+	if (prt) {
+		printf("-----------\n");
+		printf("Connection::ENTER dLossDOutput ****** ti_from, ti_to= =%d, %d\n", ti_from, ti_to);
+		this->printSummary();
+	}
+
 	if (ti_to < 0) return;  
 
 	//assert(this == conn.to);
@@ -253,6 +258,7 @@ void Connection::dLossDOutput(int ti_from, int ti_to)
 	Layer* layer_from = from;
 	int nb_batch = layer_from->getNbBatch(); 
 	VF2D_F prod(nb_batch);
+	layer_from->getDelta()(0).raw_print(arma::cout, "enter dLossDOutput, layer_from->getDelta");
 
 	const VF2D_F& old_deriv = layer_to->getDelta();  // 3
 	const WEIGHT& wght   = getWeight(); // invokes copy constructor, or what?  3 x 4
@@ -262,26 +268,28 @@ void Connection::dLossDOutput(int ti_from, int ti_to)
 	// CHECK AGAINST EXACT, ANALYTICAL!!! 
 
 	if (activation.getDerivType() == "decoupled") {   
-		//printf("---------------------------\n");
-		//printf("gradMulDLda, decoupled\n");
-		//layer_from->printSummary();
-		//layer_to->printSummary();
-		//layer_from->getDelta().print("layer_from->getDelta");
-		//layer_to->getDelta().print("layer_to->getDelta");
 		const VF2D_F& grad 		= layer_to->getGradient();
+		if (prt) {
+			printf("dLossDOutput, decoupled\n");
+			layer_from->printSummary("from");
+			layer_to->printSummary("to");
+			old_deriv(0).raw_print(arma::cout, "old_deriv, dL/dOutput, layer_to");
+			grad(0).raw_print(arma::cout, "layer_to->grad, activation grad");
+			layer_from->getDelta()(0).raw_print(arma::cout, "layer_from->getDelta");
+			layer_to->getDelta()(0).raw_print(arma::cout, "layer_to->getDelta");
+			printf("prod = wght_t * (grad %% old_deriv)\n");
+		}
 		for (int b=0; b < nb_batch; b++) {
 			prod(b) = VF2D(size(layer_from->getDelta()(0)));
 		}
 		const WEIGHT& wght_t = getWeightTranspose();
-		//printf("----\n");
-		//printf("prod = wght_t * (grad %% old_deriv)\n");
-		//wght_t.print("wght_t");
-		//grad.print("grad: activation gradient in layer_to\n");
-		//old_deriv.print("old_deriv, dL/dOutput, layer_to");
+		wght_t.raw_print(arma::cout, "wght_t");
 		// prod[-1] cannot be allowed
 		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to);  // dL/da
+		if (prt) {
+			prod(0).raw_print(arma::cout, "prod, rightTriad");
+		}
 	} else { // "coupled"
-		//printf("gradMulDLda, coupled\n");
 		for (int b=0; b < nb_batch; b++) {
 			const VF1D& x   =  layer_to->getInputs()(b).col(ti_from);
 			const VF1D& y   = layer_to->getOutputs()(b).col(ti_from);
@@ -294,18 +302,20 @@ void Connection::dLossDOutput(int ti_from, int ti_to)
 		}
 	}
 
-	//return; // no leak
-
 	if (ti_from == ti_to) {
-		//printf("spatial link: d(L)/d(output)\n");
+		if (prt) { 
+			printf("spatial link: d(L)/d(output)\n");
+			prod.print("... incr prod (layer_from->delta)");
+		}
 		layer_from->incrDelta(prod, ti_from);   // spatial
-		//layer_from->printSummary("layer_from");
-		//prod.print("gradMul... prod (layer_from->delta)");
 		#ifdef DEBUG
 		layer_from->deltas.push_back(prod);
 		#endif
 	} else {
-		//printf("temporal link\n");
+		if (prt) {
+			printf("temporal link: d(L)/d(output)\n");
+			prod(0).raw_print(arma::cout, "... prod (layer_from->delta)");
+		}
 		if (ti_to >= 0) {  // temporal
 			layer_from->incrDelta(prod, ti_to);  // I do not like this conditional, temporal
 			#ifdef DEBUG
@@ -317,7 +327,7 @@ void Connection::dLossDOutput(int ti_from, int ti_to)
 	//printf("Connection::EXIT dLossDOutput ****** ti_from, ti_to= =%f, %f\n", ti_from, ti_to);
 }
 //----------------------------------------------------------------------
-void Connection::dLossDWeight(int t)
+void Connection::dLossDWeight(int t, bool prnt=false)
 {
 	Layer* layer_from = from;
 	Layer* layer_to   = to;
@@ -329,7 +339,7 @@ void Connection::dLossDWeight(int t)
 	Activation& activation = layer_to->getActivation();
 	const VF2D_F& previous_state = layer_from->getPreviousState();
 
-	printf("**** ENTER dLossDWeight *******, t= %d\n", t);
+	if (prnt) printf("**** ENTER dLossDWeight *******, t= %d\n", t);
 	WEIGHT delta = VF2D(size(weight));
 	//this->printSummary("dLossDWeight");
 
@@ -339,12 +349,16 @@ void Connection::dLossDWeight(int t)
 		for (int b=0; b < nb_batch; b++) {
 			const VF2D& out_t = out(b).t();
 			if (!temporal) { // ERROR IN THIS PART OF THE CODE
+				if (prnt) printf("GE: spatial\n");
 				//printf("==== dLossDWeight, spatial, error? =====\n");
 				delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
-				//delta.raw_print(arma::cout, "delta, dLossDWeight");
-				//old_deriv[b].raw_print(arma::cout, "old_deriv, layer_to->getDelta,  dLossDWeight");
-				//grad[b].raw_print(arma::cout, "layer_to->getGradient, dLossDWeight");
-				//out_t.raw_print(arma::cout, "layer_from->getOutputs, dLossDWeight");
+
+				if (prnt) {
+					//delta.raw_print(arma::cout, "delta, dLossDWeight");
+					old_deriv[b].raw_print(arma::cout, "old_deriv, layer_to->getDelta,  dLossDWeight");
+					grad[b].raw_print(arma::cout, "layer_to->getGradient, dLossDWeight");
+					out_t.raw_print(arma::cout, "layer_from->getOutputs, dLossDWeight");
+				}
 				//this->printSummary("spatial connection");
 				//printf("dLossDWeight, t= %f,"); delta.print("delta");
 			} else {
@@ -359,9 +373,10 @@ void Connection::dLossDWeight(int t)
 				// time step instead? Will fix later
 
 				if (t == 0) {
-					U::print(previous_state, "previous_state");
-					U::print(old_deriv, "old_deriv");
-					U::print(grad, "grad");
+					if (prnt) printf("GE: temporal, t=0\n");
+					//U::print(previous_state, "previous_state");
+					//U::print(old_deriv, "old_deriv");
+					//U::print(grad, "grad");
 					//previous_state[0].raw_print(arma::cout, "..previous_state");
 					//old_deriv[0].raw_print(arma::cout, "old_deriv");
 					//grad[0].raw_print(arma::cout, "grad");
@@ -374,10 +389,17 @@ void Connection::dLossDWeight(int t)
 					;
 				}
 				else if (t+1 == seq_len) {
-					continue;    // ONLY FOR seq_len == 2
+					if (prnt) printf("GE: temporal, t+1 == seq_len\n");
+					continue;    
 				} else {
-					//printf("compute delta\n");
-					//out_t.raw_print(cout, "Connection::dLossDWeight, out_t");
+					if (prnt) {
+						printf("GE: temporal, else\n");
+						//printf("compute delta\n");
+						//out_t.raw_print(cout, "Connection::dLossDWeight, out_t");
+						U::print(out_t, "previous_state");
+						U::print(old_deriv, "old_deriv");
+						U::print(grad, "grad");
+					}
 					delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t);
 	
 					//this->printSummary("temporal connection");
@@ -385,7 +407,10 @@ void Connection::dLossDWeight(int t)
 				}
 			}
 			incrDelta(delta);
-			//getDelta().raw_print(arma::cout, "total connection delta");
+			if (prnt) {
+				delta.raw_print(arma::cout, "incr delta");
+				getDelta().raw_print(arma::cout, "total connection delta");
+			}
 			#ifdef DEBUG
 			deltas.push_back(delta);
 			#endif

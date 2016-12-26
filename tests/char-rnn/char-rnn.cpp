@@ -191,6 +191,8 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 
 	//m->printSummary();
 	//printf("====   after printSummary ====\n");
+
+	// create clist
 	m->connectionOrderClean(); // no print statements
 
 	m->initializeWeights(); // be initialized after freezing
@@ -211,9 +213,8 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	for (int j=0; j < w1.n_cols; j++) {
 		//printf("i,j= %d, %d\n", i, j);
 		w1(i,j) = .3 / (1.+i+j);
-		//w1(i,j) = 0.;
+		w1(i,j) = 0.;
 	}}
-	con->computeWeightTranspose();
 
 	con = m->getConnection(d1, d2);
 	WEIGHT& w2 = con->getWeight();
@@ -222,7 +223,6 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 		w2(i,j) = .3 / (1.+i+j);
 		//w2(i,j) = 0.;
 	}}
-	con->computeWeightTranspose();
 
 	WEIGHT& w3 = m->getConnection(d1, d1)->getWeight();
 	//U::print(w3,"w3");
@@ -233,12 +233,25 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	#endif
 
 
+	// NEED A ROUTINE TO SET ALL TRANSPOSES
+
 	// b1 = 0.1 generates a single scalar. Do not know why. 
 	b1 = 0.0 * arma::ones<BIAS>(size(b1));
 	b2 = 0.0 * arma::ones<BIAS>(size(b2));
 
 	//m->print("MODEL PRINTOUT\n");
 	//printf("====   after print ====\n");
+
+	// COMPUTE ALL WEIGHT TRANSPOSES
+
+	CONNECTIONS& conns = m->getSpatialConnections();
+	for (int c=0; c < conns.size(); c++) {
+		conns[c]->computeWeightTranspose();
+	}
+	CONNECTIONS& connt = m->getTemporalConnections();
+	for (int c=0; c < connt.size(); c++) {
+		connt[c]->computeWeightTranspose();
+	}
 
 	return m;
 }
@@ -385,7 +398,7 @@ void charRNN(Globals* g)
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 
-			if (count == 200) exit(0); // TEMPORARY
+			if (count == 10) exit(0); // TEMPORARY
 		#if 0
 		printf("------------\n");
 		for (int s=0; s < seq_len; s++) {

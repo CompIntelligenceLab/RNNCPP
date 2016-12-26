@@ -870,8 +870,9 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
+	bool prt; // to print or not to print? 
 
-	//printf("ENTER storeDActivationDOutputInLayersRecCon\n");
+	printf("********* ENTER storeDActivationDOutputInLayersRecCon, t= %d\n", t);
 
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
@@ -879,10 +880,27 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 
 	// ASSUMES that clist is ordered from front to back 
 	// (for the spatial connections)
+	clist[0]->printSummary("clist[0]");
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
+
+		for (int l=0; l < getLayers().size(); l++) {
+			Layer* layer = getLayers()[l];
+			layer->printSummary("+++++++++++ BEFORE dLossDOutput");
+			layer->getDelta()(0).raw_print(arma::cout, "model, dL/dOut");
+		}
+
+
 		//(*it)->printSummary();
-		(*it)->dLossDOutput(t, t);
+		prt = (*it) == clist[0] ? true : false;
+		prt = true;
+		(*it)->dLossDOutput(t, t, prt);
 		//(*it)->to->getDelta()[0].print("dLossDOutput");
+
+		for (int l=0; l < getLayers().size(); l++) {
+			Layer* layer = getLayers()[l];
+			layer->printSummary("+++++++++++ AFTER dLossDOutput");
+			layer->getDelta()(0).raw_print(arma::cout, "model, dL/dOut");
+		}
 	}
 
 	/***
@@ -902,9 +920,14 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 
 	for (int c=0; c < clist_temporal.size(); c++) {
 		//if (t == 0) continue;
-		clist_temporal[c]->dLossDOutput(t, t-1);
+		prt = true;
+		// THIS LINE IS THE CAUSE OF DISCREPENCY WITH KARPATHY
+		clist_temporal[c]->dLossDOutput(t, t-1, prt); // TEMPORARY GE
+		printf("WILL THIS ELIMINATE PROBLEM? YES, IT DID\n");
 		//clist_temporal[c]->to->getDelta()[0].print("dLossDOutput(temporal)");
 	}
+	printf("********* EXIT storeDActivationDOutputInLayersRecCon, t= %d\n", t);
+	//exit(0);
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -924,7 +947,9 @@ void Model::storeDLossDWeightInConnectionsRecCon(int t)
 		// Currently, only works for sequence length of 1
 		// Could work if sequence were the field index
 
-		con->dLossDWeight(t);
+		bool prt = (*it == clist[0]) ? true : false;
+		prt = false;
+		con->dLossDWeight(t, prt);
 	}
 
 	// Needed when there are recurrent layers
@@ -937,7 +962,8 @@ void Model::storeDLossDWeightInConnectionsRecCon(int t)
 	// deal with remainder temporal layers
 	// ...
 	for (int c=0; c < clist_temporal.size(); c++) {
-		clist_temporal[c]->dLossDWeight(t);
+		bool prt = false;
+		clist_temporal[c]->dLossDWeight(t, prt); // no printing
 	}
 
 	//printf("********** EXIT storeDLossDWeightInConnections ***********\n");
@@ -1090,10 +1116,18 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 		storeGradientsInLayersRec(t);
 	}
 
+	for (int l=0; l < getLayers().size(); l++) {
+		Layer* layer = getLayers()[l];
+		layer->printSummary();
+		layer->getDelta()(0).raw_print(arma::cout, "dL/dOut");
+	}
+	//exit(0);
+
 	// derivative of loss wrt layer output
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeDActivationDOutputInLayersRecCon(t);
 	}
+	//exit(0);
 
 	// derivative of loss wrt weights
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
