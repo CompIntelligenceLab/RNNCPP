@@ -780,6 +780,10 @@ Dec. 25, 2016
   dWxh=  [[-0.00984931  0.          0.          0.          0.        ]]
 
 This is already happening at iteration zero!  This is layer 1 (getLayers()[1])
+
+Success: codes match for seq_len=1, layer_size = 1, batch_size = 1, and 5 iterations. 
+
+TODO: seq_len > 1, layer_size > 1. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
