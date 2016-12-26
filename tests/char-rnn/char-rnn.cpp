@@ -383,7 +383,7 @@ void charRNN(Globals* g)
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 
-			if (count == 2) exit(0); // TEMPORARY
+			if (count == 6) exit(0); // TEMPORARY
 		#if 0
 		printf("------------\n");
 		for (int s=0; s < seq_len; s++) {

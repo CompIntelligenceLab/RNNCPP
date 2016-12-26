@@ -229,7 +229,7 @@ while True:
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
 
-  if (n == 1): quit()
+  if (n == 5): quit()
 
   if n % 100 == 0: print 'iter %d, loss: %f' % (n, smooth_loss) # print progress
   

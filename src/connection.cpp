@@ -314,7 +314,7 @@ void Connection::dLossDOutput(int ti_from, int ti_to)
 		}
 	}
 	prod.reset();
-	printf("Connection::EXIT dLossDOutput ****** ti_from, ti_to= =%f, %f\n", ti_from, ti_to);
+	//printf("Connection::EXIT dLossDOutput ****** ti_from, ti_to= =%f, %f\n", ti_from, ti_to);
 }
 //----------------------------------------------------------------------
 void Connection::dLossDWeight(int t)
@@ -346,7 +346,7 @@ void Connection::dLossDWeight(int t)
 				//grad[b].raw_print(arma::cout, "layer_to->getGradient, dLossDWeight");
 				//out_t.raw_print(arma::cout, "layer_from->getOutputs, dLossDWeight");
 				//this->printSummary("spatial connection");
-				printf("dLossDWeight, t= %f,"); delta.print("delta");
+				//printf("dLossDWeight, t= %f,"); delta.print("delta");
 			} else {
 				//printf("TEMPORAL LINK\n");
 				//printf("t+1= %d\n", t+1);
