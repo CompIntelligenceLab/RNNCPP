@@ -390,7 +390,7 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 
 		loss[b].zeros(seq_len);
 		for (int s=0; s < seq_len; s++) {
-		   printf("s= %d\n", s);
+		   //printf("s= %d\n", s);
 
 			// Sum over input_dim (most terms are zero)
 			for (int i=0; i < input_dim; i++) {
@@ -404,7 +404,7 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 		// Really need the average over the sequence
 		//loss[b] = loss[b] / seq_len; // orig
 	}
-	loss.print("loss in CrossEntropy computeLoss\n");
+	//loss.print("loss in CrossEntropy computeLoss\n");
 		//exit(0);
 	//loss.print("exit loss");
 }
@@ -412,7 +412,7 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 //----------------------------------------------------------------------
 void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 {
-	printf("**** enter crossEntropy Gradient ****\n");
+	//printf("**** enter crossEntropy Gradient ****\n");
 	int nb_batch = exact.n_rows;
 	int seq_len  = exact[0].n_cols;
 	gradient.reset(); // empty the datastructure
@@ -443,6 +443,6 @@ void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 		// Clip to [-5,5] to avoid exploding gradients
 		gradient[b] = arma::clamp(gradient[b], -5., 5.);
 	}
-	gradient(0).raw_print(arma::cout, "Cross-Entropy Gradient");
+	//gradient(0).raw_print(arma::cout, "Cross-Entropy Gradient");
 }
 //----------------------------------------------------------------------

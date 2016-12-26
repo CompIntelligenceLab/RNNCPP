@@ -141,7 +141,7 @@ public:
    //virtual void initializeWeights(std::string initialization_type="uniform");  // not sure of data structure
    //WEIGHTS getWeights() const {return weights;}  // not sure of data structure (Just simple matrix for now)
 
-   // gradient of loss function with respect to weights
+   // gradient of activation function with respect to output
    GRADIENTS getGradient() const {return gradient;}
    void setBias(BIAS& bias) {this->bias = bias;}  // return  reference or const ref? 
    BIAS& getBias() {return bias;}  // return  reference or const ref? 

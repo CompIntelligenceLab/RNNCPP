@@ -685,18 +685,21 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		to_layer->forwardLoops(conn, seq_len-1, 0); // IS THIS OK? 
 	}
 
-	for (int l=0; l < layers.size(); l++) {
-		printf("---------------\n");
-		layers[l]->printSummary();
-		layers[l]->getInputs()[0].raw_print(cout, "in prediction, inputs");
-		layers[l]->getOutputs()[0].raw_print(cout, "in prediction, outputs");
-	}
+	//for (int l=0; l < layers.size(); l++) {
+		//printf("---------------\n");
+		//layers[l]->printSummary();
+		//layers[l]->getInputs()[0].raw_print(cout, "in prediction, inputs");
+		//layers[l]->getOutputs()[0].raw_print(cout, "in prediction, outputs");
+	//}
 
 	//printf("QUIT AT END of methods::predict...()\n"); exit(0);
 
 	//prod[0].raw_print(cout, "prod"); exit(0);
 	// I should do prod.reset(), but cannot or else I cannot return the data. 
 	// Therefore, pass prod via argument. 
+
+	printf("****************** EXIT predictViaConnections ***************\n");
+
 	return;
 }
 //----------------------------------------------------------------------
@@ -725,23 +728,33 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	//U::print(x);
 
 	VF2D_F pred; //new
-	printf("ENTER predict GE\n");
+	//printf("ENTER predict GE\n");
 	predictViaConnectionsBias(x, pred); // new
-	printf("EXIT predict GE\n");
+	//printf("EXIT predict GE\n");
 
 	// PRINT INPUTS AND OUTPUTS TO NETWORK (TEMP)
-	printf("\nINPUTS AND OUTPUTS TO NETWORK\n");
+	//printf("\nINPUTS AND OUTPUTS TO NETWORK\n");
+	#if 0
 	for (int l=0; l < layers.size(); l++) {
 		if (l != 0) {
 			layers[l]->printSummary("");
 			layers[l]->getInputs()(0).raw_print(arma::cout, "layer inputs");
 		}
 	}
+	#endif
+
+	U::printInputs(this);
+	U::printOutputs(this);
+	U::printRecurrentLayerLoopInputs(this);
+	U::printWeights(this);
+	U::printBiases(this);
 
 	//TEMPORARY
+	#if 0
 	clist[0]->getWeight().raw_print(cout, "Weights: input-d1");
 	clist[1]->getWeight().raw_print(cout, "Weights: d1-d2");
 	clist_temporal[0]->getWeight().raw_print(cout, "Weights: d1-d1");
+	#endif
 
 	objective->computeLoss(exact, pred);
 
@@ -751,19 +764,23 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 
 	// If save loss, ...
 	//loss_history.push_back(loss); // slight leak (should print out every n iterations
-	for (int l=0; l < layers.size(); l++) {
-		layers[l]->getPreviousState()(0).raw_print(arma::cout, "before backprop, previous state");
-	}
+	//for (int l=0; l < layers.size(); l++) {
+		//layers[l]->getPreviousState()(0).raw_print(arma::cout, "before backprop, previous state");
+	//}
 
-//	backPropagationViaConnectionsRecursion(exact, pred);
+	backPropagationViaConnectionsRecursion(exact, pred);
 
 	for (int l=0; l < layers.size(); l++) {
 		// does not appear to be necessary for prediction to work properly. 
+		// Not necessary when backprop disabled and w3 = 0
 		// WHY? Because of forward Loops? 
 		layers[l]->setPreviousState();
 	}
 
 	parameterUpdate();
+
+	U::printWeightDeltas(this);
+	U::printBiasDeltas(this);
 
 	pred.reset(); // handle memory leaks
 }
@@ -793,7 +810,6 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	const LOSS& loss = objective->getLoss();
 	//loss_history.push_back(loss);
 
-	return;
 	backPropagationViaConnectionsRecursion(exact, pred);
 
 	// Save Previous State
@@ -842,8 +858,11 @@ void Model::storeGradientsInLayersRec(int t)
 	//printf("store: t= %d\n", t);
 	for (int l=0; l < layers.size(); l++) {
 		// activation gradient
+		//layers[l]->printSummary();
 		layers[l]->computeGradient(t);
+		//if (l!= 0) layers[l]->getGradient().print("xxx");
 	}
+	//exit(0);
 	//printf("---- exit storeGradientsInLayersRec ----\n");
 }
 //----------------------------------------------------------------------
@@ -852,7 +871,7 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
 
-	printf("ENTER storeDActivationDOutputInLayersRecCon\n");
+	//printf("ENTER storeDActivationDOutputInLayersRecCon\n");
 
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
@@ -863,7 +882,15 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		//(*it)->printSummary();
 		(*it)->dLossDOutput(t, t);
+		//(*it)->to->getDelta()[0].print("dLossDOutput");
 	}
+
+	/***
+	Connection (weight1), weight(1, 5), layers: (input_layer0, rdense1), type: spatial
+	dLossDOutput
+	        0     // <<<<<<<<<<<< WRONG WRONG WRONG: should be: -.01076
+
+	***/
 
 	// Question: Must I somehow treat the loop connections of recurrent layers? 
 	// Answer: yes, and I must increment the delta
@@ -876,6 +903,7 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 	for (int c=0; c < clist_temporal.size(); c++) {
 		//if (t == 0) continue;
 		clist_temporal[c]->dLossDOutput(t, t-1);
+		//clist_temporal[c]->to->getDelta()[0].print("dLossDOutput(temporal)");
 	}
 }
 //----------------------------------------------------------------------
@@ -918,16 +946,16 @@ void Model::storeDLossDWeightInConnectionsRecCon(int t)
 void Model::storeDLossDBiasInLayersRec(int t)
 {
 	VF1D delta;
-	printf("\nENTER storeDLossDBiasInLayerRec\n"); // ******** TEMP
+	//printf("\nENTER storeDLossDBiasInLayerRec\n"); // ******** TEMP
 
 	for (int l=0; l < layers.size(); l++) {
-		printf("---------------------------------\n");
+		//printf("---------------------------------\n");
 		Layer* layer = layers[l];
 
 		if (layer->getActivation().getDerivType() == "decoupled") {
 			const VF2D_F& grad      = layer->getGradient(); // df/dz
 			const VF2D_F& old_deriv = layer->getDelta(); // dL/d(out)
-			layer->printSummary();
+			//layer->printSummary();
 			//layer->getInputs().print("layer inputs");
 			//layer->getOutputs().print("layer outpus");
 			// ERROR in old_derivative (layer->getDelta)
@@ -940,7 +968,7 @@ void Model::storeDLossDBiasInLayersRec(int t)
 			if (l != 0) { // tanh layer
 				//grad[0].raw_print(cout, "\nbias activation grad"); // ok
 				//old_deriv[0].raw_print(cout, "\nbias old_deriv"); // WRONG for bh?
-				delta.raw_print(cout, "BiasDelta");
+				//delta.raw_print(cout, "BiasDelta");
 			}
 
 		} else {  // coupled
@@ -1082,7 +1110,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 		storeDLossDActivationParamsInLayer(t);
 	}
 
-	printf("EXIT AFTER FIRST BACK PROP\n"); //exit(0);
+	printf("********** EXIT BACKPROPAGATION *************\n"); //exit(0);
 }
 //----------------------------------------------------------------------
 Connection* Model::getConnection(Layer* layer1, Layer* layer2)
@@ -1148,7 +1176,7 @@ void Model::biasUpdate()
 		//if (layers[l]->getIsBiasFrozen() == false) {
 			BIAS& bias = layers[l]->getBias();
 			bias = bias - learning_rate * layers[l]->getBiasDelta();
-			layers[l]->printSummary();
+			//layers[l]->printSummary();
 			//layers[l]->getBiasDelta().print("dBias");
 		//}
 	}

@@ -35,9 +35,12 @@ public:
 	static void printRecurrentLayerLoopInputs(Model *m);
 	static void printInputs(Model *m);
 	static void printLayerInputs(Model *m);
-	static void printLayerOutputs(Model *m);
+	static void printOutputs(Model *m);
 	static void printWeights(Model* m);
+	static void printWeightDeltas(Model* m);
 	static void printLayerBiases(Model *m);
+	static void printBiases(Model *m);
+	static void printBiasDeltas(Model *m);
 };
 
 #endif

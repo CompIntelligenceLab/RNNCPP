@@ -71,8 +71,8 @@ def lossFunGE(inputs, targets, hprev):
     loss += -np.log(ps[t][targets[t],0]) # softmax (cross-entropy loss)
 
     print "h layer input: ", np.dot(Wxh, xs[t]) + np.dot(Whh, hs[t-1]) + bh
-    print "h layer output (hs): ", hs[t]
     print "y layer input: ", np.dot(Why, hs[t]) + by # 
+    print "h layer output (hs): ", hs[t]
     print "y layer output: ", ys[t]
     print "ps layer output: ", ps[t]
     print "loss= ", loss
@@ -90,34 +90,36 @@ def lossFunGE(inputs, targets, hprev):
     print "Why = ", Why
     print "Whh = ", Whh
     print "(Cross entropy gradient:) dy= ", dy
-    print "dby=dy= ", dby
-    print "dWhy= ", dWhy
 
     # this is correct
     dh = np.dot(Why.T, dy) + dhnext # backprop into h
     dhraw = (1 - hs[t] * hs[t]) * dh # backprop through tanh nonlinearity
     dbh += dhraw
-    print "-- dbh --"
     print "dhnext= ", dhnext
-    print "Why.T= ", Why.T
     print "dy= ", dy
     print "dh= np.dot(Why.t,dy)+dhnext= ", dh 
     print "1-hs**2= ", 1-hs[t]*hs[t]
-    print "dbh=(1-hs**2)*dh ", dbh
 
     dWxh += np.dot(dhraw, xs[t].T)
     dWhh += np.dot(dhraw, hs[t-1].T)
     dhnext = np.dot(Whh.T, dhraw)
+    print "Weight Deltas"
     print "dWxh= ", dWxh
+    print "dWhy= ", dWhy
     print "dWhh= ", dWhh
+
+    print "Bias Deltas"
+    print "dbh=(1-hs**2)*dh ", dbh
+    print "dby=dy= ", dby
+
 
   #works without clipping
   for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
     np.clip(dparam, -5, 5, out=dparam) # clip to mitigate exploding gradients
   print "#################################################"
   #quit() ##################
-  return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs)-1]
-  return loss, dWxh, dWhh, dWhy, dbh, dby, [[0.]]
+  return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs)-1]  # stateful=true
+  #return loss, dWxh, dWhh, dWhy, dbh, dby, [[0.]] # stateful=false
 
 #----------------------------------------------------------------------
 def lossFun(inputs, targets, hprev):
@@ -227,7 +229,7 @@ while True:
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
 
-  if (n == 2): quit()
+  if (n == 1): quit()
 
   if n % 100 == 0: print 'iter %d, loss: %f' % (n, smooth_loss) # print progress
   
@@ -237,10 +239,13 @@ while True:
                                 [mWxh, mWhh, mWhy, mbh, mby]):
     mem += dparam * dparam
     #print "mem= ", mem
-    #param += -learning_rate * dparam / np.sqrt(mem + 1e-8) # adagrad update
 
-	# only run prediction. Disable weight update
-    #param += -learning_rate * dparam  # SGD
+    disable_backprop = True
+    disable_backprop = False
+
+    if disable_backprop == False:
+        #param += -learning_rate * dparam / np.sqrt(mem + 1e-8) # adagrad update
+        param += -learning_rate * dparam  # SGD
 
   p += seq_length # move data pointer
   n += 1 # iteration counter 

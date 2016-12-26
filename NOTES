@@ -764,8 +764,22 @@ QUESTION: when backprop is turned off: I get perfect match between me and Karpat
 Dec. 25, 2016
 - Even though I am saving prev_state, its effect is not felt in prediction 
 phase, and this is clearly not correct. 
-- precition works for 3 iterations. 
+- prediction works for 3 iterations. 
+- Backprop: wrong inputs at iteration 1. Indictes that I must be 
+adding prediction values twice somehow. LOOK INTO IT. 
+Iteration 0: bh and dWxh are incorrect. They should be: 
+     0.009849 and [0.009849 0 0 0 0] respectively. 
+
+old_deriv for (input-d1)->layer_to->getDelta is zero (should not be), even 
+at t=0 .
 ----------------------------------------------------------------------
+Dec. 25, 2016
+- dbh (bias delta) is zero in my code, is -.009849 in Karpathy code. 
+  dbh=(1-hs**2)*dh  [[-0.00984931]]
+-dWxh should be 
+  dWxh=  [[-0.00984931  0.          0.          0.          0.        ]]
+
+This is already happening at iteration zero!  This is layer 1 (getLayers()[1])
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

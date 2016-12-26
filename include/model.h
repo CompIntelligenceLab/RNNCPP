@@ -136,6 +136,7 @@ public:
   /** return vector of weights for each layer */
   CONNECTIONS& getConnections() { return connections; }
   CONNECTIONS& getTemporalConnections() { return clist_temporal; }
+  CONNECTIONS& getSpatialConnections() { return clist; }
   CONNECTIONS& getClist() { return clist; }
   //WeightList& getWeightsL();
 

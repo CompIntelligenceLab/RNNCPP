@@ -277,15 +277,15 @@ void Layer::computeGradient(int t)
 	//for (int b=0; b < inputs.n_rows; b++) {
 		//gradient[b].col(t) = activation->derivative(inputs[b].col(t));
 	//}
-	printf("--> ENTER Layer::computeGradient\n");
-	this->printSummary();
+	//printf("--> ENTER Layer::computeGradient\n");
+	//this->printSummary();
 
 	if (getActivation().getDerivType() == "decoupled") {
 		for (int b=0; b < inputs.n_rows; b++) {
 			gradient[b].col(t) = activation->derivative(inputs[b].col(t));
 		}
-		inputs.print("Layer::computeGradient, layer inputs");
-		gradient.print("Layer::computeGradient, activation gradient");
+		//inputs.print("Layer::computeGradient, layer inputs");
+		//gradient.print("Layer::computeGradient, activation gradient");
 	} else {
 		; // Do not compute the gradient. Compute Jacobian when required
 	}
@@ -375,11 +375,11 @@ void Layer::forwardLoops(Connection* con, int t)
 	if (t >= 0) {
 		U::matmul(loop_input, wght, outputs, t, t+1); 
 	} else {  // use previous state
-		printf("Layer::forwardLoops: use previous state\n");
-		previous_state.print("previous_state");
-		wght.print("wght");
-	    //U::matmul(loop_input, wght, previous_state, 0, 0); // perhaps last 2 args wrong?
-	    loop_input.print("loop_input, previous state\n");
+		//printf("Layer::forwardLoops: use previous state\n");
+		//previous_state.print("previous_state");
+		//wght.print("wght");
+	    U::matmul(loop_input, wght, previous_state, 0, 0); // perhaps last 2 args wrong?
+	    //loop_input.print("loop_input, previous state\n");
 	}
 }
 void Layer::forwardLoops(Connection* con, int t1, int t2)
@@ -387,12 +387,12 @@ void Layer::forwardLoops(Connection* con, int t1, int t2)
 	//printf("inside forward loops, t=%d\n", t);
 	// forward data to temporal connections
 	// handle self loop
-	printf("-.-.-.\n");
+	//printf("-.-.-.\n");
 	const WEIGHT& wght = con->getWeight();
 	U::matmul(loop_input, wght, outputs, t1, t2); // out of bounds
 	//wght.print("wght");
-	loop_input.print("Layer::forwardLoops, loop input\n");
-	outputs.print("Layer::forwardLoops, outputs\n");
+	//loop_input.print("Layer::forwardLoops, loop input\n");
+	//outputs.print("Layer::forwardLoops, outputs\n");
 	//exit(0);
 }
 //----------------------------------------------------------------------
@@ -433,6 +433,7 @@ void Layer::resetDelta()
 {
 	U::zeros(delta);
 	activation_delta.zeros();
+	bias_delta.zeros();
 }
 //----------------------------------------------------------------------
 void Layer::addBiasToInput(int t)

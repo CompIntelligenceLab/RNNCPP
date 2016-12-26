@@ -90,7 +90,7 @@ public:
 	void weightUpdate(REAL learning_rate);
 	WEIGHT& getDelta() { return this->delta; }
 	void setDelta(WEIGHT delta) { this->delta = delta; }
-	void resetDelta() { delta.zeros(); }
+	void resetDelta();
 	virtual void incrTClock() {t_clock++;}
 	virtual void setTTo(int to) {t_to = to;}
 	virtual int getTTo() { return t_to; }

@@ -128,13 +128,13 @@ int getNextGroupOfChars(Model* m, bool& reset, std::string input_data,
 			//printf("base+s*nb_chars, input_data: %d, %d\n", base+s*nb_chars, input_data.size());
 			//printf("      nb_chars= %d\n", nb_chars);
 			which_char = c_int.at(input_data[base + s]);
-			printf("which_char= %d, ", which_char);
+			//printf("which_char= %d, ", which_char);
 			for (int i=0; i < nb_chars; i++) {   // one-hot vectors
 				net_inputs[b](i, s)       = hot[which_char][i];
 			}
-			printf("x base= %d\n", base);
+			//printf("x base= %d\n", base);
 			which_char = c_int.at(input_data[base + (s+1)]);
-			printf("which_char_exact= %d\n", which_char);
+			//printf("which_char_exact= %d\n", which_char);
 			for (int i=0; i < nb_chars; i++) {   // one-hot vectors
 				// hot vectors not really required, if I take shortcuts to compute loss function
 				net_exact[b](i, s) = hot[which_char][i];
@@ -163,7 +163,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	m->setLearningRate(g->learning_rate);
 	m->layer_size = g->layer_size;
 	m->init_weight_rms = g->init_weight_rms;
-	printf("init rms= %f\n", m->init_weight_rms);
+	//printf("init rms= %f\n", m->init_weight_rms);
 
 	m->setObjective(new CrossEntropy()); 
 
@@ -190,7 +190,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	m->addOutputLayer(d2);
 
 	//m->printSummary();
-	printf("====   after printSummary ====\n");
+	//printf("====   after printSummary ====\n");
 	m->connectionOrderClean(); // no print statements
 
 	m->initializeWeights(); // be initialized after freezing
@@ -227,7 +227,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	//m->getConnection(d1, d1)->freeze();  // freeze w3
 	w3.zeros();
 	w3 = w3 + 0.3;
-	w3.print("w3");
+	//w3.print("w3");
 	#endif
 
 
@@ -383,7 +383,7 @@ void charRNN(Globals* g)
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 
-			if (count == 3) exit(0); // TEMPORARY
+			if (count == 2) exit(0); // TEMPORARY
 		#if 0
 		printf("------------\n");
 		for (int s=0; s < seq_len; s++) {

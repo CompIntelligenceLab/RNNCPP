@@ -234,16 +234,19 @@ void U::rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c
 //----------------------------------------------------------------------
 void U::printRecurrentLayerLoopInputs(Model *m)
 {
+// getLoopInput() seems to have incorrect dimensionality. I expect
+// to get 5 x 1
+
 	LAYERS layers = m->getLayers();
 	printf("----------------------------------------\n");
-	printf("Recurrent Layer Loop Inputs\n");
+	printf("==> RECURRENT LAYER INPUTS\n");
 	CONNECTIONS& tconn = m->getTemporalConnections();
 	for (int c=0; c < tconn.size(); c++) {
 		Connection* con = tconn[c];
 		if (con->to == con->from) {
 			con->to->printSummary();
 			// What if multiple inputs from "from" to "to"? ... update code
-			con->to->getLoopInput()[0].raw_print(cout, "loop input");
+			con->to->getLoopInput()[0].raw_print(cout, "self loop input");
 		}
 	}
 }
@@ -252,8 +255,9 @@ void U::printInputs(Model *m)
 {
 	LAYERS layers = m->getLayers();
 	printf("----------------------------------------\n");
-	printf("==> Layer Inputs (input to activation function)\n");
-	for (int i=0; i < layers.size(); i++) {
+	printf("==> LAYER  INPUTS\n");
+	// skip input layer (i=0)
+	for (int i=1; i < layers.size(); i++) {
 		Layer* layer = layers[i]; 
 		layer->printSummary();
 		layer->getInputs()[0].raw_print(cout, "inputs");
@@ -264,7 +268,7 @@ void U::printLayerInputs(Model *m)
 {
 	LAYERS layers = m->getLayers();
 	printf("----------------------------------------\n");
-	printf("==> Layer Inputs (input to to layer, before they are summed up\n");
+	printf("==> LAYER INPUTS\n");
 	for (int l=0; l < layers.size(); l++) {
 		Layer* layer = layers[l]; 
 		layer->printSummary();
@@ -282,11 +286,11 @@ void U::printLayerInputs(Model *m)
 	}
 }
 //----------------------------------------------------------------------
-void U::printLayerOutputs(Model *m)
+void U::printOutputs(Model *m)
 {
 	LAYERS layers = m->getLayers();
 	printf("----------------------------------------\n");
-	printf("==> Layer Outputs (output of activation function)\n");
+	printf("==> LAYER OUTPUTS\n");
 	for (int i=0; i < layers.size(); i++) {
 		Layer* layer = layers[i]; 
 		layer->printSummary();
@@ -299,34 +303,71 @@ void U::printLayerBiases(Model *m)
 {
 	LAYERS layers = m->getLayers();
 	printf("----------------------------------------\n");
-	printf("==> Layer Outputs (output of activation function)\n");
-	for (int i=0; i < layers.size(); i++) {
+	printf("==> BIASES\n");
+	// skip input layer (i=0)
+	for (int i=1; i < layers.size(); i++) {
 		Layer* layer = layers[i]; 
 		layer->printSummary();
-		layer->getBias().raw_print(cout, "Bias");
+		layer->getBias().raw_print(cout, "bias");
 	}
 }
+//----------------------------------------------------------------------
+void U::printBiases(Model *m)
+{
+	U::printLayerBiases(m);
+}
+//----------------------------------------------------------------------
+void U::printBiasDeltas(Model *m)
+{
+	LAYERS layers = m->getLayers();
+	printf("----------------------------------------\n");
+	printf("==> BIAS DELTAS\n");
+	// skip input layer (i=0)
+	for (int i=1; i < layers.size(); i++) {
+		Layer* layer = layers[i]; 
+		layer->printSummary();
+		layer->getBiasDelta().raw_print(cout, "bias delta");
+	}
+}
+//----------------------------------------------------------------------
 //----------------------------------------------------------------------
 void U::printWeights(Model* m)
 {
 	printf("-------------------------------------------------\n");
-	printf("==> PRINT WEIGHTS\n");
-	CONNECTIONS cons = m->getConnections();
-	printf("   Non-recurrent connections\n");
+	printf("==> WEIGHTS\n");
+	CONNECTIONS cons = m->getSpatialConnections();
+
 	for (int i=0; i < cons.size(); i++) {
 		Connection* con = cons[i];
-		con->printSummary("");
-		con->getWeight().print("weight");
+		con->printSummary("Spatial ");
+		con->getWeight().raw_print(arma::cout, "weight");
 	}
-	printf("\n   Recurrent connections\n");
-	LAYERS layers = m->getLayers();
-	for (int i=0; i < layers.size(); i++) {
-		Layer* layer = layers[i]; 
-		Connection* con = m->getConnection(layer, layer);
-		if (con) {
-			con->printSummary("");
-			con->getWeight().print("weight");
-		}
+
+	cons = m->getTemporalConnections();
+	for (int i=0; i < cons.size(); i++) {
+		Connection* con = cons[i];
+		con->printSummary("Temporal ");
+		con->getWeight().raw_print(arma::cout, "weight");
+	}
+}
+//----------------------------------------------------------------------
+void U::printWeightDeltas(Model* m)
+{
+	printf("-------------------------------------------------\n");
+	printf("==> WEIGHT DELTAS\n");
+	CONNECTIONS cons = m->getSpatialConnections();
+
+	for (int i=0; i < cons.size(); i++) {
+		Connection* con = cons[i];
+		con->printSummary("Spatial ");
+		con->getDelta().raw_print(arma::cout, "weight delta");
+	}
+
+	cons = m->getTemporalConnections();
+	for (int i=0; i < cons.size(); i++) {
+		Connection* con = cons[i];
+		con->printSummary("Temporal ");
+		con->getDelta().raw_print(arma::cout, "weight delta");
 	}
 }
 //----------------------------------------------------------------------
