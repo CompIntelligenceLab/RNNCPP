@@ -354,12 +354,20 @@ void Connection::dLossDWeight(int t)
 				// seq_len == 1: take previous state into account
 				// MIGHT OR MIGHT NOT WORK, 12/24/16
 				// Does not work. Screws up iteration one compared to Karpathy. 
+
+				// This is not logical. should this be a test on the first 
+				// time step instead? Will fix later
+
 				if (seq_len == 1) {
-					//U::print(previous_state, "previous_state");
+					U::print(previous_state, "previous_state");
+					U::print(old_deriv, "old_deriv");
+					U::print(grad, "grad");
 					//previous_state[0].raw_print(arma::cout, "..previous_state");
 					//old_deriv[0].raw_print(arma::cout, "old_deriv");
 					//grad[0].raw_print(arma::cout, "grad");
-					delta = (old_deriv[b].col(t) % grad[b].col(t)) * previous_state[b];
+
+					// ERROR when layer_size = 2
+					delta = (old_deriv[b].col(t) % grad[b].col(t)) * previous_state[b].t();
 					//printf("GE seq_len = 1, t= %f\n", t);  // t prints as 0.000
 					//delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t);
 					//delta.raw_print(arma::cout, "TEMPORAL delta");

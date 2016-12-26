@@ -745,7 +745,7 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 
 	U::printInputs(this);
 	U::printOutputs(this);
-	U::printRecurrentLayerLoopInputs(this);
+	//U::printRecurrentLayerLoopInputs(this);
 	U::printWeights(this);
 	U::printBiases(this);
 

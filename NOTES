@@ -784,6 +784,17 @@ This is already happening at iteration zero!  This is layer 1 (getLayers()[1])
 Success: codes match for seq_len=1, layer_size = 1, batch_size = 1, and 5 iterations. 
 
 TODO: seq_len > 1, layer_size > 1. 
+
+First result: layer_size=1, seq_len=2 DOES NOT WORK. 
+seq_len=1, layer_size=2: segmentation error in my code. 
+
+SO BAD NEWS ALL AROUND. 
+
+Possible error when seq_len > 1: look into connections.cpp, line 361. 
+Looks like Code matches Karpathy for layers_size = 2 (and probably > 2). 
+
+Next, investigate seq_len > 1. Look at connections.cpp 
+(TRY THIS TOMORROW). 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
