@@ -211,6 +211,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	for (int j=0; j < w1.n_cols; j++) {
 		//printf("i,j= %d, %d\n", i, j);
 		w1(i,j) = .3 / (1.+i+j);
+		//w1(i,j) = 0.;
 	}}
 	con->computeWeightTranspose();
 
@@ -219,6 +220,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	for (int i=0; i < w2.n_rows; i++) {
 	for (int j=0; j < w2.n_cols; j++) {
 		w2(i,j) = .3 / (1.+i+j);
+		//w2(i,j) = 0.;
 	}}
 	con->computeWeightTranspose();
 
@@ -383,7 +385,7 @@ void charRNN(Globals* g)
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 
-			if (count == 6) exit(0); // TEMPORARY
+			if (count == 200) exit(0); // TEMPORARY
 		#if 0
 		printf("------------\n");
 		for (int s=0; s < seq_len; s++) {

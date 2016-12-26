@@ -17,8 +17,8 @@ ix_to_char = { i:ch for i,ch in enumerate(chars) }
 print "chars= ", chars
 
 # hyperparameters
-hidden_size = 2 # size of hidden layer of neurons # orig 100
-seq_length = 1 # number of steps to unroll the RNN for # orig 25
+hidden_size = 1 # size of hidden layer of neurons # orig 100
+seq_length = 2 # number of steps to unroll the RNN for # orig 25
 learning_rate = 1e-1 # orig .1
 
 # model parameters
@@ -42,6 +42,8 @@ for i in range(vocab_size):
 # END TEMPORARY FOR DEBUGGING
 
 Whh = Whh * 0. + .3
+#Why *= 0.
+#Wxh *= 0.
 
 bh = np.zeros((hidden_size, 1)) # hidden bias # orig
 by = np.zeros((vocab_size, 1)) # output bias # orig
@@ -63,6 +65,7 @@ def lossFunGE(inputs, targets, hprev):
 
   loss = 0
   for t in xrange(len(inputs)):
+    print "--"
     xs[t] = np.zeros((vocab_size,1)) # encode in 1-of-k representation
     xs[t][inputs[t]] = 1
     hs[t] = np.tanh(np.dot(Wxh, xs[t]) + np.dot(Whh, hs[t-1]) + bh) # hidden state # orig
@@ -78,10 +81,12 @@ def lossFunGE(inputs, targets, hprev):
     print "loss= ", loss
 
   # backward pass: compute gradients going backwards
+  print "---"
   dWxh, dWhh, dWhy = np.zeros_like(Wxh), np.zeros_like(Whh), np.zeros_like(Why)
   dbh, dby = np.zeros_like(bh), np.zeros_like(by)
   dhnext = np.zeros_like(hs[0])
   for t in reversed(xrange(len(inputs))):
+    print "--"
     dy = np.copy(ps[t])
     dy[targets[t]] -= 1 # backprop into y. see http://cs231n.github.io/neural-networks-case-study/#grad if confused here, dL/dys
     dWhy += np.dot(dy, hs[t].T)
@@ -113,6 +118,7 @@ def lossFunGE(inputs, targets, hprev):
     print "dby=dy= ", dby
 
 
+  print "-----"
   #works without clipping
   for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
     np.clip(dparam, -5, 5, out=dparam) # clip to mitigate exploding gradients
@@ -229,7 +235,7 @@ while True:
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
 
-  if (n == 5): quit()
+  if (n == 200): quit()
 
   if n % 100 == 0: print 'iter %d, loss: %f' % (n, smooth_loss) # print progress
   

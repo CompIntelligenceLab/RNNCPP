@@ -329,7 +329,7 @@ void Connection::dLossDWeight(int t)
 	Activation& activation = layer_to->getActivation();
 	const VF2D_F& previous_state = layer_from->getPreviousState();
 
-	//printf("**** ENTER dLossDWeight *******, t= %f\n", t);
+	printf("**** ENTER dLossDWeight *******, t= %d\n", t);
 	WEIGHT delta = VF2D(size(weight));
 	//this->printSummary("dLossDWeight");
 
@@ -358,7 +358,7 @@ void Connection::dLossDWeight(int t)
 				// This is not logical. should this be a test on the first 
 				// time step instead? Will fix later
 
-				if (seq_len == 1) {
+				if (t == 0) {
 					U::print(previous_state, "previous_state");
 					U::print(old_deriv, "old_deriv");
 					U::print(grad, "grad");

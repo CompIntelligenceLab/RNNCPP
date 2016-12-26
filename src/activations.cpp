@@ -141,11 +141,11 @@ VF2D_F Softmax::operator()(const VF2D_F& x)
 	VF2D_F y(x);
 	// softmax over the dimension index of VF2D (first index)
 	for (int b=0; b < x.n_rows; b++) {
-		float mx = arma::max(arma::max(x[b]));
+		REAL mx = arma::max(arma::max(x[b]));
 	    for (int s=0; s < x[b].n_cols; s++) {
 		    y(b).col(s) = arma::exp(y(b).col(s)-mx);
 			// trick to avoid overflows
-			float ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
+			REAL ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
 			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
 		}
 		return y;

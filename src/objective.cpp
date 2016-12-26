@@ -359,11 +359,11 @@ void CrossEntropy::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 
 	// softmax over the dimension index of VF2D (first index)
 	for (int b=0; b < nb_batch; b++) {
-		float mx = arma::max(arma::max(predict[b]));
+		REAL mx = arma::max(arma::max(predict[b]));
 	    for (int s=0; s < seq_len; s++) {
 		    y(b).col(s) = arma::exp(y(b).col(s)-mx);
 			// trick to avoid overflows
-			float ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
+			REAL ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
 			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
 		}
 	}
@@ -423,11 +423,11 @@ void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 
 	// softmax over the dimension index of VF2D (first index)
 	for (int b=0; b < nb_batch; b++) {
-		float mx = arma::max(arma::max(predict[b]));
+		REAL mx = arma::max(arma::max(predict[b]));
 	    for (int s=0; s < seq_len; s++) {
 		    y(b).col(s) = arma::exp(y(b).col(s)-mx);
 			// trick to avoid overflows
-			float ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
+			REAL ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
 			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
 		}
 	}
@@ -436,7 +436,7 @@ void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 		//U::print(predict, "predict");
 		//U::print(exact, "exact");
 		//gradient[b] = (predict[b] - exact[b]) / seq_len; // average gradient
-		gradient[b] = (y[b] - exact[b]) / seq_len; // average gradient
+		gradient[b] = (y[b] - exact[b]); // average gradient
 		// although all exact are zero except one (for a given sequence index), predict are all non-zero.
 		// So I do not think there is a faster procedure to evaluate the gradient. 
 

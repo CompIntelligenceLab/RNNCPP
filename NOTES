@@ -796,6 +796,37 @@ Looks like Code matches Karpathy for layers_size = 2 (and probably > 2).
 Next, investigate seq_len > 1. Look at connections.cpp 
 (TRY THIS TOMORROW). 
 ----------------------------------------------------------------------
+Dec. 26, 2016
+- Step 1: prediction only. 
+
+From ge.py (Karpathy), I notice that in backprop, the only place that 
+stateful is used is: 
+dWhh += np.dot(dhraw, hs[t-1].T)   which is a temporal link. 
+
+Set Why = 0 (to simplify equations)
+
+I now set all weights to zero, and find that the bias deltas are off
+by a factor of 3. They are three times larger in Karpathy's code. No 
+idea why as yet. 
+
+Problem solved: I was dividing the gradient by seq_len (so that the learning
+rate would not have to change). Karpathy did not do this averaging. I removed
+the averaging during the debugging process. Might add it back later. 
+
+With all weights = 0 and seq=3, I get perfect match with Karpathy for 5 iterations. 
+NEXT: set wxh to nonzero. Results: after 4 iterations: only 6 significant
+digit accuracy. This would imply some kind of error (but slight), although errors
+are accumulating slowly. SHOULD FIX. 
+
+When I added non-zero, I retain 6 significant digit accuracy. 
+When I added why non-zero, I decrease to 4 significant digit accuracy. 
+
+THERE IS A SLIGHT ERROR SOMEWHERE. 
+
+20 iterations: I maintain 4 significant digits. 
+200 iterations: no more significant digits. 
+
+I BELIEVE I MUST FIND THE ERROR. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
