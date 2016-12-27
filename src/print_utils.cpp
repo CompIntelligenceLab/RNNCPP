@@ -371,3 +371,18 @@ void U::printWeightDeltas(Model* m)
 	}
 }
 //----------------------------------------------------------------------
+void U::printPreviousState(Model* m)
+{
+	const LAYERS& layers = m->getLayers();
+
+	printf("-------------------------------------------------\n");
+	printf("==> PREVIOUS STATE\n");
+	for (int l=0; l < layers.size(); l++) {
+		// does not appear to be necessary for prediction to work properly. 
+		// Not necessary when backprop disabled and w3 = 0
+		// WHY? Because of forward Loops? 
+		layers[l]->setPreviousState();
+		layers[l]->printSummary();
+		layers[l]->getPreviousState()[0].raw_print(arma::cout, "previous_state");
+	}
+}

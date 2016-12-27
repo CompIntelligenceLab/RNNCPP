@@ -118,7 +118,6 @@ int getNextGroupOfChars(Model* m, bool& reset, std::string input_data,
 	int which_char;
 
 	// Check that we won't go beyond character string
-	printf("input_data.size= %d\n", input_data.size());
 	if (((base + seq_len*batch_size + 2)) >= input_data.size()) {
 		return -1;
 	}
@@ -392,7 +391,7 @@ void charRNN(Globals* g)
 			}
 			#endif
 
-			printf("Model m state: %d\n", m->getStateful());
+			//printf("Model m state: %d\n", m->getStateful());
     		which_char = getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
 			if (which_char < 0) break;
 			// Need a way to exit getNext... when all characters are processed

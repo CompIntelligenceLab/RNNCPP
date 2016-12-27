@@ -325,7 +325,6 @@ void Model::checkIntegrity(LAYERS& layer_list)
 		for (int l=0; l < sz; l++) {
 			Layer* nlayer = cur_layer->next[l].first;
 			Connection* nconnection = cur_layer->next[l].second;
-			//nlayer->printSummary("nlayer");
 
 			if (nconnection->getClock() > 0) {
 				nconnection->setTemporal(true);
@@ -593,7 +592,6 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		// I FORGOT TO PUT RECURRENT LINKS WITH clist_temporal
 		for (int c=0; c < clist_temporal.size(); c++) {
 			Connection* conn = clist_temporal[c];
-			//conn->printSummary(""); conn->getWeight().print("temporal weights");
 			Layer* to_layer = conn->to;
 			to_layer->forwardLoops(conn, t-1);
 		}
@@ -627,7 +625,7 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		resetState(); 
 	}
 
-	printf("****************** ENTER predictViaConnections ***************\n");
+	//printf("****************** ENTER predictViaConnections ***************\n");
 
 	Layer* input_layer = getInputLayers()[0];
 	input_layer->layer_inputs[0] = x; 
@@ -660,7 +658,6 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		// I FORGOT TO PUT RECURRENT LINKS WITH clist_temporal
 		for (int c=0; c < clist_temporal.size(); c++) {
 			Connection* conn = clist_temporal[c];
-			//conn->printSummary(""); conn->getWeight().raw_print(arma::cout, "temporal weights");
 			Layer* to_layer = conn->to;
 			to_layer->forwardLoops(conn, t-1);
 		}
@@ -668,7 +665,6 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
-			//conn->printSummary(""); conn->getWeight().raw_print(arma::cout, "spatial weights");
 			Layer* to_layer   = conn->to;
 			// Responsible for memory leak
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
@@ -685,20 +681,11 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		to_layer->forwardLoops(conn, seq_len-1, 0); // IS THIS OK? 
 	}
 
-	//for (int l=0; l < layers.size(); l++) {
-		//printf("---------------\n");
-		//layers[l]->printSummary();
-		//layers[l]->getInputs()[0].raw_print(cout, "in prediction, inputs");
-		//layers[l]->getOutputs()[0].raw_print(cout, "in prediction, outputs");
-	//}
-
-	//printf("QUIT AT END of methods::predict...()\n"); exit(0);
-
 	//prod[0].raw_print(cout, "prod"); exit(0);
 	// I should do prod.reset(), but cannot or else I cannot return the data. 
 	// Therefore, pass prod via argument. 
 
-	printf("****************** EXIT predictViaConnections ***************\n");
+	//printf("****************** EXIT predictViaConnections ***************\n");
 
 	return;
 }
@@ -722,45 +709,21 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 		resetState();
 	}
 
-	//VF2D_F x(1); x[0] = x_;
-	// WRONG IN GENERAL. Only good for batch == 1
-	//VF2D_F exact(1); exact[0] = exact_;
-	//U::print(x);
-
 	VF2D_F pred; //new
-	//printf("ENTER predict GE\n");
 	predictViaConnectionsBias(x, pred); // new
-	//printf("EXIT predict GE\n");
 
-	// PRINT INPUTS AND OUTPUTS TO NETWORK (TEMP)
-	//printf("\nINPUTS AND OUTPUTS TO NETWORK\n");
 	#if 0
-	for (int l=0; l < layers.size(); l++) {
-		if (l != 0) {
-			layers[l]->printSummary("");
-			layers[l]->getInputs()(0).raw_print(arma::cout, "layer inputs");
-		}
-	}
-	#endif
-
 	U::printInputs(this);
 	U::printOutputs(this);
-	//U::printRecurrentLayerLoopInputs(this);
 	U::printWeights(this);
 	U::printBiases(this);
-
-	//TEMPORARY
-	#if 0
-	clist[0]->getWeight().raw_print(cout, "Weights: input-d1");
-	clist[1]->getWeight().raw_print(cout, "Weights: d1-d2");
-	clist_temporal[0]->getWeight().raw_print(cout, "Weights: d1-d1");
 	#endif
 
 	objective->computeLoss(exact, pred);
 
 	const LOSS& loss = objective->getLoss();
 	REAL rloss = arma::sum(loss[0]);
-	printf("rloss= %21.14f\n", rloss);
+	//printf("rloss= %21.14f\n", rloss);
 
 	// If save loss, ...
 	//loss_history.push_back(loss); // slight leak (should print out every n iterations
@@ -770,19 +733,20 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 
 	backPropagationViaConnectionsRecursion(exact, pred);
 
+	// setup previous state for the next iteration
 	for (int l=0; l < layers.size(); l++) {
 		// does not appear to be necessary for prediction to work properly. 
 		// Not necessary when backprop disabled and w3 = 0
 		// WHY? Because of forward Loops? 
 		layers[l]->setPreviousState();
-		layers[l]->printSummary();
-		layers[l]->getPreviousState()[0].raw_print(arma::cout, "previous_state");
 	}
 
 	parameterUpdate();
 
+	#if 0
 	U::printWeightDeltas(this);
 	U::printBiasDeltas(this);
+	#endif
 
 	pred.reset(); // handle memory leaks
 }
@@ -792,10 +756,8 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	// MUST REWRITE THIS PROPERLY
 	// DEAL WITH BATCH and SEQUENCES CORRECTLY
 	// FOR NOW, ASSUME BATCH=1
-	//printf("ENTER trainOneBatch ******************************\n");
 	cout.precision(11);
 
-	//printf("stateful: %d\n", stateful); //exit(0);
 	if (stateful == false) {
 		resetState();
 	}
@@ -805,8 +767,6 @@ void Model::trainOneBatch(VF2D x_, VF2D exact_)
 	VF2D_F exact(1); exact[0] = exact_;
 
 	VF2D_F pred = predictViaConnectionsBias(x);
-	//pred[0].raw_print(cout, "pred");
-	//exact[0].raw_print(cout, "exact");
 	objective->computeLoss(exact, pred);
 
 	const LOSS& loss = objective->getLoss();
@@ -828,8 +788,6 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 {
 	if (batch_size == 0) { // Means no value for batch_size was passed into this function
     	batch_size = this->batch_size; // Use the current value stored in model
-    	//printf("model batch size: %d\n", batch_size);
-		// resize x and exact to handle different batch size
 		assert(x.n_rows == batch_size && exact.n_rows == batch_size);
 	}
 
@@ -837,17 +795,12 @@ void Model::train(VF2D_F x, VF2D_F exact, int batch_size /*=0*/, int nb_epochs /
 	// DEAL WITH BATCH and SEQUENCES CORRECTLY
 	// FOR NOW, ASSUME BATCH=1
 
-	//printf("nb_epochs= %d\n", nb_epochs);
 	for (int i=0; i < nb_epochs; i++) {
 		printf("**** epoch %d ****\n", i);
 		VF2D_F pred = predictViaConnectionsBias(x);
 		objective->computeLoss(exact, pred);
-		//exact.print("exact");
-		//pred.print("pred");
 		const LOSS& loss = objective->getLoss();
 		LOSS ll = loss;
-		//ll(0) = ll(0) / 3.7;
-		//ll(0).raw_print(std::cout, "loss");
 		backPropagationViaConnectionsRecursion(exact, pred);
 		parameterUpdate();
 		pred.reset();
@@ -872,9 +825,9 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
-	bool prnt; // to print or not to print? 
+	bool prnt = false; // to print or not to print? 
 
-	printf("\n\n********* ENTER storeDActivationDOutputInLayersRecCon, t= %d\n", t);
+	//printf("\n\n********* ENTER storeDActivationDOutputInLayersRecCon, t= %d\n", t);
 
 	// if two layers (l+1) feed back into layer (l), one must accumulate into layer (l)
 	// Run layers backwards
@@ -882,31 +835,9 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 
 	// ASSUMES that clist is ordered from front to back 
 	// (for the spatial connections)
-	clist[0]->printSummary("clist[0]");
+	//clist[0]->printSummary("clist[0]");
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
-
-		#if 0
-		for (int l=0; l < getLayers().size(); l++) {
-			Layer* layer = getLayers()[l];
-			layer->printSummary("+++++++++++ BEFORE dLossDOutput");
-			layer->getDelta()(0).raw_print(arma::cout, "model, dL/dOut");
-		}
-		#endif
-
-
-		//(*it)->printSummary();
-		prnt = (*it) == clist[1] ? true : false;
-		//prnt = false;
 		(*it)->dLossDOutput(t, t, prnt);
-		//(*it)->to->getDelta()[0].print("dLossDOutput");
-
-		#if 0
-		for (int l=0; l < getLayers().size(); l++) {
-			Layer* layer = getLayers()[l];
-			layer->printSummary("+++++++++++ AFTER dLossDOutput");
-			layer->getDelta()(0).raw_print(arma::cout, "model, dL/dOut");
-		}
-		#endif
 	}
 
 	/***
@@ -925,15 +856,8 @@ void Model::storeDActivationDOutputInLayersRecCon(int t)
 	// ........
 
 	for (int c=0; c < clist_temporal.size(); c++) {
-		//if (t == 0) continue;
-		prnt = true;
-		// THIS LINE IS THE CAUSE OF DISCREPENCY WITH KARPATHY
 		clist_temporal[c]->dLossDOutput(t, t-1, prnt); // TEMPORARY GE
-		printf("WILL THIS ELIMINATE PROBLEM? YES, IT DID\n");
-		//clist_temporal[c]->to->getDelta()[0].print("dLossDOutput(temporal)");
 	}
-	printf("\n\n********* EXIT storeDActivationDOutputInLayersRecCon, t= %d\n", t);
-	//exit(0);
 }
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -943,9 +867,9 @@ void Model::storeDLossDWeightInConnectionsRecCon(int t)
 {
 	typedef CONNECTIONS::reverse_iterator IT;
 	IT it;
-	bool prnt;
+	bool prnt = false;
 
-	printf("\n\n********** ENTER storeDLossDWeightInConnections ***********\n");
+	//printf("\n\n********** ENTER storeDLossDWeightInConnections ***********\n");
 
 	for (it=clist.rbegin(); it != clist.rend(); ++it) {
 		Connection* con = (*it);
@@ -955,7 +879,7 @@ void Model::storeDLossDWeightInConnectionsRecCon(int t)
 		// Could work if sequence were the field index
 
 		//bool prnt = (*it == clist[0]) ? true : false;
-		prnt = true;
+		//prnt = true;
 		con->dLossDWeight(t, prnt);
 	}
 
@@ -969,11 +893,11 @@ void Model::storeDLossDWeightInConnectionsRecCon(int t)
 	// deal with remainder temporal layers
 	// ...
 	for (int c=0; c < clist_temporal.size(); c++) {
-		prnt = true;
+		//prnt = true;
 		clist_temporal[c]->dLossDWeight(t, prnt); // no printing
 	}
 
-	printf("\n\n********** EXIT storeDLossDWeightInConnections ***********\n");
+	//printf("\n\n********** EXIT storeDLossDWeightInConnections ***********\n");
 }
 //----------------------------------------------------------------------
 void Model::storeDLossDBiasInLayersRec(int t)
@@ -1102,7 +1026,7 @@ void Model::resetState()
 //----------------------------------------------------------------------
 void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF2D_F& pred)
 {
-	printf("\n**************** ENTER BACKPROPAGATION ***************\n");
+	//printf("\n**************** ENTER BACKPROPAGATION ***************\n");
 	nb_batch = pred.n_rows;
 
 	if (nb_batch == 0) {
@@ -1121,12 +1045,6 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 	// gradients of activation functions
  	for (int t=seq_len-1; t > -1; --t) {  // CHECK LOOP INDEX LIMIT
 		storeGradientsInLayersRec(t);
-	}
-
-	for (int l=0; l < getLayers().size(); l++) {
-		Layer* layer = getLayers()[l];
-		layer->printSummary();
-		layer->getDelta()(0).raw_print(arma::cout, "dL/dOut");
 	}
 
 	// derivative of loss wrt layer output
@@ -1149,7 +1067,7 @@ void Model::backPropagationViaConnectionsRecursion(const VF2D_F& exact, const VF
 		storeDLossDActivationParamsInLayer(t);
 	}
 
-	printf("********** EXIT BACKPROPAGATION *************\n"); //exit(0);
+	//printf("********** EXIT BACKPROPAGATION *************\n"); //exit(0);
 }
 //----------------------------------------------------------------------
 Connection* Model::getConnection(Layer* layer1, Layer* layer2)

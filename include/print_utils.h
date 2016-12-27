@@ -41,6 +41,7 @@ public:
 	static void printLayerBiases(Model *m);
 	static void printBiases(Model *m);
 	static void printBiasDeltas(Model *m);
+	static void printPreviousState(Model* m);
 };
 
 #endif

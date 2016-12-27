@@ -258,7 +258,6 @@ void Connection::dLossDOutput(int ti_from, int ti_to, bool prt)
 	Layer* layer_from = from;
 	int nb_batch = layer_from->getNbBatch(); 
 	VF2D_F prod(nb_batch);
-	layer_from->getDelta()(0).raw_print(arma::cout, "enter dLossDOutput, layer_from->getDelta");
 
 	const VF2D_F& old_deriv = layer_to->getDelta();  // 3
 	const WEIGHT& wght   = getWeight(); // invokes copy constructor, or what?  3 x 4

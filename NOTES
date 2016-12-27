@@ -858,6 +858,15 @@ Clearly an error.
 
 According to me, dWhh should be zero after 1 iteration, because prev_state is zero for iter=0 and iter=1 under the experimental conditions chosen. I am not following. 
 ----------------------------------------------------------------------
+Dec. 27, 2016
+I get 8 digit match with Karpathy for 200 iterations. My problem was 
+a small error in    void Connection::dLossDWeight(int t, bool prnt=false)
+in the temporal link. My times were off by one. 
+//delta = (old_deriv[b].col(t+1) % grad[b].col(t+1)) * out_t.row(t);  // orig
+delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t-1);
+// (notice the time arguments). This is a temporal link. 
+
+Removed print statements from Connections. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
