@@ -868,6 +868,17 @@ delta = (old_deriv[b].col(t) % grad[b].col(t)) * out_t.row(t-1);
 
 Removed print statements from Connections. 
 ----------------------------------------------------------------------
+Dec. 27, 2016
+I get the same results as Karpathy, but not when I start sampling with the real 
+random numbers. In Karpathy, the softmax goes a a Dirac function after 100 iterations, and that is not the case for me. WHY? Something wrong with my second model? The one with seq_len=batch_len=1? 
 ----------------------------------------------------------------------
+Dec. 27, 2016, 9:30 am
+Char-rnn.cpp now works!! Same results as Karpathy!
+Make sure I save the previous state in sample(). It is set in trainOneBatch, but 
+not when calling predict...(). That is why I had to reset it manually.
+When using trainOneBatch, the state is saved AFTER the backpropagation. Ideally, 
+I would like to save it after the prediction phase, but if I do that, the backprop
+will use the new saved state in its algorithm instead of the previous saved state. 
+I could have an more and and less recent saved state, but I really doubt that is how this should be done. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------

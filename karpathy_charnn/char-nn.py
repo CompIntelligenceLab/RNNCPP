@@ -196,7 +196,7 @@ while True:
 
   # sample from the model now and then
   #if n % 100 == 0:  # orig
-  if n % 10 == 0:
+  if n % 100 == 0:
     sample_ix = sample(hprev, inputs[0], 200)
     txt = ''.join(ix_to_char[ix] for ix in sample_ix)
     print 'nb_epochs %d, iter %d, ----\n %s \n----' % (nb_epochs, n, txt )

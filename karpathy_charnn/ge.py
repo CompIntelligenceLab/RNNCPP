@@ -17,8 +17,8 @@ ix_to_char = { i:ch for i,ch in enumerate(chars) }
 print "chars= ", chars
 
 # hyperparameters
-hidden_size = 100 # size of hidden layer of neurons # orig 100
-seq_length = 10 # number of steps to unroll the RNN for # orig 25
+hidden_size = 25 # size of hidden layer of neurons # orig 100
+seq_length = 5 # number of steps to unroll the RNN for # orig 25
 learning_rate = 1e-1 # orig .1
 
 # model parameters
@@ -204,6 +204,7 @@ def sample(h, seed_ix, n):
     h = np.tanh(np.dot(Wxh, x) + np.dot(Whh, h) + bh)
     y = np.dot(Why, h) + by
     p = np.exp(y) / np.sum(np.exp(y))
+    print "softmax: ", p
     ix = np.random.choice(range(vocab_size), p=p.ravel())
     x = np.zeros((vocab_size, 1))
     x[ix] = 1
@@ -229,17 +230,17 @@ while True:
 
   # sample from the model now and then
   #if n % 100 == 0:  # orig
-  if n % 10 == 0:
+  if n % 100 == 0:
     sample_ix = sample(hprev, inputs[0], 200)
     txt = ''.join(ix_to_char[ix] for ix in sample_ix)
     print 'nb_epochs %d, iter %d, ----\n %s \n----' % (nb_epochs, n, txt )
 
   # forward seq_length characters through the net and fetch gradient
-  print "ENTER LOSS FUN GE ---- n =", n, " ------------"
+  #print "ENTER LOSS FUN GE ---- n =", n, " ------------"
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
 
-  if (n == 200): quit()
+  if (n == 300): quit()
 
   if n % 100 == 0: print 'iter %d, smooth_loss: %f' % (n, smooth_loss) # print progress
   

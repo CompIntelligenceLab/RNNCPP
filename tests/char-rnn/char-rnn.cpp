@@ -72,8 +72,12 @@ void sample(Model* mi, int which_char,
 
 	mi->resetState();
 
-	for (int i=0; i < 50; i++) {
+	for (int i=0; i < 200; i++) {
+		// the output is prior to softmax
 		x = mi->predictViaConnectionsBias(x);
+		for (int l=0; l < mi->getLayers().size(); l++) {
+			mi->getLayers()[l]->setPreviousState();
+		}
 		int id;
 		which_char = discrete_sample(x);
 		x(0) = hot[which_char];
@@ -340,14 +344,13 @@ void charRNN(Globals* g)
 	//--------------------------------------
 
 	// CONSTRUCT MODEL
-	//m->setInputDim(nb_chars);
 	int input_dim = nb_chars;
 	Model* m_train = createModel(g, g->batch_size, g->seq_len, input_dim, g->layer_size);
-	// What could be wrong with this line? 
 	Model* m_pred = createModel(g,             1,          1, input_dim, g->layer_size);
 	Model* m = m_train;
 
 	m->setStateful(true);
+	m_pred->setStateful(true);
 
 
 	// End of model
@@ -366,7 +369,6 @@ void charRNN(Globals* g)
 	Objective* objective = m->getObjective();
 
 	VF2D_F net_inputs, net_exact;
-	//int input_dim = m_train->getInputDim();
 	U::createMat(net_inputs, batch_size, input_dim, seq_len);
 	U::createMat(net_exact, batch_size, input_dim, seq_len);
 
@@ -380,31 +382,21 @@ void charRNN(Globals* g)
 		reset = true;
 
 		for (int i=0; i < nb_samples; i++) {
-		printf("\n=====================================\n");
-		printf("========== NEW SAMPLE === iter %d ======\n", i);
-			#if 0
+			#if 1
 			// ADD BACK WHEN CODE WORKS
-			if (count % 10 == 0) {
+			if (count % 100 == 0) {
 				printf("TRAIN, nb_epochs: %d, iter: %d, ", e, count);
 				m_pred->setWeightsAndBiases(m);
 				sample(m_pred, which_char, c_int, int_c, hot);
 			}
 			#endif
 
-			//printf("Model m state: %d\n", m->getStateful());
     		which_char = getNextGroupOfChars(m, reset, input_data, net_inputs, net_exact, c_int, int_c, hot);
 			if (which_char < 0) break;
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 
-			if (count == 200) exit(0); // TEMPORARY
-		#if 0
-		printf("------------\n");
-		for (int s=0; s < seq_len; s++) {
-		for (int j=0; j < 5; j++) {
-			printf("s=%d, net_inputs[%d]= %f, net_exact[%d]= %f\n", s, j, net_inputs(0)(j,s), j, net_exact(0)(j,s));
-		}}
-		#endif
+			//if (count == 200) exit(0); // TEMPORARY
 			m->trainOneBatch(net_inputs, net_exact);
 			count++;
 

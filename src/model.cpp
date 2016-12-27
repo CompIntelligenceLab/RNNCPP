@@ -555,7 +555,7 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 {
 	if (stateful == false) {
 		resetState(); 
-		printf("reset state GE\n");
+		//printf("reset state GE\n");
 	}
 
 	//printf("****************** ENTER predictViaConnections ***************\n");
@@ -1324,15 +1324,15 @@ void Model::setSeqLen(int seq_len)
 void Model::setWeightsAndBiases(Model* mfrom)
 {
 	CONNECTIONS::iterator c;
-	CONNECTIONS& clist_from = mfrom->getClist();
-	CONNECTIONS& clist_to   =  this->getClist();
+	CONNECTIONS& clist_spatial_from = mfrom->getClist();
+	CONNECTIONS& clist_spatial_to   =  this->getClist();
 	//CONNECTIONS::iterator ct;
 
 	// ignore weight transposes
 
-	for (int i=0; i < clist_from.size(); i++) {
-		WEIGHT& w_from = clist_from[i]->getWeight();
-		clist_to[i]->setWeight(w_from);
+	for (int i=0; i < clist_spatial_from.size(); i++) {
+		WEIGHT& w_from = clist_spatial_from[i]->getWeight();
+		clist_spatial_to[i]->setWeight(w_from);
 	}
 
 	CONNECTIONS& clist_temporal_from = mfrom->getTemporalConnections();
@@ -1348,7 +1348,24 @@ void Model::setWeightsAndBiases(Model* mfrom)
 
 	//LAYERS::iterator la;
 	for (int i=0; i < layers_from.size(); i++) {
-		BIAS& bias = layers[i]->getBias();
+		BIAS& bias = layers_from[i]->getBias();
+		layers_to[i]->setBias(bias);
 	}
+
+	for (int c=0; c < clist_spatial_to.size(); c++) {
+		clist_spatial_to[c]->computeWeightTranspose();
+	}
+
+	for (int c=0; c < clist_temporal_to.size(); c++) {
+		clist_temporal_to[c]->computeWeightTranspose();
+	}
+
+	#if 0
+	printf("====\n");
+	U::printWeights(mfrom);
+	U::printWeights(this);
+	U::printBiases(mfrom);
+	U::printBiases(this);
+	#endif
 }
 //----------------------------------------------------------------------
