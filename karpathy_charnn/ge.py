@@ -17,7 +17,7 @@ ix_to_char = { i:ch for i,ch in enumerate(chars) }
 print "chars= ", chars
 
 # hyperparameters
-hidden_size = 1 # size of hidden layer of neurons # orig 100
+hidden_size = 2 # size of hidden layer of neurons # orig 100
 seq_length = 2 # number of steps to unroll the RNN for # orig 25
 learning_rate = 1e-1 # orig .1
 
@@ -237,7 +237,7 @@ while True:
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
 
-  if (n == 5): quit()
+  if (n == 200): quit()
 
   if n % 100 == 0: print 'iter %d, smooth_loss: %f' % (n, smooth_loss) # print progress
   

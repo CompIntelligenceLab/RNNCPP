@@ -855,6 +855,8 @@ Still small problem.
 In Karpathy: dWhh is non-zero at iteration 1 at each of the two sequence indexes. 
 In my code, dWhh is zero at iteration 1, and is only non-zero at iteration 2. 
 Clearly an error. 
+
+According to me, dWhh should be zero after 1 iteration, because prev_state is zero for iter=0 and iter=1 under the experimental conditions chosen. I am not following. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
