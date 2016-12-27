@@ -5,11 +5,11 @@ BSD License
 import numpy as np
 
 # data I/O
-#data = open('input.txt', 'r').read() # should be simple plain text file
-data = open('fox.txt', 'r').read() # should be simple plain text file
+data = open('input.txt', 'r').read() # should be simple plain text file
+#data = open('fox.txt', 'r').read() # should be simple plain text file
 data = data.rstrip('\n'); # GE
-#chars = list(set(data)) # orig
-chars = ['b','r','o','w','n']
+chars = list(set(data)) # orig
+#chars = ['b','r','o','w','n']
 data_size, vocab_size = len(data), len(chars)
 print 'data has %d characters, %d unique.' % (data_size, vocab_size)
 char_to_ix = { ch:i for i,ch in enumerate(chars) }
@@ -204,7 +204,7 @@ def sample(h, seed_ix, n):
     h = np.tanh(np.dot(Wxh, x) + np.dot(Whh, h) + bh)
     y = np.dot(Why, h) + by
     p = np.exp(y) / np.sum(np.exp(y))
-    print "softmax: ", p
+    #print "softmax: ", p
     ix = np.random.choice(range(vocab_size), p=p.ravel())
     x = np.zeros((vocab_size, 1))
     x[ix] = 1
@@ -240,7 +240,7 @@ while True:
   loss, dWxh, dWhh, dWhy, dbh, dby, hprev = lossFunGE(inputs, targets, hprev)
   smooth_loss = smooth_loss * 0.999 + loss * 0.001
 
-  if (n == 300): quit()
+  #if (n == 300): quit()
 
   if n % 100 == 0: print 'iter %d, smooth_loss: %f' % (n, smooth_loss) # print progress
   

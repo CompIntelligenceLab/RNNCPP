@@ -172,7 +172,6 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
 	Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
-	//wght.print("update: w3");
 	Layer* d2    = new DenseLayer(m->getInputDim(), "rdense");
 
 	// Softmax is included in the calculation of the cross-entropy
@@ -185,8 +184,8 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	input->setActivation(new Identity());// Original
 	//input->setActivation(new Tanh());
 	//d1->setActivation(new Tanh());
-	//d1->setActivation(new ReLU());
-	d1->setActivation(new Tanh()); // as Karpathy python code
+	d1->setActivation(new ReLU());
+	//d1->setActivation(new Tanh()); // as Karpathy python code
 	d2->setActivation(new Identity()); // original
 
 	m->addInputLayer(input);
@@ -269,6 +268,7 @@ void charRNN(Globals* g)
 // Read Input Data
 	//string file_name = "input.txt";
 	string file_name = "fox.txt";
+	//string file_name = "input.txt";
 
 	ifstream fd;
 	fd.open(file_name);
@@ -295,10 +295,9 @@ void charRNN(Globals* g)
 	int_c.resize(nb_chars);
 
 	// Put the characters in a particular order: brown
-	std::string brown= "brown";
 
 	int i=0; 
-	#if 0
+	#if 1
 	// Original
 	for (si=char_set.begin(); si != char_set.end(); si++) {
 		printf("char= %c\n", *si);
@@ -307,19 +306,7 @@ void charRNN(Globals* g)
 		int_c[i] = *si;
 		i++;
 	}
-	#endif
-
-	// Used for testing (GE)
-	// I want the character order to be the same in Karpathy's code and this one. 
-	// "brown" has 5 different characters. 
-	for (int i=0; i < brown.size(); i++) {
-		printf("brown[%d]= %c\n", i, brown[i]);
-		c_int[brown[i]] = i;
-		int_c[i] = brown[i];
-	}
-
 	i=0; 
-	#if 0
 	for (si=char_set.begin(); si != char_set.end(); si++) {
 		c_int.at(*si) = i;
 		int_c[i] = *si;
@@ -327,11 +314,23 @@ void charRNN(Globals* g)
 	}
 	#endif
 
+	// Used for testing (GE)
+	// I want the character order to be the same in Karpathy's code and this one. 
+	// "brown" has 5 different characters. 
+	#if 0
+	std::string brown= "brown";
+	for (int i=0; i < brown.size(); i++) {
+		printf("brown[%d]= %c\n", i, brown[i]);
+		c_int[brown[i]] = i;
+		int_c[i] = brown[i];
+	}
+
 	// Return to generic approach once code matches Karpathy's
 	for (int i=0; i < brown.size(); i++) {
 		char c = int_c[i];
 		printf("char[%d] = %c\n", i, c);
 	}
+	#endif
 	//   hot[3] = 0010000...0000;
 
 	VF1D_F hot(nb_chars);  // VI: 
@@ -384,7 +383,7 @@ void charRNN(Globals* g)
 		for (int i=0; i < nb_samples; i++) {
 			#if 1
 			// ADD BACK WHEN CODE WORKS
-			if (count % 100 == 0) {
+			if (count % 10 == 0) {
 				printf("TRAIN, nb_epochs: %d, iter: %d, ", e, count);
 				m_pred->setWeightsAndBiases(m);
 				sample(m_pred, which_char, c_int, int_c, hot);

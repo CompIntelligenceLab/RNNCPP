@@ -880,5 +880,9 @@ When using trainOneBatch, the state is saved AFTER the backpropagation. Ideally,
 I would like to save it after the prediction phase, but if I do that, the backprop
 will use the new saved state in its algorithm instead of the previous saved state. 
 I could have an more and and less recent saved state, but I really doubt that is how this should be done. 
+
+With ReLU, brown converges by iter=50 with no errors after that. With Tanh,
+convergence is much slower, with sporadic errors up until iter=1000. 
+SGD only. 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
