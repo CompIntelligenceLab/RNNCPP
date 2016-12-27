@@ -4,4 +4,4 @@
 # this network will have a single recurrent node 
 
 # copy from eq3
-build/tests/char-rnn/char-rnn -l 2 -b 1 -s 2 -a "tanh" -w "xavier-char-rnn" -e 1 -lr .1 -wght_rms .01 
+build/tests/char-rnn/char-rnn -l 100 -b 1 -s 10 -a "tanh" -w "xavier-char-rnn" -e 1 -lr .1 -wght_rms .01 

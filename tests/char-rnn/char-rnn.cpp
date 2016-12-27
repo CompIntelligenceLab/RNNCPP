@@ -198,7 +198,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	BIAS& b1 = d1->getBias();
 	BIAS& b2 = d2->getBias();
 
-	#if 1
+	#if 0
 	// initialize weights deterministically (same as Karparthy for debugging)
 
 	Connection* con = m->getConnection(input, d1);

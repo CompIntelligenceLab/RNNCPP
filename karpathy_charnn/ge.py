@@ -17,8 +17,8 @@ ix_to_char = { i:ch for i,ch in enumerate(chars) }
 print "chars= ", chars
 
 # hyperparameters
-hidden_size = 2 # size of hidden layer of neurons # orig 100
-seq_length = 2 # number of steps to unroll the RNN for # orig 25
+hidden_size = 100 # size of hidden layer of neurons # orig 100
+seq_length = 10 # number of steps to unroll the RNN for # orig 25
 learning_rate = 1e-1 # orig .1
 
 # model parameters
@@ -31,6 +31,7 @@ print "Wxh shape: ", Wxh.shape
 print "Whh shape: ", Whh.shape
 print "Why shape: ", Why.shape
 
+"""
 # BEGIN TEMPORARY FOR DEBUGGING
 for i in range(hidden_size):
  for j in range(vocab_size):
@@ -45,6 +46,7 @@ Whh = Whh * 0. + .3
 #Whh *= 0.
 #Why *= 0.
 Wxh *= 0.
+"""
 
 bh = np.zeros((hidden_size, 1)) # hidden bias # orig
 by = np.zeros((vocab_size, 1)) # output bias # orig
@@ -62,11 +64,11 @@ def lossFunGE(inputs, targets, hprev):
   """
   xs, hs, ys, ps = {}, {}, {}, {}
   hs[-1] = np.copy(hprev)
-  print "prev state: hs[-1]= ", hs[-1]
+  #print "prev state: hs[-1]= ", hs[-1]
 
   loss = 0
   for t in xrange(len(inputs)):
-    print "--"
+    #print "--"
     xs[t] = np.zeros((vocab_size,1)) # encode in 1-of-k representation
     xs[t][inputs[t]] = 1
     hs[t] = np.tanh(np.dot(Wxh, xs[t]) + np.dot(Whh, hs[t-1]) + bh) # hidden state # orig
@@ -74,57 +76,57 @@ def lossFunGE(inputs, targets, hprev):
     ps[t] = np.exp(ys[t]) / np.sum(np.exp(ys[t])) # probabilities for next chars
     loss += -np.log(ps[t][targets[t],0]) # softmax (cross-entropy loss)
 
-    print "h layer input: ", np.dot(Wxh, xs[t]) + np.dot(Whh, hs[t-1]) + bh
-    print "y layer input: ", np.dot(Why, hs[t]) + by # 
-    print "h layer output (hs): ", hs[t]
-    print "y layer output: ", ys[t]
-    print "ps layer output: ", ps[t]
-    print "loss= ", loss
+    #print "h layer input: ", np.dot(Wxh, xs[t]) + np.dot(Whh, hs[t-1]) + bh
+    #print "y layer input: ", np.dot(Why, hs[t]) + by # 
+    #print "h layer output (hs): ", hs[t]
+    #print "y layer output: ", ys[t]
+    #print "ps layer output: ", ps[t]
+    #print "loss= ", loss
 
   # backward pass: compute gradients going backwards
-  print "---"
+  #print "---"
   dWxh, dWhh, dWhy = np.zeros_like(Wxh), np.zeros_like(Whh), np.zeros_like(Why)
   dbh, dby = np.zeros_like(bh), np.zeros_like(by)
   dhnext = np.zeros_like(hs[0])
   for t in reversed(xrange(len(inputs))):
-    print "--"
+    #print "--"
     dy = np.copy(ps[t])
     dy[targets[t]] -= 1 # backprop into y. see http://cs231n.github.io/neural-networks-case-study/#grad if confused here, dL/dys
     dWhy += np.dot(dy, hs[t].T)
     dby += dy
-    print "Wxh = ", Wxh
-    print "Why = ", Why
-    print "Whh = ", Whh
-    print "(Cross entropy gradient:) dy= ", dy
+    #print "Wxh = ", Wxh
+    #print "Why = ", Why
+    #print "Whh = ", Whh
+    #print "(Cross entropy gradient:) dy= ", dy
 
     # this is correct
     dh = np.dot(Why.T, dy) + dhnext # backprop into h
     dhraw = (1 - hs[t] * hs[t]) * dh # backprop through tanh nonlinearity
     dbh += dhraw
-    print "dhnext= ", dhnext
-    print "dy= ", dy
-    print "dh= np.dot(Why.t,dy)+dhnext= ", dh 
-    print "1-hs**2= ", 1-hs[t]*hs[t]
+    #print "dhnext= ", dhnext
+    #print "dy= ", dy
+    #print "dh= np.dot(Why.t,dy)+dhnext= ", dh 
+    #print "1-hs**2= ", 1-hs[t]*hs[t]
 
     dWxh += np.dot(dhraw, xs[t].T)
-    print "hs[t-1]= ", hs[t-1]
+    #print "hs[t-1]= ", hs[t-1]
     dWhh += np.dot(dhraw, hs[t-1].T)
     dhnext = np.dot(Whh.T, dhraw)
-    print "Weight Deltas"
-    print "dWxh= ", dWxh
-    print "dWhy= ", dWhy
-    print "dWhh= ", dWhh
+    #print "Weight Deltas"
+    #print "dWxh= ", dWxh
+    #print "dWhy= ", dWhy
+    #print "dWhh= ", dWhh
 
-    print "Bias Deltas"
-    print "dbh=(1-hs**2)*dh ", dbh
-    print "dby=dy= ", dby
+    #print "Bias Deltas"
+    #print "dbh=(1-hs**2)*dh ", dbh
+    #print "dby=dy= ", dby
 
 
-  print "-----"
+  #print "-----"
   #works without clipping
   for dparam in [dWxh, dWhh, dWhy, dbh, dby]:
     np.clip(dparam, -5, 5, out=dparam) # clip to mitigate exploding gradients
-  print "#################################################"
+  #print "#################################################"
   #quit() ##################
   return loss, dWxh, dWhh, dWhy, dbh, dby, hs[len(inputs)-1]  # stateful=true
   #return loss, dWxh, dWhh, dWhy, dbh, dby, [[0.]] # stateful=false
