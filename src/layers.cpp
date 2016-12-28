@@ -55,6 +55,8 @@ void Layer::initVars(int nb_batch)
 	// for Adams (waste of memory?)
 	mom.set_size(layer_size);
 	vel.set_size(layer_size);
+	mom.zeros();
+	vel.zeros();
 
 
 	//activation_delta.set_size(getActivation().getNbParams());

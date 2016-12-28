@@ -1103,6 +1103,9 @@ void Model::weightUpdate()
 	//opt->update(this, layer->getBias(), layer->mom, layer->vel, layer->getBiasDelta());
 	//exit(0);
 
+	// adamUpdate()
+	// rmsPropUpdate()
+
 #if 1
 
 // Adams not working the way I expect
@@ -1145,7 +1148,6 @@ void Model::weightUpdate()
 void Model::biasUpdate()
 {
 #if 1
-	printf("biasUpdate\n");
 	for (int l=1; l < layers.size(); l++) {  // ignore input layer
 		Layer* la = layers[l];
 		optimizer->update(this, la->getBias(), la->mom, la->vel, la->getBiasDelta(), la->adam_count);

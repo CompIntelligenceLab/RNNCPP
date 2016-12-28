@@ -34,6 +34,8 @@ Connection::Connection(int in, int out, std::string name /* "weight" */)
 	// For Adam method  (memory waste?)
 	mom = WEIGHT(out_dim, in_dim);
 	vel = WEIGHT(out_dim, in_dim);
+	mom.zeros();
+	vel.zeros();
 	adam_count = 0;
 
 

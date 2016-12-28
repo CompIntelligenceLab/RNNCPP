@@ -1,4 +1,5 @@
 #include "optimizer.h"
+#include "model.h"
 #include <stdio.h>
 
 class Model;
@@ -66,15 +67,7 @@ RMSProp::RMSProp(std::string name /* "RMSProp" */) : Optimizer(name) {;}
 
 //Adam::Adam(REAL alpha /*=.001*/, REAL beta1 /*=.9*/, REAL beta2 /*=.999*/, REAL eps /*=1.e-8*/)
 Adam::Adam(std::string name) : Optimizer(name) 
-//REAL alpha /*=.001*/, REAL beta1 /*=.9*/, REAL beta2 /*=.999*/, REAL eps /*=1.e-8*/)
 {
-	#if 0
-	this->alpha = alpha;
-	this->beta1 = beta1;
-	this->beta2 = beta2;
-	this->eps   = eps;
-	#endif
-
 	this->alpha = 0.001;
 	this->beta1 = 0.9;
 	this->beta2 = 0.999;
@@ -92,16 +85,26 @@ Adam::Adam(const Adam&)
 //----------------------------------------------------------------------
 void Adam::update(Model* mo, VF2D& w, VF2D& m, VF2D& v, VF2D& dLdw, int& count)
 {
+	printf("enter: norm(dLdw)= %f\n", arma::norm(dLdw));
+	printf("norm(m)= %f\n", arma::norm(m));
+	printf("norm(v)= %f\n", arma::norm(v));
+	printf("norm(w)= %f\n", arma::norm(w));
 	count++;
-	REAL beta1t = powf(beta1, count);
-	REAL beta2t = powf(beta2, count);
-	printf("beta1t, beta2t= %f, %f, count= %d\n", beta1t, beta2t, count);
-	VF2D gt = dLdw;
-	m = beta1 * m + (1.-beta1) * gt;
-	v = beta2 * v + (1.-beta2) * arma::square(gt);
+	REAL beta1t = pow(beta1, count);
+	REAL beta2t = pow(beta2, count);
+	//VF2D gt = dLdw;
+	m = beta1 * m + (1.-beta1) * dLdw;
+	v = beta2 * v + (1.-beta2) * arma::square(dLdw);
 	REAL alphat = alpha * sqrt(1. - beta2t) / (1. - beta1t);
 	w = w - alphat * m / (arma::sqrt(v) + eps);
-	printf("Adam:: update\n");
+	//dLdw.print("exit: dLdw");
+	//m.print("m");
+	//v.print("v");
+	//w.print("w");
+	//arma::sqrt(v).print("sqrt(v)");
+	printf("beta1t, beta2t= %f, %f, count= %d, alphat= %f\n", beta1t, beta2t, count, alphat);
+
+	// Why nan's? 
 #if 0
 t←t+1
 gt ← ∇θft(θt−1) (Get gradients w.r.t. stochastic objective at timestep t)
@@ -113,5 +116,30 @@ v􏰨t ← vt /(1 − β2t ) (Compute bias-corrected second raw moment estimate)
 
 αt=α·􏰜(1−β2t)/(1−β1t) and  θt←θt−1 −αt ·mt/(√vt +εˆ).
 #endif
+}
+//----------------------------------------------------------------------
+Adagrad::Adagrad(std::string name) : Optimizer(name) 
+{
+	this->alpha = 0.001;
+	this->beta1 = 0.9;
+	this->beta2 = 0.999;
+	this->eps   = 1.e-8;
+	//alphat = alpha;
+}
+//----------------------------------------------------------------------
+Adagrad::~Adagrad()
+{
+}
+//----------------------------------------------------------------------
+Adagrad::Adagrad(const Adagrad&) 
+{
+}
+//----------------------------------------------------------------------
+void Adagrad::update(Model* mo, VF2D& w, VF2D& m, VF2D& v, VF2D& dLdw, int& count)
+{
+	count++;
+	REAL lr = mo->getLearningRate();
+	m += dLdw % dLdw;
+	w -= lr * dLdw / arma::sqrt(m + 1.e-8);
 }
 //----------------------------------------------------------------------

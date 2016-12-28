@@ -896,3 +896,5 @@ Top of ::predict
   // Assumes that state is clean before first call to predict.
 (NOT YET IMPLEMENTED)
 ----------------------------------------------------------------------
+Not clear that Adam is suited for recurrent networks. 
+----------------------------------------------------------------------

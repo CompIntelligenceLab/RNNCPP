@@ -41,6 +41,7 @@ int discrete_sample(VF2D_F& x)
     std::random_device rd;
     std::mt19937 gen(rd()); 
 
+	//x.print("x");
 	VF2D_F y = soft(x);
 	//y.print("softmax");
 
@@ -72,7 +73,7 @@ void sample(Model* mi, int which_char,
 
 	mi->resetState();
 
-	for (int i=0; i < 200; i++) {
+	for (int i=0; i < 800; i++) {
 		// the output is prior to softmax
 		x = mi->predictViaConnectionsBias(x);
 		for (int l=0; l < mi->getLayers().size(); l++) {
@@ -267,8 +268,8 @@ void charRNN(Globals* g)
 
 // Read Input Data
 	//string file_name = "input.txt";
-	string file_name = "fox.txt";
-	//string file_name = "input.txt";
+	//string file_name = "fox.txt";
+	string file_name = "input.txt";
 
 	ifstream fd;
 	fd.open(file_name);
@@ -383,7 +384,7 @@ void charRNN(Globals* g)
 		for (int i=0; i < nb_samples; i++) {
 			#if 1
 			// ADD BACK WHEN CODE WORKS
-			if (count % 10 == 0) {
+			if (count % 100 == 0) {
 				printf("TRAIN, nb_epochs: %d, iter: %d, ", e, count);
 				m_pred->setWeightsAndBiases(m);
 				sample(m_pred, which_char, c_int, int_c, hot);
@@ -395,7 +396,7 @@ void charRNN(Globals* g)
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 
-			//if (count == 200) exit(0); // TEMPORARY
+			if (count == 50000) exit(0); // TEMPORARY
 			m->trainOneBatch(net_inputs, net_exact);
 			count++;
 

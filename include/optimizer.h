@@ -53,5 +53,18 @@ public:
 	void update(Model* mo, VF2D& w, VF2D& m, VF2D& v, VF2D& dLdw, int& count);
 };
 //-------------------------------------------
+class Adagrad : public Optimizer
+{
+public:
+	//Adam(REAL alpha=.001, REAL beta1=.9, REAL beta2=.999, REAL eps=1.e-8);
+	Adagrad(std::string name="adam");
+	~Adagrad();
+	Adagrad(const Adagrad&);
+	//Adam& operator=(const Adam&);
+	//VF2D_F update(VF2D& w);
+	void update(Model* mo, VF2D& w, VF2D& m, VF2D& v, VF2D& dLdw, int& count);
+};
+//-------------------------------------------
+
 
 #endif
