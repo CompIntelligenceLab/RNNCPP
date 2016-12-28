@@ -34,6 +34,7 @@ public:
 	// used for Adams method
 	BIAS mom;
 	BIAS vel;
+	int adam_count;
 
 #ifdef DEBUG
     //  DELTA: VF2D_F: (batch)(layer_size, seq_len)

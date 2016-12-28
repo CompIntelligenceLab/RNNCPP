@@ -39,6 +39,7 @@ public:
 	//use for Adams method
 	WEIGHT mom;
 	WEIGHT vel;
+	int adam_count;
 
 #ifdef DEBUG
 	std::vector<WEIGHT> deltas; // one delta per sequence time (they add up to delta). For debugging. 

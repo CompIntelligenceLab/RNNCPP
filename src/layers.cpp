@@ -17,6 +17,7 @@ Layer::Layer(int layer_size, std::string name /* "layer" */)
 	print_verbose   = true;
 	clock = 0;
 	recurrent_conn = 0;
+	adam_count = 0;
 
 	char cname[80];
 	if (strlen(cname) > 80) {

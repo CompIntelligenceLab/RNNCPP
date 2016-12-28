@@ -30,6 +30,7 @@ Model::Model(std::string name /* "model" */)
 	print_verbose = true;
 	printf("Model constructor (%s)\n", this->name.c_str());
 	optimizer = new RMSProp();
+	optimizer = new Adam(); printf("USE ADAM optimizer\n");
 	objective = new MeanSquareError();
 	//objective = NULL; // I believe this should just be a string or something specifying
                // the name of the objective function we would like to use
@@ -1096,54 +1097,65 @@ void Model::weightUpdate()
 	//printf("clist size: %d\n", clist.size());
 	//printf("clist_temporal size: %d\n", clist_temporal.size());
 
-	Adam* opt = new Adam();
-	opt->update(this, clist[0]->getWeight(), clist[0]->mom, clist[0]->vel, clist[0]->getDelta());
-	Layer* layer = getLayers()[1];
-	opt->update(this, layer->getBias(), layer->mom, layer->vel, layer->getBiasDelta());
-	exit(0);
+	//Adam* opt = new Adam();
+	//opt->update(this, clist[0]->getWeight(), clist[0]->mom, clist[0]->vel, clist[0]->getDelta());
+	//Layer* layer = getLayers()[1];
+	//opt->update(this, layer->getBias(), layer->mom, layer->vel, layer->getBiasDelta());
+	//exit(0);
+
+#if 1
+
+// Adams not working the way I expect
+
+	for (int c=0; c < clist.size(); c++) {
+		Connection* co = clist[c];
+		optimizer->update(this, co->getWeight(), co->mom, co->vel, co->getDelta(), co->adam_count);
+	}
+
+	for (int c=0; c < clist_temporal.size(); c++) {
+		Connection* co = clist_temporal[c];
+		optimizer->update(this, co->getWeight(), co->mom, co->vel, co->getDelta(), co->adam_count);
+	}
+
+#else
 
 	for (int c=0; c < clist.size(); c++) {
 		Connection* con = clist[c];
-		//con->printSummary("clist[c]"); // GE
 		//printf("con->frozen= %d\n", con->frozen);
 		WEIGHT& wght = con->getWeight();
 		if (con->frozen) continue;
 		wght = wght - learning_rate * con->getDelta();
-		//con->getDelta().raw_print(cout, "spatial WEIGHT DELTA"); // GE
 	    con->computeWeightTranspose();
 		//con->weight_history.push_back(wght);
-		//con->printSummary();
 	}
 
 	// temporal connections 
 	for (int c=0; c < clist_temporal.size(); c++) {
 		Connection* con = clist_temporal[c];
-		//con->printSummary("clist_temporal[c]"); // GE
 		WEIGHT& wght = con->getWeight();
-		//printf("con->frozen= %d\n", con->frozen);
-		//wght.print("update: w3");
 		if (con->frozen) continue;
-		//con->getDelta().print("temporal WEIGHT DELTA"); // GE
-		//con->getDelta().raw_print(cout, "temporal WEIGHT DELTA"); // GE
 		wght = wght - learning_rate * con->getDelta();
 	    con->computeWeightTranspose();
 		//con->weight_history.push_back(wght);
-		//con->printSummary();
 	}
+
+#endif
 }
 //----------------------------------------------------------------------
 void Model::biasUpdate()
 {
+#if 1
+	printf("biasUpdate\n");
+	for (int l=1; l < layers.size(); l++) {  // ignore input layer
+		Layer* la = layers[l];
+		optimizer->update(this, la->getBias(), la->mom, la->vel, la->getBiasDelta(), la->adam_count);
+	}
+#else
 	for (int l=0; l < layers.size(); l++) {
-		//printf("************ biasUpdate, layer %d\n", l);
-		//printf("frozen bias: %d\n", layers[l]->getIsBiasFrozen());
-		//if (layers[l]->getIsBiasFrozen() == false) {
 			BIAS& bias = layers[l]->getBias();
 			bias = bias - learning_rate * layers[l]->getBiasDelta();
-			//layers[l]->printSummary();
-			//layers[l]->getBiasDelta().print("dBias");
-		//}
 	}
+#endif
 }
 //----------------------------------------------------------------------
 void Model::activationUpdate()
