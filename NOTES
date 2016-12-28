@@ -885,4 +885,14 @@ With ReLU, brown converges by iter=50 with no errors after that. With Tanh,
 convergence is much slower, with sporadic errors up until iter=1000. 
 SGD only. 
 ----------------------------------------------------------------------
+Dec. 27, 2016, 12:20 pm
+Here is the solution to the stateful problem. Put it at the beginning of 
+predict. Simply place the last sequence element into previousState. 
+
+Top of ::predict
+	if (stateful == false) {
+		resetState(); 
+  // INSERT saving of predicted state. 
+  // Assumes that state is clean before first call to predict.
+(NOT YET IMPLEMENTED)
 ----------------------------------------------------------------------

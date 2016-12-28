@@ -31,6 +31,10 @@ public:
 	std::vector<VF2D_F> layer_deltas; 
 	std::vector<std::vector<REAL> > params_history; // params_history[index][layer_parameters]
 
+	// used for Adams method
+	BIAS mom;
+	BIAS vel;
+
 #ifdef DEBUG
     //  DELTA: VF2D_F: (batch)(layer_size, seq_len)
 	std::vector<DELTA> deltas;  // d(loss) / d(layer), one per sequence element
@@ -59,6 +63,8 @@ protected:
 	VF2D_F previous_state; // output from last sequence of previous batch
 	DELTA delta; // d(loss) / d(layer output)  (transform to row vector)
 	BIAS bias;
+
+
 	bool is_bias_frozen;
 	VF1D bias_delta; // arma::Col, d(loss) / d(bias)   (one bias per layer)
 	VF1D activation_delta;   // one delta per activation parameter (set to zero if frozen parameter)

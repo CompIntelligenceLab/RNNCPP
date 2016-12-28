@@ -36,6 +36,10 @@ public:
 	int t_clock;
 	std::vector<WEIGHT> weight_history;
 
+	//use for Adams method
+	WEIGHT mom;
+	WEIGHT vel;
+
 #ifdef DEBUG
 	std::vector<WEIGHT> deltas; // one delta per sequence time (they add up to delta). For debugging. 
 #endif
@@ -49,6 +53,7 @@ protected:
 	                 // Cost is reduced once batch > 1 and using sequences. 
 	                 // Disadvantage: memory use is doubled. 
 	WEIGHT delta;
+
 
 	int in_dim, out_dim;
 	bool print_verbose;

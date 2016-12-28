@@ -8,6 +8,7 @@
 #include "objective.h"
 #include "connection.h"
 #include "print_utils.h"
+#include "optimizer.h"
 
 using namespace std;
 
@@ -1094,6 +1095,13 @@ void Model::weightUpdate()
 	// spatial connections
 	//printf("clist size: %d\n", clist.size());
 	//printf("clist_temporal size: %d\n", clist_temporal.size());
+
+	Adam* opt = new Adam();
+	opt->update(this, clist[0]->getWeight(), clist[0]->mom, clist[0]->vel);
+	exit(0);
+	//Layer* layer = getLayers()[1];
+	//opt->update(this, layer->getBias(), layer->mom, layer->vel);
+	//VF2D_F update(Model* mo, VF2D& w, VF2D& m, VF2D& v);
 
 	for (int c=0; c < clist.size(); c++) {
 		Connection* con = clist[c];

@@ -121,6 +121,7 @@ public:
 	void computeLoss(const VF2D_F& exact, const VF2D_F& predict);
 	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
 };
+//----------------------------------------------------------------------
 
 #endif
 

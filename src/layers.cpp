@@ -50,6 +50,12 @@ void Layer::initVars(int nb_batch)
 	previous_state.set_size(nb_batch);
 	bias.set_size(layer_size);
 	bias_delta.set_size(layer_size);
+
+	// for Adams (waste of memory?)
+	mom.set_size(layer_size);
+	vel.set_size(layer_size);
+
+
 	//activation_delta.set_size(getActivation().getNbParams());
 
 	// activation may not be set yet. 
