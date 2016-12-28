@@ -1097,11 +1097,10 @@ void Model::weightUpdate()
 	//printf("clist_temporal size: %d\n", clist_temporal.size());
 
 	Adam* opt = new Adam();
-	opt->update(this, clist[0]->getWeight(), clist[0]->mom, clist[0]->vel);
+	opt->update(this, clist[0]->getWeight(), clist[0]->mom, clist[0]->vel, clist[0]->getDelta());
+	Layer* layer = getLayers()[1];
+	opt->update(this, layer->getBias(), layer->mom, layer->vel, layer->getBiasDelta());
 	exit(0);
-	//Layer* layer = getLayers()[1];
-	//opt->update(this, layer->getBias(), layer->mom, layer->vel);
-	//VF2D_F update(Model* mo, VF2D& w, VF2D& m, VF2D& v);
 
 	for (int c=0; c < clist.size(); c++) {
 		Connection* con = clist[c];

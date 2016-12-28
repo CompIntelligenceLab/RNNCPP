@@ -57,7 +57,7 @@ void Optimizer::print(const std::string msg /*=std::string()*/)
 	//exit(0);
 }
 
-void Optimizer::update(Model* mo, VF2D& w, VF2D& m, VF2D& v) {;}
+void Optimizer::update(Model* mo, VF2D& w, VF2D& m, VF2D& v, VF2D& dLdw) {;}
 
 //----------------------------------------------------------------------
 
@@ -79,6 +79,9 @@ Adam::Adam(std::string name) : Optimizer(name)
 	this->beta1 = 0.9;
 	this->beta2 = 0.999;
 	this->eps   = 1.e-8;
+	beta1t = 1.;
+	beta2t = 1.;
+	//alphat = alpha;
 }
 //----------------------------------------------------------------------
 Adam::~Adam()
@@ -89,10 +92,17 @@ Adam::Adam(const Adam&)
 {
 }
 //----------------------------------------------------------------------
-void Adam::update(Model* mo, VF2D& w, VF2D& m, VF2D& v)
+void Adam::update(Model* mo, VF2D& w, VF2D& m, VF2D& v, VF2D& dLdw)
 {
+	//counter++;
+	beta1t *= beta1;
+	beta2t *= beta2;
+	VF2D gt = dLdw;
+	m = beta1 * m + (1.-beta1) * gt;
+	v = beta2 * v + (1.-beta2) * arma::square(gt);
+	alphat = alpha * sqrt(1. - beta2t) / (1. - beta1t);
+	w = w - alphat * m / (arma::sqrt(v) + eps);
 	printf("Adam:: update\n");
-	counter++;
 #if 0
 t←t+1
 gt ← ∇θft(θt−1) (Get gradients w.r.t. stochastic objective at timestep t)
@@ -101,6 +111,8 @@ vt ← β2 · vt−1 + (1 − β2) · gt2 (Update biased second raw moment estim
 m􏰨t ←mt/(1−β1t)(Computebias-correctedfirstmomentestimate)
 v􏰨t ← vt /(1 − β2t ) (Compute bias-corrected second raw moment estimate) √
 θt ←θt−1 −α·m􏰨t/( v􏰨t +ε)(Updateparameters)
+
+αt=α·􏰜(1−β2t)/(1−β1t) and  θt←θt−1 −αt ·mt/(√vt +εˆ).
 #endif
 }
 //----------------------------------------------------------------------

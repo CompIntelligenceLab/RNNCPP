@@ -14,6 +14,7 @@ protected:
 	VF loss;  // allows for batches, with dimensionality of 1.  
 	static int counter;
 	REAL beta1, beta2, alpha, alphat, eps; // for Adam
+	REAL beta1t, beta2t;
 
 public:
 	Optimizer(std::string name="optimizer");
@@ -29,7 +30,7 @@ public:
 	virtual REAL getLearningRate() {return learning_rate; }
 	virtual VF getLoss() {return loss; }
 	//virtual VF2D_F update(VF2D& w) {;}
-	virtual void update(Model* mo, VF2D& w, VF2D& m, VF2D& v);
+	virtual void update(Model* mo, VF2D& w, VF2D& m, VF2D& v, VF2D& dLdw);
 };
 
 //-------------------------------------------
@@ -50,7 +51,7 @@ public:
 	Adam(const Adam&);
 	//Adam& operator=(const Adam&);
 	//VF2D_F update(VF2D& w);
-	void update(Model* mo, VF2D& w, VF2D& m, VF2D& v);
+	void update(Model* mo, VF2D& w, VF2D& m, VF2D& v, VF2D& dLdw);
 };
 //-------------------------------------------
 
