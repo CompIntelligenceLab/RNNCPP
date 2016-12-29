@@ -49,3 +49,6 @@ add_subdirectory(char-rnn)
 # compare against program written in keras
 add_subdirectory(categorical_classification)
 
+# 1D Gaussian Mixture Model
+add_subdirectory(gmm1d)
+
