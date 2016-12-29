@@ -468,102 +468,89 @@ GMM1D::GMM1D(const GMM1D& bce) : Objective(bce)
 }
 
 //----------------------------------------------------------------------
-void GMM1D::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
+arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predict)
 {
 // First compute softmax of prediction to transform the to probabilities
 
-	int seq_len = exact[0].n_cols;
-	int input_dim = exact[0].n_rows;
-	int nb_batch = exact.n_rows;
+	// predict[batch][inputs, seq]
+	// predict[batch][0:inputs/3, :] ==> amplitudes
+	// predict[batch][inputs/3:2*inputs/3, :] ==> means
+	// predict[batch][2*inputs/3:3*inputs/3, :] ==> standard deviations
 
-	VF2D_F y(predict);
+	int seq_len = exact.n_cols;
+	int input_dim = exact.n_rows;
+
+	int ia1   = 0;
+	int ia2   = input_dim / 3;
+	int imu1  = input_dim / 3;
+	int imu2  = 2* input_dim / 3;
+	int isig1 = 2* input_dim / 3;
+	int isig2 = 3* input_dim / 3;
+
+	int Npi = ia2; // number of distributions
+
+	VF2D pi(predict.rows(ia1,ia2));
 
 	// softmax over the dimension index of VF2D (first index)
-	for (int b=0; b < nb_batch; b++) {
-		REAL mx = arma::max(arma::max(predict[b]));
-	    for (int s=0; s < seq_len; s++) {
-		    y(b).col(s) = arma::exp(y(b).col(s)-mx);
-			// trick to avoid overflows
-			REAL ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
-			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
-		}
+	REAL mx = arma::max(arma::max(pi));
+	for (int s=0; s < seq_len; s++) {
+	   pi.col(s) = arma::exp(pi.col(s)-mx);
+	   // trick to avoid overflows
+	   REAL ssum = 1. / arma::sum(pi.col(s)); // = arma::exp(y[b]);
+	   pi.col(s) = pi.col(s) * ssum;  // % is elementwise multiplication (arma)
 	}
-	//y.print("softmax, computeLoss");
-	//exact.print("exact");
-	//predict.print("predict");
-	//exit(0);
 
-	//printf("(%d, %d) GMM1D::computeLoss\n", seq_len, input_dim);
-	//U::print(exact, "exact");
-	//U::print(predict, "predict");
-	//for (int b=0; b < 20; b++) {
-		//printf("exact[%d]= %f, %f, pred[%d]= %f, %f, soft= %f, %f\n", b, exact[b](0,0), exact[b](1,0), b, predict[b](0,0), predict[b](1,0), y[b](0,0), y[b](1,0)); 
-	//}
+	// standard deviations: exp(output) => sig
 
+	VF2D sig(predict.rows(isig1, isig2));
+	sig = arma::exp(sig);
+	VF2D mu(predict.rows(imu1, imu2));
 
-	loss.set_size(nb_batch); // needed
-	VF2D output(size(predict[0]));
+	// Compute sum of N probabilities
+	VF2D prob(pi);
+	prob.zeros();
+	VF2D x(exact);
 
-	// LOSS[batch][sequence]
-	for (int b=0; b < nb_batch; b++) {
-		//output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO); 
-		output = arma::clamp(y[b], NEAR_ZERO, 1.-NEAR_ZERO); 
+	// ignore factor 1/sqrt(2.*pi)
+	prob = pi * arma::exp(-arma::square(x-mu) / (sig%sig)) / arma::sqrt(sig);
 
-		loss[b].zeros(seq_len);
-		for (int s=0; s < seq_len; s++) {
-		   //printf("s= %d\n", s);
+	arma::Row<REAL> sprob(seq_len);
+	//VF2D sprob(1, seq_len);
+	sprob.zeros();
 
-			// Sum over input_dim (most terms are zero)
-			for (int i=0; i < input_dim; i++) {
-				//printf("i= %d\n", i);
-				loss[b](s) -= exact[b](i,s) * log(output(i,s));
-				//printf("exact(%d,%d): %f, output(%d,%d)= %f\n", i,s,exact[b](i,s), i,s, output(i,s));
-				// I should not have to do the sum, since exact is all zeros except one element, and 
-				// I know which one
-			}
-		}
-		// Really need the average over the sequence
-		//loss[b] = loss[b] / seq_len; // orig
+	for (int r=0; r < prob.n_rows; r++) {
+		sprob += prob.row(r);
 	}
-	//loss.print("loss in GMM1D computeLoss\n");
-		//exit(0);
-	//loss.print("exit loss");
+	sprob = arma::log(sprob);
+
+	#if 0
+	REAL cost = 0.;
+	for (int s=0; s < seq_len; s++) {
+		cost += sprob(s);
+	}
+	#endif
+
+	return sprob;
+}
+//----------------------------------------------------------------------
+void GMM1D::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
+{
+	int nb_batch = predict.n_rows;
+	VF2D_F loss(nb_batch);
+
+	for (int b=0; b < nb_batch; b++) {
+		loss(b) = computeLossOneBatch(exact(b), predict(b));
+	}
 }
 
 //----------------------------------------------------------------------
+VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
+{
+	VF2D aa;
+	return aa;
+}
+//----------------------------------------------------------------------
 void GMM1D::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 {
-	//printf("**** enter crossEntropy Gradient ****\n");
-	int nb_batch = exact.n_rows;
-	int seq_len  = exact[0].n_cols;
-	gradient.reset(); // empty the datastructure
-	gradient.set_size(nb_batch);
-
-	// WRONG: predict[b] must the the result of the softmax
-	VF2D_F y(predict); // additional copy
-
-	// softmax over the dimension index of VF2D (first index)
-	for (int b=0; b < nb_batch; b++) {
-		REAL mx = arma::max(arma::max(predict[b]));
-	    for (int s=0; s < seq_len; s++) {
-		    y(b).col(s) = arma::exp(y(b).col(s)-mx);
-			// trick to avoid overflows
-			REAL ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
-			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
-		}
-	}
-
-	for (int b=0; b < nb_batch; b++) {
-		//U::print(predict, "predict");
-		//U::print(exact, "exact");
-		//gradient[b] = (predict[b] - exact[b]) / seq_len; // average gradient
-		gradient[b] = (y[b] - exact[b]); // average gradient
-		// although all exact are zero except one (for a given sequence index), predict are all non-zero.
-		// So I do not think there is a faster procedure to evaluate the gradient. 
-
-		// Clip to [-5,5] to avoid exploding gradients
-		gradient[b] = arma::clamp(gradient[b], -5., 5.);
-	}
-	//gradient(0).raw_print(arma::cout, "Cross-Entropy Gradient");
 }
 //----------------------------------------------------------------------

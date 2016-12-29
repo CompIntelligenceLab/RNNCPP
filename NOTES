@@ -905,5 +905,10 @@ Dec. 28, 2016
 - Call the objective GMM1D. 
 - The layer feeding into the objective function should be a multiple of N. 
 - QUESTION: What is the objective function to minimize? 
+
+Reference: On supervised learning from sequential data with applications for speech recognition_1995_schuster_phdthesis.pdf, p. 54ff. 
+
+Perhaps create a GMM layer, with coupled Jacobian. The advantage is that it could be used 
+anywhere. 
 ----------------------------------------------------------------------
 

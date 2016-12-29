@@ -34,6 +34,8 @@ public:
 	
 	virtual void computeLoss(const VF2D_F& exact, const VF2D_F& predict) = 0;
 	virtual void computeGradient(const VF2D_F& exact, const VF2D_F& predict) = 0;
+	virtual arma::Row<REAL> computeLossOneBatch(const VF2D& exact, const VF2D& predict) {;}
+	virtual VF2D computeGradientOneBatch(const VF2D& exact, const VF2D& predict) {;}
 
 	virtual const LOSS& operator()(const VF2D_F& exact, const VF2D_F& predict) {
 		computeLoss(exact, predict);
@@ -136,6 +138,8 @@ public:
 	/** sum_{batches} (predict - exact)^2 */
 	void computeLoss(const VF2D_F& exact, const VF2D_F& predict);
 	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
+	arma::Row<REAL> computeLossOneBatch(const VF2D& exact, const VF2D& predict);
+	VF2D computeGradientOneBatch(const VF2D& exact, const VF2D& predict);
 };
 //----------------------------------------------------------------------
 
