@@ -267,7 +267,6 @@ void charRNN(Globals* g)
 	int nb_epochs = g->nb_epochs;
 
 // Read Input Data
-	//string file_name = "input.txt";
 	//string file_name = "fox.txt";
 	string file_name = "input.txt";
 

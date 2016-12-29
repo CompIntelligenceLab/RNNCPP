@@ -477,8 +477,9 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	// predict[batch][inputs/3:2*inputs/3, :] ==> means
 	// predict[batch][2*inputs/3:3*inputs/3, :] ==> standard deviations
 
-	int seq_len = exact.n_cols;
-	int input_dim = exact.n_rows;
+	int seq_len = predict.n_cols;
+	int input_dim = predict.n_rows;
+	//printf("input_dim= %d\n", input_dim); exit(0);
 
 	int ia1   = 0;
 	int ia2   = input_dim / 3;
@@ -489,7 +490,17 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 
 	int Npi = ia2; // number of distributions
 
-	VF2D pi(predict.rows(ia1,ia2));
+	//printf("ia1,ia2= %d, %d\n", ia1, ia2);
+	//predict.print("pi");
+	//printf("-----------\n");
+	//predict.rows(0,1).print("pi rows 0,1");
+	//printf("-----------\n");
+	//exit(0);
+
+	VF2D pi(predict.rows(ia1,ia2-1));
+
+	//U::print(pi, "pi");
+	//exit(0);
 
 	// softmax over the dimension index of VF2D (first index)
 	REAL mx = arma::max(arma::max(pi));
@@ -502,17 +513,20 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 
 	// standard deviations: exp(output) => sig
 
-	VF2D sig(predict.rows(isig1, isig2));
+	//U::print(predict, "predict");
+	VF2D sig(predict.rows(isig1, isig2-1));
 	sig = arma::exp(sig);
-	VF2D mu(predict.rows(imu1, imu2));
+	//U::print(sig, "sig");
+	VF2D mu(predict.rows(imu1, imu2-1));
+	//U::print(mu, "mu");
 
 	// Compute sum of N probabilities
 	VF2D prob(pi);
 	prob.zeros();
-	VF2D x(exact);
+	VF2D x(mu); // WRONG
 
 	// ignore factor 1/sqrt(2.*pi)
-	prob = pi * arma::exp(-arma::square(x-mu) / (sig%sig)) / arma::sqrt(sig);
+	prob = pi % arma::exp(-arma::square(x-mu) / (sig%sig)) / arma::sqrt(sig);
 
 	arma::Row<REAL> sprob(seq_len);
 	//VF2D sprob(1, seq_len);
@@ -522,6 +536,8 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 		sprob += prob.row(r);
 	}
 	sprob = arma::log(sprob);
+
+	U::print(sprob, "sprob");
 
 	#if 0
 	REAL cost = 0.;
@@ -553,8 +569,9 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 	// predict[batch][inputs/3:2*inputs/3, :] ==> means
 	// predict[batch][2*inputs/3:3*inputs/3, :] ==> standard deviations
 
-	int seq_len = exact.n_cols;
-	int input_dim = exact.n_rows;
+	int seq_len = predict.n_cols;
+	int input_dim = predict.n_rows;
+
 
 	int ia1   = 0;
 	int ia2   = input_dim / 3;
@@ -565,7 +582,7 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 
 	int Npi = ia2; // number of distributions
 
-	VF2D pi(predict.rows(ia1,ia2));
+	VF2D pi(predict.rows(ia1, ia2-1));
 
 	// softmax over the dimension index of VF2D (first index)
 	REAL mx = arma::max(arma::max(pi));
@@ -578,17 +595,20 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 
 	// standard deviations: exp(output) => sig
 
-	VF2D sig(predict.rows(isig1, isig2));
+	VF2D sig(predict.rows(isig1, isig2-1));
 	sig = arma::exp(sig);
-	VF2D mu(predict.rows(imu1, imu2));
+	VF2D mu(predict.rows(imu1, imu2-1));
 
 	// Compute sum of N probabilities
 	VF2D prob(pi);
 	prob.zeros();
 	VF2D x(exact);
 
+
+	REAL xx = 0.;
+
 	// ignore factor 1/sqrt(2.*pi)
-	prob = pi * arma::exp(-arma::square(x-mu) / (sig%sig)) / arma::sqrt(sig);
+	prob = pi % arma::exp(-arma::square(xx-mu) / (sig%sig)) / arma::sqrt(sig);
 
 	// transform prob into softmax functions, one per sequence index
 
@@ -604,15 +624,14 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 	}
 
 	VF2D dLdpi  = pi - yprob;
-	VF2D dLdmu  = -yprob * (x-mu) / sig;
-	VF2D dLdsig = -arma::square(yprob * (x-mu) / sig) - 1.;
+	VF2D dLdmu  = -yprob % (xx-mu) / sig;
+	VF2D dLdsig = -arma::square(yprob % (xx-mu) / sig) - 1.;
 
 	// Combine the derivatives into one vector. 
 	VF2D grad(size(predict));
-	grad.cols(ia1,ia2)     = dLdpi;
-	grad.cols(imu1,imu2)   = dLdmu;
-	grad.cols(isig1,isig2) = dLdsig;
-	
+	grad.rows(ia1,ia2-1)     = dLdpi;
+	grad.rows(imu1,imu2-1)   = dLdmu;
+	grad.rows(isig1,isig2-1) = dLdsig;
 	return grad;
 }
 //----------------------------------------------------------------------

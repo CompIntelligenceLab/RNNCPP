@@ -911,4 +911,7 @@ Reference: On supervised learning from sequential data with applications for spe
 Perhaps create a GMM layer, with coupled Jacobian. The advantage is that it could be used 
 anywhere. 
 ----------------------------------------------------------------------
+Dec. 29, 2016
+- implemented Gaussian Mixture Model 1D (compute + gradient). Not debugged. 
+----------------------------------------------------------------------
 
