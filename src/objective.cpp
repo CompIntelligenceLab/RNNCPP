@@ -546,11 +546,86 @@ void GMM1D::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 //----------------------------------------------------------------------
 VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 {
-	VF2D aa;
-	return aa;
+// First compute softmax of prediction to transform the to probabilities
+
+	// predict[batch][inputs, seq]
+	// predict[batch][0:inputs/3, :] ==> amplitudes
+	// predict[batch][inputs/3:2*inputs/3, :] ==> means
+	// predict[batch][2*inputs/3:3*inputs/3, :] ==> standard deviations
+
+	int seq_len = exact.n_cols;
+	int input_dim = exact.n_rows;
+
+	int ia1   = 0;
+	int ia2   = input_dim / 3;
+	int imu1  = input_dim / 3;
+	int imu2  = 2* input_dim / 3;
+	int isig1 = 2* input_dim / 3;
+	int isig2 = 3* input_dim / 3;
+
+	int Npi = ia2; // number of distributions
+
+	VF2D pi(predict.rows(ia1,ia2));
+
+	// softmax over the dimension index of VF2D (first index)
+	REAL mx = arma::max(arma::max(pi));
+	for (int s=0; s < seq_len; s++) {
+	   pi.col(s) = arma::exp(pi.col(s)-mx);
+	   // trick to avoid overflows
+	   REAL ssum = 1. / arma::sum(pi.col(s)); // = arma::exp(y[b]);
+	   pi.col(s) = pi.col(s) * ssum;  // % is elementwise multiplication (arma)
+	}
+
+	// standard deviations: exp(output) => sig
+
+	VF2D sig(predict.rows(isig1, isig2));
+	sig = arma::exp(sig);
+	VF2D mu(predict.rows(imu1, imu2));
+
+	// Compute sum of N probabilities
+	VF2D prob(pi);
+	prob.zeros();
+	VF2D x(exact);
+
+	// ignore factor 1/sqrt(2.*pi)
+	prob = pi * arma::exp(-arma::square(x-mu) / (sig%sig)) / arma::sqrt(sig);
+
+	// transform prob into softmax functions, one per sequence index
+
+	VF2D yprob(prob);
+
+	// softmax over the dimension index of VF2D (first index)
+	mx = arma::max(arma::max(yprob));
+	for (int s=0; s < seq_len; s++) {
+	   yprob.col(s) = arma::exp(yprob.col(s)-mx);
+	   // trick to avoid overflows
+	   REAL ssum = 1. / arma::sum(yprob.col(s)); // = arma::exp(y[b]);
+	   yprob.col(s) = yprob.col(s) * ssum;  // % is elementwise multiplication (arma)
+	}
+
+	VF2D dLdpi  = pi - yprob;
+	VF2D dLdmu  = -yprob * (x-mu) / sig;
+	VF2D dLdsig = -arma::square(yprob * (x-mu) / sig) - 1.;
+
+	// Combine the derivatives into one vector. 
+	VF2D grad(size(predict));
+	grad.cols(ia1,ia2)     = dLdpi;
+	grad.cols(imu1,imu2)   = dLdmu;
+	grad.cols(isig1,isig2) = dLdsig;
+	
+	return grad;
 }
 //----------------------------------------------------------------------
 void GMM1D::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 {
+	int nb_batch = predict.n_rows;
+	VF2D_F loss(nb_batch);
+
+	gradient.reset(); // empty the datastructure
+	gradient.set_size(nb_batch);
+
+	for (int b=0; b < nb_batch; b++) {
+		gradient(b) = computeGradientOneBatch(exact(b), predict(b));
+	}
 }
 //----------------------------------------------------------------------
