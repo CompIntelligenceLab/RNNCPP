@@ -29,8 +29,9 @@ Model::Model(std::string name /* "model" */)
 
 	print_verbose = true;
 	printf("Model constructor (%s)\n", this->name.c_str());
-	optimizer = new RMSProp();
-	optimizer = new Adam(); printf("USE ADAM optimizer\n");
+	//optimizer = new RMSProp();
+	//optimizer = new Adam(); printf("USE ADAM optimizer\n");
+	optimizer = new Adagrad(); printf("USE ADAGRAD optimizer\n");
 	objective = new MeanSquareError();
 	//objective = NULL; // I believe this should just be a string or something specifying
                // the name of the objective function we would like to use
@@ -1090,33 +1091,19 @@ Connection* Model::getConnection(Layer* layer1, Layer* layer2)
 //----------------------------------------------------------------------
 void Model::weightUpdate()
 {
-	//printf("ENTER WEIGHT UPDATE\n");
-
-	// Assume that all connections in clist are spatial
-	// spatial connections
-	//printf("clist size: %d\n", clist.size());
-	//printf("clist_temporal size: %d\n", clist_temporal.size());
-
-	//Adam* opt = new Adam();
-	//opt->update(this, clist[0]->getWeight(), clist[0]->mom, clist[0]->vel, clist[0]->getDelta());
-	//Layer* layer = getLayers()[1];
-	//opt->update(this, layer->getBias(), layer->mom, layer->vel, layer->getBiasDelta());
-	//exit(0);
-
-	// adamUpdate()
-	// rmsPropUpdate()
-
 #if 1
 
 // Adams not working the way I expect
 
 	for (int c=0; c < clist.size(); c++) {
 		Connection* co = clist[c];
+		//co->printSummary("weight, ");
 		optimizer->update(this, co->getWeight(), co->mom, co->vel, co->getDelta(), co->adam_count);
 	}
 
 	for (int c=0; c < clist_temporal.size(); c++) {
 		Connection* co = clist_temporal[c];
+		//co->printSummary("weight, ");
 		optimizer->update(this, co->getWeight(), co->mom, co->vel, co->getDelta(), co->adam_count);
 	}
 
@@ -1150,6 +1137,7 @@ void Model::biasUpdate()
 #if 1
 	for (int l=1; l < layers.size(); l++) {  // ignore input layer
 		Layer* la = layers[l];
+		//la->printSummary("Bias, ");
 		optimizer->update(this, la->getBias(), la->mom, la->vel, la->getBiasDelta(), la->adam_count);
 	}
 #else

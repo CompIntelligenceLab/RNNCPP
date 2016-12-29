@@ -898,3 +898,12 @@ Top of ::predict
 ----------------------------------------------------------------------
 Not clear that Adam is suited for recurrent networks. 
 ----------------------------------------------------------------------
+Dec. 28, 2016
+- implementation of Gaussian Mixture Model as an objective function
+- Assume N terms (N normal distributions N(mu, sig) + N means + N sigmas
+  (this is for 1D distributions). 
+- Call the objective GMM1D. 
+- The layer feeding into the objective function should be a multiple of N. 
+- QUESTION: What is the objective function to minimize? 
+----------------------------------------------------------------------
+

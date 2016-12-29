@@ -140,6 +140,13 @@ void Adagrad::update(Model* mo, VF2D& w, VF2D& m, VF2D& v, VF2D& dLdw, int& coun
 	count++;
 	REAL lr = mo->getLearningRate();
 	m += dLdw % dLdw;
+	//printf("lr= %f\n", lr);
+	//printf("enter: norm(dLdw)= %f\n", arma::norm(dLdw));
+	//printf("norm(m)= %f\n", arma::norm(m));
+	//printf("norm(w)= %f\n", arma::norm(w));
+	VF2D dw = dLdw / arma::sqrt(m+1.e-8);
+	//dw.print("dw");
+	//printf("norm(dw)= %f\n", arma::norm(dw));
 	w -= lr * dLdw / arma::sqrt(m + 1.e-8);
 }
 //----------------------------------------------------------------------

@@ -446,3 +446,124 @@ void CrossEntropy::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 	//gradient(0).raw_print(arma::cout, "Cross-Entropy Gradient");
 }
 //----------------------------------------------------------------------
+GMM1D::GMM1D(std::string name /* bce */) 
+{
+	char cname[80];
+	if (strlen(cname) > 80) {
+		printf("MeanSquare::MeanSquare : cname array too small\n");
+		exit(1);
+	}
+	sprintf(cname, "%s%d", name.c_str(), counter);
+	this->name = cname;
+	counter++;
+}
+
+GMM1D::~GMM1D()
+{
+	printf("GMM1D destructor (%s)\n", name.c_str());
+}
+
+GMM1D::GMM1D(const GMM1D& bce) : Objective(bce)
+{
+}
+
+//----------------------------------------------------------------------
+void GMM1D::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
+{
+// First compute softmax of prediction to transform the to probabilities
+
+	int seq_len = exact[0].n_cols;
+	int input_dim = exact[0].n_rows;
+	int nb_batch = exact.n_rows;
+
+	VF2D_F y(predict);
+
+	// softmax over the dimension index of VF2D (first index)
+	for (int b=0; b < nb_batch; b++) {
+		REAL mx = arma::max(arma::max(predict[b]));
+	    for (int s=0; s < seq_len; s++) {
+		    y(b).col(s) = arma::exp(y(b).col(s)-mx);
+			// trick to avoid overflows
+			REAL ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
+			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
+		}
+	}
+	//y.print("softmax, computeLoss");
+	//exact.print("exact");
+	//predict.print("predict");
+	//exit(0);
+
+	//printf("(%d, %d) GMM1D::computeLoss\n", seq_len, input_dim);
+	//U::print(exact, "exact");
+	//U::print(predict, "predict");
+	//for (int b=0; b < 20; b++) {
+		//printf("exact[%d]= %f, %f, pred[%d]= %f, %f, soft= %f, %f\n", b, exact[b](0,0), exact[b](1,0), b, predict[b](0,0), predict[b](1,0), y[b](0,0), y[b](1,0)); 
+	//}
+
+
+	loss.set_size(nb_batch); // needed
+	VF2D output(size(predict[0]));
+
+	// LOSS[batch][sequence]
+	for (int b=0; b < nb_batch; b++) {
+		//output = arma::clamp(predict[b], NEAR_ZERO, 1.-NEAR_ZERO); 
+		output = arma::clamp(y[b], NEAR_ZERO, 1.-NEAR_ZERO); 
+
+		loss[b].zeros(seq_len);
+		for (int s=0; s < seq_len; s++) {
+		   //printf("s= %d\n", s);
+
+			// Sum over input_dim (most terms are zero)
+			for (int i=0; i < input_dim; i++) {
+				//printf("i= %d\n", i);
+				loss[b](s) -= exact[b](i,s) * log(output(i,s));
+				//printf("exact(%d,%d): %f, output(%d,%d)= %f\n", i,s,exact[b](i,s), i,s, output(i,s));
+				// I should not have to do the sum, since exact is all zeros except one element, and 
+				// I know which one
+			}
+		}
+		// Really need the average over the sequence
+		//loss[b] = loss[b] / seq_len; // orig
+	}
+	//loss.print("loss in GMM1D computeLoss\n");
+		//exit(0);
+	//loss.print("exit loss");
+}
+
+//----------------------------------------------------------------------
+void GMM1D::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
+{
+	//printf("**** enter crossEntropy Gradient ****\n");
+	int nb_batch = exact.n_rows;
+	int seq_len  = exact[0].n_cols;
+	gradient.reset(); // empty the datastructure
+	gradient.set_size(nb_batch);
+
+	// WRONG: predict[b] must the the result of the softmax
+	VF2D_F y(predict); // additional copy
+
+	// softmax over the dimension index of VF2D (first index)
+	for (int b=0; b < nb_batch; b++) {
+		REAL mx = arma::max(arma::max(predict[b]));
+	    for (int s=0; s < seq_len; s++) {
+		    y(b).col(s) = arma::exp(y(b).col(s)-mx);
+			// trick to avoid overflows
+			REAL ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
+			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
+		}
+	}
+
+	for (int b=0; b < nb_batch; b++) {
+		//U::print(predict, "predict");
+		//U::print(exact, "exact");
+		//gradient[b] = (predict[b] - exact[b]) / seq_len; // average gradient
+		gradient[b] = (y[b] - exact[b]); // average gradient
+		// although all exact are zero except one (for a given sequence index), predict are all non-zero.
+		// So I do not think there is a faster procedure to evaluate the gradient. 
+
+		// Clip to [-5,5] to avoid exploding gradients
+		gradient[b] = arma::clamp(gradient[b], -5., 5.);
+	}
+	//gradient(0).raw_print(arma::cout, "Cross-Entropy Gradient");
+}
+//----------------------------------------------------------------------

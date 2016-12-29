@@ -122,6 +122,22 @@ public:
 	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
 };
 //----------------------------------------------------------------------
+class GMM1D : public Objective
+{
+private:
+public:
+	GMM1D(std::string name="gmm1d");
+	~GMM1D();
+	GMM1D(const GMM1D&);
+
+	// Use default assignment (works fine because there are no pointers among member variables)
+	//const GMM1D& GMM1D=(const GMM1D&);
+
+	/** sum_{batches} (predict - exact)^2 */
+	void computeLoss(const VF2D_F& exact, const VF2D_F& predict);
+	void computeGradient(const VF2D_F& exact, const VF2D_F& predict);
+};
+//----------------------------------------------------------------------
 
 #endif
 
