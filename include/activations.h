@@ -53,7 +53,23 @@ public:
 	virtual VF2D jacobian(const VF1D& x, const VF1D& y) { ; // different variables are coupled, Jacobian
 		return VF2D(1,1);  // not really used, but a placeholder 
 	}
-	virtual VF2D_F operator()(const VF2D_F& x) = 0; // Memory leak
+	#if 0
+	virtual const VF2D_F operator()(const VF2D_F& x) const {
+		VF2D_F y(x.n_rows);
+		for (int b=0; b < x.n_rows; b++) { // Memory leak
+			y[b] = operator()(x[b]);  // excessive copying? 
+		}
+		return y;
+	}
+	#endif
+	virtual VF2D_F operator()(const VF2D_F& x) {
+		VF2D_F y(x.n_rows);
+		for (int b=0; b < x.n_rows; b++) { // Memory leak
+			y[b] = operator()(x[b]);  // excessive copying? 
+		}
+		return y;
+	}
+	virtual VF2D operator()(const VF2D& x) = 0; // Memory leak
 	virtual void print(std::string name= "");
 	virtual std::string getName() { return name; }
 	virtual const std::string getDerivType() const { return deriv_type; }
@@ -80,8 +96,11 @@ public:
     Identity(const Identity&);
     const Identity& operator=(const Identity&);
  
-	VF2D_F operator()(const VF2D_F& x) {
-		//printf("inside identity operator()\n");
+	//VF2D_F operator()(const VF2D_F& x) {
+		//return x;
+	//}
+
+	VF2D operator()(const VF2D& x) {
 		return x;
 	}
 
@@ -118,18 +137,13 @@ public:
     Tanh(const Tanh&);
     const Tanh& operator=(const Tanh&);
  
-	VF2D_F operator()(const VF2D_F& x) {
-#ifdef ARMADILLO
-		VF2D_F y(x.n_rows);
-		for (int i=0; i < x.n_rows; i++) {
-			y[i] = tanh(x[i]);
-		}
-		return y;
-#else
-		AF ex = x;
-		ex = (2.*ex).exp(); //exp(x);
-		return (ex-1.) / (ex + 1.);
-#endif
+	VF2D operator()(const VF2D& x) {
+		//VF2D y(x.n_rows);
+		//for (int i=0; i < x.n_rows; i++) {
+			//y[i] = tanh(x[i]);
+		//}
+		//VF2D y = tanh(x);
+		return arma::tanh(x);
 	}
 
 	VF2D_F derivative(const VF2D_F& x)
@@ -173,11 +187,13 @@ public:
     Sigmoid(const Sigmoid&);
     const Sigmoid& operator=(const Sigmoid&);
 
-	VF2D_F operator()(const VF2D_F& x) {
-		VF2D_F y(x.n_rows);
-		for (int i=0; i < x.n_rows; i++) { // loop over field elements
-			y[i] = 1. / (1. + exp(-x[i]));
-		}
+	VF2D operator()(const VF2D& x) {
+		//VF2D_F y(x.n_rows);
+		//for (int i=0; i < x.n_rows; i++) { // loop over field elements
+			//y[i] = 1. / (1. + exp(-x[i]));
+		//}
+		VF2D y(size(x));;
+		y = 1. / (1.+exp(-x));
 		return y;
 	}
 
@@ -213,14 +229,15 @@ public:
     ReLU(const ReLU&);
     const ReLU& operator=(const ReLU&);
 
-	VF2D_F operator()(const VF2D_F& x) {
-		VF2D_F y(x.n_rows);
-		VF2D zeros = arma::zeros(size(x[0]));
-		for (int i=0; i < x.n_rows; i++) {
-			//y[i] = arma::clamp(x[i], 0., x[i].max()); 
-			//y[i] = arma::max(0., x[i]); 
-			y[i] = arma::max(zeros, x[i]); 
-		}
+	VF2D operator()(const VF2D& x) {
+		VF2D y(size(x));
+		VF2D zeros = arma::zeros(size(x));
+		//for (int i=0; i < x.n_rows; i++) {
+			// //y[i] = arma::clamp(x[i], 0., x[i].max()); 
+			// //y[i] = arma::max(0., x[i]); 
+			//y[i] = arma::max(zeros, x[i]); 
+		//}
+		y = arma::max(zeros, x); 
 		return y;
 	}
 
@@ -264,7 +281,8 @@ public:
     const Softmax& operator=(const Softmax&);
 
 
-	VF2D_F operator()(const VF2D_F& x);
+	//VF2D_F operator()(const VF2D_F& x);
+	VF2D operator()(const VF2D& x);
 
 	//f = 1 / (1 + exp(-x)) = 1/D
 	//f' = -1/D^2 * (-exp(-x)-1 + 1) = -1/D^2 * (-D + 1) = 1/D - 1/D^2 = f (1-f)
@@ -288,6 +306,7 @@ public:
     DecayDE(const DecayDE&);
     const DecayDE& operator=(const DecayDE&);
  
+	#if 0
 	VF2D_F operator()(const VF2D_F& x)
 	{
 		//printf("operator()\n");
@@ -301,6 +320,24 @@ public:
 			//printf("dt= %21.14f, params[0]= %21.14f, x[0][0]= %21.14f, y[0][0]= %21.14f\n", dt, params[0], x[0][0], y[0][0]);
 		}
 		return y;
+	}
+	#endif
+
+	VF2D operator()(const VF2D& x)
+	{
+		REAL coef = (1.-dt*params[0]);
+		return coef * x;
+
+		#if 0
+		for (int i=0; i < x.n_rows; i++) {
+			// Forward Euler
+
+			// Somehow, x[i] is not the same as in Python code. Weird. 
+			y[i] = (1. - dt * params[0]) * x[i];
+			//printf("dt= %21.14f, params[0]= %21.14f, x[0][0]= %21.14f, y[0][0]= %21.14f\n", dt, params[0], x[0][0], y[0][0]);
+		}
+		return y;
+		#endif
 	}
 
 	VF2D_F derivative(const VF2D_F& x)

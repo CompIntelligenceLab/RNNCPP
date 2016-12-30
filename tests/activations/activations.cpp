@@ -7,8 +7,8 @@ int main()
 {
 	printf("\n\n\n");
 	printf("=============== BEGIN Activations =======================\n");
-	Tanh* ttanh = new Tanh();
-	Sigmoid* ssigmoid = new Sigmoid();
+	Activation* ttanh = new Tanh();
+	Activation* ssigmoid = new Sigmoid();
 	bool success = true;
 
 	VF2D_F c(2), tt(2), ttexact(2);        // number of fields
@@ -57,7 +57,7 @@ int main()
 
 //-----------------------------------------------------
 	printf("\n\n: testing of activation parameter in DecayDE\n");
-	DecayDE* decay = new DecayDE();
+	Activation* decay = new DecayDE();
     {
 		VF2D_F c(2), tt(2), ttexact(2);        // number of fields
 		for (int f=0; f < c.size(); f++) {

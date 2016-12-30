@@ -914,4 +914,16 @@ anywhere.
 Dec. 29, 2016
 - implemented Gaussian Mixture Model 1D (compute + gradient). Not debugged. 
 ----------------------------------------------------------------------
-
+/Users/erlebach/src/RNNCPP/src/layers.cpp:353:11: error: no matching function for call to object of
+      type 'Activation'
+	                   prod = getActivation()(getInputs());
+					                           ^~~~~~~~~~~~~~~
+											   /Users/erlebach/src/RNNCPP/include/activations.h:65:17: note: candidate function not viable: 1st
+											         argument ('const VF2D_F' (aka 'const field<arma::Mat<double> >')) would lose const qualifier
+													         virtual VF2D_F operator()(VF2D_F& x) {
+															                        ^
+																					/Users/erlebach/src/RNNCPP/include/activations.h:72:15: note: candidate function not viable: no known
+																					      conversion from 'const VF2D_F' (aka 'const field<arma::Mat<double> >') to 'const VF2D'
+																						        (aka 'const Mat<double>') for 1st argument
+																								        virtual VF2D operator()(const VF2D& x) = 0; // Memory leak
+----------------------------------------------------------------------

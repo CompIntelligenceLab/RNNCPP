@@ -35,14 +35,15 @@ int discrete_sample(VF2D_F& x)
 // code modified from code obtained on the net
 
     // Setup the random bits
-	Softmax soft; 
+	//Softmax soft; 
+	Activation* soft = new Softmax();
 
 	// ideally, these (rd and gen) should be called only once
     std::random_device rd;
     std::mt19937 gen(rd()); 
 
 	//x.print("x");
-	VF2D_F y = soft(x);
+	VF2D_F y = (*soft)(x);
 	//y.print("softmax");
 
     // Setup the weights (in this case linearly weighted)

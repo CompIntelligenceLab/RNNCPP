@@ -490,17 +490,7 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 
 	int Npi = ia2; // number of distributions
 
-	//printf("ia1,ia2= %d, %d\n", ia1, ia2);
-	//predict.print("pi");
-	//printf("-----------\n");
-	//predict.rows(0,1).print("pi rows 0,1");
-	//printf("-----------\n");
-	//exit(0);
-
 	VF2D pi(predict.rows(ia1,ia2-1));
-
-	//U::print(pi, "pi");
-	//exit(0);
 
 	// softmax over the dimension index of VF2D (first index)
 	REAL mx = arma::max(arma::max(pi));
@@ -513,38 +503,28 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 
 	// standard deviations: exp(output) => sig
 
-	//U::print(predict, "predict");
 	VF2D sig(predict.rows(isig1, isig2-1));
 	sig = arma::exp(sig);
-	//U::print(sig, "sig");
 	VF2D mu(predict.rows(imu1, imu2-1));
-	//U::print(mu, "mu");
 
 	// Compute sum of N probabilities
 	VF2D prob(pi);
 	prob.zeros();
-	VF2D x(mu); // WRONG
+
+	// xx must be a vector of length seq_len
+	VF2D xx(size(mu));
+	xx.each_row() = exact;
 
 	// ignore factor 1/sqrt(2.*pi)
-	prob = pi % arma::exp(-arma::square(x-mu) / (sig%sig)) / arma::sqrt(sig);
+	prob = pi % arma::exp(-arma::square(xx-mu) / (sig%sig)) / arma::sqrt(sig);
 
 	arma::Row<REAL> sprob(seq_len);
-	//VF2D sprob(1, seq_len);
 	sprob.zeros();
 
 	for (int r=0; r < prob.n_rows; r++) {
 		sprob += prob.row(r);
 	}
 	sprob = arma::log(sprob);
-
-	U::print(sprob, "sprob");
-
-	#if 0
-	REAL cost = 0.;
-	for (int s=0; s < seq_len; s++) {
-		cost += sprob(s);
-	}
-	#endif
 
 	return sprob;
 }
@@ -558,7 +538,6 @@ void GMM1D::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 		loss(b) = computeLossOneBatch(exact(b), predict(b));
 	}
 }
-
 //----------------------------------------------------------------------
 VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 {
@@ -605,7 +584,8 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 	VF2D x(exact);
 
 
-	REAL xx = 0.;
+	VF2D xx(size(mu));
+	xx.each_row() = exact;
 
 	// ignore factor 1/sqrt(2.*pi)
 	prob = pi % arma::exp(-arma::square(xx-mu) / (sig%sig)) / arma::sqrt(sig);

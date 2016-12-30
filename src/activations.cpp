@@ -136,6 +136,21 @@ const Identity& Identity::operator=(const Identity& s)
 
 //----------------------------------------------------------------------
 
+VF2D Softmax::operator()(const VF2D& x) 
+{
+	VF2D y(x);
+	// softmax over the dimension index of VF2D (first index)
+	REAL mx = arma::max(arma::max(x));
+	for (int s=0; s < x.n_cols; s++) {
+		y.col(s) = arma::exp(y.col(s)-mx);
+		// trick to avoid overflows
+		REAL ssum = 1. / arma::sum(y.col(s)); // = arma::exp(y[b]);
+		y.col(s) = y.col(s) * ssum;  // % is elementwise multiplication (arma)
+	}
+	return y;
+}
+//----------------------------------------------------------------------
+#if 0
 VF2D_F Softmax::operator()(const VF2D_F& x) 
 {
 	VF2D_F y(x);
@@ -148,9 +163,10 @@ VF2D_F Softmax::operator()(const VF2D_F& x)
 			REAL ssum = 1. / arma::sum(y[b].col(s)); // = arma::exp(y[b]);
 			y[b].col(s) = y[b].col(s) * ssum;  // % is elementwise multiplication (arma)
 		}
-		return y;
 	}
+	return y;
 }
+#endif
 
 //----------------------------------------------------------------------
 //f = 1 / (1 + exp(-x)) = 1/D

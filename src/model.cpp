@@ -509,21 +509,23 @@ void Model::printSummary()
 		for (int p=0; p < prev.size(); p++) {
 			Layer* pl = prev[p].first;
 			Connection* pc = prev[p].second;
-	printf("pc1= %ld\n", pc);
-			conn_type = (pc->getTemporal()) ? "temporal" : "spatial";
-			sprintf(buf, "   - prev[%d]: ", p);
-			pl->printSummary(std::string(buf));
-			pc->printSummary(std::string(buf));
+			if (pc) {
+				conn_type = (pc->getTemporal()) ? "temporal" : "spatial";
+				sprintf(buf, "   - prev[%d]: ", p);
+				pl->printSummary(std::string(buf));
+				pc->printSummary(std::string(buf));
+			}
 			printf("\n");
 		}
 		for (int n=0; n < next.size(); n++) {
 			Layer* nl = next[n].first;
 			Connection* nc = next[n].second;
-	printf("nc1= %ld\n", nc);
-			conn_type = (nc->getTemporal()) ? "temporal" : "spatial";
-			sprintf(buf, "   - next[%d]: ", n);
-			nl->printSummary(buf);
-			nc->printSummary(buf);
+			if (nc) {
+				conn_type = (nc->getTemporal()) ? "temporal" : "spatial";
+				sprintf(buf, "   - next[%d]: ", n);
+				nl->printSummary(buf);
+				nc->printSummary(buf);
+			}
 			printf("\n");
 		}
 
@@ -533,21 +535,23 @@ void Model::printSummary()
 		for (int p=0; p < prev.size(); p++) {
 			Layer* pl = prev[p].first;
 			Connection* pc = prev[p].second;
-	printf("pc2= %ld\n", pc);
-			conn_type = (pc->getTemporal()) ? "temporal" : "spatial";
-			sprintf(buf, "   - prev[%d]: ", p);
-			pl->printSummary(std::string(buf));
-			pc->printSummary(std::string(buf));
+			if (pc) {
+				conn_type = (pc->getTemporal()) ? "temporal" : "spatial";
+				sprintf(buf, "   - prev[%d]: ", p);
+				pl->printSummary(std::string(buf));
+				pc->printSummary(std::string(buf));
+			}
 			printf("\n");
 		}
 		for (int n=0; n < next.size(); n++) {
 			Layer* nl = next[n].first;
 			Connection* nc = next[n].second;
-	printf("nc2= %ld\n", nc);
-			conn_type = (nc->getTemporal()) ? "temporal" : "spatial";
-			sprintf(buf, "   - next[%d]: ", n);
-			nl->printSummary(buf);
-			nc->printSummary(buf);
+			if (nc) {
+				conn_type = (nc->getTemporal()) ? "temporal" : "spatial";
+				sprintf(buf, "   - next[%d]: ", n);
+				nl->printSummary(buf);
+				nc->printSummary(buf);
+			}
 			printf("\n");
 		}
 	}
@@ -561,14 +565,20 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		//printf("reset state GE\n");
 	}
 
-	//printf("****************** ENTER predictViaConnections ***************\n");
+	printf("****************** ENTER predictViaConnections ***************\n");
+	//U::print(x, "x input argument");
+	//printf("-------- print Outputs 1\n");
+	//U::printOutputs(this);
 
 
 	VF2D_F prod(x.n_rows);
 
 	Layer* input_layer = getInputLayers()[0];
 	input_layer->layer_inputs[0] = x; 
+	//U::print(x, "x");
 	input_layer->setOutputs(x);  // although input layer "could" have a nonlinear activation function (maybe)
+	//printf("-------- print Outputs 2\n");
+	//U::printOutputs(this);
 
  	for (int t=0; t < seq_len; t++) {  // CHECK LOOP INDEX LIMIT
 		for (int l=0; l < layers.size(); l++) {
@@ -599,20 +609,21 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 			to_layer->forwardLoops(conn, t-1);
 		}
 		#endif
+
+	//printf("-------- print Outputs 3\n");
+	//U::printOutputs(this);
 		
+		//printf("+++\n");
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
 			Layer* to_layer   = conn->to;
+	//U::printOutputs(this);
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
 		}
  	}
 
 
 	// update all other temporal connections coming into the layers (arbitrary order, I think)
-	// ...........
-
-	//printf("before last for in predict\n");
-	//for (int c=0; c < clist.size(); c++) { // }
 	for (int c=0; c < clist_temporal.size(); c++) {  // WILL THIS CHANGE eq3 test? 
 		Connection* conn  = clist_temporal[c];
 		Layer* to_layer   = conn->to;
@@ -666,6 +677,7 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		}
 		#endif
 		
+		//printf("+++\n");
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
 			Layer* to_layer   = conn->to;
