@@ -324,9 +324,9 @@ void Layer::processOutputDataFromPreviousLayer(Connection* conn, VF2D_F& prod, i
 	const WEIGHT& wght = conn->getWeight();  // what if connection operates differently
 	VF2D_F& to_inputs = layer_inputs[conn->which_lc];
 
-	conn->from->printSummary("\n---\nfrom, ");
-	this->printSummary();
-	conn->printSummary();
+	//conn->from->printSummary("\n---\nfrom, ");
+	//this->printSummary();
+	//conn->printSummary();
 	//U::print(wght, "wght");
 	//U::print(from_outputs, "from_outputs");
 	//U::print(to_inputs, "to_inputs");

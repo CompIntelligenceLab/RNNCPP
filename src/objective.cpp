@@ -120,7 +120,7 @@ void MeanSquareError::computeGradient(const VF2D_F& exact, const VF2D_F& predict
 		}
 	}
 	//U::print(gradient, "computeGradient, MeanSquareError");
-	gradient.print("loss gradient");
+	//gradient.print("loss gradient");
 	//exit(0);
 }
 //----------------------------------------------------------------------
@@ -482,7 +482,7 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	int input_dim = predict.n_rows;
 	//printf("input_dim= %d\n", input_dim); exit(0);
 	printf("enter computeLossOneBatch\n");
-	predict.print("predict");
+	//predict.print("predict");
 
 	int ia1   = 0;
 	int ia2   = input_dim / 3;
@@ -518,18 +518,20 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	VF2D xx(size(mu));
 	xx.each_row() = exact;
 
+	#if 0
 	U::print(exact, "exact");
 	U::print(predict, "predict");
 	predict.print("predict");
 	exact.print("exact");
 	xx.print("xx (exact)");
 	mu.print("mu");
-	pi.print("pi");
+	pi.print("loss pi");
+	#endif
 
 	// ignore factor 1/sqrt(2.*pi)
 	prob = pi % arma::exp(-arma::square(xx-mu) / (sig%sig)) / arma::sqrt(sig);
-	prob.print("prob");
-	exit(0);
+
+	//prob.print("prob");
 
 	arma::Row<REAL> sprob(seq_len);
 	sprob.zeros();
@@ -539,6 +541,8 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	}
 	// sprob contains a sum of seq_len probabilities
 	sprob = arma::log(sprob);
+	sprob.print("sprob, seq_len elements");
+	//exit(0);
 
 	return sprob;
 }
@@ -564,7 +568,6 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 
 	int seq_len = predict.n_cols;
 	int input_dim = predict.n_rows;
-
 
 	int ia1   = 0;
 	int ia2   = input_dim / 3;
@@ -613,18 +616,20 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 	   yprob.col(s) = arma::exp(yprob.col(s)-mx);
 	   // trick to avoid overflows
 	   REAL ssum = 1. / arma::sum(yprob.col(s)); // = arma::exp(y[b]);
-	   yprob.col(s) = yprob.col(s) * ssum;  // % is elementwise multiplication (arma)
+	   yprob.col(s) *= ssum;  // % is elementwise multiplication (arma)
 	}
 
 	VF2D dLdpi  = pi - yprob;
-	VF2D dLdmu  = -yprob % (xx-mu) / sig;
-	VF2D dLdsig = -arma::square(yprob % (xx-mu) / sig) - 1.;
+	VF2D dLdmu  = -yprob % (xx-mu) / (sig%sig);
+	VF2D dLdsig = -yprob % (arma::square((xx-mu) / sig) - 1.);
+	//dLdmu.print("dLdmu");
 
 	// Combine the derivatives into one vector. 
 	VF2D grad(size(predict));
 	grad.rows(ia1,ia2-1)     = dLdpi;
 	grad.rows(imu1,imu2-1)   = dLdmu;
 	grad.rows(isig1,isig2-1) = dLdsig;
+	//grad.print("grad");
 	return grad;
 }
 //----------------------------------------------------------------------

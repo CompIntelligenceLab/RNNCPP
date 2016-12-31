@@ -29,9 +29,9 @@ Model::Model(std::string name /* "model" */)
 
 	print_verbose = true;
 	printf("Model constructor (%s)\n", this->name.c_str());
-	//optimizer = new RMSProp();
+	optimizer = new RMSProp();
 	//optimizer = new Adam(); printf("USE ADAM optimizer\n");
-	optimizer = new Adagrad(); printf("USE ADAGRAD optimizer\n");
+	//optimizer = new Adagrad(); printf("USE ADAGRAD optimizer\n");
 	objective = new MeanSquareError();
 	//objective = NULL; // I believe this should just be a string or something specifying
                // the name of the objective function we would like to use
@@ -712,7 +712,7 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 // the arrays would be computed inside the function
 // results to begin implementing the backprop. Should be reevaluated
 
-void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
+VF2D_F Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 {
 	// MUST REWRITE THIS PROPERLY
 	// DEAL WITH BATCH and SEQUENCES CORRECTLY
@@ -737,11 +737,9 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	objective->computeLoss(exact, pred);
 	printf("why is first element of each sequence start with zero?\n");
 	printf("Only makes sense if there are no biases\n");
-	printf("exit in trainOneBatch\n"); exit(0);
 
 	const LOSS& loss = objective->getLoss();
 	REAL rloss = arma::sum(loss[0]);
-	//printf("rloss= %21.14f\n", rloss);
 
 	// If save loss, ...
 	//loss_history.push_back(loss); // slight leak (should print out every n iterations
@@ -766,7 +764,9 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	U::printBiasDeltas(this);
 	#endif
 
-	pred.reset(); // handle memory leaks
+	printf("trainOneBatch, before return\n");
+	U::print(pred, "pred");
+	return pred;
 }
 //----------------------------------------------------------------------
 void Model::trainOneBatch(VF2D x_, VF2D exact_)

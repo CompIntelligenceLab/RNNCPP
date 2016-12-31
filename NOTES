@@ -932,3 +932,23 @@ Not sure about gradient calculation. How to check?
 
 Must debug with seq_len=1. ComputeLoss does not appear to be correct. 
 ----------------------------------------------------------------------
+Dec. 31, 2016
+- fixed derivatives of gmm objective function in src/objective.cpp. 
+- if initial weights have rms=.01 (random), the normal distributions stay too close to each other. 
+If initial weights have rms=.3, I get nans. So I set initial weight rms to .1 . Code works without 
+nans. Whether it works properly or not remains to be seen. 
+
+GMM1D seems to work, using SGD. However, even though stochastics are different every run,
+I would expect the mean, std, and pi to have the same values given the fact the the signal 
+is constant. 
+
+A nice thing is that the curves of mean, std and pi are periodic. 8 oscillations per 100 steps. 
+However, the original sine wave has 1.25 oscillations per 100 steps. This might be related
+to the fact that pi,mu,sig have size seq_len, which I did not take into account when output
+the data. 
+
+When I try Adagrad, it is unstable unless I decrease the learning rate. Do not know why there is a 
+problem. It eventually becomes stable, but the rms, mean, pi do not oscillate nearly as cleanly as 
+when using SGD.  DO NOT KNOW WHY. I should try "generating" a signal. With a simple sign wave, I would expect the pdf to have very small sigma and be almost dirac-like if I expect a good signal reconstruction. 
+----------------------------------------------------------------------
+

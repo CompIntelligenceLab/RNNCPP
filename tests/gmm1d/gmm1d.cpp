@@ -12,6 +12,50 @@
 #include "globals.h"
 #include "../common.h"
 
+std::vector<VF2D> vpi;
+std::vector<VF2D> vmu;
+std::vector<VF2D> vsig;
+//----------------------------------------------------------------------
+void saveGMM1(const VF2D& predict)
+{
+// First compute softmax of prediction to transform the to probabilities
+
+	// predict[batch][inputs, seq]
+	// predict[batch][0:inputs/3, :] ==> amplitudes
+	// predict[batch][inputs/3:2*inputs/3, :] ==> means
+	// predict[batch][2*inputs/3:3*inputs/3, :] ==> standard deviations
+
+	int seq_len = predict.n_cols;
+	int input_dim = predict.n_rows;
+
+	int ia1   = 0;
+	int ia2   = input_dim / 3;
+	int imu1  = input_dim / 3;
+	int imu2  = 2* input_dim / 3;
+	int isig1 = 2* input_dim / 3;
+	int isig2 = 3* input_dim / 3;
+
+	VF2D pi(predict.rows(ia1,ia2-1));
+
+	// softmax over the dimension index of VF2D (first index)
+	REAL mx = arma::max(arma::max(pi));
+	for (int s=0; s < seq_len; s++) {
+	   pi.col(s) = arma::exp(pi.col(s)-mx);
+	   // trick to avoid overflows
+	   REAL ssum = 1. / arma::sum(pi.col(s)); // = arma::exp(y[b]);
+	   pi.col(s) = pi.col(s) * ssum;  // % is elementwise multiplication (arma)
+	}
+
+	// standard deviations: exp(output) => sig
+
+	VF2D sig(predict.rows(isig1, isig2-1));
+	sig = arma::exp(sig);
+	VF2D mu(predict.rows(imu1, imu2-1));
+	vpi.push_back(pi);
+	vmu.push_back(mu);
+	vsig.push_back(sig);
+}
+//----------------------------------------------------------------------
 VF2D discrete_sample_gmm1d(VF2D predict);
 
 /* implementation of Karpathy's char-rnn. 
@@ -42,9 +86,10 @@ void check_gmm_sampling()
 	pre.rows(6,8) = sig;
 	pre.print("pre");
 	VF2D vv;
-	VF1D ve(100000);
+	int sz = 1000;
+	VF1D ve(sz);
 	std::vector<REAL> prob;
-	for (int i=0; i < 100000; i++) {
+	for (int i=0; i < sz; i++) {
 		vv = discrete_sample_gmm1d(pre);
 		vv.print("vv");
 		prob.push_back(vv(0,0));
@@ -146,26 +191,34 @@ VF2D discrete_sample_gmm1d(VF2D predict)
 	VF2D sig(predict.rows(isig1, isig2-1));
 	sig = arma::exp(sig);
 	VF2D mu(predict.rows(imu1, imu2-1));
+	mu.print("mu");
+	sig.print("sig");
+	pi.print("pi");
 
 	int ix = discrete_sample(pi);
 
 	// Sample the ix^{th} normal distribution
 	REAL sigma = sig[ix];
 	REAL mean  = mu[ix];
+
 	//sig.print("sig");
 	//mu.print("mu");
 	//pi.print("pi");
 	//printf("ix= %d\n", ix);
-
 	//printf("ix= %d\n", ix);
+
 	VF1D ss = arma::randn<VF1D>(1);
+
 	//U::print(ss, "ss");
 	//printf("mu[%d] = %f\n", ix, mean);
 	//printf("sig[%d]= %f\n", ix, sigma);
 	//printf("ss= %f\n", ss[0]);
+
 	REAL sample = mean + sigma * ss[0]; //arma::randn<VF1D>(1)[0];
+
 	//printf("sample= %f\n", sample);
 	//exit(0);
+
 	VF2D res(1,1);
 	res(0,0) = sample;
 	return res;
@@ -277,17 +330,21 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
 	Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
-	Layer* d2    = new DenseLayer(30, "rdense"); // layer_size must be multiple of 3 for GMM
+	Layer* d12   = new DenseLayer(m->layer_size,    "rdense");
+	Layer* d2    = new DenseLayer(9, "gmm"); // layer_size must be multiple of 3 for GMM
 
 	// Softmax is included in the calculation of the cross-entropy
 
 	m->add(0, input);
 	m->add(input, d1);
 	m->add(d1, d1, true);  // recursive
-	m->add(d1, d2);
+	m->add(d1, d12);  
+	m->add(d12, d12, true);  // recursive
+	m->add(d12, d2);
 
 	input->setActivation(new Identity());// Original
 	d1->setActivation(new ReLU());
+	d12->setActivation(new ReLU());
 	d2->setActivation(new Identity()); // original
 
 	m->addInputLayer(input);
@@ -297,14 +354,16 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	m->connectionOrderClean(); // no print statements
 
 	m->initializeWeights(); // be initialized after freezing
-	BIAS& b1 = d1->getBias();
-	BIAS& b2 = d2->getBias();
+	BIAS& b1  = d1->getBias();
+	BIAS& b2  = d2->getBias();
+	BIAS& b12 = d12->getBias();
 
 	// NEED A ROUTINE TO SET ALL TRANSPOSES
 
 	// b1 = 0.1 generates a single scalar. Do not know why. 
-	b1 = 1.0 * arma::ones<BIAS>(size(b1));
-	b2 = 1.0 * arma::ones<BIAS>(size(b2));
+	b1  = 0.3 * arma::ones<BIAS>(size(b1));
+	b2  = 0.3 * arma::ones<BIAS>(size(b2));
+	b12 = 0.3 * arma::ones<BIAS>(size(b12));
 
 	// COMPUTE ALL WEIGHT TRANSPOSES
 
@@ -342,11 +401,13 @@ void gmm1d(Globals* g)
 	std::vector<REAL> input_data;
 	REAL dt = .1;
 
-	for (int i=0; i < 1000; i++) {
+	for (int i=0; i < 10000; i++) {
 		REAL x = i * dt;
 		REAL f = .8 * sin(x);
+		printf("f[%d]= %f\n", i, f);
 		input_data.push_back(f);
 	}
+	//exit(0);
 
 	//--------------------------------------
 
@@ -376,7 +437,7 @@ void gmm1d(Globals* g)
 	U::createMat(net_inputs, batch_size, input_dim, seq_len);
 	U::createMat(net_exact, batch_size, input_dim, seq_len);
 
-	int count = 0;
+	int count = 1;
 	REAL which_char;
 
 	for (int e=0; e < nb_epochs; e++) {
@@ -390,7 +451,8 @@ void gmm1d(Globals* g)
 			#if 1
 			// ADD BACK WHEN CODE WORKS
 			//if ((count+1) % 1 == 0) {
-			if (++count % 100 == 0) {
+			printf("count= %d\n", count);
+			if (!(count % 100)) {
 				printf("TEST, nb_epochs: %d, iter: %d, \n", e, count);
 				m_pred->setWeightsAndBiases(m);
 				sample(m_pred, which_char);
@@ -404,15 +466,29 @@ void gmm1d(Globals* g)
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 
-			printf("TRAIN, \n");
-			net_inputs.print("net_inputs");
-			net_exact.print("net_exact");
-			m->trainOneBatch(net_inputs, net_exact);
+			//printf("TRAIN, \n");
+			//net_inputs.print("net_inputs");
+			//net_exact.print("net_exact");
+			VF2D_F predict = m->trainOneBatch(net_inputs, net_exact);
+			//U::print(predict, "x predict");
+			saveGMM1(predict[0]);
+			predict.reset();
 			count++;
-
 		}
 		printf("\n\n");
 	}
+
+	// save data
+	FILE *fd = fopen("stats.out", "w");
+	for (int i=0; i < vpi.size(); i++) {
+	   for (int j=0; j < seq_len; j++) {
+	   		fprintf(fd, "%f  %f  %f  %f  %f  %f  %f  %f  %f\n",
+	   		vpi[i](0,j), vpi[i](1,j), vpi[i](2,j),
+	   		vmu[i](0,j), vmu[i](1,j), vmu[i](2,j),
+	   		vsig[i](0,j), vsig[i](1,j), vsig[i](2,j));
+		}
+	}
+	fclose(fd);
 
 	//delete input;
 	//delete d1;
