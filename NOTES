@@ -927,3 +927,8 @@ Dec. 29, 2016
 																						        (aka 'const Mat<double>') for 1st argument
 																								        virtual VF2D operator()(const VF2D& x) = 0; // Memory leak
 ----------------------------------------------------------------------
+gmm1d sampling appears to work. 
+Not sure about gradient calculation. How to check? 
+
+Must debug with seq_len=1. ComputeLoss does not appear to be correct. 
+----------------------------------------------------------------------

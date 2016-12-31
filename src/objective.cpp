@@ -477,9 +477,12 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	// predict[batch][inputs/3:2*inputs/3, :] ==> means
 	// predict[batch][2*inputs/3:3*inputs/3, :] ==> standard deviations
 
+
 	int seq_len = predict.n_cols;
 	int input_dim = predict.n_rows;
 	//printf("input_dim= %d\n", input_dim); exit(0);
+	printf("enter computeLossOneBatch\n");
+	predict.print("predict");
 
 	int ia1   = 0;
 	int ia2   = input_dim / 3;
@@ -508,15 +511,25 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	VF2D mu(predict.rows(imu1, imu2-1));
 
 	// Compute sum of N probabilities
-	VF2D prob(pi);
-	prob.zeros();
+	VF2D prob; //(sizepi);
+	//prob.zeros();
 
 	// xx must be a vector of length seq_len
 	VF2D xx(size(mu));
 	xx.each_row() = exact;
 
+	U::print(exact, "exact");
+	U::print(predict, "predict");
+	predict.print("predict");
+	exact.print("exact");
+	xx.print("xx (exact)");
+	mu.print("mu");
+	pi.print("pi");
+
 	// ignore factor 1/sqrt(2.*pi)
 	prob = pi % arma::exp(-arma::square(xx-mu) / (sig%sig)) / arma::sqrt(sig);
+	prob.print("prob");
+	exit(0);
 
 	arma::Row<REAL> sprob(seq_len);
 	sprob.zeros();
@@ -524,6 +537,7 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	for (int r=0; r < prob.n_rows; r++) {
 		sprob += prob.row(r);
 	}
+	// sprob contains a sum of seq_len probabilities
 	sprob = arma::log(sprob);
 
 	return sprob;
@@ -582,7 +596,6 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 	VF2D prob(pi);
 	prob.zeros();
 	VF2D x(exact);
-
 
 	VF2D xx(size(mu));
 	xx.each_row() = exact;

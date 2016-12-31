@@ -12,6 +12,8 @@
 #include "globals.h"
 #include "../common.h"
 
+VF2D discrete_sample_gmm1d(VF2D predict);
+
 /* implementation of Karpathy's char-rnn. 
    Need on-hot vectors. 
 
@@ -28,6 +30,43 @@ How to transfer weights from model M1 to model M2?
      M2.setWeightsAndBiases(M1);
 */
 
+void check_gmm_sampling()
+{
+	// Fake predict vector with 3 pdfs
+	VF1D pi = {.8, .8, .8};
+	VF1D mu = {-5., 3., 12.};
+	VF1D sig = {1., 1., 1.};
+	VF2D pre(9,1);
+	pre.rows(0,2) = pi;
+	pre.rows(3,5) = mu;
+	pre.rows(6,8) = sig;
+	pre.print("pre");
+	VF2D vv;
+	VF1D ve(100000);
+	std::vector<REAL> prob;
+	for (int i=0; i < 100000; i++) {
+		vv = discrete_sample_gmm1d(pre);
+		vv.print("vv");
+		prob.push_back(vv(0,0));
+		ve(i) = vv(0,0);
+	}
+	printf("min/max prob: %f, %f\n", arma::min(ve), arma::max(ve));
+	//for (int i=0; i < prob.size(); i++) {
+		//printf("prob[%d]= %f\n", i, prob[i]);
+	//}
+	int nb_centers = 60;
+	VF1D centers(nb_centers);
+	for (int i=0; i < nb_centers; i++) {
+		centers[i] = -nb_centers/2. + i; 
+	}
+	uvec hh = arma::hist(ve,centers);
+	printf("centers, histogram\n");
+	for (int i=0; i < centers.size(); i++) {
+		printf("%f, %d\n", centers[i], hh[i]);
+	}
+	//hh.print("hh");
+	exit(0);
+}
 //----------------------------------------------------------------------
 int discrete_sample(VF2D& x)
 {   
@@ -40,7 +79,7 @@ int discrete_sample(VF2D& x)
 
     // Setup the weights (in this case linearly weighted)
     int sz = x.n_rows;
-printf("discrete_sample: distribution size: %d\n", sz);
+//printf("discrete_sample: distribution size: %d\n", sz);
 
     std::vector<REAL> weights(sz); 
     for(int i=0; i < sz; i++) {
@@ -81,7 +120,7 @@ VF2D discrete_sample_gmm1d(VF2D predict)
 		exit(1);
 	}
 
-	printf("input_dim= %d\n", input_dim);
+	//printf("input_dim= %d\n", input_dim);
 
     int ia1   = 0;
     int ia2   = input_dim / 3;
@@ -91,11 +130,8 @@ VF2D discrete_sample_gmm1d(VF2D predict)
     int isig2 = 3* input_dim / 3;
 
     int Npi = ia2; // number of distributions
-
-	//U::print(predict, "predict");
-	//printf("iax= %d, %d\n", ia1, ia2);
     VF2D pi(predict.rows(ia1,ia2-1));
-	//U::print(pi, "pi");
+	//pi.print("pi before\n"); // is nan
 
     // softmax over the dimension index of VF2D (first index)
     REAL mx = arma::max(arma::max(pi));
@@ -111,25 +147,7 @@ VF2D discrete_sample_gmm1d(VF2D predict)
 	sig = arma::exp(sig);
 	VF2D mu(predict.rows(imu1, imu2-1));
 
-
-	//x.print("x");
-	VF2D y = soft(predict);
-	//y.print("softmax");
-
-    // Setup the weights (in this case linearly weighted)
-	int sz = pi.n_rows;
-	//printf("sz= %d\n", sz);
-    std::vector<REAL> weights(sz); // sz=65=nb_chars
-
-    for(int i=0; i < sz; i++) {
-        weights[i] = y(i,0);
-    }
-
-    // Create the distribution with those weights
-    std::discrete_distribution<> d(weights.begin(), weights.end());
-
-    // use the distribution and print the results.
-	int ix = d(gen);
+	int ix = discrete_sample(pi);
 
 	// Sample the ix^{th} normal distribution
 	REAL sigma = sig[ix];
@@ -137,6 +155,7 @@ VF2D discrete_sample_gmm1d(VF2D predict)
 	//sig.print("sig");
 	//mu.print("mu");
 	//pi.print("pi");
+	//printf("ix= %d\n", ix);
 
 	//printf("ix= %d\n", ix);
 	VF1D ss = arma::randn<VF1D>(1);
@@ -187,13 +206,13 @@ void sample(Model* mi, REAL which_char)
 		x[0] = discrete_sample_gmm1d(y[0]);
 		//message.push_back(which_char);
 	}
-	exit(0);
+	//exit(0);
 
-	printf("message: ");
+	//printf("message: ");
 	//for (int i=0; i < message.size(); i++) {
 		//printf("%c", int_c[message[i]]);
 	//}
-	printf("\n\n");
+	//printf("\n\n");
 }
 //----------------------------------------------------------------------
 // returns REAL(signal element processed)
@@ -258,7 +277,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
 	Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
-	Layer* d2    = new DenseLayer(12, "rdense"); // layer_size must be multiple of 3 for GMM
+	Layer* d2    = new DenseLayer(30, "rdense"); // layer_size must be multiple of 3 for GMM
 
 	// Softmax is included in the calculation of the cross-entropy
 
@@ -284,8 +303,8 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	// NEED A ROUTINE TO SET ALL TRANSPOSES
 
 	// b1 = 0.1 generates a single scalar. Do not know why. 
-	b1 = 0.0 * arma::ones<BIAS>(size(b1));
-	b2 = 0.0 * arma::ones<BIAS>(size(b2));
+	b1 = 1.0 * arma::ones<BIAS>(size(b1));
+	b2 = 1.0 * arma::ones<BIAS>(size(b2));
 
 	// COMPUTE ALL WEIGHT TRANSPOSES
 
@@ -337,6 +356,8 @@ void gmm1d(Globals* g)
 	Model* m_pred  = createModel(g,             1,          1, input_dim, g->layer_size);
 	Model* m = m_train;
 
+	//check_gmm_sampling();
+
 
 	// End of model
 	// -----------------------------
@@ -347,6 +368,8 @@ void gmm1d(Globals* g)
 	int seq_len = m->getSeqLen();
 	int batch_size = m->getBatchSize();
 	nb_samples = input_data.size() / (batch_size * seq_len);
+	printf("nb_samples= %d\n", nb_samples); 
+	//exit(0);
 	Objective* objective = m->getObjective();
 
 	VF2D_F net_inputs, net_exact;
@@ -354,24 +377,23 @@ void gmm1d(Globals* g)
 	U::createMat(net_exact, batch_size, input_dim, seq_len);
 
 	int count = 0;
-	int which_char;
+	REAL which_char;
 
 	for (int e=0; e < nb_epochs; e++) {
-		//which_char = c_int.at(input_data[0]);
+		which_char = input_data[0]; // need better way to initialize
 		printf("*** epoch %d ****\n", e);
 		m->resetState();
 		reset = true;
 
 		for (int i=0; i < nb_samples; i++) {
-			printf("==============================\n");
+			//printf("==============================\n");
 			#if 1
 			// ADD BACK WHEN CODE WORKS
 			//if ((count+1) % 1 == 0) {
-			if (count == 10) {
+			if (++count % 100 == 0) {
 				printf("TEST, nb_epochs: %d, iter: %d, \n", e, count);
 				m_pred->setWeightsAndBiases(m);
 				sample(m_pred, which_char);
-				//exit(0);
 			}
 			#endif
 
@@ -383,6 +405,8 @@ void gmm1d(Globals* g)
 			reset = false;
 
 			printf("TRAIN, \n");
+			net_inputs.print("net_inputs");
+			net_exact.print("net_exact");
 			m->trainOneBatch(net_inputs, net_exact);
 			count++;
 

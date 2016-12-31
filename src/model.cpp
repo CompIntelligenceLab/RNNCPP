@@ -735,6 +735,9 @@ void Model::trainOneBatch(VF2D_F& x, VF2D_F& exact)
 	#endif
 
 	objective->computeLoss(exact, pred);
+	printf("why is first element of each sequence start with zero?\n");
+	printf("Only makes sense if there are no biases\n");
+	printf("exit in trainOneBatch\n"); exit(0);
 
 	const LOSS& loss = objective->getLoss();
 	REAL rloss = arma::sum(loss[0]);
