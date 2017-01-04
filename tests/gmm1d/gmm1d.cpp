@@ -31,9 +31,9 @@ void saveGMM1(const VF2D& predict)
 	int ia1   = 0;
 	int ia2   = input_dim / 3;
 	int imu1  = input_dim / 3;
-	int imu2  = 2* input_dim / 3;
-	int isig1 = 2* input_dim / 3;
-	int isig2 = 3* input_dim / 3;
+	int imu2  = 2 * input_dim / 3;
+	int isig1 = 2 * input_dim / 3;
+	int isig2 = 3 * input_dim / 3;
 
 	VF2D pi(predict.rows(ia1,ia2-1));
 
@@ -331,7 +331,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
 	Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
 	Layer* d12   = new DenseLayer(m->layer_size,    "rdense");
-	Layer* d2    = new DenseLayer(3, "gmm"); // layer_size must be multiple of 3 for GMM
+	Layer* d2    = new DenseLayer(9, "gmm"); // layer_size must be multiple of 3 for GMM
 
 	// Softmax is included in the calculation of the cross-entropy
 
@@ -343,10 +343,10 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	m->add(d12, d2);
 
 	input->setActivation(new Identity());// Original
-	d1->setActivation(new Tanh());
-	d12->setActivation(new Tanh());
-	//d1->setActivation(new ReLU());
-	//d12->setActivation(new ReLU());
+	//d1->setActivation(new Tanh());
+	//d12->setActivation(new Tanh());
+	d1->setActivation(new ReLU());
+	d12->setActivation(new ReLU());
 	d2->setActivation(new Identity()); // original
 
 	m->addInputLayer(input);
@@ -390,6 +390,82 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	return m;
 }
 //----------------------------------------------------------------------
+Model* createModelFF(Globals* g, int batch_size, int seq_len, int input_dim, int layer_size) 
+{
+	// Feedforward model. Single layer. 
+	printf("*********** enter createModelFF ***********\n");
+	// Not working
+
+	//Model* m = new Model(*m_old);
+	Model* m = new Model();
+	m->setSeqLen(seq_len); // ignore seq_len in Globals
+	m->setInputDim(input_dim);
+	m->setBatchSize(batch_size);
+	m->nb_epochs = g->nb_epochs;
+	m->setInitializationType(g->initialization_type);
+	m->setLearningRate(g->learning_rate);
+	m->layer_size = g->layer_size;
+	m->init_weight_rms = g->init_weight_rms;
+
+	m->setObjective(new GMM1D()); 
+	m->setStateful(true);
+
+	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
+	//Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
+	int nb_gmms = 1;
+	Layer* d2    = new DenseLayer(3*nb_gmms, "gmm"); // layer_size must be multiple of 3 for GMM
+
+	// Softmax is included in the calculation of the cross-entropy
+
+	m->add(0, input);
+	m->add(input, d2);
+	//m->add(d1, d12);  
+	//m->add(d12, d12, true);  // recursive
+	//m->add(d12, d2);
+
+	input->setActivation(new Identity());// Original
+	//d1->setActivation(new Tanh());
+	//d12->setActivation(new Tanh());
+	//d1->setActivation(new ReLU());
+	//d12->setActivation(new ReLU());
+	d2->setActivation(new Identity()); // original
+
+	m->addInputLayer(input);
+	m->addOutputLayer(d2);
+
+	// create clist
+	m->connectionOrderClean(); // no print statements
+
+	m->initializeWeights(); // be initialized after freezing
+	//BIAS& b1  = d1->getBias();
+	BIAS& b2  = d2->getBias();
+	//BIAS& b12 = d12->getBias();
+
+	// NEED A ROUTINE TO SET ALL TRANSPOSES
+
+	// b1 = 0.1 generates a single scalar. Do not know why. 
+	//b1  = 0.3 * arma::ones<BIAS>(size(b1));
+	b2  = 0.3 * arma::ones<BIAS>(size(b2));
+	//b12 = 0.3 * arma::ones<BIAS>(size(b12));
+
+	// COMPUTE ALL WEIGHT TRANSPOSES
+
+	CONNECTIONS& conns = m->getSpatialConnections();
+	for (int c=0; c < conns.size(); c++) {
+		conns[c]->computeWeightTranspose();
+		printf("%d\n", conns[c]->getTemporal());
+	}
+
+	m->printSummary();
+	printf("====   after printSummary ====\n");
+
+	//U::printWeights(m);
+	//U::printInputs(m);
+	//U::printOutputs(m);
+
+	return m;
+}
+//----------------------------------------------------------------------
 
 void gmm1d(Globals* g) 
 {
@@ -405,7 +481,7 @@ void gmm1d(Globals* g)
 
 	for (int i=0; i < 10000; i++) {
 		REAL x = i * dt;
-		REAL f = .6 + .05 * sin(x);
+		REAL f = .7 + .01 * sin(x);
 		printf("f[%d]= %f\n", i, f);
 		input_data.push_back(f);
 	}
@@ -415,10 +491,14 @@ void gmm1d(Globals* g)
 
 	// CONSTRUCT MODEL
 	int input_dim = 1; // a real signal
+	#if 0
 	Model* m_train = createModel(g, g->batch_size, g->seq_len, input_dim, g->layer_size);
 	Model* m_pred  = createModel(g,             1,          1, input_dim, g->layer_size);
+	#else
+	Model* m_train = createModelFF(g, g->batch_size, g->seq_len, input_dim, g->layer_size);
+	Model* m_pred  = createModelFF(g,             1,          1, input_dim, g->layer_size);
+	#endif
 	Model* m = m_train;
-
 
 	//check_gmm_sampling();
 
@@ -470,11 +550,12 @@ void gmm1d(Globals* g)
 			reset = false;
 
 	//-----------------------------------------
-	#if 0
+	#if 1
 	// check derivatives via finite-differences
 //WEIGHT weightDerivative(Model* m, Connection& con, REAL fd_inc, VF2D_F& xf, VF2D_F& exact)
 	//std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 	runTest(m, 0.001, net_inputs, net_exact);
+	printf("gordon\n");
 	exit(0);
 	Connection* con = m->getSpatialConnections()[1];
 	con->printSummary();
@@ -500,11 +581,13 @@ void gmm1d(Globals* g)
 	FILE *fd = fopen("stats.out", "w");
 	for (int i=0; i < vpi.size(); i++) {
 	   for (int j=0; j < seq_len; j++) {
+			#if 0
 	   		fprintf(fd, "%f  %f  %f\n",
 	   		vpi[i](0,j), 
 	   		vmu[i](0,j),
 	   		vsig[i](0,j));
-			#if 0
+			#endif
+			#if 1
 	   		fprintf(fd, "%f  %f  %f  %f  %f  %f  %f  %f  %f\n",
 	   		vpi[i](0,j), vpi[i](1,j), vpi[i](2,j),
 	   		vmu[i](0,j), vmu[i](1,j), vmu[i](2,j),
