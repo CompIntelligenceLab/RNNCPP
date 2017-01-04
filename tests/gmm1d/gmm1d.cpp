@@ -470,6 +470,7 @@ void gmm1d(Globals* g)
 			reset = false;
 
 	//-----------------------------------------
+	#if 0
 	// check derivatives via finite-differences
 //WEIGHT weightDerivative(Model* m, Connection& con, REAL fd_inc, VF2D_F& xf, VF2D_F& exact)
 	//std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
@@ -480,6 +481,7 @@ void gmm1d(Globals* g)
 	WEIGHT fd = weightDerivative(m, *con, .001, net_inputs, net_exact);
 	fd.print("fd");
 	exit(0);
+	#endif
 	//-----------------------------------------
 
 			//printf("TRAIN, \n");

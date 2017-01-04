@@ -494,6 +494,7 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	int Npi = ia2; // number of distributions
 
 	VF2D pi(predict.rows(ia1,ia2-1));
+	//pi.print("pi");
 
 	// softmax over the dimension index of VF2D (first index)
 	REAL mx = arma::max(arma::max(pi));
@@ -503,6 +504,7 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	   REAL ssum = 1. / arma::sum(pi.col(s)); // = arma::exp(y[b]);
 	   pi.col(s) = pi.col(s) * ssum;  // % is elementwise multiplication (arma)
 	}
+	//pi.print("pi soft");
 
 	// standard deviations: exp(output) => sig
 
@@ -528,8 +530,11 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	pi.print("loss pi");
 	#endif
 
+	REAL PI = acos(-1.);
+	//printf("PI= %lf\n", PI); exit(0);
+
 	// ignore factor 1/sqrt(2.*pi)
-	prob = pi % arma::exp(-arma::square(xx-mu) / (sig%sig)) / arma::sqrt(sig);
+	prob = pi % arma::exp(-0.5*arma::square(xx-mu) / (sig%sig)) / arma::sqrt(2.*PI*sig);
 
 	//prob.print("prob");
 
@@ -541,7 +546,7 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	}
 	// sprob contains a sum of seq_len probabilities
 	sprob = arma::log(sprob);
-	sprob.print("sprob, seq_len elements");
+	//sprob.print("sprob, seq_len elements");
 	//exit(0);
 
 	return sprob;
@@ -556,12 +561,13 @@ void GMM1D::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 	for (int b=0; b < nb_batch; b++) {
 		loss(b) = computeLossOneBatch(exact(b), predict(b));
 	}
-	loss.print("loss in GMM1D");
+	//loss.print("loss in GMM1D");
 }
 //----------------------------------------------------------------------
 VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 {
 // First compute softmax of prediction to transform the to probabilities
+
 
 	// predict[batch][inputs, seq]
 	// predict[batch][0:inputs/3, :] ==> amplitudes
@@ -579,6 +585,7 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 	int isig2 = 3* input_dim / 3;
 
 	int Npi = ia2; // number of distributions
+	REAL PI = acos(-1.);
 
 	VF2D pi(predict.rows(ia1, ia2-1));
 
@@ -606,7 +613,7 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 	xx.each_row() = exact;
 
 	// ignore factor 1/sqrt(2.*pi)
-	prob = pi % arma::exp(-arma::square(xx-mu) / (sig%sig)) / arma::sqrt(sig);
+	prob = pi % arma::exp(-0.5*arma::square((xx-mu) /sig)) / arma::sqrt(2.*PI*sig);
 
 	// transform prob into softmax functions, one per sequence index
 
@@ -637,6 +644,7 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 //----------------------------------------------------------------------
 void GMM1D::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 {
+	std::cout.precision(11);
 	int nb_batch = predict.n_rows;
 	VF2D_F loss(nb_batch);
 
@@ -646,5 +654,48 @@ void GMM1D::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 	for (int b=0; b < nb_batch; b++) {
 		gradient(b) = computeGradientOneBatch(exact(b), predict(b));
 	}
+
+	#if 0
+	{
+	// Check derivative via finite difference
+		printf("*****************\nCheck Loss Gradient\n");
+
+		//U::print(predict, "predict"); exit(0);
+		int seq_len = predict[0].n_cols;
+		for (int in=1; in < 3; in++) {
+		for (int s=0; s < seq_len; s++) {
+
+		REAL inc = .01;
+		VF2D_F pred_p = predict;
+		//U::print(pred_p, "pred_p");
+		//printf("in,s= %d, %d\n", in, s);
+		pred_p[0](in,s) += inc;
+		VF2D_F exact_p = exact;
+		computeLoss(exact, pred_p);
+		LOSS lossp = getLoss();
+
+		VF2D_F pred_n = predict;
+		//U::print(pred_n, "pred_n");
+		pred_n[0](in,s) -= inc;
+
+		//pred_p.print("pred_p");
+		//pred_n.print("pred_n");
+
+		VF2D_F exact_n = exact;
+		computeLoss(exact, pred_n);
+		LOSS lossn = getLoss();
+		//lossp[0].raw_print(arma::cout, "lossp");
+		//lossn[0].raw_print(arma::cout, "lossn");
+		VF2D dloss = (lossp[0] - lossn[0]) / (2.*inc);
+		printf("--> in=%d, seq=%d\n", in, s);
+		dloss.print("dloss");
+		}}
+
+		gradient[0].raw_print(arma::cout, "gradient");
+
+		//printf("gradient check in GMM1D::computeGradient\n");
+		exit(0);
+	}
+	#endif
 }
 //----------------------------------------------------------------------

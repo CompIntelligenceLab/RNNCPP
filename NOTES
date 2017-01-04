@@ -954,5 +954,9 @@ when using SGD.  DO NOT KNOW WHY. I should try "generating" a signal. With a sim
 Jan. 4, 2017
 I ran runtest(), and found that derivatives dL/dw are not correct (fdinc=0.001). 
 I should test derivative of loss function and compare to its gradient. There is probably an error. 
+
+With nb GMMs = 1, derivatives are exactly double the value computed via computeGradient. The derivatives with respect to std are incorrect. 
+
+Fixed derivative wrt means. (I had forgotten factor 1/2 in Normal pdf). 
 ----------------------------------------------------------------------
 ----------------------------------------------------------------------
