@@ -297,7 +297,8 @@ WEIGHT weightDerivative(Model* m, Connection& con, REAL fd_inc, VF2D_F& xf, VF2D
 	int ccols = w0.n_cols;
 	dLdw = arma::Mat<REAL>(size(w0));
 	dLdw.zeros();
-	Objective* mse = new MeanSquareError();
+	//Objective* mse = new MeanSquareError();
+	Objective* mse = new GMM1D(); 
 
 	for (int rr=0; rr < rrows; rr++) {
 	for (int cc=0; cc < ccols; cc++)
@@ -317,6 +318,8 @@ WEIGHT weightDerivative(Model* m, Connection& con, REAL fd_inc, VF2D_F& xf, VF2D
 		// Sum the loss over the sequences
 		LOSS loss_p = (*mse)(exact, pred_p); // LOSS is a row of REALs
 		LOSS loss_n = (*mse)(exact, pred_n);
+		loss_p.print("loss_p");
+		loss_n.print("loss_n");
 
 		// take the derivative of batch 0, of the loss (summed over the sequences)
 		dLdw(rr, cc) = (arma::sum(loss_n(0)) - arma::sum(loss_p(0))) / (2.*fd_inc);
@@ -335,7 +338,8 @@ BIAS biasFDDerivative(Model* m, Layer& layer, REAL fd_inc, VF2D_F& xf, VF2D_F& e
 	int layer_size = layer.getLayerSize();
 	dLdb = BIAS(size(bias));
 	dLdb.zeros();
-	Objective* mse = new MeanSquareError();
+	//Objective* mse = new MeanSquareError();
+	Objective* mse = new GMM1D();
 
 	printf("=== biasFDDerivative ===\n");
 
@@ -444,6 +448,7 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 	m->backPropagationViaConnectionsRecursion(exact, pred); // Add sequence effect. 
 	printf("********************** EXIT BACKPROP **************************\n");
 
+
 	std::vector<Connection*> conn;
 	std::vector<BIAS> bias_fd, bias_bp;
 	std::vector<WEIGHT> weight_fd, weight_bp;
@@ -479,11 +484,14 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		b_norm.push_back(arma::norm(bias_bp_));
 	}
 
+	#if 0
 	// RECURRENT WEIGHTS and CONNECTIONS
-	for (int l=0; l < layers.size(); l++) {
-		Connection* con = layers[l]->getConnection();
+	printf("layers size: %d\n", layers.size());
+	connections = m->getTemporalConnections();
+	for (int c=0; c < connections.size(); c++) {
+		Connection* con = connections[c];
 		// when seq_len=1, recurrence has no effect. 
-		if (con && layers[l]->getSeqLen() > 1) { 
+		//if (con && layers[l]->getSeqLen() > 1) { 
 			//con->printSummary("con"); 
 			conn.push_back(con);
 			//con->getWeight().print("*weight*");
@@ -497,6 +505,7 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 			w_norm.push_back(arma::norm(weight_bp_));
 		}
 	}
+	#endif
 
 	// ACTIVATION PARAMETERS
 	for (int l=0; l < layers.size(); l++) {
@@ -511,6 +520,7 @@ std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
 		param_bp.push_back(param_bp_);
 	}
 
+	//printf("gordon\n"); exit(0);
 	// compute L2 norms of various quantities
 
 	printf("---------------------------------------------------\n");

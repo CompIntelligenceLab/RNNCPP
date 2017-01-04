@@ -331,7 +331,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
 	Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
 	Layer* d12   = new DenseLayer(m->layer_size,    "rdense");
-	Layer* d2    = new DenseLayer(9, "gmm"); // layer_size must be multiple of 3 for GMM
+	Layer* d2    = new DenseLayer(3, "gmm"); // layer_size must be multiple of 3 for GMM
 
 	// Softmax is included in the calculation of the cross-entropy
 
@@ -343,8 +343,10 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	m->add(d12, d2);
 
 	input->setActivation(new Identity());// Original
-	d1->setActivation(new ReLU());
-	d12->setActivation(new ReLU());
+	d1->setActivation(new Tanh());
+	d12->setActivation(new Tanh());
+	//d1->setActivation(new ReLU());
+	//d12->setActivation(new ReLU());
 	d2->setActivation(new Identity()); // original
 
 	m->addInputLayer(input);
@@ -403,7 +405,7 @@ void gmm1d(Globals* g)
 
 	for (int i=0; i < 10000; i++) {
 		REAL x = i * dt;
-		REAL f = .8 * sin(x);
+		REAL f = .6 + .05 * sin(x);
 		printf("f[%d]= %f\n", i, f);
 		input_data.push_back(f);
 	}
@@ -416,6 +418,7 @@ void gmm1d(Globals* g)
 	Model* m_train = createModel(g, g->batch_size, g->seq_len, input_dim, g->layer_size);
 	Model* m_pred  = createModel(g,             1,          1, input_dim, g->layer_size);
 	Model* m = m_train;
+
 
 	//check_gmm_sampling();
 
@@ -466,6 +469,19 @@ void gmm1d(Globals* g)
 			// Need a way to exit getNext... when all characters are processed
 			reset = false;
 
+	//-----------------------------------------
+	// check derivatives via finite-differences
+//WEIGHT weightDerivative(Model* m, Connection& con, REAL fd_inc, VF2D_F& xf, VF2D_F& exact)
+	//std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
+	runTest(m, 0.001, net_inputs, net_exact);
+	exit(0);
+	Connection* con = m->getSpatialConnections()[1];
+	con->printSummary();
+	WEIGHT fd = weightDerivative(m, *con, .001, net_inputs, net_exact);
+	fd.print("fd");
+	exit(0);
+	//-----------------------------------------
+
 			//printf("TRAIN, \n");
 			//net_inputs.print("net_inputs");
 			//net_exact.print("net_exact");
@@ -482,10 +498,16 @@ void gmm1d(Globals* g)
 	FILE *fd = fopen("stats.out", "w");
 	for (int i=0; i < vpi.size(); i++) {
 	   for (int j=0; j < seq_len; j++) {
+	   		fprintf(fd, "%f  %f  %f\n",
+	   		vpi[i](0,j), 
+	   		vmu[i](0,j),
+	   		vsig[i](0,j));
+			#if 0
 	   		fprintf(fd, "%f  %f  %f  %f  %f  %f  %f  %f  %f\n",
 	   		vpi[i](0,j), vpi[i](1,j), vpi[i](2,j),
 	   		vmu[i](0,j), vmu[i](1,j), vmu[i](2,j),
 	   		vsig[i](0,j), vsig[i](1,j), vsig[i](2,j));
+			#endif
 		}
 	}
 	fclose(fd);

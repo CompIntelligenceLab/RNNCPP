@@ -951,4 +951,8 @@ When I try Adagrad, it is unstable unless I decrease the learning rate. Do not k
 problem. It eventually becomes stable, but the rms, mean, pi do not oscillate nearly as cleanly as 
 when using SGD.  DO NOT KNOW WHY. I should try "generating" a signal. With a simple sign wave, I would expect the pdf to have very small sigma and be almost dirac-like if I expect a good signal reconstruction. 
 ----------------------------------------------------------------------
-
+Jan. 4, 2017
+I ran runtest(), and found that derivatives dL/dw are not correct (fdinc=0.001). 
+I should test derivative of loss function and compare to its gradient. There is probably an error. 
+----------------------------------------------------------------------
+----------------------------------------------------------------------

@@ -550,11 +550,13 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 void GMM1D::computeLoss(const VF2D_F& exact, const VF2D_F& predict)
 {
 	int nb_batch = predict.n_rows;
-	VF2D_F loss(nb_batch);
+	//VF2D_F loss(nb_batch);
+	loss.set_size(nb_batch); // needed
 
 	for (int b=0; b < nb_batch; b++) {
 		loss(b) = computeLossOneBatch(exact(b), predict(b));
 	}
+	loss.print("loss in GMM1D");
 }
 //----------------------------------------------------------------------
 VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
