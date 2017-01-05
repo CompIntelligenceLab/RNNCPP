@@ -10,13 +10,17 @@
 In this section, we derive the derivatives of the Gaussian Mixture model with respect to 
 its parameters. We assume that the GMM is one-dimensional. Thus, 
 $$
-L = \log({\sum_i p_i})
+L = -\log({\sum_i p_i})
 $$
 where 
 $$
-p_i = \pi_i N(x-\mu_i, \sigma_i)
+p_i = \pi_i N(x;\mu_i, \sigma_i)
 $$
-where $L$ is the loss function. The normal distribution is defined as: 
+where $L$ is the loss function. We can express $\sum_i p_i$ as a function of $L$: 
+$$
+\sum_i p_i = e^{-L}
+$$
+The normal distribution is defined as: 
 $$
 N(x;\mu,\sigma) = \frac{1}{\sqrt{2\pi\sigma}} \exp\left(-\frac12 \left(\frac{x-\mu}{\sigma}\right)^2\right)
 $$
@@ -29,8 +33,8 @@ where the relationship between hat and non-hat variables is provided by
 \end{align}
 Let us start with derivatives with respect to $\pihat_i$. 
 \begin{align}
-\pf{L}{\pihat_i} &= \frac{1}{\sum_j p_j} \pf{\pi_i}{\pihat_i}  \\
-                 &= e^{-L} \pf{\pi_i}{\pihat_i}  \\
+\pf{L}{\pihat_i} &= -\frac{1}{\sum_j p_j} N(x;\mu_i, \sigma_i) \pf{\pi_i}{\pihat_i}  \\
+                 &= -(y_i/p_i) \pf{\pi_i}{\pihat_i}  \\
 \end{align}
 We also have that
 \begin{align}
@@ -38,17 +42,18 @@ We also have that
   &= \pi_i ( 1 - \pi_i)
 \end{align}
 Therefore, 
-$$
-\pf{L}{\pihat_i} = e^{-L} \pi_i (1-\pi_i)
-$$
+\begin{align}
+\pf{L}{\pihat_i} &= - (y_i/p_i) \pi_i (1-\pi_i)  \\
+          &= - y_i (1-\pi_i)
+\end{align}
 
 Next, compute
 \begin{align}
-\pf{L}{\muhat_i} &= -e^{-L} \pi_i N(x; \mu_i, \sigma_i) \frac{x-\mu_i}{\sigma_i^2} \\
-                 &= -y_i  \frac{x-\mu_i}{\sigma_i^2) \\
-\pf{L}{\sighat_i} &= -e^{-L} \pi_i N(x; \mu_i, \sigma_i) \left[ -\frac{1}{2\sigma_i} + \frac{(x-\mu_i)^2}{\sigma_i^3}\right] \sigma_i \\
-                 &= -e^{-L} \pi_i N(x; \mu_i, \sigma_i) \left[-\frac12 + \frac{(x-\mu_i)^2}{\sigma_i^2} \right] \\
-				 &= -y_i \left[-\frac{1}{2} + \frac{(x-\mu_i)^2}{\sigma_i^2} \right] 
+\pf{L}{\muhat_i} &= e^{L} \pi_i N(x; \mu_i, \sigma_i) \frac{x-\mu_i}{\sigma_i^2} \\
+                 &= y_i  \frac{x-\mu_i}{\sigma_i^2} \\
+\pf{L}{\sighat_i} &= e^{L} \pi_i N(x; \mu_i, \sigma_i) \left[ -\frac{1}{2\sigma_i} + \frac{(x-\mu_i)^2}{\sigma_i^3}\right] \sigma_i \\
+                 &= e^{L} \pi_i N(x; \mu_i, \sigma_i) \left[-\frac12 + \frac{(x-\mu_i)^2}{\sigma_i^2} \right] \\
+				 &= y_i \left[-\frac{1}{2} + \frac{(x-\mu_i)^2}{\sigma_i^2} \right] 
 \end{align}
 where 
 $$

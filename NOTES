@@ -963,4 +963,9 @@ Jan. 5, 2017
 dL/dW works with a single GMM. dL/dy does not work with two GMMs (6 nodes in layer). No idea why. Once DL/dy is correct, dL/dW will work. 
 Derivatives dL/dW and DL/db are correct I should try generating the sine wave. Results are better than before, but still not good
 enough. 
+
+The gradient of GMM wrt (mu,pi,sig) has the wrong sign!!! How can this be? 
+
+gmm1d works. I create a crappy sine wave. Whether it can be improved or not remains to be seen. Perhaps I must add additional information  to the curve (as is done by A. Graves, who adds a component stating whether or not the pen is down, when generating handwriting. Perhaps I should have 2D input: function + derivative, although sequence should take care of that. 
+Perhaps I should create a LSTM next. 
 ----------------------------------------------------------------------

@@ -4,4 +4,4 @@
 # this network will have a single recurrent node 
 
 # layer size: must be multiple of 3
-build/tests/gmm1d/gmm1d -l 20 -b 1 -s 10 -a "relu" -w "xavier-char-rnn" -e 2 -lr .01 -wght_rms .1 
+build/tests/gmm1d/gmm1d -l 100 -b 1 -s 10 -a "relu" -w "xavier-char-rnn" -e 10 -lr .001 -wght_rms .1 

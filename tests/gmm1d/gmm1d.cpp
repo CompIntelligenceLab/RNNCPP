@@ -15,6 +15,9 @@
 std::vector<VF2D> vpi;
 std::vector<VF2D> vmu;
 std::vector<VF2D> vsig;
+
+REAL dt = .1;
+
 //----------------------------------------------------------------------
 void saveGMM1(const VF2D& predict)
 {
@@ -91,7 +94,7 @@ void check_gmm_sampling()
 	std::vector<REAL> prob;
 	for (int i=0; i < sz; i++) {
 		vv = discrete_sample_gmm1d(pre);
-		vv.print("vv");
+		vv.print("discrete gmm sample");
 		prob.push_back(vv(0,0));
 		ve(i) = vv(0,0);
 	}
@@ -191,15 +194,16 @@ VF2D discrete_sample_gmm1d(VF2D predict)
 	VF2D sig(predict.rows(isig1, isig2-1));
 	sig = arma::exp(sig);
 	VF2D mu(predict.rows(imu1, imu2-1));
-	mu.print("mu");
-	sig.print("sig");
-	pi.print("pi");
+	//mu.print("mu");
+	//sig.print("sig");
+	//pi.print("pi");
 
 	int ix = discrete_sample(pi);
 
 	// Sample the ix^{th} normal distribution
 	REAL sigma = sig[ix];
 	REAL mean  = mu[ix];
+	//printf("discrete sample: mean, sigma= %f, %f\n", mean, sigma);
 
 	//sig.print("sig");
 	//mu.print("mu");
@@ -215,6 +219,7 @@ VF2D discrete_sample_gmm1d(VF2D predict)
 	//printf("ss= %f\n", ss[0]);
 
 	REAL sample = mean + sigma * ss[0]; //arma::randn<VF1D>(1)[0];
+	//printf("final discrete sample: %f\n", sample);
 
 	//printf("sample= %f\n", sample);
 	//exit(0);
@@ -229,7 +234,7 @@ void sample(Model* mi, REAL which_char)
 	// Sample the GMM1D
 
 	VF2D_F x(1), y(1);
-	std::vector<int> message;
+	std::vector<REAL> message;
 
 	//printf("ENTER SAMPLE, which_char= %d\n", which_char);
 	x(0) = 3.;
@@ -240,8 +245,18 @@ void sample(Model* mi, REAL which_char)
 	//mi->printSummary();
 	//exit(0);
 
+	for (int i=0; i < 10; i++) {
+		REAL xx = i * dt;
+		REAL f = sin(xx);
+		//VF2D_F x(1); x(0)(0,0) = f;
+		x(0)(0,0) = f;
+		y = mi->predictViaConnectionsBias(x);
+		message.push_back(x[0](0,0));
+		x[0] = discrete_sample_gmm1d(y[0]);
+	}
 
-	for (int i=0; i < 5; i++) {
+	int nb_points = 300;
+	for (int i=0; i < nb_points; i++) {
 		//printf("\nsample: i= %d\n", i);
 		//printf(".... before ...\n"); U::printOutputs(mi);
 		// the output is prior to softmax
@@ -255,16 +270,15 @@ void sample(Model* mi, REAL which_char)
 		for (int l=0; l < mi->getLayers().size(); l++) {
 			mi->getLayers()[l]->setPreviousState();
 		}
-		int id;
 		x[0] = discrete_sample_gmm1d(y[0]);
-		//message.push_back(which_char);
+		message.push_back(x[0](0,0));
 	}
 	//exit(0);
 
-	//printf("message: ");
-	//for (int i=0; i < message.size(); i++) {
-		//printf("%c", int_c[message[i]]);
-	//}
+	printf("message (100 points): ");
+	for (int i=0; i < message.size(); i++) {
+		printf("%f %f\n,  ", dt*i, message[i]);
+	}
 	//printf("\n\n");
 }
 //----------------------------------------------------------------------
@@ -331,7 +345,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
 	Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
 	Layer* d12   = new DenseLayer(m->layer_size,    "rdense");
-	int nb_gmms = 3;
+	int nb_gmms = 5;
 	Layer* d2    = new DenseLayer(3*nb_gmms, "gmm"); // layer_size must be multiple of 3 for GMM
 
 	// Softmax is included in the calculation of the cross-entropy
@@ -344,10 +358,10 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	m->add(d12, d2);
 
 	input->setActivation(new Identity());// Original
-	//d1->setActivation(new Tanh());
-	//d12->setActivation(new Tanh());
-	d1->setActivation(new ReLU());
-	d12->setActivation(new ReLU());
+	d1->setActivation(new Tanh());
+	d12->setActivation(new Tanh());
+	//d1->setActivation(new ReLU());
+	//d12->setActivation(new ReLU());
 	d2->setActivation(new Identity()); // original
 
 	m->addInputLayer(input);
@@ -478,12 +492,12 @@ void gmm1d(Globals* g)
     // Data is continuous: a signal (use a sine() for testing)
 
 	std::vector<REAL> input_data;
-	REAL dt = .1;
 
 	for (int i=0; i < 10000; i++) {
 		REAL x = i * dt;
 		//REAL f = .7 + .01 * sin(x);
-		REAL f = 1.2 + .7 * sin(x);
+		//REAL f = 1.2 + .1 * sin(x);
+		REAL f = sin(x);
 		printf("f[%d]= %f\n", i, f);
 		input_data.push_back(f);
 	}
@@ -580,10 +594,21 @@ void gmm1d(Globals* g)
 	}
 
 	// save data
+	int nb_gmm = vpi[0].n_rows;
 	FILE *fd = fopen("stats.out", "w");
 	for (int i=0; i < vpi.size(); i++) {
 	   for (int j=0; j < seq_len; j++) {
-			#if 0
+	   	 for (int k=0; k < nb_gmm; k++)
+			fprintf(fd, "%f ", vpi[i](k,j));
+	   	 for (int k=0; k < nb_gmm; k++)
+			fprintf(fd, "%f ", vmu[i](k,j));
+	   	 for (int k=0; k < nb_gmm; k++)
+			fprintf(fd, "%f ", vsig[i](k,j));
+		fprintf(fd, "\n");
+	}
+	}
+	#if 0
+			#if 1
 	   		fprintf(fd, "%f  %f  %f\n",
 	   		vpi[i](0,j), 
 	   		vmu[i](0,j),
@@ -596,6 +621,7 @@ void gmm1d(Globals* g)
 			#endif
 		}
 	}
+	#endif
 	fclose(fd);
 
 	//delete input;

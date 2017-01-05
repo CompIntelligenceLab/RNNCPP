@@ -547,7 +547,7 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 		sprob += prob.row(r);
 	}
 	// sprob contains a sum of seq_len probabilities
-	sprob = arma::log(sprob);
+	sprob = -arma::log(sprob);
 	//sprob.print("sprob, seq_len elements");
 	//exit(0);
 
@@ -630,7 +630,7 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 	   yprob.col(s) *= ssum;  // % is elementwise multiplication (arma)
 	}
 
-	VF2D dLdpi  = pi - yprob;
+	VF2D dLdpi  = pi - yprob; // I CANNOT DERIVE
 	VF2D dLdmu  = -yprob % (xx-mu) / (sig%sig);
 	//VF2D dLdsig = -yprob % (arma::square((xx-mu) / sig) - 1.0);  // Graves paper has 1.0 instead of 0.5
 	VF2D dLdsig = -yprob % (arma::square((xx-mu) / sig) - 0.5);  // Graves paper has 1.0 instead of 0.5
@@ -666,8 +666,10 @@ void GMM1D::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 
 		//U::print(predict, "predict"); exit(0);
 		int seq_len = predict[0].n_cols;
-		for (int in=0; in < predict[0].n_rows; in++) {
-		for (int s=0; s < seq_len; s++) {
+		//for (int in=0; in < predict[0].n_rows; in++) {
+		for (int in=0; in < 3; in++) {
+		for (int s=0; s < 3; s++) {
+		//for (int s=0; s < seq_len; s++) {
 
 		REAL inc = .01;
 		VF2D_F pred_p = predict;
