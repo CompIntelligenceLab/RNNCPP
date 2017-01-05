@@ -959,4 +959,8 @@ With nb GMMs = 1, derivatives are exactly double the value computed via computeG
 
 Fixed derivative wrt means. (I had forgotten factor 1/2 in Normal pdf). 
 ----------------------------------------------------------------------
+Jan. 5, 2017
+dL/dW works with a single GMM. dL/dy does not work with two GMMs (6 nodes in layer). No idea why. Once DL/dy is correct, dL/dW will work. 
+Derivatives dL/dW and DL/db are correct I should try generating the sine wave. Results are better than before, but still not good
+enough. 
 ----------------------------------------------------------------------

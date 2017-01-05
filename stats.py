@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 a = np.loadtxt("stats.out")
 sz = a.shape[1];
 
-nb = 1
+nb = 3
 
 plt.subplot(2,2,1)
 for i in range(0,nb):

@@ -1,0 +1,58 @@
+\documentclass[11pt]{article}
+\usepackage{amsmath}
+\input{setupicase}
+\input{misc_mac}
+\input{macros}
+\def\muhat{\hat{\mu}}
+\def\pihat{\hat{\pi}}
+\def\sighat{\hat{\sigma}}
+\begin{document}
+In this section, we derive the derivatives of the Gaussian Mixture model with respect to 
+its parameters. We assume that the GMM is one-dimensional. Thus, 
+$$
+L = \log({\sum_i p_i})
+$$
+where 
+$$
+p_i = \pi_i N(x-\mu_i, \sigma_i)
+$$
+where $L$ is the loss function. The normal distribution is defined as: 
+$$
+N(x;\mu,\sigma) = \frac{1}{\sqrt{2\pi\sigma}} \exp\left(-\frac12 \left(\frac{x-\mu}{\sigma}\right)^2\right)
+$$
+We are interested in the derivative of $L$ with respect to $\muhat$, $\pihat$, and $\sighat$, 
+where the relationship between hat and non-hat variables is provided by 
+\begin{align}
+\mu_i &= \muhat_i \\
+\pi_i &= \frac{e^{\pihat_i}}{\sum_i e^{\pihat_i}} = \frac{e^{\pihat_i}}{Z} \\
+\sigma_i &= e^{\sighat_i}
+\end{align}
+Let us start with derivatives with respect to $\pihat_i$. 
+\begin{align}
+\pf{L}{\pihat_i} &= \frac{1}{\sum_j p_j} \pf{\pi_i}{\pihat_i}  \\
+                 &= e^{-L} \pf{\pi_i}{\pihat_i}  \\
+\end{align}
+We also have that
+\begin{align}
+\pf{\pi_i}{\pihat_i} &= \frac{e^{\pihat_i}}{Z} - \frac{e^{\pihat_i}}{Z^2} e^{\pihat_i} \\
+  &= \pi_i ( 1 - \pi_i)
+\end{align}
+Therefore, 
+$$
+\pf{L}{\pihat_i} = e^{-L} \pi_i (1-\pi_i)
+$$
+
+Next, compute
+\begin{align}
+\pf{L}{\muhat_i} &= -e^{-L} \pi_i N(x; \mu_i, \sigma_i) \frac{x-\mu_i}{\sigma_i^2} \\
+                 &= -y_i  \frac{x-\mu_i}{\sigma_i^2) \\
+\pf{L}{\sighat_i} &= -e^{-L} \pi_i N(x; \mu_i, \sigma_i) \left[ -\frac{1}{2\sigma_i} + \frac{(x-\mu_i)^2}{\sigma_i^3}\right] \sigma_i \\
+                 &= -e^{-L} \pi_i N(x; \mu_i, \sigma_i) \left[-\frac12 + \frac{(x-\mu_i)^2}{\sigma_i^2} \right] \\
+				 &= -y_i \left[-\frac{1}{2} + \frac{(x-\mu_i)^2}{\sigma_i^2} \right] 
+\end{align}
+where 
+$$
+y_i = \frac{p_i}{\sum_i p_i}
+$$
+
+\end{document}

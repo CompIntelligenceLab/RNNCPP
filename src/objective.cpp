@@ -477,6 +477,9 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	// predict[batch][inputs/3:2*inputs/3, :] ==> means
 	// predict[batch][2*inputs/3:3*inputs/3, :] ==> standard deviations
 
+	//exact.print("loss, exact");
+	//predict.print("loss, predict");
+	//exit(0);
 
 	int seq_len = predict.n_cols;
 	int input_dim = predict.n_rows;
@@ -499,12 +502,11 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	// softmax over the dimension index of VF2D (first index)
 	REAL mx = arma::max(arma::max(pi));
 	for (int s=0; s < seq_len; s++) {
-	   pi.col(s) = arma::exp(pi.col(s)-mx);
 	   // trick to avoid overflows
+	   pi.col(s) = arma::exp(pi.col(s)-mx);
 	   REAL ssum = 1. / arma::sum(pi.col(s)); // = arma::exp(y[b]);
 	   pi.col(s) = pi.col(s) * ssum;  // % is elementwise multiplication (arma)
 	}
-	//pi.print("pi soft");
 
 	// standard deviations: exp(output) => sig
 
@@ -622,7 +624,7 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 	// softmax over the dimension index of VF2D (first index)
 	mx = arma::max(arma::max(yprob));
 	for (int s=0; s < seq_len; s++) {
-	   yprob.col(s) = arma::exp(yprob.col(s)-mx);
+	   //yprob.col(s) = arma::exp(yprob.col(s)-mx);
 	   // trick to avoid overflows
 	   REAL ssum = 1. / arma::sum(yprob.col(s)); // = arma::exp(y[b]);
 	   yprob.col(s) *= ssum;  // % is elementwise multiplication (arma)
@@ -664,7 +666,7 @@ void GMM1D::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 
 		//U::print(predict, "predict"); exit(0);
 		int seq_len = predict[0].n_cols;
-		for (int in=0; in < 3; in++) {
+		for (int in=0; in < predict[0].n_rows; in++) {
 		for (int s=0; s < seq_len; s++) {
 
 		REAL inc = .01;
@@ -673,8 +675,8 @@ void GMM1D::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 		//printf("in,s= %d, %d\n", in, s);
 		pred_p[0](in,s) += inc;
 		VF2D_F exact_p = exact;
-		computeLoss(exact, pred_p);
-		LOSS lossp = getLoss();
+		computeLoss(exact_p, pred_p);
+		LOSS loss_p = getLoss();
 
 		VF2D_F pred_n = predict;
 		//U::print(pred_n, "pred_n");
@@ -684,12 +686,12 @@ void GMM1D::computeGradient(const VF2D_F& exact, const VF2D_F& predict)
 		//pred_n.print("pred_n");
 
 		VF2D_F exact_n = exact;
-		computeLoss(exact, pred_n);
-		LOSS lossn = getLoss();
+		computeLoss(exact_n, pred_n);
+		LOSS loss_n = getLoss();
 		//lossp[0].raw_print(arma::cout, "lossp");
 		//lossn[0].raw_print(arma::cout, "lossn");
-		VF2D dloss = (lossp[0] - lossn[0]) / (2.*inc);
-		printf("--> in=%d, seq=%d\n", in, s);
+		VF2D dloss = (loss_p[0] - loss_n[0]) / (2.*inc);
+		printf("--> in=%d, seq=%d,..., ", in, s);
 		dloss.print("dloss");
 		}}
 

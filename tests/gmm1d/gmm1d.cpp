@@ -331,7 +331,8 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
 	Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
 	Layer* d12   = new DenseLayer(m->layer_size,    "rdense");
-	Layer* d2    = new DenseLayer(9, "gmm"); // layer_size must be multiple of 3 for GMM
+	int nb_gmms = 3;
+	Layer* d2    = new DenseLayer(3*nb_gmms, "gmm"); // layer_size must be multiple of 3 for GMM
 
 	// Softmax is included in the calculation of the cross-entropy
 
@@ -412,7 +413,7 @@ Model* createModelFF(Globals* g, int batch_size, int seq_len, int input_dim, int
 
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
 	//Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
-	int nb_gmms = 1;
+	int nb_gmms = 2;
 	Layer* d2    = new DenseLayer(3*nb_gmms, "gmm"); // layer_size must be multiple of 3 for GMM
 
 	// Softmax is included in the calculation of the cross-entropy
@@ -481,7 +482,8 @@ void gmm1d(Globals* g)
 
 	for (int i=0; i < 10000; i++) {
 		REAL x = i * dt;
-		REAL f = .7 + .01 * sin(x);
+		//REAL f = .7 + .01 * sin(x);
+		REAL f = 1.2 + .7 * sin(x);
 		printf("f[%d]= %f\n", i, f);
 		input_data.push_back(f);
 	}
@@ -491,7 +493,7 @@ void gmm1d(Globals* g)
 
 	// CONSTRUCT MODEL
 	int input_dim = 1; // a real signal
-	#if 0
+	#if 1
 	Model* m_train = createModel(g, g->batch_size, g->seq_len, input_dim, g->layer_size);
 	Model* m_pred  = createModel(g,             1,          1, input_dim, g->layer_size);
 	#else
@@ -550,7 +552,7 @@ void gmm1d(Globals* g)
 			reset = false;
 
 	//-----------------------------------------
-	#if 1
+	#if 0
 	// check derivatives via finite-differences
 //WEIGHT weightDerivative(Model* m, Connection& con, REAL fd_inc, VF2D_F& xf, VF2D_F& exact)
 	//std::vector<WEIGHT> runTest(Model* m, REAL inc, VF2D_F& xf, VF2D_F& exact)
@@ -586,8 +588,7 @@ void gmm1d(Globals* g)
 	   		vpi[i](0,j), 
 	   		vmu[i](0,j),
 	   		vsig[i](0,j));
-			#endif
-			#if 1
+			#else
 	   		fprintf(fd, "%f  %f  %f  %f  %f  %f  %f  %f  %f\n",
 	   		vpi[i](0,j), vpi[i](1,j), vpi[i](2,j),
 	   		vmu[i](0,j), vmu[i](1,j), vmu[i](2,j),

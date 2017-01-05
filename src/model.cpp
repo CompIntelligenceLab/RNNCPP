@@ -1106,7 +1106,7 @@ Connection* Model::getConnection(Layer* layer1, Layer* layer2)
 //----------------------------------------------------------------------
 void Model::weightUpdate()
 {
-#if 1
+#if 0
 
 // Adams not working the way I expect
 
@@ -1149,7 +1149,7 @@ void Model::weightUpdate()
 //----------------------------------------------------------------------
 void Model::biasUpdate()
 {
-#if 1
+#if 0
 	for (int l=1; l < layers.size(); l++) {  // ignore input layer
 		Layer* la = layers[l];
 		//la->printSummary("Bias, ");
