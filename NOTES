@@ -968,4 +968,36 @@ The gradient of GMM wrt (mu,pi,sig) has the wrong sign!!! How can this be?
 
 gmm1d works. I create a crappy sine wave. Whether it can be improved or not remains to be seen. Perhaps I must add additional information  to the curve (as is done by A. Graves, who adds a component stating whether or not the pen is down, when generating handwriting. Perhaps I should have 2D input: function + derivative, although sequence should take care of that. 
 Perhaps I should create a LSTM next. 
+
+IDEA
+Create a LMM in which standard deviation is very small and constant. Specify it (remove it as a parameter). 
+What will happen? 
+----------------------------------------------------------------------
+Jan. 6, 2017
+Try adding random number of small amplitude to the sine wave
+
+BEST results: (dt=0.5, sine wave, 50 epochs, sample length: 20)
+Network: 
+
+two hidden layers with 100 nodes each. 
+Number of GMM's: 10
+
+Function:   f[i] = sin(x[i])
+with x[i] = 0.5 * i
+
+So \delta t = 0.5 . YOU WERE RIGHT Brian!
+
+Number of epochs: 50
+Activation function: Tanh
+Sequence length: 20  (might have something to do with the quality; not sure)
+
+==============================
+
+In red is the exact sine wave. 
+In blue: the computed sine wave via gmm. 
+The generated signal has 10000 points. 
+
+This means that each epoch has 10000/20=500 iterations, so total number of iterations: 25,000. Each iteration is a training sample with 20 values. 
+
+So now what is needed is a systematic study. Also, I should repeat this run 5 times to make sure this is not a coincidence. 
 ----------------------------------------------------------------------

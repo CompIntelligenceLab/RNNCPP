@@ -16,7 +16,7 @@ std::vector<VF2D> vpi;
 std::vector<VF2D> vmu;
 std::vector<VF2D> vsig;
 
-REAL dt = .1;
+REAL dt = .5;
 
 //----------------------------------------------------------------------
 void saveGMM1(const VF2D& predict)
@@ -345,7 +345,7 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
 	Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
 	Layer* d12   = new DenseLayer(m->layer_size,    "rdense");
-	int nb_gmms = 5;
+	int nb_gmms = 10;
 	Layer* d2    = new DenseLayer(3*nb_gmms, "gmm"); // layer_size must be multiple of 3 for GMM
 
 	// Softmax is included in the calculation of the cross-entropy
@@ -497,7 +497,8 @@ void gmm1d(Globals* g)
 		REAL x = i * dt;
 		//REAL f = .7 + .01 * sin(x);
 		//REAL f = 1.2 + .1 * sin(x);
-		REAL f = sin(x);
+		VF1D rn = arma::randn<VF1D>(1);
+		REAL f = sin(x) + .00 * rn[0];
 		printf("f[%d]= %f\n", i, f);
 		input_data.push_back(f);
 	}

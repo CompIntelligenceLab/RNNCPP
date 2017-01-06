@@ -588,11 +588,6 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		// go through all the layers and update the temporal connections
 		// On the first pass, connections are empty
 		// TEMPORARY: should be #if 0
-		#if 0    
-		for (int l=0; l < layers.size(); l++) {
-			layers[l]->forwardLoops(t-1);    // does not change with biases (empty functions it seems)
-		}
-		#endif
 
 		// update all other temporal connections coming into the layers (arbitrary order, I think)
 		// ...........
@@ -610,14 +605,9 @@ VF2D_F Model::predictViaConnectionsBias(VF2D_F x)
 		}
 		#endif
 
-	//printf("-------- print Outputs 3\n");
-	//U::printOutputs(this);
-		
-		//printf("+++\n");
 		for (int c=0; c < clist.size(); c++) {
 			Connection* conn  = clist[c];
 			Layer* to_layer   = conn->to;
-	//U::printOutputs(this);
 			to_layer->processOutputDataFromPreviousLayer(conn, prod, t);
 		}
  	}
@@ -686,7 +676,6 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		}
  	}
 
-
 	// update all other temporal connections coming into the layers (arbitrary order, I think)
 	// ...........
 
@@ -695,12 +684,6 @@ void Model::predictViaConnectionsBias(VF2D_F x, VF2D_F& prod)
 		Layer* to_layer   = conn->to;
 		to_layer->forwardLoops(conn, seq_len-1, 0); // IS THIS OK? 
 	}
-
-	//prod[0].raw_print(cout, "prod"); exit(0);
-	// I should do prod.reset(), but cannot or else I cannot return the data. 
-	// Therefore, pass prod via argument. 
-
-	//printf("****************** EXIT predictViaConnections ***************\n");
 
 	return;
 }

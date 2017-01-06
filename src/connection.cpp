@@ -251,7 +251,7 @@ void Connection::computeWeightTranspose()
 //----------------------------------------------------------------------
 void Connection::dLossDOutput(int ti_from, int ti_to, bool prt)
 {
-	// Compute derivative of Loss wrt weights
+	// Compute derivative of Loss wrt outputs
 	// If time delay is 1,ti_to == -1 when ti_from == 0
 	if (prt) {
 		printf("\n-----------------\n");
@@ -281,6 +281,9 @@ void Connection::dLossDOutput(int ti_from, int ti_to, bool prt)
 		}
 		const WEIGHT& wght_t = getWeightTranspose();
 		// prod[-1] cannot be allowed
+		//void U::rightTriad(VF2D_F& prod, const VF2D& a, const VF2D_F& b, const VF2D_F& c, int from, int to)
+		//prod(p).col(to) = a * (b(p).col(from) % c(p).col(from));    // ERROR 
+		//   prod = wght * (grad % old_deriv) 
 		U::rightTriad(prod, wght_t, grad, old_deriv, ti_from, ti_to);  // dL/da
 		if (prt) {
 			printf("dLossDOutput, decoupled\n");

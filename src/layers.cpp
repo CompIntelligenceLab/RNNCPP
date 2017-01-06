@@ -435,6 +435,7 @@ void Layer::resetState()
 	U::zeros(outputs);
 	U::zeros(delta);
 	bias_delta.zeros();
+	U::zeros(previous_state);
 
 	//getOutputs().print("layer reset outputs");
 
