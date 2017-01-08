@@ -6,12 +6,8 @@ print a.shape
 plt.plot(a[:,0], a[:,1])
 
 #Original sine
-dt = 0.5
-f = np.zeros(310)
-for i in range(310):
-	x = i * dt;
-	f[i] = np.sin(x)
+npts = a.shape[0];
 
-plt.plot(a[:,0], f, 'r')
+plt.plot(a[:,0], a[:,2], 'r')
 
 plt.show()

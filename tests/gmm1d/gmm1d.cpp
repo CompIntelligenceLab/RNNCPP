@@ -15,8 +15,13 @@
 std::vector<VF2D> vpi;
 std::vector<VF2D> vmu;
 std::vector<VF2D> vsig;
+std::vector<REAL> generateFunction(Model* m);
 
-REAL dt = .5;
+REAL PI2 = 2.*acos(-1.);
+//REAL dt = .1;;
+//REAL dt = PI2 / 50;
+//REAL dt = .5;
+//REAL dt = .2;
 
 //----------------------------------------------------------------------
 void saveGMM1(const VF2D& predict)
@@ -226,6 +231,11 @@ VF2D discrete_sample_gmm1d(VF2D predict)
 
 	VF2D res(1,1);
 	res(0,0) = sample;
+
+	if (sample > 2.) {
+		printf("out of bounds sample (%f)\n", sample);
+		printf("ix= %d, pi= %f, mean= %f, sig=%f, sample= %f\n", ix, pi[ix], mean, sigma, sample);
+	}
 	return res;
 }
 //----------------------------------------------------------------------
@@ -245,11 +255,11 @@ void sample(Model* mi, REAL which_char)
 	//mi->printSummary();
 	//exit(0);
 
+	std::vector<REAL> fct = generateFunction(mi);
+
 	for (int i=0; i < 10; i++) {
-		REAL xx = i * dt;
-		REAL f = sin(xx);
-		//VF2D_F x(1); x(0)(0,0) = f;
-		x(0)(0,0) = f;
+		REAL xx = i * mi->dt;
+		x(0)(0,0) = fct[i];
 		y = mi->predictViaConnectionsBias(x);
 		message.push_back(x[0](0,0));
 		x[0] = discrete_sample_gmm1d(y[0]);
@@ -275,11 +285,12 @@ void sample(Model* mi, REAL which_char)
 	}
 	//exit(0);
 
-	printf("message (100 points): ");
+	FILE* fd = fopen("out", "w");
+	fprintf(fd, "#t, pred, exact");
 	for (int i=0; i < message.size(); i++) {
-		printf("%f %f\n,  ", dt*i, message[i]);
+		fprintf(fd, "%f %f %f\n", mi->dt*i, message[i], fct[i]);
 	}
-	//printf("\n\n");
+	fclose(fd);
 }
 //----------------------------------------------------------------------
 // returns REAL(signal element processed)
@@ -340,7 +351,9 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	m->init_weight_rms = g->init_weight_rms;
 
 	m->setObjective(new GMM1D()); 
+	m->getObjective()->setGlobals(g); // required. Ideally should be in constructor
 	m->setStateful(true);
+	m->dt = g->dt;
 
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
 	Layer* d1    = new DenseLayer(m->layer_size,    "rdense");
@@ -362,7 +375,13 @@ Model* createModel(Globals* g, int batch_size, int seq_len, int input_dim, int l
 	d12->setActivation(new Tanh());
 	//d1->setActivation(new ReLU());
 	//d12->setActivation(new ReLU());
+
 	d2->setActivation(new Identity()); // original
+	// will limit all quantities to [-1,1]
+	// works when dt is small, although functions becomes more jagged (less smooth)
+	//d2->setActivation(new Tanh()); // original
+	// I feel that smoothness should be built into the pdf model using some kind of prior (i.e., regularization)
+	//    e.g. minimize (dy/dt)^2
 
 	m->addInputLayer(input);
 	m->addOutputLayer(d2);
@@ -423,6 +442,7 @@ Model* createModelFF(Globals* g, int batch_size, int seq_len, int input_dim, int
 	m->init_weight_rms = g->init_weight_rms;
 
 	m->setObjective(new GMM1D()); 
+	m->getObjective()->setGlobals(g); // required. Ideally should be in constructor
 	m->setStateful(true);
 
 	Layer* input = new InputLayer(m->getInputDim(), "input_layer");
@@ -481,20 +501,12 @@ Model* createModelFF(Globals* g, int batch_size, int seq_len, int input_dim, int
 	return m;
 }
 //----------------------------------------------------------------------
-
-void gmm1d(Globals* g) 
+std::vector<REAL> generateFunction(Model* m)
 {
-	int layer_size = g->layer_size;
-	int is_recurrent = g->is_recurrent;
-	int nb_epochs = g->nb_epochs;
-
-// Read Input Data (stored in input_data)
-    // Data is continuous: a signal (use a sine() for testing)
-
 	std::vector<REAL> input_data;
 
 	for (int i=0; i < 10000; i++) {
-		REAL x = i * dt;
+		REAL x = i * m->dt;
 		//REAL f = .7 + .01 * sin(x);
 		//REAL f = 1.2 + .1 * sin(x);
 		VF1D rn = arma::randn<VF1D>(1);
@@ -503,6 +515,16 @@ void gmm1d(Globals* g)
 		input_data.push_back(f);
 	}
 	//exit(0);
+	return input_data;
+}
+//----------------------------------------------------------------------
+
+void gmm1d(Globals* g) 
+{
+	int layer_size = g->layer_size;
+	int is_recurrent = g->is_recurrent;
+	int nb_epochs = g->nb_epochs;
+
 
 	//--------------------------------------
 
@@ -516,6 +538,11 @@ void gmm1d(Globals* g)
 	Model* m_pred  = createModelFF(g,             1,          1, input_dim, g->layer_size);
 	#endif
 	Model* m = m_train;
+
+// Read Input Data (stored in input_data)
+    // Data is continuous: a signal (use a sine() for testing)
+
+	std::vector<REAL> input_data = generateFunction(m);
 
 	//check_gmm_sampling();
 
@@ -608,21 +635,6 @@ void gmm1d(Globals* g)
 		fprintf(fd, "\n");
 	}
 	}
-	#if 0
-			#if 1
-	   		fprintf(fd, "%f  %f  %f\n",
-	   		vpi[i](0,j), 
-	   		vmu[i](0,j),
-	   		vsig[i](0,j));
-			#else
-	   		fprintf(fd, "%f  %f  %f  %f  %f  %f  %f  %f  %f\n",
-	   		vpi[i](0,j), vpi[i](1,j), vpi[i](2,j),
-	   		vmu[i](0,j), vmu[i](1,j), vmu[i](2,j),
-	   		vsig[i](0,j), vsig[i](1,j), vsig[i](2,j));
-			#endif
-		}
-	}
-	#endif
 	fclose(fd);
 
 	//delete input;

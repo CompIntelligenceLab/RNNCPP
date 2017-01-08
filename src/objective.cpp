@@ -8,6 +8,11 @@
 
 int Objective::counter = 0;
 
+void Objective::setGlobals(Globals* globals) 
+{
+	this->globals = globals;
+}
+
 Objective::Objective(std::string name /* "objective" */)
 {
 	char cname[80];
@@ -470,6 +475,9 @@ GMM1D::GMM1D(const GMM1D& bce) : Objective(bce)
 //----------------------------------------------------------------------
 arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predict)
 {
+
+	// regularizer parameter
+	//printf("objective reg= %f\n", globals->reg); exit(0);
 // First compute softmax of prediction to transform the to probabilities
 
 	// predict[batch][inputs, seq]
@@ -548,6 +556,11 @@ arma::Row<REAL> GMM1D::computeLossOneBatch(const VF2D& exact, const VF2D& predic
 	}
 	// sprob contains a sum of seq_len probabilities
 	sprob = -arma::log(sprob);
+
+	sprob = sprob + reg * sum(sig%sig);
+
+	// Add regularizer: sum of variances
+
 	//sprob.print("sprob, seq_len elements");
 	//exit(0);
 
@@ -634,6 +647,10 @@ VF2D GMM1D::computeGradientOneBatch(const VF2D& exact, const VF2D& predict)
 	VF2D dLdmu  = -yprob % (xx-mu) / (sig%sig);
 	//VF2D dLdsig = -yprob % (arma::square((xx-mu) / sig) - 1.0);  // Graves paper has 1.0 instead of 0.5
 	VF2D dLdsig = -yprob % (arma::square((xx-mu) / sig) - 0.5);  // Graves paper has 1.0 instead of 0.5
+
+	// d/dsighat = d/dsig * dsig/dsighat [[ sig = exp(sighat) ]]
+	//           = sig d/dsig = 2 sig % sig
+	dLdsig += 2. * reg * (sig%sig); // regularizer: sum of variances
 	//dLdmu.print("dLdmu");
 	//yprob.print("yprob");
 

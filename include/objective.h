@@ -3,6 +3,7 @@
 
 #include <string>
 #include "typedefs.h"
+#include "globals.h"
 
 class Objective
 {
@@ -15,9 +16,12 @@ protected:
 	VF2D_F gradient; // One gradient with respect to argument 
 	static int counter;
 	std::string error_type; // absolute or relative error for least mean square
+	Globals* globals;  // disadvantage: same value in all objective functions if more than one
+	                  // perhaps not, since globals is not shared between objectives and member variables are public.
 
 public:
 	Objective(std::string name="objective");
+	virtual void setGlobals(Globals* globals);
 	virtual ~Objective();
 	Objective(const Objective&);
 	const Objective& operator=(const Objective&);
@@ -127,6 +131,8 @@ public:
 class GMM1D : public Objective
 {
 private:
+	REAL reg;
+
 public:
 	GMM1D(std::string name="gmm1d");
 	~GMM1D();

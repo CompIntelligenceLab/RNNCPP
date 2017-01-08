@@ -642,6 +642,8 @@ Globals* processArguments(int argc, char** argv)
 	std::string obj_err_type = "abs";
 	REAL learning_rate = 1.e-2; 
 	REAL init_weight_rms = 0.1;
+	REAL dt = 1.;
+	REAL reg = 0.;
 
 	REAL inc;
 	string activation_type;
@@ -694,6 +696,12 @@ Globals* processArguments(int argc, char** argv)
 		} else if (arg == "-oe") {  // rel/abs error_type for objective least squares function
 			obj_err_type = argv[1];
 			argc -= 2; argv += 2;
+		} else if (arg == "-reg") {  // rel/abs error_type for objective least squares function
+			reg = atof(argv[1]);
+			argc -= 2; argv += 2;
+		} else if (arg == "-dt") {  // rel/abs error_type for objective least squares function
+			dt = atof(argv[1]);
+			argc -= 2; argv += 2;
 		} else if (arg == "-a") {
 			std::string name = argv[1];
 			activation_type = name;
@@ -728,6 +736,8 @@ Globals* processArguments(int argc, char** argv)
 	g->learning_rate = learning_rate; 
 	g->obj_err_type = obj_err_type;
 	g->init_weight_rms = init_weight_rms;
+	g->dt = dt;
+	g->reg = reg;
 
 	for (int j=0; j < nb_parallel_layers; j++) {
 	for (int i=0; i < nb_serial_layers; i++) {

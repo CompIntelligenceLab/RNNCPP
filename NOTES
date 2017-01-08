@@ -1001,3 +1001,23 @@ This means that each epoch has 10000/20=500 iterations, so total number of itera
 
 So now what is needed is a systematic study. Also, I should repeat this run 5 times to make sure this is not a coincidence. 
 ----------------------------------------------------------------------
+Jan. 8, 2017
+Automatic output of sampling data in file "out" to be read by plotsine.py
+Observation: every once in a while, I get a spike in my sine wave. That is probably because I am sampling from a Gaussian 
+distribution, and the domain of independence is -inf to inf. I probably should restrict the sample to go from mu-sig to mu+sig, 
+even though that is not strictly speaking correct. Or sample multiple times until I am within this bound. 
+
+To minimize the standard deviations of the GMM, I was thinking of regularization: minimize the sum of the sigma^2. Or minimize
+the square of the outputs to the neural nets. Not clear what would be best. This would only influence the gradient of the loss
+function with respect to the network outputs since the regularizer would not depend on the weights. 
+
+Tried reg=0.005 with Tanh on output layer and dt=.5 . Results were ok, and out of bounds samples were reduced. with lower
+sigma and no Nans. When dt=.1, I get oscillatory behavior, with the right frequency, but the curve is more jagged. 
+Replace Tanh by Identity in output layer, with dt=0.5, results are pretty smooth, but with dt=.1, 
+I get poor results. Note that tanh restricts means to [-1,1],a nd the sine wave is restricted to [-1,1]. 
+
+seq_len=10 seems to work better than seq_len=20 and better than seq_len=2. Should I expect this?  (dt=.5)
+When dt=.1 (instead of .5), should I expect longer seq_len to work better?
+
+If dt=.1, successive "y" are too close. So small errors in prediction are magnified. 
+----------------------------------------------------------------------
